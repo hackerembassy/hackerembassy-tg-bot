@@ -11,7 +11,7 @@ const IsDebug = process.env["BOTDEBUG"] === "true";
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-bot.onText(/^\/(start|help)$/, (msg) => {
+bot.onText(/^\/(start|help)/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
     "🛠 Привет хакеровчанин. Держи мой список команд:\n" +
@@ -20,7 +20,7 @@ bot.onText(/^\/(start|help)$/, (msg) => {
 });
 
 // State
-bot.onText(/^\/state$/, (msg) => {
+bot.onText(/^\/state/, (msg) => {
   let state = StatusRepository.getSpaceLastState();
 
   if (!state) {
@@ -46,7 +46,7 @@ bot.onText(/^\/state$/, (msg) => {
   );
 });
 
-bot.onText(/^\/open$/, (msg) => {
+bot.onText(/^\/open/, (msg) => {
   let state = {
     open: true,
     date: new Date(),
@@ -62,7 +62,7 @@ bot.onText(/^\/open$/, (msg) => {
   );
 });
 
-bot.onText(/^\/close$/, (msg) => {
+bot.onText(/^\/close/, (msg) => {
   let state = {
     open: false,
     date: new Date(),
@@ -79,7 +79,7 @@ bot.onText(/^\/close$/, (msg) => {
   );
 });
 
-bot.onText(/^\/in$/, (msg) => {
+bot.onText(/^\/in/, (msg) => {
   let userstate = {
     inside: true,
     date: new Date(),
@@ -95,7 +95,7 @@ bot.onText(/^\/in$/, (msg) => {
   );
 });
 
-bot.onText(/^\/out$/, (msg) => {
+bot.onText(/^\/out/, (msg) => {
   let userstate = {
     inside: false,
     date: new Date(),
@@ -112,7 +112,7 @@ bot.onText(/^\/out$/, (msg) => {
 });
 
 // User management
-bot.onText(/^\/getUsers$/, (msg, match) => {
+bot.onText(/^\/getUsers/, (msg, match) => {
   let users = UsersRepository.getUsers();
 
   let userList = "";
@@ -166,7 +166,7 @@ bot.onText(/^\/removeUser (.+)$/, (msg, match) => {
 });
 //Projects
 
-bot.onText(/^\/projects$/, async (msg) => {
+bot.onText(/^\/projects/, async (msg) => {
   let projects = ProjectsRepository.getProjects().filter(
     (p) => p.status === "open"
   );
@@ -177,7 +177,7 @@ bot.onText(/^\/projects$/, async (msg) => {
   bot.sendMessage(msg.chat.id, "⚒ Вот наши текущие проекты:\n\n" + list);
 });
 
-bot.onText(/^\/projectsAll$/, async (msg) => {
+bot.onText(/^\/projectsAll/, async (msg) => {
   let projects = ProjectsRepository.getProjects();
   let donations = ProjectsRepository.getDonations();
 

@@ -1,0 +1,19 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "description": "Hacker Embassy management bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "author": "Nick Kiselev",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^8.0.1",
+    "d": "^1.0.1",
+    "dotenv": "^16.0.3",
+    "node-telegram-bot-api": "^0.60.0",
+    "nodemon": "^2.0.20"
+  }
+}

@@ -1,28 +1,28 @@
-async function createProjectList(projects, donations) {
+async function createFundList(funds, donations) {
   let list = "";
 
-  for (const project of projects) {
-    let projectDonations = donations.filter((donation) => {
-      return donation.project_id === project.id;
+  for (const fund of funds) {
+    let fundDonations = donations.filter((donation) => {
+      return donation.fund_id === fund.id;
     });
 
-    let sum = projectDonations.reduce((prev, current) => {
+    let sum = fundDonations.reduce((prev, current) => {
       return prev.value ?? prev + current.value;
     }, 0);
 
-    let statusEmoji = `⚙️[${project.status}]`;
+    let statusEmoji = `⚙️[${fund.status}]`;
 
-    if (project.status === "closed") {
+    if (fund.status === "closed") {
       statusEmoji = "☑️ [закрыт]";
-    } else if (project.status === "postponed") {
+    } else if (fund.status === "postponed") {
       statusEmoji = "⏱ [отложен]";
-    } else if (project.status === "open") {
-      statusEmoji = sum < project.target_value ? "🟠" : "🟢";
+    } else if (fund.status === "open") {
+      statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
     }
 
-    list += `${statusEmoji} ${project.name} - Собрано ${sum} из ${project.target_value} ${project.target_currency}\n`;
+    list += `${statusEmoji} ${fund.name} - Собрано ${sum} из ${fund.target_value} ${fund.target_currency}\n`;
 
-    for (const donation of projectDonations) {
+    for (const donation of fundDonations) {
       list += `     [id:${donation.id}] - @${donation.username} - ${donation.value} ${donation.currency}\n`;
     }
   }
@@ -30,4 +30,4 @@ async function createProjectList(projects, donations) {
   return list;
 }
 
-module.exports = { createProjectList };
+module.exports = { createFundList };

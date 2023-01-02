@@ -1,9 +1,9 @@
 const GeneralCommandsList = `
 Общие команды:
 /help - Помощь
-/projects - Наши открытые проекты
-/projectsAll - Все проекты
-/state - Статус спейса и кто отметился внутри
+/funds - Наши открытые сборы
+/fundsAll - Все сборы
+/status - Статус спейса и кто отметился внутри
 /in - Отметиться находящимся в спейсе
 /out - Отметиться ушедшим из спейса
 `;
@@ -26,15 +26,15 @@ const AdminCommandsList = `
 
 const AccountantCommandsList = `
 Команды бухгалтера:
-/addProject project_name with target value_in_AMD
-/closeProject project_name
-/changeProjectStatus of project_name to status_name - 
-/removeProject project_name
-/addDonation value_in_AMD from telegram_username to project_name
+/addFund fund_name with target value_in_AMD
+/closeFund fund_name
+/changeFundStatus of fund_name to status_name - 
+/removeFund fund_name
+/addDonation value_in_AMD from telegram_username to fund_name
 /removeDonation donation_id
 
 * Statuses: open, closed, postponed
-* CAREFULL, /removeProject will wipe all its donations
+* CAREFULL, /removeFund will wipe all its donations
 `;
 
 module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList}

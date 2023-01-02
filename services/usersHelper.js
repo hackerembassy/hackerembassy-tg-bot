@@ -10,8 +10,6 @@ function hasRole(username, ...roles) {
 
 function getAvailableCommands(username) {
   let availableCommands = Commands.GeneralCommandsList;
-
-
   let userRoles = UsersRepository.getUser(username)?.roles;
 
   if (userRoles !== undefined){

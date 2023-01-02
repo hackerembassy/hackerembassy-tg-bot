@@ -2,7 +2,7 @@ require("dotenv").config();
 const TelegramBot = require("node-telegram-bot-api");
 const StatusRepository = require("./repositories/statusRepository");
 const UsersRepository = require("./repositories/usersRepository");
-const ProjectsRepository = require("./repositories/projectsRepository");
+const FundsRepository = require("./repositories/fundsRepository");
 const TextGenerators = require("./services/textGenerators");
 const UsersHelper = require("./services/usersHelper");
 
@@ -11,7 +11,7 @@ const IsDebug = process.env["BOTDEBUG"] === "true";
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-bot.onText(/^\/(start|help)(@.+)?$/, (msg) => {
+bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
     "🛠 Привет хакеровчанин. Держи мой список команд:\n" +
@@ -20,7 +20,7 @@ bot.onText(/^\/(start|help)(@.+)?$/, (msg) => {
 });
 
 // State
-bot.onText(/^\/state(@.+)?$/, (msg) => {
+bot.onText(/^\/status(@.+?)?$/, (msg) => {
   let state = StatusRepository.getSpaceLastState();
 
   if (!state) {
@@ -46,7 +46,7 @@ bot.onText(/^\/state(@.+)?$/, (msg) => {
   );
 });
 
-bot.onText(/^\/open(@.+)?$/, (msg) => {
+bot.onText(/^\/open(@.+?)?$/, (msg) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let state = {
     open: true,
@@ -63,7 +63,7 @@ bot.onText(/^\/open(@.+)?$/, (msg) => {
   );
 });
 
-bot.onText(/^\/close(@.+)?$/, (msg) => {
+bot.onText(/^\/close(@.+?)?$/, (msg) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let state = {
     open: false,
@@ -81,7 +81,7 @@ bot.onText(/^\/close(@.+)?$/, (msg) => {
   );
 });
 
-bot.onText(/^\/in(@.+)?$/, (msg) => {
+bot.onText(/^\/in(@.+?)?$/, (msg) => {
   let userstate = {
     inside: true,
     date: new Date(),
@@ -97,7 +97,7 @@ bot.onText(/^\/in(@.+)?$/, (msg) => {
   );
 });
 
-bot.onText(/^\/out(@.+)?$/, (msg) => {
+bot.onText(/^\/out(@.+?)?$/, (msg) => {
   let userstate = {
     inside: false,
     date: new Date(),
@@ -114,19 +114,19 @@ bot.onText(/^\/out(@.+)?$/, (msg) => {
 });
 
 // User management
-bot.onText(/^\/getUsers(@.+)?$/, (msg, match) => {
+bot.onText(/^\/getUsers(@.+?)?$/, (msg, match) => {
   let users = UsersRepository.getUsers();
 
   let userList = "";
 
   for (const user of users) {
-    userList += `${user.username} ${user.roles}\n`;
+    userList += `@${user.username} ${user.roles}\n`;
   }
 
   bot.sendMessage(msg.chat.id, `Текущие пользователи:\n` + userList);
 });
 
-bot.onText(/^\/addUser(@.+)? (.+?) as (.+)$/, (msg, match) => {
+bot.onText(/^\/addUser(@.+?)? (.+?) as (.+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -140,7 +140,7 @@ bot.onText(/^\/addUser(@.+)? (.+?) as (.+)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/updateRoles(@.+)? of (.+?) to (.+)$/, (msg, match) => {
+bot.onText(/^\/updateRoles(@.+?)? of (.+?) to (.+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -154,7 +154,7 @@ bot.onText(/^\/updateRoles(@.+)? of (.+?) to (.+)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/removeUser(@.+)? (.+)$/, (msg, match) => {
+bot.onText(/^\/removeUser(@.+?)? (.+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -166,113 +166,113 @@ bot.onText(/^\/removeUser(@.+)? (.+)$/, (msg, match) => {
 
   bot.sendMessage(msg.chat.id, message);
 });
-//Projects
+//funds
 
-bot.onText(/^\/projects(@.+)?$/, async (msg) => {
-  let projects = ProjectsRepository.getProjects().filter(
+bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
+  let funds = FundsRepository.getfunds().filter(
     (p) => p.status === "open"
   );
-  let donations = ProjectsRepository.getDonations();
+  let donations = FundsRepository.getDonations();
 
-  let list = await TextGenerators.createProjectList(projects, donations);
+  let list = await TextGenerators.createFundList(funds, donations);
 
-  bot.sendMessage(msg.chat.id, "⚒ Вот наши текущие проекты:\n\n" + list);
+  bot.sendMessage(msg.chat.id, "⚒ Вот наши текущие сборы:\n\n" + list);
 });
 
-bot.onText(/^\/projectsAll(@.+)?$/, async (msg) => {
-  let projects = ProjectsRepository.getProjects();
-  let donations = ProjectsRepository.getDonations();
+bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
+  let funds = FundsRepository.getfunds();
+  let donations = FundsRepository.getDonations();
 
-  let list = await TextGenerators.createProjectList(projects, donations);
+  let list = await TextGenerators.createFundList(funds, donations);
 
-  bot.sendMessage(msg.chat.id, "⚒ Вот все наши проекты:\n\n" + list);
+  bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list);
 });
 
-bot.onText(/^\/addProject(@.+)? (.+) with target (\d+)(\D*)$/, (msg, match) => {
+bot.onText(/^\/addFund(@.+?)? (.+) with target (\d+)(\D*)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-  let projectName = match[2];
+  let fundName = match[2];
   let targetValue = match[3];
 
-  let success = ProjectsRepository.addProject(projectName, targetValue);
+  let success = FundsRepository.addfund(fundName, targetValue);
   let message = success
-    ? `Добавлен проект ${projectName} с целевым сбором в ${targetValue} AMD`
-    : `Не удалось добавить проект (может он уже есть?)`;
+    ? `Добавлен сбор ${fundName} с целью в ${targetValue} AMD`
+    : `Не удалось добавить сбор (может он уже есть?)`;
 
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/removeProject(@.+)? (.+)$/, (msg, match) => {
+bot.onText(/^\/removeFund(@.+?)? (.+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-  let projectName = match[2];
+  let fundName = match[2];
 
-  let success = ProjectsRepository.removeProject(projectName);
+  let success = FundsRepository.removefund(fundName);
   let message = success
-    ? `Удален проект ${projectName}`
-    : `Не удалось удалить проект`;
+    ? `Удален сбор ${fundName}`
+    : `Не удалось удалить сбор`;
 
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/closeProject(@.+)? (.+)$/, (msg, match) => {
+bot.onText(/^\/closeFund(@.+?)? (.+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-  let projectName = match[2];
+  let fundName = match[2];
 
-  let success = ProjectsRepository.closeProject(projectName);
+  let success = FundsRepository.closefund(fundName);
   let message = success
-    ? `Закрыт проект ${projectName}`
-    : `Не удалось закрыть проект`;
+    ? `Закрыт сбор ${fundName}`
+    : `Не удалось закрыть сбор`;
 
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/changeProjectStatus(@.+)? of (.+?) to (.+)$/, (msg, match) => {
+bot.onText(/^\/changeFundStatus(@.+?)? of (.+?) to (.+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-  let projectName = match[2];
-  let projectStatus = match[3].toLowerCase();
+  let fundName = match[2];
+  let fundStatus = match[3].toLowerCase();
 
-  let success = ProjectsRepository.changeProjectStatus(
-    projectName,
-    projectStatus
+  let success = FundsRepository.changefundStatus(
+    fundName,
+    fundStatus
   );
   let message = success
-    ? `Статус проекта ${projectName} изменен на ${projectStatus}`
-    : `Не удалось изменить статус проекта`;
+    ? `Статус сбора ${fundName} изменен на ${fundStatus}`
+    : `Не удалось изменить статус сбора`;
 
   bot.sendMessage(msg.chat.id, message);
 });
 
 bot.onText(
-  /^\/addDonation(@.+)? (\d+?)(\D*?) from (.+?) to (.+)$/,
+  /^\/addDonation(@.+?)? (\d+?)(\D*?) from (.+?) to (.+)$/,
   async (msg, match) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     let value = match[2];
     let currency = match[3];
     let userName = match[4].replace("@", "");
-    let projectName = match[5];
+    let fundName = match[5];
 
-    let success = ProjectsRepository.addDonationTo(
-      projectName,
+    let success = FundsRepository.addDonationTo(
+      fundName,
       userName,
       value
     );
     let message = success
-      ? `Добавлен донат ${value}${currency} от @${userName} в проект ${projectName}`
+      ? `Добавлен донат ${value}${currency} от @${userName} в сбор ${fundName}`
       : `Не удалось добавить донат`;
 
     bot.sendMessage(msg.chat.id, message);
   }
 );
 
-bot.onText(/^\/removeDonation(@.+)? (.+)$/, (msg, match) => {
+bot.onText(/^\/removeDonation(@.+?)? (.+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
   let donationId = match[2];
 
-  let success = ProjectsRepository.removeDonationById(donationId);
+  let success = FundsRepository.removeDonationById(donationId);
   let message = success
     ? `Удален донат [id:${donationId}]`
     : `Не удалось удалить донат (может его и не было?)`;

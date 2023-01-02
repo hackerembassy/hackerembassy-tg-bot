@@ -9,7 +9,7 @@ class ProjectsRepository extends BaseRepository {
     let project = this.db
       .prepare("SELECT * FROM projects WHERE name = ?")
       .get(projectName);
-    return project ?? null;
+    return project;
   }
   getDonations() {
     let donations = this.db.prepare("SELECT * FROM donations").all();
@@ -25,11 +25,11 @@ class ProjectsRepository extends BaseRepository {
     let donation = this.db
       .prepare("SELECT * FROM donations WHERE id = ?")
       .get(donationId);
-    return donation ?? null;
+    return donation;
   }
   addProject(projectName, target, currency = "AMD") {
     try {
-      if (this.getProjectByName(projectName) !== null) return false;
+      if (this.getProjectByName(projectName) !== undefined) return false;
       this.db
         .prepare(
           "INSERT INTO projects (id, name, target_value, target_currency) VALUES (NULL, ?, ?, ?)"

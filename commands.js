@@ -1,5 +1,5 @@
 const GeneralCommandsList = `
-Общие команды
+Общие команды:
 /help - Помощь
 /projects - Наши открытые проекты
 /projectsAll - Все проекты
@@ -9,27 +9,32 @@ const GeneralCommandsList = `
 `;
 
 const MemberCommandsList = `
-Команды резидентов
+Команды резидентов:
 /open - Открыть спейс
 /close - Закрыть спейс
 `;
 
 const AdminCommandsList = ` 
-Команды админов
-/addUser telegram_username as user_role1|user_role2|user_role3 - Roles: admin, accountant, member, default
+Команды админов:
+/addUser telegram_username as user_role1|user_role2|user_role3
 /removeUser telegram_username
 /updateRoles of telegram_username to user_role1|user_role2|user_role3
 /getUsers
+
+* Roles: admin, accountant, member, default
 `;
 
 const AccountantCommandsList = `
-Команды бухгалтера
+Команды бухгалтера:
 /addProject project_name with target value_in_AMD
 /closeProject project_name
-/changeProjectStatus of project_name to status_name - Statuses: open, closed, postponed
-/removeProject project_name - CAREFULL, it will wipe all donations
+/changeProjectStatus of project_name to status_name - 
+/removeProject project_name
 /addDonation value_in_AMD from telegram_username to project_name
 /removeDonation donation_id
+
+* Statuses: open, closed, postponed
+* CAREFULL, /removeProject will wipe all its donations
 `;
 
 module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList}

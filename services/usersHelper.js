@@ -13,8 +13,8 @@ function getAvailableCommands(username) {
 
 
   let userRoles = UsersRepository.getUser(username)?.roles;
-  
-  if (userRoles !== null){
+
+  if (userRoles !== undefined){
     if (userRoles.includes("member"))
         availableCommands += Commands.MemberCommandsList;
     if (userRoles.includes("admin")) 

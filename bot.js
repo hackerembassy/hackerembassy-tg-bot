@@ -47,6 +47,7 @@ bot.onText(/^\/state/, (msg) => {
 });
 
 bot.onText(/^\/open/, (msg) => {
+  if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let state = {
     open: true,
     date: new Date(),
@@ -63,6 +64,7 @@ bot.onText(/^\/open/, (msg) => {
 });
 
 bot.onText(/^\/close/, (msg) => {
+  if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let state = {
     open: false,
     date: new Date(),

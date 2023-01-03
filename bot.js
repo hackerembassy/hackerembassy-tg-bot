@@ -126,7 +126,7 @@ bot.onText(/^\/getUsers(@.+?)?$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, `Текущие пользователи:\n` + userList);
 });
 
-bot.onText(/^\/addUser(@.+?)? (.+?) as (.+)$/, (msg, match) => {
+bot.onText(/^\/addUser(@.+?)? (\S+?) as (\S+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -140,7 +140,7 @@ bot.onText(/^\/addUser(@.+?)? (.+?) as (.+)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/updateRoles(@.+?)? of (.+?) to (.+)$/, (msg, match) => {
+bot.onText(/^\/updateRoles(@.+?)? of (\S+?) to (\S+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -154,7 +154,7 @@ bot.onText(/^\/updateRoles(@.+?)? of (.+?) to (.+)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/removeUser(@.+?)? (.+)$/, (msg, match) => {
+bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -188,7 +188,7 @@ bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
   bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list);
 });
 
-bot.onText(/^\/addFund(@.+?)? (.+) with target (\d+)(\D*)$/, (msg, match) => {
+bot.onText(/^\/addFund(@.+?)? (.*\S) with target (\d+)(\D*)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
   let fundName = match[2];
@@ -202,7 +202,7 @@ bot.onText(/^\/addFund(@.+?)? (.+) with target (\d+)(\D*)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/removeFund(@.+?)? (.+)$/, (msg, match) => {
+bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
   let fundName = match[2];
@@ -215,7 +215,7 @@ bot.onText(/^\/removeFund(@.+?)? (.+)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/closeFund(@.+?)? (.+)$/, (msg, match) => {
+bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
   let fundName = match[2];
 
@@ -227,7 +227,7 @@ bot.onText(/^\/closeFund(@.+?)? (.+)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/changeFundStatus(@.+?)? of (.+?) to (.+)$/, (msg, match) => {
+bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
   let fundName = match[2];
@@ -245,7 +245,7 @@ bot.onText(/^\/changeFundStatus(@.+?)? of (.+?) to (.+)$/, (msg, match) => {
 });
 
 bot.onText(
-  /^\/addDonation(@.+?)? (\d+?)(\D*?) from (.+?) to (.+)$/,
+  /^\/addDonation(@.+?)? (\d+?)(\D*?) from (\S+?) to (.*\S)$/,
   async (msg, match) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
@@ -267,7 +267,7 @@ bot.onText(
   }
 );
 
-bot.onText(/^\/removeDonation(@.+?)? (.+)$/, (msg, match) => {
+bot.onText(/^\/removeDonation(@.+?)? (\d+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
   let donationId = match[2];

@@ -1,11 +1,14 @@
 {
-  "name": "bot",
+  "name": "hacker-embassy-bot",
   "version": "1.0.0",
   "description": "Hacker Embassy management bot",
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
     "dev": "nodemon bot.js",
+    "start-background": "nohup node bot.js &",
+    "kill": "skill -c nohup node bot.js &",
+    "backup": "mkdir ./data/.backup -p && cp ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
     "reset": "mkdir ./data/.backup -p && mv ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db"
   },
   "author": "Nick Kiselev",

@@ -1,3 +1,4 @@
 .env
+.backup
 node_modules
 data.db

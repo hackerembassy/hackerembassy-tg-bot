@@ -5,7 +5,8 @@
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
-    "dev": "nodemon bot.js"
+    "dev": "nodemon bot.js",
+    "reset": "mkdir ./data/.backup -p && mv ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db"
   },
   "author": "Nick Kiselev",
   "license": "ISC",

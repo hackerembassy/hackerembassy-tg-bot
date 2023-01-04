@@ -65,6 +65,20 @@ class UserRepository extends BaseRepository {
       return null;
     }
   }
+
+  getUsersByRole(role) {
+    try {
+      console.log("HERE");
+      let users = this.db
+        .prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')")
+        .all(role);
+
+      return users;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
 }
 
 module.exports = new UserRepository();

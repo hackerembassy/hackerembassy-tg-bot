@@ -36,7 +36,7 @@ const AccountantCommandsList = `
 /removeDonation donation_id
 
 * Statuses: open, closed, postponed
-* CAREFULL, /removeFund will wipe all its donations
+* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead
 `;
 
 module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList}

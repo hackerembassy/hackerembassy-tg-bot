@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node bot.js",
     "dev": "nodemon bot.js",
+    "git": "git add * && git commit && git push",
+    "git-redo": "nodemon bot.js",
     "start-background": "nohup node bot.js &",
     "kill": "skill -c nohup node bot.js &",
     "backup": "mkdir ./data/.backup -p && cp ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",

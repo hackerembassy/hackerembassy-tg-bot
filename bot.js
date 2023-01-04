@@ -8,6 +8,7 @@ const UsersHelper = require("./services/usersHelper");
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
 const IsDebug = process.env["BOTDEBUG"] === "true";
+process.env.TZ = "Asia/Yerevan";
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 

@@ -1,6 +1,8 @@
 const GeneralCommandsList = `
 Общие команды:
 /help - Помощь
+/about - О спейсе
+/donate - Как задонатить
 /funds - Наши открытые сборы
 /fundsAll - Все сборы
 /status - Статус спейса и кто отметился внутри

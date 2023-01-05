@@ -78,13 +78,22 @@ bot.onText(/^\/status(@.+?)?$/, (msg) => {
 
 bot.onText(/^\/open(@.+?)?$/, (msg) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+  let opendate = new Date();
   let state = {
     open: true,
-    date: new Date(),
+    date: opendate,
     changedby: msg.from.username,
   };
 
   StatusRepository.pushSpaceState(state);
+
+  let userstate = {
+    inside: true,
+    date: opendate,
+    username: msg.from.username,
+  };
+
+  StatusRepository.pushPeopleState(userstate);
 
   bot.sendMessage(
     msg.chat.id,
@@ -112,6 +121,15 @@ bot.onText(/^\/close(@.+?)?$/, (msg) => {
 });
 
 bot.onText(/^\/in(@.+?)?$/, (msg) => {
+  // check that space is open
+  let state = StatusRepository.getSpaceLastState();
+  if (!state?.open) {
+    let message = !state ? 
+      "🔐 Статус спейса не определен, откройте его прежде чем входить! 🔐" : 
+      "🔐 Спейс закрыт, откройте его прежде чем входить! 🔐";
+    bot.sendMessage(msg.chat.id, message);
+    return;
+  }
   let userstate = {
     inside: true,
     date: new Date(),

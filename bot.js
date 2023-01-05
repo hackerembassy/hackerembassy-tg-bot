@@ -5,12 +5,16 @@ const UsersRepository = require("./repositories/usersRepository");
 const FundsRepository = require("./repositories/fundsRepository");
 const TextGenerators = require("./services/textGenerators");
 const UsersHelper = require("./services/usersHelper");
+const ExportHelper = require("./services/export");
+const Commands = require("./commands");
+const { initGlobalModifiers, tag } = require("./global");
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
 const IsDebug = process.env["BOTDEBUG"] === "true";
 process.env.TZ = "Asia/Yerevan";
 
 const bot = new TelegramBot(TOKEN, { polling: true });
+initGlobalModifiers(bot);
 
 bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
   bot.sendMessage(
@@ -18,7 +22,8 @@ bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
     `🛠 Привет хакерчан. Я новый бот для менеджмента всяких процессов в спейсе. 
 [Я еще нахожусь в разработке, ты можешь поучаствовать в моем развитии в репозитории на гитхабе спейса].
 Держи мой список команд:\n` +
-      UsersHelper.getAvailableCommands(msg.from.username)
+      UsersHelper.getAvailableCommands(msg.from.username) +
+      `${Commands.GlobalModifiers}`
   );
 });
 
@@ -36,8 +41,11 @@ bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
   let accountants = UsersRepository.getUsersByRole("accountant");
   let accountantsList = "";
 
-  if (accountants!==null){
-    accountantsList = accountants.reduce((list, user)=> `${list}@${user.username}\n`, "");
+  if (accountants !== null) {
+    accountantsList = accountants.reduce(
+      (list, user) => `${list}${tag()}${user.username}\n`,
+      ""
+    );
   }
 
   bot.sendMessage(
@@ -45,7 +53,7 @@ bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
     `Хакспейс не является коммерческим проектом и существует исключительно на пожертвования участников.
 Мы вносим свой вклад в развитие хакспейса: оплата аренды и коммуналки, забота о пространстве, помощь в приобретении оборудования.
 Мы будем рады любой поддержке. Задонатить нам можно с помощью банковской карты Visa/Mastercard Армении, крипты или налички при встрече.
-По вопросам доната обращайтесь к нашему бухгалтеру.\n`+accountantsList
+По вопросам доната обращайтесь к нашему бухгалтеру.\n` + accountantsList
   );
 });
 
@@ -66,12 +74,12 @@ bot.onText(/^\/status(@.+?)?$/, (msg) => {
       ? "👨‍💻 Внутри отметились:\n"
       : "🛌 Внутри никто не отметился\n";
   for (const user of inside) {
-    insideText += `@${user.username}\n`;
+    insideText += `${tag()}${user.username}\n`;
   }
   bot.sendMessage(
     msg.chat.id,
-    `🔐 Спейс ${stateText} юзером @${state.changedby} 🔐
-🗓 Дата изменения: ${state.date.toLocaleString()}
+    `🔐 Спейс ${stateText} юзером ${tag()}${state.changedby} 🔐
+🗓 ${state.date.toLocaleString()}
 ` + insideText
   );
 });
@@ -97,8 +105,8 @@ bot.onText(/^\/open(@.+?)?$/, (msg) => {
 
   bot.sendMessage(
     msg.chat.id,
-    `🔑 Юзер @${state.changedby} открыл спейс 🔑
-🗓 Дата изменения: ${state.date.toLocaleString()} `
+    `🔑 Юзер ${tag()}${state.changedby} открыл спейс 🔑
+🗓 ${state.date.toLocaleString()} `
   );
 });
 
@@ -115,51 +123,93 @@ bot.onText(/^\/close(@.+?)?$/, (msg) => {
 
   bot.sendMessage(
     msg.chat.id,
-    `🔓 Юзер @${state.changedby} закрыл спейс 🔓
-🗓 Дата изменения: ${state.date.toLocaleString()}`
+    `🔓 Юзер ${tag()}${state.changedby} закрыл спейс 🔓
+🗓 ${state.date.toLocaleString()}`
   );
 });
 
 bot.onText(/^\/in(@.+?)?$/, (msg) => {
-  // check that space is open
-  let state = StatusRepository.getSpaceLastState();
-  if (!state?.open) {
-    let message = !state ? 
-      "🔐 Статус спейса не определен, откройте его прежде чем входить! 🔐" : 
-      "🔐 Спейс закрыт, откройте его прежде чем входить! 🔐";
-    bot.sendMessage(msg.chat.id, message);
-    return;
-  }
-  let userstate = {
-    inside: true,
-    date: new Date(),
-    username: msg.from.username,
-  };
-
-  StatusRepository.pushPeopleState(userstate);
+  let eventDate = new Date();
+  InHandler(msg, msg.from.username, eventDate);
 
   bot.sendMessage(
     msg.chat.id,
-    `🟢 Юзер @${userstate.username} пришел в спейс 🟢
-🗓 Дата изменения: ${userstate.date.toLocaleString()} `
+    `🟢 Юзер ${tag()}${msg.from.username} пришел в спейс 🟢
+🗓 ${eventDate.toLocaleString()} `
+  );
+});
+
+bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
+  if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+  let username = match[2].replace("@", "");
+  let eventDate = new Date();
+
+  InHandler(msg, username, eventDate);
+
+  bot.sendMessage(
+    msg.chat.id,
+    `🟢 ${tag()}${
+      msg.from.username
+    } привёл юзера ${tag()}${username} в спейс  🟢
+🗓 ${eventDate.toLocaleString()} `
   );
 });
 
 bot.onText(/^\/out(@.+?)?$/, (msg) => {
-  let userstate = {
-    inside: false,
-    date: new Date(),
-    username: msg.from.username,
-  };
-
-  StatusRepository.pushPeopleState(userstate);
+  let eventDate = new Date();
+  OutHandler(msg.from.username, eventDate);
 
   bot.sendMessage(
     msg.chat.id,
-    `🔴 Юзер @${userstate.username} ушел из спейса 🔴
-🗓 Дата изменения: ${userstate.date.toLocaleString()} `
+    `🔴 Юзер ${tag()}${msg.from.username} ушел из спейса 🔴
+🗓 ${eventDate.toLocaleString()} `
   );
 });
+
+bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
+  if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+  let eventDate = new Date();
+  let username = match[2].replace("@", "");
+  OutHandler(username, eventDate);
+
+  bot.sendMessage(
+    msg.chat.id,
+    `🔴 ${tag()}${
+      msg.from.username
+    } выпроводил юзера ${tag()}${username} из спейса 🔴
+🗓 ${eventDate.toLocaleString()} `
+  );
+});
+
+function InHandler(msg, username, date) {
+  // check that space is open
+  let state = StatusRepository.getSpaceLastState();
+  if (!state?.open) {
+    let message = !state
+      ? "🔐 Статус спейса не определен, откройте его прежде чем входить! 🔐"
+      : "🔐 Спейс закрыт, откройте его прежде чем входить! 🔐";
+    bot.sendMessage(msg.chat.id, message);
+    return;
+  }
+
+  let userstate = {
+    inside: true,
+    date: date,
+    username: username,
+  };
+
+  StatusRepository.pushPeopleState(userstate);
+}
+
+function OutHandler(username, date) {
+  let userstate = {
+    inside: false,
+    date: date,
+    username: username,
+  };
+
+  StatusRepository.pushPeopleState(userstate);
+}
 
 // User management
 bot.onText(/^\/getUsers(@.+?)?$/, (msg, match) => {
@@ -168,7 +218,7 @@ bot.onText(/^\/getUsers(@.+?)?$/, (msg, match) => {
   let userList = "";
 
   for (const user of users) {
-    userList += `@${user.username} ${user.roles}\n`;
+    userList += `${tag()}${user.username} ${user.roles}\n`;
   }
 
   bot.sendMessage(msg.chat.id, `Текущие пользователи:\n` + userList);
@@ -182,7 +232,7 @@ bot.onText(/^\/addUser(@.+?)? (\S+?) as (\S+)$/, (msg, match) => {
 
   let success = UsersRepository.addUser(username, roles);
   let message = success
-    ? `Пользователь @${username} добавлен как ${roles}`
+    ? `Пользователь ${tag()}${username} добавлен как ${roles}`
     : `Не удалось добаить пользователя (может он уже есть?)`;
 
   bot.sendMessage(msg.chat.id, message);
@@ -196,7 +246,7 @@ bot.onText(/^\/updateRoles(@.+?)? of (\S+?) to (\S+)$/, (msg, match) => {
 
   let success = UsersRepository.updateRoles(username, roles);
   let message = success
-    ? `Роли @${username} установлены как ${roles}`
+    ? `Роли ${tag()}${username} установлены как ${roles}`
     : `Не удалось обновить роли`;
 
   bot.sendMessage(msg.chat.id, message);
@@ -209,7 +259,7 @@ bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
 
   let success = UsersRepository.removeUser(username);
   let message = success
-    ? `Пользователь @${username} удален`
+    ? `Пользователь ${tag()}${username} удален`
     : `Не удалось удалить пользователя (может его и не было?)`;
 
   bot.sendMessage(msg.chat.id, message);
@@ -217,9 +267,7 @@ bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
 //funds
 
 bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
-  let funds = FundsRepository.getfunds().filter(
-    (p) => p.status === "open"
-  );
+  let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
 
   let list = await TextGenerators.createFundList(funds, donations);
@@ -256,11 +304,29 @@ bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => {
   let fundName = match[2];
 
   let success = FundsRepository.removefund(fundName);
-  let message = success
-    ? `Удален сбор ${fundName}`
-    : `Не удалось удалить сбор`;
+  let message = success ? `Удален сбор ${fundName}` : `Не удалось удалить сбор`;
 
   bot.sendMessage(msg.chat.id, message);
+});
+
+bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) => {
+  if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+
+  let fundName = match[2];
+
+  let csvBuffer = await ExportHelper.exportFundToCSV(fundName);
+
+  if (!csvBuffer?.length) {
+    bot.sendMessage(msg.chat.id, "Нечего экспортировать");
+    return;
+  }
+
+  const fileOptions = {
+    filename: `${fundName} donations.csv`,
+    contentType: "text/csv",
+  };
+
+  bot.sendDocument(msg.chat.id, csvBuffer, {}, fileOptions);
 });
 
 bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, (msg, match) => {
@@ -268,9 +334,7 @@ bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, (msg, match) => {
   let fundName = match[2];
 
   let success = FundsRepository.closefund(fundName);
-  let message = success
-    ? `Закрыт сбор ${fundName}`
-    : `Не удалось закрыть сбор`;
+  let message = success ? `Закрыт сбор ${fundName}` : `Не удалось закрыть сбор`;
 
   bot.sendMessage(msg.chat.id, message);
 });
@@ -281,10 +345,7 @@ bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => {
   let fundName = match[2];
   let fundStatus = match[3].toLowerCase();
 
-  let success = FundsRepository.changefundStatus(
-    fundName,
-    fundStatus
-  );
+  let success = FundsRepository.changefundStatus(fundName, fundStatus);
   let message = success
     ? `Статус сбора ${fundName} изменен на ${fundStatus}`
     : `Не удалось изменить статус сбора`;
@@ -302,13 +363,9 @@ bot.onText(
     let userName = match[4].replace("@", "");
     let fundName = match[5];
 
-    let success = FundsRepository.addDonationTo(
-      fundName,
-      userName,
-      value
-    );
+    let success = FundsRepository.addDonationTo(fundName, userName, value);
     let message = success
-      ? `Добавлен донат ${value}${currency} от @${userName} в сбор ${fundName}`
+      ? `Добавлен донат ${value}${currency} от ${tag()}${userName} в сбор ${fundName}`
       : `Не удалось добавить донат`;
 
     bot.sendMessage(msg.chat.id, message);

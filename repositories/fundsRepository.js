@@ -5,28 +5,40 @@ class FundsRepository extends BaseRepository {
     let funds = this.db.prepare("SELECT * FROM funds").all();
     return funds;
   }
+
   getfundByName(fundName) {
     let fund = this.db
       .prepare("SELECT * FROM funds WHERE name = ?")
       .get(fundName);
     return fund;
   }
+
   getDonations() {
     let donations = this.db.prepare("SELECT * FROM donations").all();
     return donations;
   }
-  getDonationsFor(fundId) {
+
+  getDonationsForId(fundId) {
     let donations = this.db
       .prepare("SELECT * FROM donations WHERE fund_id = ?")
       .all(fundId);
     return donations;
   }
+
+  getDonationsForName(fundName) {
+    let donations = this.db
+      .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
+      .all(fundName);
+    return donations;
+  }
+
   getDonationById(donationId) {
     let donation = this.db
       .prepare("SELECT * FROM donations WHERE id = ?")
       .get(donationId);
     return donation;
   }
+
   addfund(fundName, target, currency = "AMD") {
     try {
       if (this.getfundByName(fundName) !== undefined) return false;
@@ -40,6 +52,7 @@ class FundsRepository extends BaseRepository {
       return false;
     }
   }
+  
   removefund(fundName) {
     try {
       if (this.getfundByName(fundName) === null) return false;

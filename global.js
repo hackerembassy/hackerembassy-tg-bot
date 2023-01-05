@@ -39,8 +39,8 @@ function initGlobalModifiers(bot) {
 
       let oldmode = { ...mode };
 
-      for (const modes of Object.keys(mode)) {
-        if (match[0].includes(`-${mode}`)) 
+      for (const key of Object.keys(mode)) {
+        if (match[0].includes(`-${key}`)) 
             mode[key] = true;
       }
 

@@ -123,7 +123,7 @@ bot.onText(/^\/close(@.+?)?$/, (msg) => {
 bot.onText(/^\/in(@.+?)?$/, (msg) => {
   // check that space is open
   let state = StatusRepository.getSpaceLastState();
-  if (!state.open) {
+  if (!state?.open) {
     let message = !state ? 
       "🔐 Статус спейса не определен, откройте его прежде чем входить! 🔐" : 
       "🔐 Спейс закрыт, откройте его прежде чем входить! 🔐";

@@ -1,3 +1,5 @@
+const {tag} = require("../global");
+
 async function createFundList(funds, donations) {
   let list = "";
 
@@ -23,7 +25,7 @@ async function createFundList(funds, donations) {
     list += `${statusEmoji} ${fund.name} - Собрано ${sum} из ${fund.target_value} ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
-      list += `     [id:${donation.id}] - @${donation.username} - ${donation.value} ${donation.currency}\n`;
+      list += `     [id:${donation.id}] - ${tag()}${donation.username} - ${donation.value} ${donation.currency}\n`;
     }
   }
 

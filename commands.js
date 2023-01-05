@@ -14,6 +14,8 @@ const MemberCommandsList = `
 Команды резидентов:
 /open - Открыть спейс
 /close - Закрыть спейс
+/inForce telegram_username - Отметить другого юзера пришедшим в спейс
+/outForce telegram_username - Отметить другого юзера ушедшим из спейса
 `;
 
 const AdminCommandsList = ` 
@@ -29,6 +31,7 @@ const AdminCommandsList = `
 const AccountantCommandsList = `
 Команды бухгалтера:
 /addFund fund_name with target value_in_AMD
+/exportFund fund_name
 /closeFund fund_name
 /changeFundStatus of fund_name to status_name
 /removeFund fund_name
@@ -39,4 +42,10 @@ const AccountantCommandsList = `
 * CAREFULL, /removeFund will wipe all its donations, use /closeFund instead
 `;
 
-module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList}
+const GlobalModifiers = `
+Эти модификаторы можно добавить в конце любой команды:
+-silent - Команда выполнится без вывода ответа
+-nomention - Ник пользователя будет выведен без @ и он не получит уведомление о упоминании
+`
+
+module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList, GlobalModifiers}

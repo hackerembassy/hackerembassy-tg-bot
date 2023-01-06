@@ -18,6 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^8.0.1",
+    "chartjs-to-image": "^1.1.0",
     "d": "^1.0.1",
     "dotenv": "^16.0.3",
     "fast-csv": "^4.3.6",

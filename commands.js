@@ -32,6 +32,7 @@ const AccountantCommandsList = `
 Команды бухгалтера:
 /addFund fund_name with target value_in_AMD
 /exportFund fund_name
+/exportDonut fund_name
 /closeFund fund_name
 /changeFundStatus of fund_name to status_name
 /removeFund fund_name

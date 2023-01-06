@@ -130,13 +130,15 @@ bot.onText(/^\/close(@.+?)?$/, (msg) => {
 
 bot.onText(/^\/in(@.+?)?$/, (msg) => {
   let eventDate = new Date();
-  InHandler(msg, msg.from.username, eventDate);
+  let gotIn = LetIn(msg.from.username, eventDate);
+  let message = `🟢 Юзер ${tag()}${msg.from.username} пришел в спейс 🟢
+  🗓 ${eventDate.toLocaleString()} `;
 
-  bot.sendMessage(
-    msg.chat.id,
-    `🟢 Юзер ${tag()}${msg.from.username} пришел в спейс 🟢
-🗓 ${eventDate.toLocaleString()} `
-  );
+  if (!gotIn){
+    message = "🔐 Откройте cпейс его прежде чем туда кого-то пускать! 🔐";
+  }
+
+  bot.sendMessage(msg.chat.id, message);
 });
 
 bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
@@ -144,52 +146,55 @@ bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
   let username = match[2].replace("@", "");
   let eventDate = new Date();
 
-  InHandler(msg, username, eventDate);
+  let gotIn = LetIn(username, eventDate);
 
-  bot.sendMessage(
-    msg.chat.id,
-    `🟢 ${tag()}${
-      msg.from.username
-    } привёл юзера ${tag()}${username} в спейс  🟢
+  let message = `🟢 ${tag()}${
+    msg.from.username
+  } привёл юзера ${tag()}${username} в спейс  🟢
 🗓 ${eventDate.toLocaleString()} `
-  );
+
+  if (!gotIn){
+    message = "🔐 Откройте cпейс его прежде чем туда кого-то пускать! 🔐";
+  }
+  bot.sendMessage(msg.chat.id,message);
 });
 
 bot.onText(/^\/out(@.+?)?$/, (msg) => {
   let eventDate = new Date();
-  OutHandler(msg.from.username, eventDate);
-
-  bot.sendMessage(
-    msg.chat.id,
-    `🔴 Юзер ${tag()}${msg.from.username} ушел из спейса 🔴
+  let gotOut = LetOut(msg.from.username, eventDate);
+  let message = `🔴 Юзер ${tag()}${msg.from.username} ушел из спейса 🔴
 🗓 ${eventDate.toLocaleString()} `
-  );
+
+  if (!gotOut){
+    message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез? 🔐";
+  }
+
+  bot.sendMessage(msg.chat.id,message);
 });
 
 bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let eventDate = new Date();
   let username = match[2].replace("@", "");
-  OutHandler(username, eventDate);
+  let gotOut = LetOut(username, eventDate);
 
-  bot.sendMessage(
-    msg.chat.id,
-    `🔴 ${tag()}${
-      msg.from.username
-    } выпроводил юзера ${tag()}${username} из спейса 🔴
-🗓 ${eventDate.toLocaleString()} `
-  );
+  let message = `🔴 ${tag()}${
+    msg.from.username
+  } выпроводил юзера ${tag()}${username} из спейса 🔴
+🗓 ${eventDate.toLocaleString()} `;
+
+  if (!gotOut){
+    message = "🔐 А что тот делал в закрытом спейсе, ты его там запер? 🔐";
+  }
+
+  bot.sendMessage(msg.chat.id,message);
 });
 
-function InHandler(msg, username, date) {
+function LetIn(username, date) {
   // check that space is open
   let state = StatusRepository.getSpaceLastState();
   if (!state?.open) {
-    let message = !state
-      ? "🔐 Статус спейса не определен, откройте его прежде чем входить! 🔐"
-      : "🔐 Спейс закрыт, откройте его прежде чем входить! 🔐";
-    bot.sendMessage(msg.chat.id, message);
-    return;
+    return false;
   }
 
   let userstate = {
@@ -199,9 +204,16 @@ function InHandler(msg, username, date) {
   };
 
   StatusRepository.pushPeopleState(userstate);
+
+  return true;
 }
 
-function OutHandler(username, date) {
+function LetOut(username, date) {
+  let state = StatusRepository.getSpaceLastState();
+  if (!state?.open) {
+    return false;
+  }
+
   let userstate = {
     inside: false,
     date: date,
@@ -209,6 +221,8 @@ function OutHandler(username, date) {
   };
 
   StatusRepository.pushPeopleState(userstate);
+
+  return true;
 }
 
 // User management

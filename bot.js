@@ -16,6 +16,22 @@ process.env.TZ = "Asia/Yerevan";
 const bot = new TelegramBot(TOKEN, { polling: true });
 initGlobalModifiers(bot);
 
+bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) => {
+  if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+
+  let fundName = match[2];
+
+  let imageBuffer = await ExportHelper.exportFundToDonut(fundName);
+
+  if (!imageBuffer?.length) {
+    bot.sendMessage(msg.chat.id, "Нечего экспортировать");
+    return;
+  }
+
+  bot.sendPhoto(msg.chat.id, imageBuffer);
+});
+
+
 bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
   bot.sendMessage(
     msg.chat.id,

@@ -1,7 +1,7 @@
 const {tag} = require("../global");
 
 function excapeUnderscore(text){
-  return text.replace("_","\\_");
+  return text.replaceAll("_","\\_");
 }
 
 async function createFundList(funds, donations, addCommands = false) {

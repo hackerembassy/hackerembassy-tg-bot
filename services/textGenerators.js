@@ -1,7 +1,12 @@
 const {tag} = require("../global");
 
+function excapeUnderscore(text){
+  return text.replace("_","\\_");
+}
+
 async function createFundList(funds, donations, addCommands = false) {
   let list = "";
+
 
   for (const fund of funds) {
     let fundDonations = donations.filter((donation) => {
@@ -25,7 +30,7 @@ async function createFundList(funds, donations, addCommands = false) {
     list += `${statusEmoji} \`${fund.name}\` - Собрано ${sum} из ${fund.target_value} ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
-      list += `     \\[id:${donation.id}\] - ${tag()}${donation.username} - ${donation.value} ${donation.currency}\n`;
+      list += `     \\[id:${donation.id}\] - ${tag()}${excapeUnderscore(donation.username)} - ${donation.value} ${donation.currency}\n`;
     }
     if (addCommands){
       list += "\n";

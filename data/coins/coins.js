@@ -6,7 +6,7 @@ const Coins = [
     {fullname: "Bitcoin", shortname: "bth", address: "bc1q8d4y2hza9yeevjp7fyvndd6tc6pmt8k9jk70vf", network: "BTC", qrfile:"bth.jpg"},
     {fullname: "Ethereum", shortname: "eth", address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b", network: "ETH", qrfile:"eth.jpg"},
     {fullname: "USD Coin", shortname: "usdc", address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b", network: "ERC20", qrfile:"usdc.jpg"},
-    {fullname: "Tether", shortname: "usdt", address: "0xDB6773D33505da89EC7750A703Af775B4363f376", network: "BEP20", qrfile:"usdt.jpg"},
+    {fullname: "Tether", shortname: "usdt", address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b", network: "BEP20", qrfile:"usdt.jpg"},
 ]
 
 const QRBaseFolder = "./qr";

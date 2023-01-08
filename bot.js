@@ -7,6 +7,7 @@ const TextGenerators = require("./services/textGenerators");
 const UsersHelper = require("./services/usersHelper");
 const ExportHelper = require("./services/export");
 const Commands = require("./commands");
+const CoinsHelper = require("./data/coins/coins");
 const { initGlobalModifiers, tag } = require("./global");
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
@@ -39,37 +40,67 @@ bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
 [Я еще нахожусь в разработке, ты можешь поучаствовать в моем развитии в репозитории на гитхабе спейса].
 Держи мой список команд:\n` +
       UsersHelper.getAvailableCommands(msg.from.username) +
-      `${Commands.GlobalModifiers}`
+      `${Commands.GlobalModifiers}`, {parse_mode:"Markdown"}
   );
 });
 
 bot.onText(/^\/(about)(@.+?)?$/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
-    `Hacker Embassy (Ереванский Хакспейс) - это пространство, где собираются единомышленники, увлеченные технологиями и творчеством.
-Мы вместе работаем над проектами, делимся идеями и знаниями, просто общаемся.
-Ты можешь почитать о нас подробнее на нашем сайте https://hackerembassy.site/
-Мы всегда рады новым резидентам :)`
+    `🏫 Hacker Embassy (Ереванский Хакспейс) - это пространство, где собираются единомышленники, увлеченные технологиями и творчеством. Мы вместе работаем над проектами, делимся идеями и знаниями, просто общаемся.
+
+💻 Ты можешь почитать о нас подробнее на нашем сайте https://hackerembassy.site/
+
+🍕 Мы всегда рады новым резидентам. Хочешь узнать, как стать участником? Жми команду /join`
+  );
+});
+
+bot.onText(/^\/(join)(@.+?)?$/, (msg) => {
+  bot.sendMessage(
+    msg.chat.id,
+    `🧑🏻‍🏫 Если вы находитесь в Ереване, увлечены технологиями и ищете единомышленников, заходите к нам.
+- Мы проводим регулярный день открытых дверей каждую пятницу в 20.00.
+- Часто по понедельникам в 20.00 мы проводим музыкальные встречи: приносим гитары, играем в Rocksmith и джемим.
+- В любой другой день спейс тоже может принять гостей, вводи команду /status чтобы узнать открыт ли спейс и есть ли там кто-нибудь.
+
+💸 Посещения свободные (бесплатные), но любые донаты на помощь нашим проектам и аренду дома очень приветствуются.
+Подробнее можно узнать по команде /donate
+
+🔑 Если вы хотите стать постоянным участником - полноценным резидентом сообщества, т.е. иметь свой ключ, своё место для хранения вещей (инструменты, сервера и.т.п.), участвовать в принятии решений о развитии спейса,\
+ то наши требования просты:
+- Дружелюбность и неконфликтность.
+- Готовность участвовать в жизни сообщества.
+- Регулярные пожертвования (естественно в рамках ваших возможностей).
+
+🧙🏻‍♂️ Обратитесь к любому резиденту спейса, он представит вашу кандидатуру Совету Спейса.
+`
   );
 });
 
 bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
   let accountants = UsersRepository.getUsersByRole("accountant");
-  let accountantsList = "";
-
-  if (accountants !== null) {
-    accountantsList = accountants.reduce(
-      (list, user) => `${list}${tag()}${user.username}\n`,
-      ""
-    );
-  }
+  let accountantsList = TextGenerators.getAccountsList(accountants);
 
   bot.sendMessage(
     msg.chat.id,
-    `Хакспейс не является коммерческим проектом и существует исключительно на пожертвования участников.
+    `💸 Хакспейс не является коммерческим проектом и существует исключительно на пожертвования участников.
 Мы вносим свой вклад в развитие хакспейса: оплата аренды и коммуналки, забота о пространстве, помощь в приобретении оборудования.
-Мы будем рады любой поддержке. Задонатить нам можно с помощью банковской карты Visa/Mastercard Армении, крипты или налички при встрече.
-По вопросам доната обращайтесь к нашему бухгалтеру.\n` + accountantsList
+Мы будем рады любой поддержке. 
+
+Задонатить нам можно следующими способами:
+💳 Банковская карта Visa/Mastercard Армении.
+      /donateCard
+🪙 Криптовалюта (по следующим командам)
+      /donateBTH
+      /donateETH
+      /donateUSDC
+      /donateUSDT
+💵 Наличкой при встрече (самый лучший вариант).
+      /donateCash
+
+📊 Увидеть наши текущие сборы и ваш вклад можно по команде /funds
+
+💌 По вопросам доната обращайтесь к нашим бухгалтерам, они помогут.\n` + accountantsList
   );
 });
 
@@ -85,6 +116,7 @@ bot.onText(/^\/status(@.+?)?$/, (msg) => {
   let inside = StatusRepository.getPeopleInside();
 
   let stateText = state.open ? "открыт" : "закрыт";
+  let stateEmoji = state.open ? "🔐" : "🔒";
   let insideText =
     inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
@@ -94,7 +126,7 @@ bot.onText(/^\/status(@.+?)?$/, (msg) => {
   }
   bot.sendMessage(
     msg.chat.id,
-    `🔐 Спейс ${stateText} юзером ${tag()}${state.changedby} 🔐
+    `${stateEmoji} Спейс ${stateText} юзером ${tag()}${state.changedby} ${stateEmoji}
 🗓 ${state.date.toLocaleString()}
 ` + insideText
   );
@@ -121,7 +153,7 @@ bot.onText(/^\/open(@.+?)?$/, (msg) => {
 
   bot.sendMessage(
     msg.chat.id,
-    `🔑 Юзер ${tag()}${state.changedby} открыл спейс 🔑
+    `🔐 Юзер ${tag()}${state.changedby} открыл спейс 🔐
 🗓 ${state.date.toLocaleString()} `
   );
 });
@@ -148,10 +180,10 @@ bot.onText(/^\/in(@.+?)?$/, (msg) => {
   let eventDate = new Date();
   let gotIn = LetIn(msg.from.username, eventDate);
   let message = `🟢 Юзер ${tag()}${msg.from.username} пришел в спейс 🟢
-  🗓 ${eventDate.toLocaleString()} `;
+🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotIn){
-    message = "🔐 Откройте cпейс его прежде чем туда входить! 🔐";
+    message = "🔐 Откройте cпейс прежде чем туда входить! 🔐";
   }
 
   bot.sendMessage(msg.chat.id, message);
@@ -242,11 +274,11 @@ function LetOut(username, date) {
 }
 
 // User management
-bot.onText(/^\/getUsers(@.+?)?$/, (msg, match) => {
+bot.onText(/^\/getUsers(@.+?)?$/, (msg, _) => {
+  if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
   let users = UsersRepository.getUsers();
-
   let userList = "";
-
   for (const user of users) {
     userList += `${tag()}${user.username} ${user.roles}\n`;
   }
@@ -263,7 +295,7 @@ bot.onText(/^\/addUser(@.+?)? (\S+?) as (\S+)$/, (msg, match) => {
   let success = UsersRepository.addUser(username, roles);
   let message = success
     ? `Пользователь ${tag()}${username} добавлен как ${roles}`
-    : `Не удалось добаить пользователя (может он уже есть?)`;
+    : `Не удалось добавить пользователя (может он уже есть?)`;
 
   bot.sendMessage(msg.chat.id, message);
 });
@@ -296,22 +328,26 @@ bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
 });
 //funds
 
-bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
+bot.onText(/^\/funds(@.+?)?( -nocommands)?$/, async (msg, match) => {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
+  let needCommands = !(match[2]?.length > 0);
+  let addCommands = needCommands ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
+  let list = await TextGenerators.createFundList(funds, donations, addCommands);
 
-  let list = await TextGenerators.createFundList(funds, donations);
+  bot.sendMessage(msg.chat.id, `⚒ Вот наши текущие сборы:
 
-  bot.sendMessage(msg.chat.id, "⚒ Вот наши текущие сборы:\n\n" + list);
+${list}💸 Чтобы узнать, как нам помочь - жми /donate`, {parse_mode:"Markdown"});
 });
 
-bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
+bot.onText(/^\/fundsAll(@.+?)?$/, async (msg, match) => {
   let funds = FundsRepository.getfunds();
   let donations = FundsRepository.getDonations();
+  let needCommands = !(match[2]?.length > 0);
+  let addCommands = needCommands ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
+  let list = await TextGenerators.createFundList(funds, donations, addCommands);
 
-  let list = await TextGenerators.createFundList(funds, donations);
-
-  bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list);
+  bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {parse_mode:"Markdown"});
 });
 
 bot.onText(/^\/addFund(@.+?)? (.*\S) with target (\d+)(\D*)$/, (msg, match) => {
@@ -413,6 +449,38 @@ bot.onText(/^\/removeDonation(@.+?)? (\d+)$/, (msg, match) => {
     : `Не удалось удалить донат (может его и не было?)`;
 
   bot.sendMessage(msg.chat.id, message);
+});
+
+bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, async (msg, match) => {
+  let accountants = UsersRepository.getUsersByRole("accountant");
+  let accountantsList = TextGenerators.getAccountsList(accountants);
+
+  let type = match[1];
+
+  bot.sendMessage(msg.chat.id, `💌Для того, чтобы задонатить этим способом, напишите нашим бухгалтерам. Они подскажут вам текущие реквизиты или вы сможете договориться о времени и месте передачи. 
+
+Вот они, слева-направо:
+${accountantsList}
+🛍 Если хочешь задонатить натурой или другим способом - жми /donate`);
+});
+
+bot.onText(/^\/donate(BTH|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
+  let coinname = match[1].toLowerCase();
+  let buffer = await CoinsHelper.getQR(coinname);
+  let coin = CoinsHelper.getCoinDefinition(coinname);
+
+  bot.sendPhoto(msg.chat.id, buffer, {
+    caption: `🪙 Используй этот QR код или адрес ниже, чтобы задонатить нам в ${coin.fullname}.
+
+⚠️ Обрати внимание, что сеть ${coin.network} и ты используешь правильный адрес:
+\`${coin.address}\`
+
+💌 Не забудь написать бухгалтеру, что ты задонатил(ла/ло) и скинуть код транзакции или ссылку
+в https://mempool.space/ или аналогичном сервисе
+
+🛍 Если хочешь задонатить натурой (ohh my) или другим способом - жми /donate`,
+  parse_mode:"Markdown"
+  });
 });
 
 // Debug echoing of received messages

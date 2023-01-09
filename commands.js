@@ -31,13 +31,13 @@ const AdminCommandsList = `
 
 const AccountantCommandsList = `
 Команды бухгалтера:
-\`/addFund fund_name with target value_in_AMD\`
+\`/addFund Fund_Name with target goal_value currency_code\`
 \`/exportFund fund_name\`
 \`/exportDonut fund_name\`
 \`/closeFund fund_name\`
 \`/changeFundStatus of fund_name to status_name\`
 \`/removeFund fund_name\`
-\`/addDonation value_in_AMD from telegram_username to fund_name\`
+\`/addDonation goal_value currency_code from telegram_username to fund_name\`
 \`/removeDonation donation_id\`
 
 \\* Statuses: open, closed, postponed

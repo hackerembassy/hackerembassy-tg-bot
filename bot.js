@@ -91,7 +91,7 @@ bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
 💳 Банковская карта Visa/Mastercard Армении.
       /donateCard
 🪙 Криптовалюта (по следующим командам)
-      /donateBTH
+      /donateBTC
       /donateETH
       /donateUSDC
       /donateUSDT
@@ -464,7 +464,7 @@ ${accountantsList}
 🛍 Если хочешь задонатить натурой или другим способом - жми /donate`);
 });
 
-bot.onText(/^\/donate(BTH|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
+bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
   let coinname = match[1].toLowerCase();
   let buffer = await CoinsHelper.getQR(coinname);
   let coin = CoinsHelper.getCoinDefinition(coinname);

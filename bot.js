@@ -21,8 +21,13 @@ bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
   let fundName = match[2];
-
-  let imageBuffer = await ExportHelper.exportFundToDonut(fundName);
+  let imageBuffer;
+  try {
+    imageBuffer = await ExportHelper.exportFundToDonut(fundName);
+  } catch (error) {
+    bot.sendMessage(msg.chat.id, "Что-то не так");
+    return;
+  }
 
   if (!imageBuffer?.length) {
     bot.sendMessage(msg.chat.id, "Нечего экспортировать");
@@ -32,7 +37,6 @@ bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) => {
   bot.sendPhoto(msg.chat.id, imageBuffer);
 });
 
-
 bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
@@ -40,7 +44,8 @@ bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
 [Я еще нахожусь в разработке, ты можешь поучаствовать в моем развитии в репозитории на гитхабе спейса].
 Держи мой список команд:\n` +
       UsersHelper.getAvailableCommands(msg.from.username) +
-      `${Commands.GlobalModifiers}`, {parse_mode:"Markdown"}
+      `${Commands.GlobalModifiers}`,
+    { parse_mode: "Markdown" }
   );
 });
 
@@ -100,7 +105,8 @@ bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
 
 📊 Увидеть наши текущие сборы и ваш вклад можно по команде /funds
 
-💌 По вопросам доната обращайтесь к нашим бухгалтерам, они помогут.\n` + accountantsList
+💌 По вопросам доната обращайтесь к нашим бухгалтерам, они помогут.\n` +
+      accountantsList
   );
 });
 
@@ -126,7 +132,9 @@ bot.onText(/^\/status(@.+?)?$/, (msg) => {
   }
   bot.sendMessage(
     msg.chat.id,
-    `${stateEmoji} Спейс ${stateText} юзером ${tag()}${state.changedby} ${stateEmoji}
+    `${stateEmoji} Спейс ${stateText} юзером ${tag()}${
+      state.changedby
+    } ${stateEmoji}
 🗓 ${state.date.toLocaleString()}
 ` + insideText
   );
@@ -182,7 +190,7 @@ bot.onText(/^\/in(@.+?)?$/, (msg) => {
   let message = `🟢 Юзер ${tag()}${msg.from.username} пришел в спейс 🟢
 🗓 ${eventDate.toLocaleString()} `;
 
-  if (!gotIn){
+  if (!gotIn) {
     message = "🔐 Откройте cпейс прежде чем туда входить! 🔐";
   }
 
@@ -199,25 +207,25 @@ bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
   let message = `🟢 ${tag()}${
     msg.from.username
   } привёл юзера ${tag()}${username} в спейс  🟢
-🗓 ${eventDate.toLocaleString()} `
+🗓 ${eventDate.toLocaleString()} `;
 
-  if (!gotIn){
+  if (!gotIn) {
     message = "🔐 Откройте cпейс прежде чем туда кого-то пускать! 🔐";
   }
-  bot.sendMessage(msg.chat.id,message);
+  bot.sendMessage(msg.chat.id, message);
 });
 
 bot.onText(/^\/out(@.+?)?$/, (msg) => {
   let eventDate = new Date();
   let gotOut = LetOut(msg.from.username, eventDate);
   let message = `🔴 Юзер ${tag()}${msg.from.username} ушел из спейса 🔴
-🗓 ${eventDate.toLocaleString()} `
+🗓 ${eventDate.toLocaleString()} `;
 
-  if (!gotOut){
+  if (!gotOut) {
     message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез? 🔐";
   }
 
-  bot.sendMessage(msg.chat.id,message);
+  bot.sendMessage(msg.chat.id, message);
 });
 
 bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
@@ -231,11 +239,11 @@ bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
   } выпроводил юзера ${tag()}${username} из спейса 🔴
 🗓 ${eventDate.toLocaleString()} `;
 
-  if (!gotOut){
+  if (!gotOut) {
     message = "🔐 А что тот делал в закрытом спейсе, ты его там запер? 🔐";
   }
 
-  bot.sendMessage(msg.chat.id,message);
+  bot.sendMessage(msg.chat.id, message);
 });
 
 function LetIn(username, date) {
@@ -332,37 +340,51 @@ bot.onText(/^\/funds(@.+?)?( -nocommands)?$/, async (msg, match) => {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
   let needCommands = !(match[2]?.length > 0);
-  let addCommands = needCommands ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
+  let addCommands = needCommands
+    ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
+    : false;
   let list = await TextGenerators.createFundList(funds, donations, addCommands);
 
-  bot.sendMessage(msg.chat.id, `⚒ Вот наши текущие сборы:
+  bot.sendMessage(
+    msg.chat.id,
+    `⚒ Вот наши текущие сборы:
 
-${list}💸 Чтобы узнать, как нам помочь - жми /donate`, {parse_mode:"Markdown"});
+${list}💸 Чтобы узнать, как нам помочь - жми /donate`,
+    { parse_mode: "Markdown" }
+  );
 });
 
 bot.onText(/^\/fundsAll(@.+?)?$/, async (msg, match) => {
   let funds = FundsRepository.getfunds();
   let donations = FundsRepository.getDonations();
   let needCommands = !(match[2]?.length > 0);
-  let addCommands = needCommands ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
+  let addCommands = needCommands
+    ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
+    : false;
   let list = await TextGenerators.createFundList(funds, donations, addCommands);
 
-  bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {parse_mode:"Markdown"});
+  bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
+    parse_mode: "Markdown",
+  });
 });
 
-bot.onText(/^\/addFund(@.+?)? (.*\S) with target (\d+)(\D*)$/, (msg, match) => {
-  if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+bot.onText(
+  /^\/addFund(@.+?)? (.*\S) with target ([\d.]+)\s?(\D*)$/,
+  (msg, match) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-  let fundName = match[2];
-  let targetValue = match[3];
+    let fundName = match[2];
+    let targetValue = match[3];
+    let currency = match[4]?.length > 0 ? match[4] : "AMD";
 
-  let success = FundsRepository.addfund(fundName, targetValue);
-  let message = success
-    ? `Добавлен сбор ${fundName} с целью в ${targetValue} AMD`
-    : `Не удалось добавить сбор (может он уже есть?)`;
+    let success = FundsRepository.addfund(fundName, targetValue, currency);
+    let message = success
+      ? `Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
+      : `Не удалось добавить сбор (может он уже есть?)`;
 
-  bot.sendMessage(msg.chat.id, message);
-});
+    bot.sendMessage(msg.chat.id, message);
+  }
+);
 
 bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
@@ -420,18 +442,23 @@ bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => {
 });
 
 bot.onText(
-  /^\/addDonation(@.+?)? (\d+?)(\D*?) from (\S+?) to (.*\S)$/,
+  /^\/addDonation(@.+?)? ([\d.]+?)\s?(\D*?) from (\S+?) to (.*\S)$/,
   async (msg, match) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     let value = match[2];
-    let currency = match[3];
+    let currency = match[3].length > 0 ? match[3] : "AMD";
     let userName = match[4].replace("@", "");
     let fundName = match[5];
 
-    let success = FundsRepository.addDonationTo(fundName, userName, value);
+    let success = FundsRepository.addDonationTo(
+      fundName,
+      userName,
+      value,
+      currency
+    );
     let message = success
-      ? `Добавлен донат ${value}${currency} от ${tag()}${userName} в сбор ${fundName}`
+      ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
       : `Не удалось добавить донат`;
 
     bot.sendMessage(msg.chat.id, message);
@@ -457,11 +484,14 @@ bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, async (msg, match) => {
 
   let type = match[1];
 
-  bot.sendMessage(msg.chat.id, `💌Для того, чтобы задонатить этим способом, напишите нашим бухгалтерам. Они подскажут вам текущие реквизиты или вы сможете договориться о времени и месте передачи. 
+  bot.sendMessage(
+    msg.chat.id,
+    `💌Для того, чтобы задонатить этим способом, напишите нашим бухгалтерам. Они подскажут вам текущие реквизиты или вы сможете договориться о времени и месте передачи. 
 
 Вот они, слева-направо:
 ${accountantsList}
-🛍 Если хочешь задонатить натурой или другим способом - жми /donate`);
+🛍 Если хочешь задонатить натурой или другим способом - жми /donate`
+  );
 });
 
 bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
@@ -481,7 +511,7 @@ bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
 в https://mempool.space/ или аналогичном сервисе
 
 🛍 Если хочешь задонатить натурой (ohh my) или другим способом - жми /donate`,
-  parse_mode:"Markdown"
+    parse_mode: "Markdown",
   });
 });
 

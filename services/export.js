@@ -1,6 +1,7 @@
 const { writeToBuffer } = require("@fast-csv/format");
 const FundsRepository = require("../repositories/fundsRepository");
 const ChartJsImage = require("chartjs-to-image");
+const Currency = require("../services/currency");
 
 function getRandomColor() {
   var letters = "3456789AB";
@@ -36,30 +37,37 @@ const colorScheme = [
 ];
 
 async function exportFundToCSV(fundname) {
-  let fundDonations = FundsRepository.getDonationsForName(fundname)?.map(
-    (d) => {
+  let fund = FundsRepository.getfundByName(fundname);
+  let donations =  FundsRepository.getDonationsForName(fundname);
+  let fundDonations = await Promise.all(donations.map(
+    async d => {
+      let convertedValue = await Currency.convertCurrency(d.value, d.currency, fund.target_currency);
       return {
         username: d.username,
         donation: d.value,
         currency: d.currency,
+        converted: convertedValue,
+        target_currency: fund.target_currency,
       };
     }
-  );
+  ));
 
   return (csv = await writeToBuffer(fundDonations, { headers: true }));
 }
 
 async function exportFundToDonut(fundname) {
   let fund = FundsRepository.getfundByName(fundname);
-  let fundDonations = FundsRepository.getDonationsForName(fundname)?.map(
-    d => {
+  let alldonations = FundsRepository.getDonationsForName(fundname)
+  let fundDonations = await Promise.all(alldonations.map(
+    async d => {
+      let convertedValue = await Currency.convertCurrency(d.value, d.currency, fund.target_currency);
       return {
         username: d.username,
-        donation: d.value,
-        currency: d.currency,
+        donation: Number(convertedValue.toFixed(2)),
+        currency: fund.target_currency,
       };
     }
-  );
+  ));
 
   let labels = fundDonations.map((donation) => donation.username);
   let data = fundDonations.map((donation) => donation.donation);
@@ -103,13 +111,13 @@ async function exportFundToDonut(fundname) {
           borderRadius: 10,
           anchor: "end",
           align: "end",
-          formatter: (val) => val + " AMD",
+          formatter: (val) => val,
           font: {
             size: 15,
           },
         },
         doughnutlabel: {
-          labels: [{ text: target, font: { size: 20 } }, { text: "target" }],
+          labels: [{ text: `${target} ${fund.target_currency}`, font: { size: 20 } }, { text: "target" }],
         },
       },
     },

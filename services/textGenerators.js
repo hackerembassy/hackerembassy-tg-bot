@@ -1,4 +1,5 @@
 const {tag} = require("../global");
+const Currency = require("../services/currency");
 
 function excapeUnderscore(text){
   return text.replaceAll("_","\\_");
@@ -7,14 +8,14 @@ function excapeUnderscore(text){
 async function createFundList(funds, donations, addCommands = false) {
   let list = "";
 
-
   for (const fund of funds) {
     let fundDonations = donations.filter((donation) => {
       return donation.fund_id === fund.id;
     });
 
-    let sum = fundDonations.reduce((prev, current) => {
-      return prev.value ?? prev + current.value;
+    let sum = await fundDonations.reduce(async (prev, current) => {
+      let newValue = await Currency.convertCurrency(current.value, current.currency, fund.target_currency);
+      return await prev + newValue;
     }, 0);
 
     let statusEmoji = `⚙️[${fund.status}]`;
@@ -27,7 +28,7 @@ async function createFundList(funds, donations, addCommands = false) {
       statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
     }
 
-    list += `${statusEmoji} \`${fund.name}\` - Собрано ${sum} из ${fund.target_value} ${fund.target_currency}\n`;
+    list += `${statusEmoji} \`${fund.name}\` - Собрано ${sum.toFixed(2)} из ${fund.target_value} ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
       list += `     \\[id:${donation.id}\] - ${tag()}${excapeUnderscore(donation.username)} - ${donation.value} ${donation.currency}\n`;

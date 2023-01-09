@@ -37,7 +37,7 @@ const AccountantCommandsList = `
 \`/closeFund fund_name\`
 \`/changeFundStatus of fund_name to status_name\`
 \`/removeFund fund_name\`
-\`/addDonation goal_value currency_code from telegram_username to fund_name\`
+\`/addDonation donation_value currency_code from telegram_username to fund_name\`
 \`/removeDonation donation_id\`
 
 \\* Statuses: open, closed, postponed

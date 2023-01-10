@@ -68,7 +68,6 @@ class UserRepository extends BaseRepository {
 
   getUsersByRole(role) {
     try {
-      console.log("HERE");
       let users = this.db
         .prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')")
         .all(role);

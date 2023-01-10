@@ -84,7 +84,7 @@ bot.onText(/^\/(join)(@.+?)?$/, (msg) => {
 
 bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
   let accountants = UsersRepository.getUsersByRole("accountant");
-  let accountantsList = TextGenerators.getAccountsList(accountants);
+  let accountantsList = TextGenerators.getAccountsList(accountants, tag());
 
   bot.sendMessage(
     msg.chat.id,

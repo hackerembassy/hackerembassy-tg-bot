@@ -56,12 +56,12 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
 
 
 
-function getAccountsList(accountants){
+function getAccountsList(accountants, tag){
   let accountantsList = "";
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${tag()}${user.username}\n`,
+      (list, user) => `${list}${tag}${user.username}\n`,
       ""
     );
   }

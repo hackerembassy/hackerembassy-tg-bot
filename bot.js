@@ -8,7 +8,7 @@ const UsersHelper = require("./services/usersHelper");
 const ExportHelper = require("./services/export");
 const Commands = require("./commands");
 const CoinsHelper = require("./data/coins/coins");
-const { initGlobalModifiers, tag } = require("./global");
+const { initGlobalModifiers, tag, needCommands } = require("./global");
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
 const IsDebug = process.env["BOTDEBUG"] === "true";
@@ -336,14 +336,14 @@ bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
 });
 //funds
 
-bot.onText(/^\/funds(@.+?)?( -nocommands)?$/, async (msg, match) => {
+bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
-  let needCommands = !(match[2]?.length > 0);
-  let addCommands = needCommands
+  let addCommands = needCommands()
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
-  let list = await TextGenerators.createFundList(funds, donations, addCommands);
+
+  let list = await TextGenerators.createFundList(funds, donations, addCommands, tag());
 
   bot.sendMessage(
     msg.chat.id,
@@ -354,14 +354,29 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
   );
 });
 
-bot.onText(/^\/fundsAll(@.+?)?$/, async (msg, match) => {
-  let funds = FundsRepository.getfunds();
-  let donations = FundsRepository.getDonations();
-  let needCommands = !(match[2]?.length > 0);
-  let addCommands = needCommands
+bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
+  let fundName = match[2];
+  let funds = [FundsRepository.getfundByName(fundName)];
+  let donations = FundsRepository.getDonationsForName(fundName);
+  let addCommands = needCommands()
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
-  let list = await TextGenerators.createFundList(funds, donations, addCommands);
+
+  let list = await TextGenerators.createFundList(funds, donations, addCommands, tag());
+  bot.sendMessage(
+    msg.chat.id,
+    `${list}💸 Чтобы узнать, как нам помочь - жми /donate`,
+    { parse_mode: "Markdown" }
+  );
+});
+
+bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
+  let funds = FundsRepository.getfunds();
+  let donations = FundsRepository.getDonations();
+  let addCommands = needCommands()
+    ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
+    : false;
+  let list = await TextGenerators.createFundList(funds, donations, addCommands, tag());
 
   bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
     parse_mode: "Markdown",

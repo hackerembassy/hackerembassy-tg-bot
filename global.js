@@ -1,6 +1,7 @@
 let mode = {
   silent: false,
   nomention: false,
+  nocommands: false
 };
 
 function initGlobalModifiers(bot) {
@@ -56,4 +57,8 @@ function tag() {
   return mode.nomention ? "" : "@";
 }
 
-module.exports = { mode, initGlobalModifiers, tag };
+function needCommands() {
+  return !mode.nocommands;
+}
+
+module.exports = { mode, initGlobalModifiers, tag, needCommands };

@@ -4,11 +4,12 @@ const GeneralCommandsList = `
 /about - О спейсе
 /donate - Как задонатить
 /join - Как присоединиться к нам
-/funds - Наши открытые сборы
-/fundsAll - Все сборы
 /status - Статус спейса и кто отметился внутри
 /in - Отметиться находящимся в спейсе
 /out - Отметиться ушедшим из спейса
+/funds - Наши открытые сборы
+/fundsAll - Все сборы
+\`/fund fund_name\` - Вывести сбор по имени
 `;
 
 const MemberCommandsList = `
@@ -48,6 +49,7 @@ const GlobalModifiers = `
 Эти модификаторы можно добавить в конце любой команды:
 \`-silent\` - Команда выполнится без вывода ответа
 \`-nomention\` - Ник пользователя будет выведен без @ и он не получит уведомление о упоминании
+\`-nocommands\` - Вспомогательные команды не будут выводиться для админа и бухгалтера по умолчанию
 `
 
 module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList, GlobalModifiers}

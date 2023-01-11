@@ -17,10 +17,9 @@ process.env.TZ = "Asia/Yerevan";
 const bot = new TelegramBot(TOKEN, { polling: true });
 initGlobalModifiers(bot);
 
-bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) => {
+let exportDonutHandler = async (msg, fundName) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-  let fundName = match[2];
   let imageBuffer;
   try {
     imageBuffer = await ExportHelper.exportFundToDonut(fundName);
@@ -35,7 +34,11 @@ bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) => {
   }
 
   bot.sendPhoto(msg.chat.id, imageBuffer);
-});
+};
+
+bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) =>
+  exportDonutHandler(msg, match[2])
+);
 
 bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
   bot.sendMessage(
@@ -116,21 +119,25 @@ bot.onText(/^\/location(@.+?)?$/, (msg) => {
   let message = `🗺 Наш адрес: Армения, Ереван, Пушкина 38 (вход со двора)`;
   bot.sendMessage(msg.chat.id, message);
   bot.sendLocation(msg.chat.id, 40.18258, 44.51338);
-  bot.sendPhoto(msg.chat.id, "./images/house.jpg", {caption: `🏫 Вот этот домик, единственный в своем роде`})
-})
+  bot.sendPhoto(msg.chat.id, "./images/house.jpg", {
+    caption: `🏫 Вот этот домик, единственный в своем роде`,
+  });
+});
 
-bot.on("new_chat_members", async msg => {
+bot.on("new_chat_members", async (msg) => {
   let botName = (await bot.getMe()).username;
-  let newMembers = msg.new_chat_members.reduce((res, member)=> res+`${tag()}${member.username} `, "");
+  let newMembers = msg.new_chat_members.reduce(
+    (res, member) => res + `${tag()}${member.username} `,
+    ""
+  );
   let message = `🇬🇧 Добро пожаловать в наш уютный уголок, ${newMembers}
 
 Я @${botName}, бот-менеджер хакерспейса. Ко мне в личку можно зайти пообщаться, вбить мои команды, и я расскажу вкратце о нас.
 🎉🎉🎉 Хакерчане, приветствуем ${newMembers}`;
   bot.sendMessage(msg.chat.id, message);
-})
+});
 
-// State
-bot.onText(/^\/status(@.+?)?$/, (msg) => {
+let statusHandler = (msg) => {
   let state = StatusRepository.getSpaceLastState();
 
   if (!state) {
@@ -142,24 +149,59 @@ bot.onText(/^\/status(@.+?)?$/, (msg) => {
 
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔐" : "🔒";
-  let insideText =
-    inside.length > 0
+  let inlineKeyboard = state.open
+    ? [
+        [
+          {
+            text: "Я пришёл в спейс",
+            callback_data: JSON.stringify({ command: "/in" }),
+          },
+          {
+            text: "Я ушёл из спейса",
+            callback_data: JSON.stringify({ command: "/out" }),
+          },
+          {
+            text: "Закрыть спейс",
+            callback_data: JSON.stringify({ command: "/close" }),
+          },
+        ],
+      ]
+    : [
+        [
+          {
+            text: "Открыть спейс",
+            callback_data: JSON.stringify({ command: "/open" }),
+          },
+        ],
+      ];
+  let insideText = state.open
+    ? inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
-      : "🛌 Внутри никто не отметился\n";
+      : "🛌 Внутри никто не отметился\n"
+    : "";
   for (const user of inside) {
     insideText += `${tag()}${user.username}\n`;
   }
   bot.sendMessage(
     msg.chat.id,
-    `${stateEmoji} Спейс ${stateText} юзером ${tag()}${
-      state.changedby
-    } ${stateEmoji}
-🗓 ${state.date.toLocaleString()}
-` + insideText
-  );
-});
+    `${stateEmoji} Спейс ${stateText} ${tag()}${state.changedby} ${stateEmoji}
+Отличный повод зайти
 
-bot.onText(/^\/open(@.+?)?$/, (msg) => {
+🗓 ${state.date.toLocaleString()}
+
+` + insideText,
+    {
+      reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      },
+    }
+  );
+};
+
+// State
+bot.onText(/^\/status(@.+?)?$/, statusHandler);
+
+let openHandler = (msg) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let opendate = new Date();
   let state = {
@@ -178,15 +220,42 @@ bot.onText(/^\/open(@.+?)?$/, (msg) => {
 
   StatusRepository.pushPeopleState(userstate);
 
+  let inlineKeyboard = [
+    [
+      {
+        text: "Я тоже пришёл",
+        callback_data: JSON.stringify({ command: "/in" }),
+      },
+      {
+        text: "Закрыть снова",
+        callback_data: JSON.stringify({ command: "/close" }),
+      },
+    ],
+    [
+      {
+        text: "Кто внутри",
+        callback_data: JSON.stringify({ command: "/status" }),
+      },
+    ],
+  ];
+
   bot.sendMessage(
     msg.chat.id,
-    `🔐 Юзер ${tag()}${state.changedby} открыл спейс 🔐
-🗓 ${state.date.toLocaleString()} `
-  );
-});
+    `🔐 ${tag()}${state.changedby} открыл спейс 🔐
+Отличный повод зайти
 
-bot.onText(/^\/close(@.+?)?$/, (msg) => {
+🗓 ${state.date.toLocaleString()} `,
+    {
+      reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      },
+    }
+  );
+};
+
+let closeHandler = (msg) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+
   let state = {
     open: false,
     date: new Date(),
@@ -196,25 +265,124 @@ bot.onText(/^\/close(@.+?)?$/, (msg) => {
   StatusRepository.pushSpaceState(state);
   StatusRepository.evictPeople();
 
+  let inlineKeyboard = [
+    [
+      {
+        text: "Открыть снова",
+        callback_data: JSON.stringify({ command: "/open" }),
+      },
+    ],
+  ];
+
   bot.sendMessage(
     msg.chat.id,
-    `🔓 Юзер ${tag()}${state.changedby} закрыл спейс 🔓
-🗓 ${state.date.toLocaleString()}`
-  );
-});
+    `🔓 ${tag()}${state.changedby} закрыл спейс 🔓
+Все отметившиеся отправлены домой
 
-bot.onText(/^\/in(@.+?)?$/, (msg) => {
+🗓 ${state.date.toLocaleString()}`,
+    {
+      reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      },
+    }
+  );
+};
+
+bot.onText(/^\/open(@.+?)?$/, openHandler);
+
+bot.onText(/^\/close(@.+?)?$/, closeHandler);
+
+let inHandler = (msg) => {
   let eventDate = new Date();
   let gotIn = LetIn(msg.from.username, eventDate);
-  let message = `🟢 Юзер ${tag()}${msg.from.username} пришел в спейс 🟢
+  let message = `🟢 ${tag()}${msg.from.username} пришел в спейс 🟢
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotIn) {
     message = "🔐 Откройте cпейс прежде чем туда входить! 🔐";
   }
 
-  bot.sendMessage(msg.chat.id, message);
-});
+  let inlineKeyboard = gotIn
+    ? [
+        [
+          {
+            text: "Я тоже пришёл",
+            callback_data: JSON.stringify({ command: "/in" }),
+          },
+          {
+            text: "А я уже ушёл",
+            callback_data: JSON.stringify({ command: "/out" }),
+          },
+        ],
+        [
+          {
+            text: "Кто внутри",
+            callback_data: JSON.stringify({ command: "/status" }),
+          },
+        ],
+      ]
+    : [
+        [
+          {
+            text: "Открыть спейс",
+            callback_data: JSON.stringify({ command: "/open" }),
+          },
+        ],
+      ];
+
+  bot.sendMessage(msg.chat.id, message, {
+    reply_markup: {
+      inline_keyboard: inlineKeyboard,
+    },
+  });
+};
+
+let outHandler = (msg) => {
+  let eventDate = new Date();
+  let gotOut = LetOut(msg.from.username, eventDate);
+  let message = `🔴 ${tag()}${msg.from.username} ушел из спейса 🔴
+🗓 ${eventDate.toLocaleString()} `;
+
+  if (!gotOut) {
+    message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез? 🔐";
+  }
+
+  let inlineKeyboard = gotOut
+    ? [
+        [
+          {
+            text: "Я тоже ушёл",
+            callback_data: JSON.stringify({ command: "/out" }),
+          },
+          {
+            text: "А я пришёл",
+            callback_data: JSON.stringify({ command: "/in" }),
+          },
+        ],
+        [
+          {
+            text: "Кто внутри",
+            callback_data: JSON.stringify({ command: "/status" }),
+          },
+        ],
+      ]
+    : [
+        [
+          {
+            text: "Открыть спейс",
+            callback_data: JSON.stringify({ command: "/open" }),
+          },
+        ],
+      ];
+
+  bot.sendMessage(msg.chat.id, message, {
+    reply_markup: {
+      inline_keyboard: inlineKeyboard,
+    },
+  });
+};
+
+bot.onText(/^\/in(@.+?)?$/, inHandler);
 
 bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
@@ -225,7 +393,7 @@ bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
 
   let message = `🟢 ${tag()}${
     msg.from.username
-  } привёл юзера ${tag()}${username} в спейс  🟢
+  } привёл ${tag()}${username} в спейс  🟢
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotIn) {
@@ -234,18 +402,7 @@ bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/out(@.+?)?$/, (msg) => {
-  let eventDate = new Date();
-  let gotOut = LetOut(msg.from.username, eventDate);
-  let message = `🔴 Юзер ${tag()}${msg.from.username} ушел из спейса 🔴
-🗓 ${eventDate.toLocaleString()} `;
-
-  if (!gotOut) {
-    message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез? 🔐";
-  }
-
-  bot.sendMessage(msg.chat.id, message);
-});
+bot.onText(/^\/out(@.+?)?$/, outHandler);
 
 bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
@@ -255,7 +412,7 @@ bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
 
   let message = `🔴 ${tag()}${
     msg.from.username
-  } выпроводил юзера ${tag()}${username} из спейса 🔴
+  } отправил домой ${tag()}${username} 🔴
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotOut) {
@@ -362,7 +519,12 @@ bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
 
-  let list = await TextGenerators.createFundList(funds, donations, addCommands, tag());
+  let list = await TextGenerators.createFundList(
+    funds,
+    donations,
+    addCommands,
+    tag()
+  );
 
   bot.sendMessage(
     msg.chat.id,
@@ -381,11 +543,40 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
 
-  let list = await TextGenerators.createFundList(funds, donations, addCommands, tag());
+  let inlineKeyboard = [
+    [
+      {
+        text: "Экспортнуть в csv",
+        callback_data: JSON.stringify({
+          command: "/exportFund",
+          params: [fundName],
+        }),
+      },
+      {
+        text: "Посмотреть диаграмму",
+        callback_data: JSON.stringify({
+          command: "/exportDonut",
+          params: [fundName],
+        }),
+      },
+    ],
+  ];
+
+  let list = await TextGenerators.createFundList(
+    funds,
+    donations,
+    addCommands,
+    tag()
+  );
   bot.sendMessage(
     msg.chat.id,
     `${list}💸 Чтобы узнать, как нам помочь - жми /donate`,
-    { parse_mode: "Markdown" }
+    {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      },
+    }
   );
 });
 
@@ -395,7 +586,12 @@ bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
   let addCommands = needCommands()
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
-  let list = await TextGenerators.createFundList(funds, donations, addCommands, tag());
+  let list = await TextGenerators.createFundList(
+    funds,
+    donations,
+    addCommands,
+    tag()
+  );
 
   bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
     parse_mode: "Markdown",
@@ -431,10 +627,8 @@ bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => {
   bot.sendMessage(msg.chat.id, message);
 });
 
-bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) => {
+let exportFundHandler = async (msg, fundName) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
-  let fundName = match[2];
 
   let csvBuffer = await ExportHelper.exportFundToCSV(fundName);
 
@@ -449,7 +643,11 @@ bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) => {
   };
 
   bot.sendDocument(msg.chat.id, csvBuffer, {}, fileOptions);
-});
+};
+
+bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) =>
+  exportFundHandler(msg, match[2])
+);
 
 bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
@@ -547,6 +745,40 @@ bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
 🛍 Если хочешь задонатить натурой (ohh my) или другим способом - жми /donate`,
     parse_mode: "Markdown",
   });
+});
+
+bot.on("callback_query", (callbackQuery) => {
+  const message = callbackQuery.message;
+  const data = JSON.parse(callbackQuery.data);
+  message.from = callbackQuery.from;
+
+  switch (data.command) {
+    case "/in":
+      inHandler(message);
+      break;
+    case "/out":
+      outHandler(message);
+      break;
+    case "/open":
+      openHandler(message);
+      break;
+    case "/close":
+      closeHandler(message);
+      break;
+    case "/status":
+      statusHandler(message);
+      break;
+    case "/exportFund":
+      exportFundHandler(message, ...data.params);
+      break;
+    case "/exportDonut":
+      exportDonutHandler(message, ...data.params);
+      break;
+    default:
+      break;
+  }
+
+  bot.answerCallbackQuery(callbackQuery.id);
 });
 
 // Debug echoing of received messages

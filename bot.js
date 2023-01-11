@@ -603,7 +603,7 @@ bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
     tag()
   );
 
-  bot.sendMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
+  bot.sendLongMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
     parse_mode: "Markdown",
   });
 });

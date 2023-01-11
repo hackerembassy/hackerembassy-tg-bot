@@ -26,6 +26,11 @@ function sleep(ms) {
 function addLongCommands(bot) {
   bot.sendLongMessage = async (chatid, text, options) => {
     let chunks = chunkSubstr(text, 3000);
+    
+    if (chunks.length === 1){
+      bot.sendMessage(chatid, chunks[0], options);
+      return;
+    }
 
     for (let index = 0; index < chunks.length; index++) {
       const chunk = chunks[index];

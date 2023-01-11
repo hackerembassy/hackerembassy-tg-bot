@@ -8,13 +8,22 @@ const UsersHelper = require("./services/usersHelper");
 const ExportHelper = require("./services/export");
 const Commands = require("./commands");
 const CoinsHelper = require("./data/coins/coins");
-const { initGlobalModifiers, tag, needCommands } = require("./global");
+const {
+  initGlobalModifiers,
+  addLongCommands,
+  tag,
+  needCommands,
+} = require("./botExtensions");
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
+const CALLBACK_DATA_RESTRICTION = 20;
 const IsDebug = process.env["BOTDEBUG"] === "true";
 process.env.TZ = "Asia/Yerevan";
 
 const bot = new TelegramBot(TOKEN, { polling: true });
+
+// Apply extensions to the bot
+addLongCommands(bot);
 initGlobalModifiers(bot);
 
 let exportDonutHandler = async (msg, fundName) => {
@@ -526,13 +535,11 @@ bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
     tag()
   );
 
-  bot.sendMessage(
-    msg.chat.id,
-    `⚒ Вот наши текущие сборы:
+  let message = `⚒ Вот наши текущие сборы:
 
-${list}💸 Чтобы узнать, как нам помочь - жми /donate`,
-    { parse_mode: "Markdown" }
-  );
+  ${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
+
+  bot.sendLongMessage(msg.chat.id, message, { parse_mode: "Markdown" });
 });
 
 bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
@@ -543,24 +550,28 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
 
-  let inlineKeyboard = [
-    [
-      {
-        text: "Экспортнуть в csv",
-        callback_data: JSON.stringify({
-          command: "/exportFund",
-          params: [fundName],
-        }),
-      },
-      {
-        text: "Посмотреть диаграмму",
-        callback_data: JSON.stringify({
-          command: "/exportDonut",
-          params: [fundName],
-        }),
-      },
-    ],
-  ];
+  // telegram callback_data is restricted to 64 bytes
+  let inlineKeyboard =
+    fundName.length < CALLBACK_DATA_RESTRICTION
+      ? [
+          [
+            {
+              text: "Экспортнуть в CSV",
+              callback_data: JSON.stringify({
+                command: "/ef",
+                params: [fundName],
+              }),
+            },
+            {
+              text: "Посмотреть диаграмму",
+              callback_data: JSON.stringify({
+                command: "/ed",
+                params: [fundName],
+              }),
+            },
+          ],
+        ]
+      : [];
 
   let list = await TextGenerators.createFundList(
     funds,
@@ -568,16 +579,15 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
     addCommands,
     tag()
   );
-  bot.sendMessage(
-    msg.chat.id,
-    `${list}💸 Чтобы узнать, как нам помочь - жми /donate`,
-    {
-      parse_mode: "Markdown",
-      reply_markup: {
-        inline_keyboard: inlineKeyboard,
-      },
-    }
-  );
+
+  let message = `${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
+
+  bot.sendMessage(msg.chat.id, message, {
+    parse_mode: "Markdown",
+    reply_markup: {
+      inline_keyboard: inlineKeyboard,
+    },
+  });
 });
 
 bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
@@ -768,10 +778,10 @@ bot.on("callback_query", (callbackQuery) => {
     case "/status":
       statusHandler(message);
       break;
-    case "/exportFund":
+    case "/ef":
       exportFundHandler(message, ...data.params);
       break;
-    case "/exportDonut":
+    case "/ed":
       exportDonutHandler(message, ...data.params);
       break;
     default:

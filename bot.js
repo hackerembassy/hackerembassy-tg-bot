@@ -158,6 +158,7 @@ let statusHandler = (msg) => {
 
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔐" : "🔒";
+  let stateSubText = state.open ? "Отличный повод зайти" : "Ждем, пока кто-то из резидентов его откроет";
   let inlineKeyboard = state.open
     ? [
         [
@@ -194,7 +195,7 @@ let statusHandler = (msg) => {
   bot.sendMessage(
     msg.chat.id,
     `${stateEmoji} Спейс ${stateText} ${tag()}${state.changedby} ${stateEmoji}
-Отличный повод зайти
+${stateSubText}
 
 🗓 ${state.date.toLocaleString()}
 

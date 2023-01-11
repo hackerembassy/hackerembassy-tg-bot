@@ -114,7 +114,7 @@ bot.on("new_chat_members", async msg => {
   let botName = (await bot.getMe()).username;
   let newMembers = msg.new_chat_members.reduce((res, member)=> res+`${tag()}${member.username} `, "");
   let message = `🇬🇧 Добро пожаловать в наш уютный уголок, ${newMembers}
-  
+
 Я @${botName}, бот-менеджер хакерспейса. Ко мне в личку можно зайти пообщаться, вбить мои команды, и я расскажу вкратце о нас.
 🎉🎉🎉 Хакерчане, приветствуем ${newMembers}`;
   bot.sendMessage(msg.chat.id, message);
@@ -505,7 +505,7 @@ bot.onText(/^\/removeDonation(@.+?)? (\d+)$/, (msg, match) => {
 
 bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, async (msg, match) => {
   let accountants = UsersRepository.getUsersByRole("accountant");
-  let accountantsList = TextGenerators.getAccountsList(accountants);
+  let accountantsList = TextGenerators.getAccountsList(accountants, tag());
 
   let type = match[1];
 

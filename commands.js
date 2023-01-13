@@ -34,6 +34,7 @@ const AdminCommandsList = `
 const AccountantCommandsList = `
 Команды бухгалтера:
 \`/addFund Fund_Name with target goal_value currency_code\`
+\`/updateFund Fund_Name with target goal_value currency_code as New_Name\`
 \`/exportFund fund_name\`
 \`/exportDonut fund_name\`
 \`/closeFund fund_name\`

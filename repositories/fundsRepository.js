@@ -52,6 +52,21 @@ class FundsRepository extends BaseRepository {
       return false;
     }
   }
+
+  updatefund(fundName, target, currency = "AMD", newFundName = fundName) {
+    try {
+      let fund = this.getfundByName(fundName);
+      if (!fund) return false;
+      this.db
+        .prepare(
+          "UPDATE funds SET name = ?, target_value = ?, target_currency = ? WHERE id = ?"
+        )
+        .run(newFundName, target, currency, fund.id);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
   
   removefund(fundName) {
     try {

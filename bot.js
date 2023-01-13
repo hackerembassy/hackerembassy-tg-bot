@@ -629,6 +629,25 @@ bot.onText(
   }
 );
 
+bot.onText(
+  /^\/updateFund(@.+?)? (.*\S) with target ([\d.]+)\s?(\D*?)(?: as (.*\S))?$/,
+  (msg, match) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+
+    let fundName = match[2];
+    let targetValue = match[3];
+    let currency = match[4]?.length > 0 ? match[4] : "AMD";
+    let newFundName = match[5]?.length > 0 ? match[5] : fundName;
+
+    let success = FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
+    let message = success
+      ? `Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
+      : `Не удалось обновить сбор (может не то имя?)`;
+
+    bot.sendMessage(msg.chat.id, message);
+  }
+);
+
 bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 

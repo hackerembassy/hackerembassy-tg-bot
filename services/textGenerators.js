@@ -40,6 +40,7 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
       list += `\`/fund ${fund.name}\`\n`;
       list += `\`/exportFund ${fund.name}\`\n`;
       list += `\`/exportDonut ${fund.name}\`\n`;
+      list += `\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}\`\n`;
       list += `\`/changeFundStatus of ${fund.name} to status_name\`\n`;
       list += `\`/closeFund ${fund.name}\`\n`;
       list += `\`/addDonation 5000 AMD from @username to ${fund.name}\`\n`;

@@ -2,7 +2,9 @@ const Commands = require("../commands")
 const UsersRepository = require("../repositories/usersRepository");
 
 function hasRole(username, ...roles) {
-  let userRoles = UsersRepository.getUser(username).roles;
+  let userRoles = UsersRepository.getUser(username)?.roles;
+  if (!userRoles) return false;
+  
   let intersection = userRoles.filter((r) => roles.includes(r));
 
   return intersection.length > 0;

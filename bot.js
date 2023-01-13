@@ -157,7 +157,7 @@ let statusHandler = (msg) => {
   let inside = StatusRepository.getPeopleInside();
 
   let stateText = state.open ? "открыт" : "закрыт";
-  let stateEmoji = state.open ? "🔐" : "🔒";
+  let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open ? "Отличный повод зайти" : "Ждем, пока кто-то из резидентов его откроет";
   let inlineKeyboard = state.open
     ? [
@@ -170,6 +170,8 @@ let statusHandler = (msg) => {
             text: "Я ушёл из спейса",
             callback_data: JSON.stringify({ command: "/out" }),
           },
+        ],
+        [
           {
             text: "Закрыть спейс",
             callback_data: JSON.stringify({ command: "/close" }),
@@ -251,7 +253,7 @@ let openHandler = (msg) => {
 
   bot.sendMessage(
     msg.chat.id,
-    `🔐 ${tag()}${state.changedby} открыл спейс 🔐
+    `🔓 ${tag()}${state.changedby} открыл спейс
 Отличный повод зайти
 
 🗓 ${state.date.toLocaleString()} `,
@@ -286,7 +288,7 @@ let closeHandler = (msg) => {
 
   bot.sendMessage(
     msg.chat.id,
-    `🔓 ${tag()}${state.changedby} закрыл спейс 🔓
+    `🔒 ${tag()}${state.changedby} закрыл спейс
 Все отметившиеся отправлены домой
 
 🗓 ${state.date.toLocaleString()}`,
@@ -309,7 +311,7 @@ let inHandler = (msg) => {
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotIn) {
-    message = "🔐 Откройте cпейс прежде чем туда входить! 🔐";
+    message = "🔐 Откройте cпейс прежде чем туда входить!";
   }
 
   let inlineKeyboard = gotIn
@@ -350,7 +352,7 @@ let inHandler = (msg) => {
 let outHandler = (msg) => {
   let eventDate = new Date();
   let gotOut = LetOut(msg.from.username, eventDate);
-  let message = `🔴 ${tag()}${msg.from.username} ушел из спейса 🔴
+  let message = `🔴 ${tag()}${msg.from.username} ушел из спейса
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotOut) {
@@ -403,11 +405,11 @@ bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
 
   let message = `🟢 ${tag()}${
     msg.from.username
-  } привёл ${tag()}${username} в спейс  🟢
+  } привёл ${tag()}${username} в спейс 
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotIn) {
-    message = "🔐 Откройте cпейс прежде чем туда кого-то пускать! 🔐";
+    message = "🔐 Откройте cпейс прежде чем туда кого-то пускать!";
   }
   bot.sendMessage(msg.chat.id, message);
 });
@@ -422,11 +424,11 @@ bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
 
   let message = `🔴 ${tag()}${
     msg.from.username
-  } отправил домой ${tag()}${username} 🔴
+  } отправил домой ${tag()}${username}
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotOut) {
-    message = "🔐 А что тот делал в закрытом спейсе, ты его там запер? 🔐";
+    message = "🔐 А что тот делал в закрытом спейсе, ты его там запер?";
   }
 
   bot.sendMessage(msg.chat.id, message);

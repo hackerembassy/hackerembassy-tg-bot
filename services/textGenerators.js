@@ -52,10 +52,6 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
   return list;
 }
 
-
-
-
-
 function getAccountsList(accountants, tag){
   let accountantsList = "";
 

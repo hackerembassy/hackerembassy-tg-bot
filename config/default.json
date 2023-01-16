@@ -1,0 +1,16 @@
+{
+    "bot": {
+        "timezone" : "Asia/Yerevan",
+        "chats": {
+            "main" : -1605898533,
+            "horny" : -1687064759,
+            "offtopic" : -1555805688,
+            "test" : -830038395
+        }
+    },
+    "currency":{
+        "default": "AMD",
+        "cryptoUpdateInterval":50000,
+        "fiatUpdateInterval": 3600000
+    }
+  }

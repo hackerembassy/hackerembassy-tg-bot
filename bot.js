@@ -8,6 +8,9 @@ const UsersHelper = require("./services/usersHelper");
 const ExportHelper = require("./services/export");
 const Commands = require("./commands");
 const CoinsHelper = require("./data/coins/coins");
+const config = require('config');
+const botConfig = config.get("bot");
+const currencyConfig = config.get("currency");
 const {
   initGlobalModifiers,
   addLongCommands,
@@ -21,7 +24,7 @@ const {
 const TOKEN = process.env["HACKERBOTTOKEN"];
 const CALLBACK_DATA_RESTRICTION = 20;
 const IsDebug = process.env["BOTDEBUG"] === "true";
-process.env.TZ = "Asia/Yerevan";
+process.env.TZ = botConfig.timezone;
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
@@ -623,12 +626,31 @@ bot.onText(
 
     let fundName = match[2];
     let targetValue = match[3];
-    let currency = match[4]?.length > 0 ? match[4] : "AMD";
+    let currency = match[4]?.length > 0 ? match[4] : currencyConfig.default;
 
     let success = FundsRepository.addfund(fundName, targetValue, currency);
     let message = success
       ? `Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
       : `Не удалось добавить сбор (может он уже есть?)`;
+
+    bot.sendMessage(msg.chat.id, message);
+  }
+);
+
+bot.onText(
+  /^\/updateFund(@.+?)? (.*\S) with target ([\d.]+)\s?(\D*?)(?: as (.*\S))?$/,
+  (msg, match) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+
+    let fundName = match[2];
+    let targetValue = match[3];
+    let currency = match[4]?.length > 0 ? match[4] : currencyConfig.default;
+    let newFundName = match[5]?.length > 0 ? match[5] : fundName;
+
+    let success = FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
+    let message = success
+      ? `Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
+      : `Не удалось обновить сбор (может не то имя?)`;
 
     bot.sendMessage(msg.chat.id, message);
   }
@@ -697,7 +719,7 @@ bot.onText(
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     let value = match[2];
-    let currency = match[3].length > 0 ? match[3] : "AMD";
+    let currency = match[3].length > 0 ? match[3] : currencyConfig.default;
     let userName = match[4].replace("@", "");
     let fundName = match[5];
 

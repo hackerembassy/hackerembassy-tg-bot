@@ -1,54 +1,76 @@
 const BaseRepository = require("./baseRepository");
+const config = require('config');
+const currencyConfig = config.get("currency");
 
 class FundsRepository extends BaseRepository {
   getfunds() {
     let funds = this.db.prepare("SELECT * FROM funds").all();
+
     return funds;
   }
 
   getfundByName(fundName) {
-    let fund = this.db
+    return this.db
       .prepare("SELECT * FROM funds WHERE name = ?")
       .get(fundName);
-    return fund;
   }
 
   getDonations() {
-    let donations = this.db.prepare("SELECT * FROM donations").all();
-    return donations;
+    return this.db.prepare("SELECT * FROM donations").all();
   }
 
   getDonationsForId(fundId) {
     let donations = this.db
       .prepare("SELECT * FROM donations WHERE fund_id = ?")
       .all(fundId);
+
     return donations;
   }
 
   getDonationsForName(fundName) {
-    let donations = this.db
+    return this.db
       .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
       .all(fundName);
-    return donations;
   }
 
   getDonationById(donationId) {
-    let donation = this.db
+    return this.db
       .prepare("SELECT * FROM donations WHERE id = ?")
       .get(donationId);
-    return donation;
   }
 
-  addfund(fundName, target, currency = "AMD") {
+  addfund(fundName, target, currency = currencyConfig.default) {
     try {
       if (this.getfundByName(fundName) !== undefined) return false;
+
       this.db
         .prepare(
           "INSERT INTO funds (id, name, target_value, target_currency) VALUES (NULL, ?, ?, ?)"
         )
         .run(fundName, target, currency);
+
       return true;
-    } catch (error) {
+    }
+    catch (error) {
+      return false;
+    }
+  }
+
+  updatefund(fundName, target, currency = currencyConfig.default, newFundName = fundName) {
+    try {
+      let fund = this.getfundByName(fundName);
+
+      if (!fund) return false;
+
+      this.db
+        .prepare(
+          "UPDATE funds SET name = ?, target_value = ?, target_currency = ? WHERE id = ?"
+        )
+        .run(newFundName, target, currency, fund.id);
+
+      return true;
+    }
+    catch (error) {
       return false;
     }
   }
@@ -56,10 +78,14 @@ class FundsRepository extends BaseRepository {
   removefund(fundName) {
     try {
       if (this.getfundByName(fundName) === null) return false;
+
       this.db.prepare("DELETE FROM funds WHERE name = ?").run(fundName);
+
       return true;
-    } catch (error) {
+    }
+    catch (error) {
       console.log(error);
+
       return false;
     }
   }
@@ -71,28 +97,37 @@ class FundsRepository extends BaseRepository {
   changefundStatus(fundName, status) {
     try {
       if (this.getfundByName(fundName) === null) return false;
+
       this.db
         .prepare("UPDATE funds SET status = ? WHERE name = ?")
         .run(status, fundName);
+
       return true;
-    } catch (error) {
+    }
+    catch (error) {
       console.log(error);
+
       return false;
     }
   }
 
-  addDonationTo(fundName, username, value, currency = "AMD") {
+  addDonationTo(fundName, username, value, currency = currencyConfig.default) {
     try {
       let fundId = this.getfundByName(fundName)?.id;
+
       if (fundId === undefined) return false;
+
       this.db
         .prepare(
           "INSERT INTO donations (fund_id, username, value, currency) VALUES (?, ?, ?, ?)"
         )
         .run(fundId, username, value, currency);
+
       return true;
-    } catch (error) {
+    }
+    catch (error) {
       console.log(error);
+
       return false;
     }
   }
@@ -100,10 +135,14 @@ class FundsRepository extends BaseRepository {
   removeDonationById(donationId) {
     try {
       if (this.getDonationById(donationId) === null) return false;
+
       this.db.prepare("DELETE FROM donations WHERE id = ?").run(donationId);
+
       return true;
-    } catch (error) {
+    }
+    catch (error) {
       console.log(error);
+
       return false;
     }
   }

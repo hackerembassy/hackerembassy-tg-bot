@@ -19,6 +19,7 @@
   "dependencies": {
     "better-sqlite3": "^8.0.1",
     "chartjs-to-image": "^1.1.0",
+    "config": "^3.3.8",
     "crypto-convert": "^2.1.4",
     "d": "^1.0.1",
     "dotenv": "^16.0.3",

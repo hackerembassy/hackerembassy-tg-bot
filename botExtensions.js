@@ -4,6 +4,8 @@ let mode = {
   nocommands: false,
 };
 
+let history = [];
+
 // Helper functions
 
 function chunkSubstr(str, size) {
@@ -52,9 +54,9 @@ function initGlobalModifiers(bot) {
   let onTextOriginal = bot.onText;
   let sendMessageOriginal = bot.sendMessage;
 
-  bot.sendMessage = function (...args) {
+  bot.sendMessage = async function (...args) {
     if (!mode.silent) {
-      sendMessageOriginal.call(this, ...args);
+      return sendMessageOriginal.call(this, ...args);
     }
   };
 
@@ -92,6 +94,29 @@ function initGlobalModifiers(bot) {
   };
 }
 
+function disableNotificationsByDefault(bot){
+  let sendMessageOriginal = bot.sendMessage;
+
+  bot.sendMessage = async function (...args) {
+    if (!args[2]) args[2] = {};
+    args[2].disable_notification = true;
+    return sendMessageOriginal.call(this, ...args);
+  };
+}
+
+function addSavingLastMessages(bot){
+  let sendMessageOriginal = bot.sendMessage;
+
+  bot.sendMessage = async function (...args) {
+    let chatId = args[0];
+    let message = await sendMessageOriginal.call(this, ...args);
+    let messageId = message.message_id;
+    
+    if (!history[chatId]) history[chatId] = [];
+    history[chatId].push(messageId);
+  };
+}
+
 // Public extension related functions
 
 function tag() {
@@ -102,10 +127,20 @@ function needCommands() {
   return !mode.nocommands;
 }
 
+function* popLast(chatId, count){
+  for (let index = 0; index < count; index++) {
+    if (!history[chatId]) return [];
+    yield history[chatId].pop()
+  }
+}
+
 module.exports = {
   mode,
   initGlobalModifiers,
   tag,
+  popLast,
   needCommands,
   addLongCommands,
+  disableNotificationsByDefault,
+  addSavingLastMessages
 };

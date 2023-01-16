@@ -11,8 +11,11 @@ const CoinsHelper = require("./data/coins/coins");
 const {
   initGlobalModifiers,
   addLongCommands,
+  addSavingLastMessages,
+  disableNotificationsByDefault,
   tag,
   needCommands,
+  popLast,
 } = require("./botExtensions");
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
@@ -25,6 +28,8 @@ const bot = new TelegramBot(TOKEN, { polling: true });
 // Apply extensions to the bot
 addLongCommands(bot);
 initGlobalModifiers(bot);
+addSavingLastMessages(bot);
+disableNotificationsByDefault(bot);
 
 let exportDonutHandler = async (msg, fundName) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
@@ -150,7 +155,7 @@ let statusHandler = (msg) => {
   let state = StatusRepository.getSpaceLastState();
 
   if (!state) {
-    bot.sendMessage(msg.chat.id, `🔐 Статус спейса неопределен 🔐`);
+    bot.sendMessage(msg.chat.id, `🔐 Статус спейса неопределен`);
     return;
   }
 
@@ -196,7 +201,7 @@ let statusHandler = (msg) => {
   }
   bot.sendMessage(
     msg.chat.id,
-    `${stateEmoji} Спейс ${stateText} ${tag()}${state.changedby} ${stateEmoji}
+    `${stateEmoji} Спейс ${stateText} ${tag()}${state.changedby}
 ${stateSubText}
 
 🗓 ${state.date.toLocaleString()}
@@ -758,6 +763,17 @@ bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
 🛍 Если хочешь задонатить натурой (ohh my) или другим способом - жми /donate`,
     parse_mode: "Markdown",
   });
+});
+
+bot.onText(/^\/clear(@.+?)?(?: (\d*))?$/, (msg, match) => {
+  if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+
+  let inputCount = Number(match[2]);
+  let countToClear = inputCount > 0 ? inputCount : 1;
+  let idsToRemove = popLast(msg.chat.id, countToClear);
+  for (const id of idsToRemove) {
+    bot.deleteMessage(msg.chat.id, id);
+  }
 });
 
 bot.on("callback_query", (callbackQuery) => {

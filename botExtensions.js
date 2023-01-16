@@ -1,3 +1,6 @@
+const maxChunkSize = 3000;
+const messagedelay = 1500;
+
 let mode = {
   silent: false,
   nomention: false,
@@ -27,7 +30,7 @@ function sleep(ms) {
 
 function addLongCommands(bot) {
   bot.sendLongMessage = async (chatid, text, options) => {
-    let chunks = chunkSubstr(text, 3000);
+    let chunks = chunkSubstr(text, maxChunkSize);
     
     if (chunks.length === 1){
       bot.sendMessage(chatid, chunks[0], options);
@@ -35,11 +38,10 @@ function addLongCommands(bot) {
     }
 
     for (let index = 0; index < chunks.length; index++) {
-      const chunk = chunks[index];
       bot.sendMessage(chatid, `{${index + 1} часть}
-${chunk}
+${chunks[index]}
 {Конец части ${index + 1}}`, options);
-      await sleep(1500);
+      await sleep(messagedelay);
     }
   };
 }
@@ -73,12 +75,12 @@ function initGlobalModifiers(bot) {
     args[1] = function (...funcargs) {
       let match = funcargs[1];
       let newCommand = match[0];
+
       for (const key of Object.keys(mode)) {
         newCommand = newCommand.replace(` -${key}`, "");
       }
-      if (funcargs[1] !== undefined) {
-        funcargs[1] = originalRegex.exec(newCommand);
-      }
+      
+      if (funcargs[1] !== undefined) funcargs[1] = originalRegex.exec(newCommand);
 
       let oldmode = { ...mode };
 
@@ -90,6 +92,7 @@ function initGlobalModifiers(bot) {
 
       mode = oldmode;
     };
+
     onTextOriginal.call(this, ...args);
   };
 }

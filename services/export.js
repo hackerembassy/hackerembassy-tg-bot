@@ -4,11 +4,13 @@ const ChartJsImage = require("chartjs-to-image");
 const Currency = require("../services/currency");
 
 function getRandomColor() {
-  var letters = "3456789AB";
-  var color = "#";
+  let letters = "3456789AB";
+  let color = "#";
+
   for (var i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 9)];
   }
+
   return color;
 }
 
@@ -36,12 +38,18 @@ const colorScheme = [
   "rgb(148,149, 151)",
 ];
 
+const remainedColor = "rgba(0,0,0,0.025)";
+
 async function exportFundToCSV(fundname) {
   let fund = FundsRepository.getfundByName(fundname);
-  let donations =  FundsRepository.getDonationsForName(fundname);
-  let fundDonations = await Promise.all(donations.map(
-    async d => {
-      let convertedValue = await Currency.convertCurrency(d.value, d.currency, fund.target_currency);
+  let donations = FundsRepository.getDonationsForName(fundname);
+  let fundDonations = await Promise.all(
+    donations.map(async (d) => {
+      let convertedValue = await Currency.convertCurrency(
+        d.value,
+        d.currency,
+        fund.target_currency
+      );
       return {
         username: d.username,
         donation: d.value,
@@ -49,38 +57,45 @@ async function exportFundToCSV(fundname) {
         converted: convertedValue,
         target_currency: fund.target_currency,
       };
-    }
-  ));
+    })
+  );
 
   return (csv = await writeToBuffer(fundDonations, { headers: true }));
 }
 
 async function exportFundToDonut(fundname) {
   let fund = FundsRepository.getfundByName(fundname);
-  let alldonations = FundsRepository.getDonationsForName(fundname)
-  let fundDonations = await Promise.all(alldonations.map(
-    async d => {
-      let convertedValue = await Currency.convertCurrency(d.value, d.currency, fund.target_currency);
+  let alldonations = FundsRepository.getDonationsForName(fundname);
+  let fundDonations = await Promise.all(
+    alldonations.map(async (d) => {
+      let convertedValue = await Currency.convertCurrency(
+        d.value,
+        d.currency,
+        fund.target_currency
+      );
       return {
         username: d.username,
         donation: Number(convertedValue.toFixed(2)),
         currency: fund.target_currency,
       };
-    }
-  ));
+    })
+  );
 
   let labels = fundDonations.map((donation) => donation.username);
   let data = fundDonations.map((donation) => donation.donation);
   let sum = data.reduce((acc, val) => acc + val, 0);
   let target = fund.target_value;
   let remained = sum - target;
-  let spread = colorScheme.length/labels.length;
-  let customColorScheme = labels.map((_, index)=>colorScheme[Math.floor((index*spread+spread/2)) % colorScheme.length])
+  let spread = colorScheme.length / labels.length;
+  let customColorScheme = labels.map(
+    (_, index) =>
+      colorScheme[Math.floor(index * spread + spread / 2) % colorScheme.length]
+  );
 
   if (remained < 0) {
     labels.push("Remained");
     data.push(remained);
-    customColorScheme.push("rgba(0,0,0,0.025)");
+    customColorScheme.push(remainedColor);
   }
 
   let chart = new ChartJsImage();
@@ -89,7 +104,9 @@ async function exportFundToDonut(fundname) {
     type: "donut",
     data: {
       labels: labels,
-      datasets: [{ label: "Foo", data: data, backgroundColor: customColorScheme }],
+      datasets: [
+        { label: "Users", data: data, backgroundColor: customColorScheme },
+      ],
     },
     options: {
       title: {
@@ -117,15 +134,17 @@ async function exportFundToDonut(fundname) {
           },
         },
         doughnutlabel: {
-          labels: [{ text: `${target} ${fund.target_currency}`, font: { size: 20 } }, { text: "target" }],
+          labels: [
+            { text: `${target} ${fund.target_currency}`, font: { size: 20 } },
+            { text: "target" },
+          ],
         },
       },
     },
   });
   chart.setWidth(600).setHeight(600).setBackgroundColor("transparent");
 
-  let buf = await chart.toBinary();
-  return buf;
+  return await chart.toBinary();
 }
 
 module.exports = { exportFundToCSV, exportFundToDonut };

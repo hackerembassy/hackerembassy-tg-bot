@@ -8,8 +8,7 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
   let list = "";
 
   for (const fund of funds) {
-    if (!fund)
-      continue;
+    if (!fund) continue;
 
     let fundDonations = donations.filter((donation) => {
       return donation.fund_id === fund.id;
@@ -35,11 +34,13 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
     for (const donation of fundDonations) {
       list += `     \\[id:${donation.id}\] - ${tag}${excapeUnderscore(donation.username)} - ${donation.value} ${donation.currency}\n`;
     }
+    
     if (addCommands){
       list += "\n";
       list += `\`/fund ${fund.name}\`\n`;
       list += `\`/exportFund ${fund.name}\`\n`;
       list += `\`/exportDonut ${fund.name}\`\n`;
+      list += `\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}\`\n`;
       list += `\`/changeFundStatus of ${fund.name} to status_name\`\n`;
       list += `\`/closeFund ${fund.name}\`\n`;
       list += `\`/addDonation 5000 AMD from @username to ${fund.name}\`\n`;

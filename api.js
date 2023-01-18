@@ -1,9 +1,12 @@
 const express = require("express");
+var cors = require('cors')
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
 
 const app = express();
 const port = 3000;
+
+app.use(cors())
 
 app.get("/status", (_, res) => {
   let state = StatusRepository.getSpaceLastState();
@@ -15,12 +18,6 @@ app.get("/status", (_, res) => {
   }
 
   res.send(content);
-});
-
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
 });
 
 app.listen(port);

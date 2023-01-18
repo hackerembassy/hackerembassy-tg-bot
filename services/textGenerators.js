@@ -53,6 +53,27 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
   return list;
 }
 
+let getStatusMessage = (state, inside, tag) => {
+  let stateText = state.open ? "открыт" : "закрыт";
+  let stateEmoji = state.open ? "🔓" : "🔒";
+  let stateSubText = state.open ? "Отличный повод зайти" : "Ждем, пока кто-то из резидентов его откроет";
+  let insideText = state.open
+    ? inside.length > 0
+      ? "👨‍💻 Внутри отметились:\n"
+      : "🛌 Внутри никто не отметился\n"
+    : "";
+  for (const user of inside) {
+    insideText += `${tag}${user.username}\n`;
+  }
+
+  return `${stateEmoji} Спейс ${stateText} ${tag}${state.changedby}
+${stateSubText}
+
+🗓 ${state.date.toLocaleString()}
+  
+` + insideText;
+}
+
 function getAccountsList(accountants, tag){
   let accountantsList = "";
 
@@ -66,4 +87,4 @@ function getAccountsList(accountants, tag){
   return accountantsList;
 }
 
-module.exports = { createFundList, getAccountsList };
+module.exports = { createFundList, getAccountsList, getStatusMessage };

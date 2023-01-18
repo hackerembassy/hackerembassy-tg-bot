@@ -20,6 +20,7 @@ const {
   needCommands,
   popLast,
 } = require("./botExtensions");
+const api = require("./api");
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
 const CALLBACK_DATA_RESTRICTION = 20;
@@ -164,9 +165,7 @@ let statusHandler = (msg) => {
 
   let inside = StatusRepository.getPeopleInside();
 
-  let stateText = state.open ? "открыт" : "закрыт";
-  let stateEmoji = state.open ? "🔓" : "🔒";
-  let stateSubText = state.open ? "Отличный повод зайти" : "Ждем, пока кто-то из резидентов его откроет";
+  let statusMessage = TextGenerators.getStatusMessage(state, inside, tag());
   let inlineKeyboard = state.open
     ? [
         [
@@ -194,22 +193,11 @@ let statusHandler = (msg) => {
           },
         ],
       ];
-  let insideText = state.open
-    ? inside.length > 0
-      ? "👨‍💻 Внутри отметились:\n"
-      : "🛌 Внутри никто не отметился\n"
-    : "";
-  for (const user of inside) {
-    insideText += `${tag()}${user.username}\n`;
-  }
+  
+
   bot.sendMessage(
     msg.chat.id,
-    `${stateEmoji} Спейс ${stateText} ${tag()}${state.changedby}
-${stateSubText}
-
-🗓 ${state.date.toLocaleString()}
-
-` + insideText,
+    statusMessage,
     {
       reply_markup: {
         inline_keyboard: inlineKeyboard,

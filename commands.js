@@ -56,10 +56,10 @@ const GlobalModifiers = `
 `
 
 const ApiCommandsList = `
-status - Статус спейса и кто отметился внутри
-join - Как присоединиться к нам
-donate - Как задонатить
-funds - Наши открытые сборы
+-status - Статус спейса и кто отметился внутри
+-join - Как присоединиться к нам
+-donate - Как задонатить
+-funds - Наши открытые сборы
 `;
 
 module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList, ApiCommandsList, GlobalModifiers}

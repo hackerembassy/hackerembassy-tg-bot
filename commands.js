@@ -55,4 +55,11 @@ const GlobalModifiers = `
 \`-nocommands\` - Вспомогательные команды не будут выводиться для админа и бухгалтера по умолчанию
 `
 
-module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList, GlobalModifiers}
+const ApiCommandsList = `
+status - Статус спейса и кто отметился внутри
+join - Как присоединиться к нам
+donate - Как задонатить
+funds - Наши открытые сборы
+`;
+
+module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList, ApiCommandsList, GlobalModifiers}

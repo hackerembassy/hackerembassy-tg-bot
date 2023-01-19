@@ -11,7 +11,7 @@
     "update-and-start": "npm run kill && git pull && npm run start-bot && npm run start-api-https",
     "start-bot": "nohup node bot.js &",
     "start-api-https": "caddy start",
-    "kill": "caddy stop && skill -c nohup node bot.js &",
+    "kill": "skill -c nohup node bot.js &",
     "backup": "mkdir ./data/.backup -p && cp ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
     "reset": "mkdir ./data/.backup -p && mv ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db"
   },

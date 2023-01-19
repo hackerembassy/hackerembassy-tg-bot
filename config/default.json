@@ -12,5 +12,8 @@
         "default": "AMD",
         "cryptoUpdateInterval":50000,
         "fiatUpdateInterval": 3600000
+    },
+    "api":{
+        "port":3000
     }
   }

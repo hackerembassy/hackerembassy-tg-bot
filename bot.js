@@ -22,6 +22,10 @@ const {
 } = require("./botExtensions");
 const api = require("./api");
 
+function parseMoneyValue(value){
+  return Number(value.replaceAll(/(k|тыс|тысяч|т)/g,"000").replaceAll(",",""));
+}
+
 const TOKEN = process.env["HACKERBOTTOKEN"];
 const CALLBACK_DATA_RESTRICTION = 20;
 const IsDebug = process.env["BOTDEBUG"] === "true";
@@ -573,15 +577,15 @@ bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
 });
 
 bot.onText(
-  /^\/addFund(@.+?)? (.*\S) with target ([\d.]+)\s?(\D*)$/,
+  /^\/addFund(@.+?)? (.*\S) with target (\S+)\s?(\D*)$/,
   (msg, match) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
     let fundName = match[2];
-    let targetValue = match[3];
+    let targetValue = parseMoneyValue(match[3]);
     let currency = match[4]?.length > 0 ? match[4] : currencyConfig.default;
 
-    let success = FundsRepository.addfund(fundName, targetValue, currency);
+    let success = !isNaN(targetValue) && FundsRepository.addfund(fundName, targetValue, currency);
     let message = success
       ? `Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
       : `Не удалось добавить сбор (может он уже есть?)`;
@@ -591,16 +595,16 @@ bot.onText(
 );
 
 bot.onText(
-  /^\/updateFund(@.+?)? (.*\S) with target ([\d.]+)\s?(\D*?)(?: as (.*\S))?$/,
+  /^\/updateFund(@.+?)? (.*\S) with target (\S+)\s?(\D*?)(?: as (.*\S))?$/,
   (msg, match) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
     let fundName = match[2];
-    let targetValue = match[3];
+    let targetValue = parseMoneyValue(match[3]);
     let currency = match[4]?.length > 0 ? match[4] : currencyConfig.default;
     let newFundName = match[5]?.length > 0 ? match[5] : fundName;
 
-    let success = FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
+    let success = !isNaN(targetValue) && FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
     let message = success
       ? `Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
       : `Не удалось обновить сбор (может не то имя?)`;
@@ -667,16 +671,16 @@ bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => {
 });
 
 bot.onText(
-  /^\/addDonation(@.+?)? ([\d.]+?)\s?(\D*?) from (\S+?) to (.*\S)$/,
+  /^\/addDonation(@.+?)? (\S+)\s?(\D*?) from (\S+?) to (.*\S)$/,
   async (msg, match) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
-    let value = match[2];
+    let value = parseMoneyValue(match[2]);
     let currency = match[3].length > 0 ? match[3] : currencyConfig.default;
     let userName = match[4].replace("@", "");
     let fundName = match[5];
 
-    let success = FundsRepository.addDonationTo(
+    let success = !isNaN(value) && FundsRepository.addDonationTo(
       fundName,
       userName,
       value,

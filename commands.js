@@ -34,6 +34,7 @@ const AdminCommandsList = `
 
 const AccountantCommandsList = `
 Команды бухгалтера:
+\`/costs donation_value currency_code from telegram_username\` - Задонатить в последний актуальный сбор на аренду
 \`/addFund Fund_Name with target goal_value currency_code\`
 \`/updateFund Fund_Name with target goal_value currency_code as New_Name\`
 \`/exportFund fund_name\`

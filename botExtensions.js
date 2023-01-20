@@ -12,11 +12,15 @@ let history = [];
 // Helper functions
 
 function chunkSubstr(str, size) {
-  const numChunks = Math.ceil(str.length / size);
-  const chunks = new Array(numChunks);
-
-  for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
-    chunks[i] = str.substr(o, size);
+  const chunks = [];
+  let i = 0;
+  while (str.length>0){
+    let tmp = str.substr(0, size);
+    let indexOfLastNewLine = tmp.lastIndexOf("\n");
+    let chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine : size;
+    chunks.push(tmp.substr(0, chunkLength));
+    str = str.substr(chunkLength);
+    i++;
   }
 
   return chunks;

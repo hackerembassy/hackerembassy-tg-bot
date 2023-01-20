@@ -583,7 +583,7 @@ bot.onText(
 
     let fundName = match[2];
     let targetValue = parseMoneyValue(match[3]);
-    let currency = match[4]?.length > 0 ? match[4] : currencyConfig.default;
+    let currency = match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
 
     let success = !isNaN(targetValue) && FundsRepository.addfund(fundName, targetValue, currency);
     let message = success
@@ -601,7 +601,7 @@ bot.onText(
 
     let fundName = match[2];
     let targetValue = parseMoneyValue(match[3]);
-    let currency = match[4]?.length > 0 ? match[4] : currencyConfig.default;
+    let currency = match[4]?.length > 0 ? match[4].toUpperCase : currencyConfig.default;
     let newFundName = match[5]?.length > 0 ? match[5] : fundName;
 
     let success = !isNaN(targetValue) && FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
@@ -676,9 +676,33 @@ bot.onText(
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     let value = parseMoneyValue(match[2]);
-    let currency = match[3].length > 0 ? match[3] : currencyConfig.default;
+    let currency = match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
     let userName = match[4].replace("@", "");
     let fundName = match[5];
+
+    let success = !isNaN(value) && FundsRepository.addDonationTo(
+      fundName,
+      userName,
+      value,
+      currency
+    );
+    let message = success
+      ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
+      : `Не удалось добавить донат`;
+
+    bot.sendMessage(msg.chat.id, message);
+  }
+);
+
+bot.onText(
+  /^\/costs(@.+?)? (\S+)\s?(\D*?) from (\S+?)$/,
+  async (msg, match) => {
+    if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
+
+    let value = parseMoneyValue(match[2]);
+    let currency = match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
+    let userName = match[4].replace("@", "");
+    let fundName = FundsRepository.getLatestCosts().name;
 
     let success = !isNaN(value) && FundsRepository.addDonationTo(
       fundName,

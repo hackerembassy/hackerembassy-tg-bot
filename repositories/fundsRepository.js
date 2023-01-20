@@ -15,6 +15,10 @@ class FundsRepository extends BaseRepository {
       .get(fundName);
   }
 
+  getLatestCosts(){
+    return this.getfunds().find(fund => /(А|а)ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
+  }
+
   getDonations() {
     return this.db.prepare("SELECT * FROM donations").all();
   }
@@ -39,15 +43,15 @@ class FundsRepository extends BaseRepository {
       .get(donationId);
   }
 
-  addfund(fundName, target, currency = currencyConfig.default) {
+  addfund(fundName, target, currency = currencyConfig.default, status = "open") {
     try {
       if (this.getfundByName(fundName) !== undefined) return false;
 
       this.db
         .prepare(
-          "INSERT INTO funds (id, name, target_value, target_currency) VALUES (NULL, ?, ?, ?)"
+          "INSERT INTO funds (id, name, target_value, target_currency, status) VALUES (NULL, ?, ?, ?, ?)"
         )
-        .run(fundName, target, currency);
+        .run(fundName, target, currency, status);
 
       return true;
     }

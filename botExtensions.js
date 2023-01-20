@@ -14,6 +14,9 @@ let history = [];
 function chunkSubstr(str, size) {
   const chunks = [];
   let i = 0;
+
+  if (str.length < size) return [str];
+
   while (str.length>0){
     let tmp = str.substr(0, size);
     let indexOfLastNewLine = tmp.lastIndexOf("\n");

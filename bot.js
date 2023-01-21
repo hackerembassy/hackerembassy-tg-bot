@@ -3,6 +3,7 @@ const TelegramBot = require("node-telegram-bot-api");
 const StatusRepository = require("./repositories/statusRepository");
 const UsersRepository = require("./repositories/usersRepository");
 const FundsRepository = require("./repositories/fundsRepository");
+const NeedsRepository = require("./repositories/needsRepository");
 const TextGenerators = require("./services/textGenerators");
 const UsersHelper = require("./services/usersHelper");
 const ExportHelper = require("./services/export");
@@ -433,6 +434,48 @@ function LetOut(username, date) {
 
   return true;
 }
+
+// Needs and buys
+
+function needsHandler(msg){
+  let needs = NeedsRepository.getOpenNeeds();
+  let message = TextGenerators.getNeedsList(needs, tag());
+
+  bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+}
+
+function buyHandler(msg, match){
+    let text = match[2];
+    let requester = msg.from.username;
+  
+    NeedsRepository.addBuy(text, requester, new Date())
+
+    let message = `🙏 ${tag()}${TextGenerators.excapeUnderscore(requester)} попросил кого-нибудь купить \`${text}\` в спейс по дороге.`;
+  
+    bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+}
+
+function boughtHandler(msg, match){
+  let text = match[2];
+  let buyer = msg.from.username;
+
+  let need = NeedsRepository.getOpenNeedByText(text);
+
+  if (!need || need.buyer){
+    bot.sendMessage(msg.chat.id, `🙄 Открытого запроса на покупку с таким именем не нашлось`);
+    return;
+  }
+
+  let message = `✅ ${tag()}${TextGenerators.excapeUnderscore(buyer)} купил \`${text}\` в спейс`;
+
+  NeedsRepository.closeNeed(text, buyer, new Date());
+
+  bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+}
+
+bot.onText(/^\/needs(@.+?)?$/, needsHandler);
+bot.onText(/^\/buy(@.+?)? (.*)$/, buyHandler);
+bot.onText(/^\/bought(@.+?)? (.*)$/, boughtHandler);
 
 // User management
 bot.onText(/^\/getUsers(@.+?)?$/, (msg, _) => {

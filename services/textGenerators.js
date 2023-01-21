@@ -1,6 +1,6 @@
 const Currency = require("../services/currency");
 
-function excapeUnderscore(text){
+function escapeUnderscore(text){
   return text.replaceAll("_","\\_");
 }
 
@@ -32,7 +32,7 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
     list += `${statusEmoji} \`${fund.name}\` - Собрано ${sum.toFixed(2)} из ${fund.target_value} ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
-      list += `     \\[id:${donation.id}\] - ${tag}${excapeUnderscore(donation.username)} - ${donation.value} ${donation.currency}\n`;
+      list += `     \\[id:${donation.id}\] - ${tag}${escapeUnderscore(donation.username)} - ${donation.value} ${donation.currency}\n`;
     }
     
     if (addCommands){
@@ -87,6 +87,25 @@ function getAccountsList(accountants, tag = ""){
   return accountantsList;
 }
 
+function getNeedsList(needs, tag = ""){
+  let message = `👌 Пока никто не просил ничего\n`
+
+  if (needs.length > 0){
+    message = `🙏 Кто-нибудь, купите по дороге в спейс:\n`
+
+    for (const need of needs) {
+      message+=`- \`${need.text}\` по просьбе ${tag}${escapeUnderscore(need.requester)}\n`
+    }
+
+    message+=`\n✅ Отметить покупку сделанной можно с помощью команды \`/bought item_name\``
+  }
+
+  message+=`\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды \`/buy item_name\``
+
+
+  return message;
+}
+
 function getDonateText(accountants, tag = "", isApi = false){
   let accountantsList = getAccountsList(accountants, tag);
 
@@ -128,4 +147,4 @@ ${!isApi?"\n🗺 Чтобы узнать, как нас найти, жми /loca
 `
 }
 
-module.exports = { createFundList, getAccountsList, getStatusMessage, getDonateText, getJoinText };
+module.exports = { createFundList, getAccountsList, getStatusMessage, getDonateText, getJoinText, getNeedsList, excapeUnderscore: escapeUnderscore };

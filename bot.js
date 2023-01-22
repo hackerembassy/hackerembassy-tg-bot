@@ -40,6 +40,11 @@ initGlobalModifiers(bot);
 addSavingLastMessages(bot);
 disableNotificationsByDefault(bot);
 
+
+function fromPrivateChat(msg){
+  return msg?.chat.type === "private";
+}
+
 let exportDonutHandler = async (msg, fundName) => {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
@@ -535,7 +540,7 @@ bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
 bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
-  let addCommands = needCommands()
+  let addCommands = needCommands() && fromPrivateChat(msg)
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
 
@@ -557,7 +562,7 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
   let fundName = match[2];
   let funds = [FundsRepository.getfundByName(fundName)];
   let donations = FundsRepository.getDonationsForName(fundName);
-  let addCommands = needCommands()
+  let addCommands = needCommands() && fromPrivateChat(msg)
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
 
@@ -604,7 +609,7 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
 bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
   let funds = FundsRepository.getfunds();
   let donations = FundsRepository.getDonations();
-  let addCommands = needCommands()
+  let addCommands = needCommands() && fromPrivateChat(msg)
     ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
     : false;
   let list = await TextGenerators.createFundList(
@@ -644,7 +649,7 @@ bot.onText(
 
     let fundName = match[2];
     let targetValue = parseMoneyValue(match[3]);
-    let currency = match[4]?.length > 0 ? match[4].toUpperCase : currencyConfig.default;
+    let currency = match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
     let newFundName = match[5]?.length > 0 ? match[5] : fundName;
 
     let success = !isNaN(targetValue) && FundsRepository.updatefund(fundName, targetValue, currency, newFundName);

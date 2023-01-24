@@ -116,10 +116,20 @@ function disableNotificationsByDefault(bot){
 
 function addSavingLastMessages(bot){
   let sendMessageOriginal = bot.sendMessage;
+  let sendPhotoOriginal = bot.sendPhoto;
 
   bot.sendMessage = async function (...args) {
     let chatId = args[0];
     let message = await sendMessageOriginal.call(this, ...args);
+    let messageId = message.message_id;
+    
+    if (!history[chatId]) history[chatId] = [];
+    history[chatId].push(messageId);
+  };
+
+  bot.sendPhoto = async function (...args) {
+    let chatId = args[0];
+    let message = await sendPhotoOriginal.call(this, ...args);
     let messageId = message.message_id;
     
     if (!history[chatId]) history[chatId] = [];

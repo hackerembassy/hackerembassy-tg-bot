@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./api");
 const TelegramBot = require("node-telegram-bot-api");
 const StatusRepository = require("./repositories/statusRepository");
 const UsersRepository = require("./repositories/usersRepository");
@@ -9,8 +10,9 @@ const UsersHelper = require("./services/usersHelper");
 const ExportHelper = require("./services/export");
 const Commands = require("./commands");
 const CoinsHelper = require("./data/coins/coins");
-const config = require('config');
+const config = require("config");
 const botConfig = config.get("bot");
+const embassyApiConfig = config.get("embassy-api");
 const currencyConfig = config.get("currency");
 const {
   initGlobalModifiers,
@@ -21,10 +23,12 @@ const {
   needCommands,
   popLast,
 } = require("./botExtensions");
-const api = require("./api");
+const fetch = require("node-fetch");
 
-function parseMoneyValue(value){
-  return Number(value.replaceAll(/(k|тыс|тысяч|т)/g,"000").replaceAll(",",""));
+function parseMoneyValue(value) {
+  return Number(
+    value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", "")
+  );
 }
 
 const TOKEN = process.env["HACKERBOTTOKEN"];
@@ -40,8 +44,7 @@ initGlobalModifiers(bot);
 addSavingLastMessages(bot);
 disableNotificationsByDefault(bot);
 
-
-function fromPrivateChat(msg){
+function fromPrivateChat(msg) {
   return msg?.chat.type === "private";
 }
 
@@ -63,6 +66,35 @@ let exportDonutHandler = async (msg, fundName) => {
 
   bot.sendPhoto(msg.chat.id, imageBuffer);
 };
+
+bot.onText(/^\/(printer)(@.+?)?$/, async (msg) => {
+  let message = TextGenerators.getPrinterInfo();
+  bot.sendMessage(msg.chat.id, message);
+});
+
+bot.onText(/^\/(printerstatus)(@.+?)?$/, async (msg) => {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    var {status, thumbnailBuffer} = await (await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer`, { signal: controller.signal }))?.json();
+    clearTimeout(timeoutId);
+
+    if (status && !status.error)
+      var message = await TextGenerators.getPrinterStatus(status);
+    else 
+      throw Error();
+  }
+  catch {
+    message = `⚠️ Принтер пока недоступен`;
+  } 
+  finally {
+    if (thumbnailBuffer) 
+      bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), { caption: message });
+    else 
+      bot.sendMessage(msg.chat.id, message);
+  }
+});
 
 bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) =>
   exportDonutHandler(msg, match[2])
@@ -93,19 +125,13 @@ bot.onText(/^\/(about)(@.+?)?$/, (msg) => {
 
 bot.onText(/^\/(join)(@.+?)?$/, (msg) => {
   let message = TextGenerators.getJoinText();
-  bot.sendMessage(
-    msg.chat.id,
-    message
-  );
+  bot.sendMessage(msg.chat.id, message);
 });
 
 bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
   let accountants = UsersRepository.getUsersByRole("accountant");
   let message = TextGenerators.getDonateText(accountants, tag());
-  bot.sendMessage(
-    msg.chat.id,
-    message
-  );
+  bot.sendMessage(msg.chat.id, message);
 });
 
 bot.onText(/^\/location(@.+?)?$/, (msg) => {
@@ -155,6 +181,10 @@ let statusHandler = (msg) => {
         ],
         [
           {
+            text: "Повторить команду",
+            callback_data: JSON.stringify({ command: "/status" }),
+          },
+          {
             text: "Закрыть спейс",
             callback_data: JSON.stringify({ command: "/close" }),
           },
@@ -163,22 +193,21 @@ let statusHandler = (msg) => {
     : [
         [
           {
+            text: "Повторить команду",
+            callback_data: JSON.stringify({ command: "/status" }),
+          },
+          {
             text: "Открыть спейс",
             callback_data: JSON.stringify({ command: "/open" }),
           },
         ],
       ];
-  
 
-  bot.sendMessage(
-    msg.chat.id,
-    statusMessage,
-    {
-      reply_markup: {
-        inline_keyboard: inlineKeyboard,
-      },
-    }
-  );
+  bot.sendMessage(msg.chat.id, statusMessage, {
+    reply_markup: {
+      inline_keyboard: inlineKeyboard,
+    },
+  });
 };
 
 // State
@@ -277,8 +306,9 @@ bot.onText(/^\/close(@.+?)?$/, closeHandler);
 
 let inHandler = (msg) => {
   let eventDate = new Date();
-  let gotIn = LetIn(msg.from.username, eventDate);
-  let message = `🟢 ${tag()}${msg.from.username} пришел в спейс 🟢
+  let user = msg.from.username ?? msg.from.first_name;
+  let gotIn = LetIn(user, eventDate);
+  let message = `🟢 ${tag()}${user} пришел в спейс 🟢
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotIn) {
@@ -306,6 +336,10 @@ let inHandler = (msg) => {
       ]
     : [
         [
+          {
+            text: "Повторить команду",
+            callback_data: JSON.stringify({ command: "/in" }),
+          },
           {
             text: "Открыть спейс",
             callback_data: JSON.stringify({ command: "/open" }),
@@ -351,6 +385,10 @@ let outHandler = (msg) => {
       ]
     : [
         [
+          {
+            text: "Повторить команду",
+            callback_data: JSON.stringify({ command: "/out" }),
+          },
           {
             text: "Открыть спейс",
             callback_data: JSON.stringify({ command: "/open" }),
@@ -442,36 +480,43 @@ function LetOut(username, date) {
 
 // Needs and buys
 
-function needsHandler(msg){
+function needsHandler(msg) {
   let needs = NeedsRepository.getOpenNeeds();
   let message = TextGenerators.getNeedsList(needs, tag());
 
   bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
 }
 
-function buyHandler(msg, match){
-    let text = match[2];
-    let requester = msg.from.username;
-  
-    NeedsRepository.addBuy(text, requester, new Date())
+function buyHandler(msg, match) {
+  let text = match[2];
+  let requester = msg.from.username;
 
-    let message = `🙏 ${tag()}${TextGenerators.excapeUnderscore(requester)} попросил кого-нибудь купить \`${text}\` в спейс по дороге.`;
-  
-    bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+  NeedsRepository.addBuy(text, requester, new Date());
+
+  let message = `🙏 ${tag()}${TextGenerators.excapeUnderscore(
+    requester
+  )} попросил кого-нибудь купить \`${text}\` в спейс по дороге.`;
+
+  bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
 }
 
-function boughtHandler(msg, match){
+function boughtHandler(msg, match) {
   let text = match[2];
   let buyer = msg.from.username;
 
   let need = NeedsRepository.getOpenNeedByText(text);
 
-  if (!need || need.buyer){
-    bot.sendMessage(msg.chat.id, `🙄 Открытого запроса на покупку с таким именем не нашлось`);
+  if (!need || need.buyer) {
+    bot.sendMessage(
+      msg.chat.id,
+      `🙄 Открытого запроса на покупку с таким именем не нашлось`
+    );
     return;
   }
 
-  let message = `✅ ${tag()}${TextGenerators.excapeUnderscore(buyer)} купил \`${text}\` в спейс`;
+  let message = `✅ ${tag()}${TextGenerators.excapeUnderscore(
+    buyer
+  )} купил \`${text}\` в спейс`;
 
   NeedsRepository.closeNeed(text, buyer, new Date());
 
@@ -540,9 +585,10 @@ bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
 bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
-  let addCommands = needCommands() && fromPrivateChat(msg)
-    ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
-    : false;
+  let addCommands =
+    needCommands() && fromPrivateChat(msg)
+      ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
+      : false;
 
   let list = await TextGenerators.createFundList(
     funds,
@@ -562,9 +608,10 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
   let fundName = match[2];
   let funds = [FundsRepository.getfundByName(fundName)];
   let donations = FundsRepository.getDonationsForName(fundName);
-  let addCommands = needCommands() && fromPrivateChat(msg)
-    ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
-    : false;
+  let addCommands =
+    needCommands() && fromPrivateChat(msg)
+      ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
+      : false;
 
   // telegram callback_data is restricted to 64 bytes
   let inlineKeyboard =
@@ -609,9 +656,10 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
 bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
   let funds = FundsRepository.getfunds();
   let donations = FundsRepository.getDonations();
-  let addCommands = needCommands() && fromPrivateChat(msg)
-    ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
-    : false;
+  let addCommands =
+    needCommands() && fromPrivateChat(msg)
+      ? UsersHelper.hasRole(msg.from.username, "admin", "accountant")
+      : false;
   let list = await TextGenerators.createFundList(
     funds,
     donations,
@@ -631,9 +679,12 @@ bot.onText(
 
     let fundName = match[2];
     let targetValue = parseMoneyValue(match[3]);
-    let currency = match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
+    let currency =
+      match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
 
-    let success = !isNaN(targetValue) && FundsRepository.addfund(fundName, targetValue, currency);
+    let success =
+      !isNaN(targetValue) &&
+      FundsRepository.addfund(fundName, targetValue, currency);
     let message = success
       ? `Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
       : `Не удалось добавить сбор (может он уже есть?)`;
@@ -649,10 +700,13 @@ bot.onText(
 
     let fundName = match[2];
     let targetValue = parseMoneyValue(match[3]);
-    let currency = match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
+    let currency =
+      match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
     let newFundName = match[5]?.length > 0 ? match[5] : fundName;
 
-    let success = !isNaN(targetValue) && FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
+    let success =
+      !isNaN(targetValue) &&
+      FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
     let message = success
       ? `Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
       : `Не удалось обновить сбор (может не то имя?)`;
@@ -724,16 +778,14 @@ bot.onText(
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     let value = parseMoneyValue(match[2]);
-    let currency = match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
+    let currency =
+      match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
     let userName = match[4].replace("@", "");
     let fundName = match[5];
 
-    let success = !isNaN(value) && FundsRepository.addDonationTo(
-      fundName,
-      userName,
-      value,
-      currency
-    );
+    let success =
+      !isNaN(value) &&
+      FundsRepository.addDonationTo(fundName, userName, value, currency);
     let message = success
       ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
       : `Не удалось добавить донат`;
@@ -748,16 +800,14 @@ bot.onText(
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     let value = parseMoneyValue(match[2]);
-    let currency = match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
+    let currency =
+      match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
     let userName = match[4].replace("@", "");
     let fundName = FundsRepository.getLatestCosts().name;
 
-    let success = !isNaN(value) && FundsRepository.addDonationTo(
-      fundName,
-      userName,
-      value,
-      currency
-    );
+    let success =
+      !isNaN(value) &&
+      FundsRepository.addDonationTo(fundName, userName, value, currency);
     let message = success
       ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
       : `Не удалось добавить донат`;

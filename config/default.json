@@ -8,6 +8,13 @@
             "test" : -830038395
         }
     },
+    "printer3d" : {
+        "apibase":"http://192.168.1.100"
+    },
+    "embassy-api":{
+        "port": 8001,
+        "host": "http://127.0.0.1"
+    },
     "currency":{
         "default": "AMD",
         "cryptoUpdateInterval":50000,

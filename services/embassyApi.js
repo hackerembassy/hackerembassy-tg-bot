@@ -5,8 +5,14 @@ const printer3d = require("./printer3d");
 const embassyApiConfig = config.get("embassy-api");
 const app = express();
 const port = embassyApiConfig.port;
+const find = require('local-devices');
 
 app.use(cors());
+
+app.get("/devices", async (_, res) => {
+  let devices = await find({ address: embassyApiConfig.networkRange });
+  res.send(devices.map(d=> d.mac));
+});
 
 app.get("/printer", async (_, res) => {
   try {

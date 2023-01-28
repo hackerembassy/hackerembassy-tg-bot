@@ -1,5 +1,6 @@
 require("dotenv").config();
 require("./api");
+require("./services/autoInOut");
 const TelegramBot = require("node-telegram-bot-api");
 const StatusRepository = require("./repositories/statusRepository");
 const UsersRepository = require("./repositories/usersRepository");
@@ -98,6 +99,42 @@ bot.onText(/^\/(printerstatus)(@.+?)?$/, async (msg) => {
 
 bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) =>
   exportDonutHandler(msg, match[2])
+);
+
+function autoinsideHandler(msg, mac){
+  let message = `Укажите валидный MAC адрес`;
+  let username = msg.from.username;
+
+  if (!mac || mac === "help"){
+    message = `⏲ С помощью этой команды можно автоматически отмечаться в спейсе как только MAC адрес вашего устройства будет обнаружен в сети.
+📌 При отсутствии активности устройства в сети спейса в течение ${botConfig.timeouts.out/60000} минут произойдет автовыход юзера.
+📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
+⚠️ Для работы обязательно отключите рандомизацию MAC адреса для сети спейса.
+
+\`/autoinside mac_address\` - Включить автовход и автовыход  
+\`/autoinside status\` - Статус автовхода и автовыхода  
+\`/autoinside disable\` - Выключить автовход и автовыход  
+`
+  } else if (mac && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(mac) && UsersRepository.setMAC(username, mac)){
+    message = `Автовход и автовыход активированы для юзера ${tag()}${TextGenerators.excapeUnderscore(username)} на MAC адрес ${mac}.
+Не забудьте отключить рандомизацию MAC адреса для сети спейса
+`
+  } else if (mac === "disable"){
+    UsersRepository.setMAC(username, null);
+    message = `Автовход и автовыход выключены для юзера ${tag()}${TextGenerators.excapeUnderscore(username)}`
+  } else if (mac === "status"){
+    let usermac = UsersRepository.getUser(username)?.mac;
+    if (usermac)
+      message = `Автовход и автовыход включены для юзера ${tag()}${TextGenerators.excapeUnderscore(username)} на MAC адрес ${usermac}`
+    else
+      message = `Автовход и автовыход выключены для юзера ${tag()}${TextGenerators.excapeUnderscore(username)}`
+  }
+
+  bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+}
+
+bot.onText(/^\/autoinside(@.+?)?(?: (.*\S))?$/, async (msg, match) =>
+  autoinsideHandler(msg, match[2])
 );
 
 bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
@@ -308,7 +345,7 @@ let inHandler = (msg) => {
   let eventDate = new Date();
   let user = msg.from.username ?? msg.from.first_name;
   let gotIn = LetIn(user, eventDate);
-  let message = `🟢 ${tag()}${user} пришел в спейс 🟢
+  let message = `🟢 ${tag()}${user} пришел в спейс
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotIn) {
@@ -361,7 +398,7 @@ let outHandler = (msg) => {
 🗓 ${eventDate.toLocaleString()} `;
 
   if (!gotOut) {
-    message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез? 🔐";
+    message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез?";
   }
 
   let inlineKeyboard = gotOut

@@ -16,6 +16,7 @@ const GeneralCommandsList = `
 /needs - Посмотреть, что просили купить в спейс по дороге
 \`/buy item_name\` - Попросить купить что-нибудь в спейс по дороге (бумага, чай, и.т.п)
 \`/bought item_name\` - Отметить что-то купленным из needs
+/autoinside - Настроить автоматический вход и выход из спейса
 `;
 
 const MemberCommandsList = `

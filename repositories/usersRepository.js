@@ -7,6 +7,7 @@ class UserRepository extends BaseRepository {
     return users.map((user) => ({
       roles: user.roles.split("|"),
       username: user.username,
+      mac: user.mac
     }));
   }
 
@@ -37,6 +38,23 @@ class UserRepository extends BaseRepository {
       this.db
         .prepare("UPDATE users SET roles = ? WHERE username = ?")
         .run(roles, username);
+
+      return true;
+    } catch (error) {
+      console.log(error);
+
+      return false;
+    }
+  }
+
+  setMAC(username, mac = null) {
+    try {
+      if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 
+      if (mac) mac = mac.toLowerCase().replaceAll("-",":");
+
+      this.db
+        .prepare("UPDATE users SET mac = ? WHERE username = ?")
+        .run(mac, username);
 
       return true;
     } catch (error) {

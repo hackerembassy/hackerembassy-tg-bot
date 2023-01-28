@@ -1,0 +1,13 @@
+[Unit]
+Description=AutoSSH tunnel
+After=network-online.target
+
+[Service]
+Type=simple
+Environment="AUTOSSH_GATETIME=0"
+ExecStart=/usr/bin/ssh -N -R 8222:127.0.0.1:22 root@nickkiselev.me -o "ServerAliveInterval=30" -o "ServerAliveCountMax=3" -o ExitOnForwardFailure=yes
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

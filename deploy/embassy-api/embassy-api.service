@@ -1,0 +1,13 @@
+[Unit]
+Description=Embassy Api
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/nick/hackerembassy-tg-bot/
+ExecStart=/usr/bin/npm run embassy-api-service
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

@@ -653,7 +653,7 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
   });
 });
 
-bot.onText(/^\/fundsAll(@.+?)?$/, async (msg) => {
+bot.onText(/^\/fundsall(@.+?)?$/, async (msg) => {
   let funds = FundsRepository.getfunds();
   let donations = FundsRepository.getDonations();
   let addCommands =

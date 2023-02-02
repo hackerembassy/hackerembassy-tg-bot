@@ -532,7 +532,7 @@ function buyHandler(msg, match) {
 
   let message = `🙏 ${tag()}${TextGenerators.excapeUnderscore(
     requester
-  )} попросил кого-нибудь купить \`${text}\` в спейс по дороге.`;
+  )} попросил кого-нибудь купить \`${text}\` по дороге в спейс.`;
 
   bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
 }

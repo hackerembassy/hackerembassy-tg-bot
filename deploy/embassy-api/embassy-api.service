@@ -6,6 +6,7 @@ After=network-online.target
 Type=simple
 WorkingDirectory=/home/nick/hackerembassy-tg-bot/
 ExecStart=/usr/bin/npm run embassy-api-service
+RuntimeMaxSec=1800
 Restart=always
 RestartSec=15
 

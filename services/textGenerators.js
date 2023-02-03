@@ -175,6 +175,43 @@ ${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /lo
 `;
 }
 
+function getBirthdaysList(birthdayUsers, tag){
+  let message = `🎂 В этом месяце празднуют свои днюхи:\n`;
+
+  let usersList = `\nНикто? Странно...\n`;
+
+  if (birthdayUsers) {
+    let usersWithDays =  birthdayUsers
+    .map(u => {
+      let parts = u.birthday.split("-");
+      return {
+        day: Number(parts[2]),
+        month: Number(parts[1]),
+        ...u
+      }
+    })
+    .filter(u => {
+      return u.month === (new Date()).getMonth()+1;
+    })
+    .sort((u1, u2) => u1.day - u2.day);
+
+    if (usersWithDays.length > 0){
+      usersList = ``;
+      for (const user of usersWithDays) {      
+        message += `${user.day} - ${tag}${escapeUnderscore(user.username)}\n`;
+      }
+    }
+  }
+
+  message += `${usersList}
+Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в формате:
+\`/mybirthday YYYY-MM-DD\`
+Надоели поздравления себя? Вводи команду:
+\`/mybirthday remove\``;
+
+  return message;
+}
+
 function getPrinterInfo(){
   return `🖨 3D принтер Anette от ubershy и cake64
 Документация по нему доступна тут:
@@ -224,5 +261,6 @@ module.exports = {
   getNeedsList,
   excapeUnderscore: escapeUnderscore,
   getPrinterInfo,
-  getPrinterStatus
+  getPrinterStatus,
+  getBirthdaysList
 };

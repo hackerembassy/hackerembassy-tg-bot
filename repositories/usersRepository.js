@@ -6,9 +6,8 @@ class UserRepository extends BaseRepository {
 
     return users.map((user) => ({
       roles: user.roles.split("|"),
-      username: user.username,
-      mac: user.mac
-    }));
+      ...user
+    })) ?? [];
   }
 
   addUser(username, roles = ["default"]) {
@@ -55,6 +54,22 @@ class UserRepository extends BaseRepository {
       this.db
         .prepare("UPDATE users SET mac = ? WHERE username = ?")
         .run(mac, username);
+
+      return true;
+    } catch (error) {
+      console.log(error);
+
+      return false;
+    }
+  }
+
+  setBirthday(username, birthday = null) {
+    try {
+      if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 
+
+      this.db
+        .prepare("UPDATE users SET birthday = ? WHERE username = ?")
+        .run(birthday, username);
 
       return true;
     } catch (error) {

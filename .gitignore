@@ -1,4 +1,6 @@
 .env
 .backup
+config/local.json
 node_modules
 data.db
+data/wished-today.json

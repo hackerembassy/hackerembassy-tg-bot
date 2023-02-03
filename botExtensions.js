@@ -1,3 +1,9 @@
+const config = require("config");
+const botConfig = config.get("bot");
+const UsersRepository = require("./repositories/usersRepository");
+const fs = require("fs/promises");
+const path = require("path");
+
 const maxChunkSize = 3000;
 const messagedelay = 1500;
 
@@ -154,6 +160,53 @@ function* popLast(chatId, count){
   }
 }
 
+// Birthday autowishes
+
+const baseWishesDir = "./data/wishes";
+const wishedTodayPath = "./data/wished-today.json";
+
+async function getWish(username) {
+  let files = await fs.readdir(baseWishesDir);
+  let randomNum = Math.floor((Math.random()*files.length));
+  let wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]),{encoding:'utf8'});
+
+  return wishTemplate.replaceAll(/\$username/g, `@${username}`);
+}
+
+async function sendBirthdayWishes(bot){
+    let currentDate = (new Date()).toISOString().substring(5, 10);
+
+    let birthdayUsers = UsersRepository.getUsers().filter(u => {
+      return u.birthday?.substring(5, 10) === currentDate
+    });
+
+    if (await fs.access(wishedTodayPath).catch(() => true)){
+      fs.writeFile(wishedTodayPath, "[]");
+    }
+
+    let wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
+
+    for (const user of birthdayUsers) {
+      if (wishedToday.find(entry => entry.username && entry.date === currentDate)) continue;
+      
+      let message = "🎂 ";
+      message += await getWish(user.username);
+
+      bot.sendMessage(botConfig.chats.main, message);
+      wishedToday.push({username: user.username, date: currentDate});
+
+      sleep(30000);
+    }
+
+    JSON.stringify(wishedToday);
+
+    fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
+}
+
+function enableAutoWishes(bot){
+  setInterval(()=>sendBirthdayWishes(bot), 3600000);
+}
+
 module.exports = {
   mode,
   initGlobalModifiers,
@@ -162,5 +215,6 @@ module.exports = {
   needCommands,
   addLongCommands,
   disableNotificationsByDefault,
-  addSavingLastMessages
+  addSavingLastMessages,
+  enableAutoWishes
 };

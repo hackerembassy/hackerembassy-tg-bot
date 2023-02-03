@@ -2,7 +2,7 @@
     "bot": {
         "timezone" : "Asia/Yerevan",
         "chats": {
-            "main" : -1605898533,
+            "main" : -1001605898533,
             "horny" : -1687064759,
             "offtopic" : -1555805688,
             "test" : -830038395
@@ -10,7 +10,8 @@
         "timeouts":{
             "in": 60000,
             "out": 1800000
-        }
+        },
+        "autoWish": true
     },
     "printer3d" : {
         "apibase":"http://192.168.1.100"

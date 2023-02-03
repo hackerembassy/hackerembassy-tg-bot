@@ -1,0 +1,32 @@
+{
+    "bot": {
+        "timezone" : "Asia/Yerevan",
+        "chats": {
+            "main" : -1001605898533,
+            "horny" : -1687064759,
+            "offtopic" : -1555805688,
+            "test" : -830038395
+        },
+        "timeouts":{
+            "in": 60000,
+            "out": 1800000
+        },
+        "autoWish": true
+    },
+    "printer3d" : {
+        "apibase":"http://192.168.1.100"
+    },
+    "embassy-api":{
+        "port": 8001,
+        "host": "http://127.0.0.1",
+        "networkRange": "192.168.1.1-192.168.1.254"
+    },
+    "currency":{
+        "default": "AMD",
+        "cryptoUpdateInterval":50000,
+        "fiatUpdateInterval": 3600000
+    },
+    "api":{
+        "port":3000
+    }
+  }

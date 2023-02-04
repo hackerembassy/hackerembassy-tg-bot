@@ -70,12 +70,12 @@ let exportDonutHandler = async (msg, fundName) => {
   bot.sendPhoto(msg.chat.id, imageBuffer);
 };
 
-bot.onText(/^\/(printer)(@.+?)?$/, async (msg) => {
+async function printerHandler (msg) {
   let message = TextGenerators.getPrinterInfo();
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/(printerstatus)(@.+?)?$/, async (msg) => {
+async function printerStatusHandler(msg) {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
@@ -97,11 +97,9 @@ bot.onText(/^\/(printerstatus)(@.+?)?$/, async (msg) => {
     else 
       bot.sendMessage(msg.chat.id, message);
   }
-});
+}
 
-bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) =>
-  exportDonutHandler(msg, match[2])
-);
+
 
 function autoinsideHandler(msg, mac){
   let message = `Укажите валидный MAC адрес`;
@@ -135,11 +133,7 @@ function autoinsideHandler(msg, mac){
   bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
 }
 
-bot.onText(/^\/autoinside(@.+?)?(?: (.*\S))?$/, async (msg, match) =>
-  autoinsideHandler(msg, match[2])
-);
-
-bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
+function startHandler(msg) {
   bot.sendMessage(
     msg.chat.id,
     `🛠 Привет хакерчан. Я новый бот для менеджмента всяких процессов в спейсе. 
@@ -149,9 +143,9 @@ bot.onText(/^\/(start|help)(@.+?)?$/, (msg) => {
       `${Commands.GlobalModifiers}`,
     { parse_mode: "Markdown" }
   );
-});
+}
 
-bot.onText(/^\/(about)(@.+?)?$/, (msg) => {
+function aboutHandler(msg) {
   bot.sendMessage(
     msg.chat.id,
     `🏫 Hacker Embassy (Ереванский Хакспейс) - это пространство, где собираются единомышленники, увлеченные технологиями и творчеством. Мы вместе работаем над проектами, делимся идеями и знаниями, просто общаемся.
@@ -160,29 +154,29 @@ bot.onText(/^\/(about)(@.+?)?$/, (msg) => {
 
 🍕 Мы всегда рады новым резидентам. Хочешь узнать, как стать участником? Жми команду /join`
   );
-});
+}
 
-bot.onText(/^\/(join)(@.+?)?$/, (msg) => {
+function joinHandler(msg){
   let message = TextGenerators.getJoinText();
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/(donate)(@.+?)?$/, (msg) => {
+function donateHandler(msg){
   let accountants = UsersRepository.getUsersByRole("accountant");
   let message = TextGenerators.getDonateText(accountants, tag());
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/location(@.+?)?$/, (msg) => {
+function locationHandler(msg) {
   let message = `🗺 Наш адрес: Армения, Ереван, Пушкина 38 (вход со двора)`;
   bot.sendMessage(msg.chat.id, message);
   bot.sendLocation(msg.chat.id, 40.18258, 44.51338);
   bot.sendPhoto(msg.chat.id, "./images/house.jpg", {
     caption: `🏫 Вот этот домик, единственный в своем роде`,
   });
-});
+}
 
-bot.on("new_chat_members", async (msg) => {
+async function newMemberHandler(msg) {
   let botName = (await bot.getMe()).username;
   let newMembers = msg.new_chat_members.reduce(
     (res, member) => res + `${tag()}${member.username} `,
@@ -193,9 +187,9 @@ bot.on("new_chat_members", async (msg) => {
 Я @${botName}, бот-менеджер хакерспейса. Ко мне в личку можно зайти пообщаться, вбить мои команды, и я расскажу вкратце о нас.
 🎉🎉🎉 Хакерчане, приветствуем ${newMembers}`;
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-let statusHandler = (msg) => {
+function statusHandler(msg) {
   let state = StatusRepository.getSpaceLastState();
 
   if (!state) {
@@ -249,10 +243,7 @@ let statusHandler = (msg) => {
   });
 };
 
-// State
-bot.onText(/^\/status(@.+?)?$/, statusHandler);
-
-let openHandler = (msg) => {
+function openHandler (msg){
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let opendate = new Date();
   let state = {
@@ -304,7 +295,7 @@ let openHandler = (msg) => {
   );
 };
 
-let closeHandler = (msg) => {
+function closeHandler(msg) {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
   let state = {
@@ -339,11 +330,7 @@ let closeHandler = (msg) => {
   );
 };
 
-bot.onText(/^\/open(@.+?)?$/, openHandler);
-
-bot.onText(/^\/close(@.+?)?$/, closeHandler);
-
-let inHandler = (msg) => {
+function inHandler(msg){
   let eventDate = new Date();
   let user = msg.from.username ?? msg.from.first_name;
   let gotIn = LetIn(user, eventDate);
@@ -393,7 +380,7 @@ let inHandler = (msg) => {
   });
 };
 
-let outHandler = (msg) => {
+function outHandler (msg) {
   let eventDate = new Date();
   let gotOut = LetOut(msg.from.username, eventDate);
   let message = `🔴 ${tag()}${msg.from.username} ушел из спейса
@@ -442,9 +429,7 @@ let outHandler = (msg) => {
   });
 };
 
-bot.onText(/^\/in(@.+?)?$/, inHandler);
-
-bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
+function inForceHandler(msg, match) {
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let username = match[2].replace("@", "");
   let eventDate = new Date();
@@ -460,11 +445,9 @@ bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => {
     message = "🔐 Откройте cпейс прежде чем туда кого-то пускать!";
   }
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/out(@.+?)?$/, outHandler);
-
-bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
+function outForceHandler(msg, match){
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
   let eventDate = new Date();
   let username = match[2].replace("@", "");
@@ -480,7 +463,7 @@ bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => {
   }
 
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
 function LetIn(username, date) {
   // check that space is open
@@ -541,15 +524,6 @@ function myBirthdayHandler(msg, date) {
   bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
 }
 
-bot.onText(/^\/birthdays(@.+?)?$/, async (msg) =>
-  birthdayHandler(msg)
-);
-
-bot.onText(/^\/mybirthday(@.+?)?(?: (.*\S)?)?$/, async (msg, match) =>
-  myBirthdayHandler(msg, match[2])
-);
-
-// Needs and buys
 
 function needsHandler(msg) {
   let needs = NeedsRepository.getOpenNeeds();
@@ -594,12 +568,7 @@ function boughtHandler(msg, match) {
   bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
 }
 
-bot.onText(/^\/needs(@.+?)?$/, needsHandler);
-bot.onText(/^\/buy(@.+?)? (.*)$/, buyHandler);
-bot.onText(/^\/bought(@.+?)? (.*)$/, boughtHandler);
-
-// User management
-bot.onText(/^\/getUsers(@.+?)?$/, (msg, _) => {
+function getUsersHandler(msg){
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let users = UsersRepository.getUsers();
@@ -609,9 +578,9 @@ bot.onText(/^\/getUsers(@.+?)?$/, (msg, _) => {
   }
 
   bot.sendMessage(msg.chat.id, `Текущие пользователи:\n` + userList);
-});
+}
 
-bot.onText(/^\/addUser(@.+?)? (\S+?) as (\S+)$/, (msg, match) => {
+function addUserHandler(msg, match) {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -623,9 +592,10 @@ bot.onText(/^\/addUser(@.+?)? (\S+?) as (\S+)$/, (msg, match) => {
     : `Не удалось добавить пользователя (может он уже есть?)`;
 
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/updateRoles(@.+?)? of (\S+?) to (\S+)$/, (msg, match) => {
+
+function updateRolesHandler(msg, match) {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -637,9 +607,10 @@ bot.onText(/^\/updateRoles(@.+?)? of (\S+?) to (\S+)$/, (msg, match) => {
     : `Не удалось обновить роли`;
 
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
+
+function removeUserHandler(msg, match) {
   if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
   let username = match[2].replace("@", "");
@@ -650,10 +621,9 @@ bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => {
     : `Не удалось удалить пользователя (может его и не было?)`;
 
   bot.sendMessage(msg.chat.id, message);
-});
-//funds
+}
 
-bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
+async function fundsHandler (msg) {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
   let addCommands =
@@ -673,9 +643,11 @@ bot.onText(/^\/funds(@.+?)?$/, async (msg) => {
   ${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
 
   bot.sendLongMessage(msg.chat.id, message, { parse_mode: "Markdown" });
-});
+}
+//funds
 
-bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
+
+async function fundHandler (msg, match) {
   let fundName = match[2];
   let funds = [FundsRepository.getfundByName(fundName)];
   let donations = FundsRepository.getDonationsForName(fundName);
@@ -722,9 +694,9 @@ bot.onText(/^\/fund(@.+?)? (.*\S)$/, async (msg, match) => {
       inline_keyboard: inlineKeyboard,
     },
   });
-});
+}
 
-bot.onText(/^\/fundsall(@.+?)?$/, async (msg) => {
+async function fundsallHandler(msg) {
   let funds = FundsRepository.getfunds();
   let donations = FundsRepository.getDonations();
   let addCommands =
@@ -741,52 +713,46 @@ bot.onText(/^\/fundsall(@.+?)?$/, async (msg) => {
   bot.sendLongMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
     parse_mode: "Markdown",
   });
-});
+}
 
-bot.onText(
-  /^\/addFund(@.+?)? (.*\S) with target (\S+)\s?(\D*)$/,
-  (msg, match) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+function addFundHandler (msg, match) {
+  if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-    let fundName = match[2];
-    let targetValue = parseMoneyValue(match[3]);
-    let currency =
-      match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
+  let fundName = match[2];
+  let targetValue = parseMoneyValue(match[3]);
+  let currency =
+    match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
 
-    let success =
-      !isNaN(targetValue) &&
-      FundsRepository.addfund(fundName, targetValue, currency);
-    let message = success
-      ? `Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
-      : `Не удалось добавить сбор (может он уже есть?)`;
+  let success =
+    !isNaN(targetValue) &&
+    FundsRepository.addfund(fundName, targetValue, currency);
+  let message = success
+    ? `Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
+    : `Не удалось добавить сбор (может он уже есть?)`;
 
-    bot.sendMessage(msg.chat.id, message);
-  }
-);
+  bot.sendMessage(msg.chat.id, message);
+}
 
-bot.onText(
-  /^\/updateFund(@.+?)? (.*\S) with target (\S+)\s?(\D*?)(?: as (.*\S))?$/,
-  (msg, match) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+function updateFundHandler(msg, match){
+  if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-    let fundName = match[2];
-    let targetValue = parseMoneyValue(match[3]);
-    let currency =
-      match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
-    let newFundName = match[5]?.length > 0 ? match[5] : fundName;
+  let fundName = match[2];
+  let targetValue = parseMoneyValue(match[3]);
+  let currency =
+    match[4]?.length > 0 ? match[4].toUpperCase() : currencyConfig.default;
+  let newFundName = match[5]?.length > 0 ? match[5] : fundName;
 
-    let success =
-      !isNaN(targetValue) &&
-      FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
-    let message = success
-      ? `Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
-      : `Не удалось обновить сбор (может не то имя?)`;
+  let success =
+    !isNaN(targetValue) &&
+    FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
+  let message = success
+    ? `Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
+    : `Не удалось обновить сбор (может не то имя?)`;
 
-    bot.sendMessage(msg.chat.id, message);
-  }
-);
+  bot.sendMessage(msg.chat.id, message);
+}
 
-bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => {
+function removeFundHandler (msg, match){
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
   let fundName = match[2];
@@ -795,9 +761,11 @@ bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => {
   let message = success ? `Удален сбор ${fundName}` : `Не удалось удалить сбор`;
 
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-let exportFundHandler = async (msg, fundName) => {
+
+
+async function exportFundHandler (msg, fundName) {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
   let csvBuffer = await ExportHelper.exportFundToCSV(fundName);
@@ -815,11 +783,7 @@ let exportFundHandler = async (msg, fundName) => {
   bot.sendDocument(msg.chat.id, csvBuffer, {}, fileOptions);
 };
 
-bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) =>
-  exportFundHandler(msg, match[2])
-);
-
-bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, (msg, match) => {
+function closeFundHandler (msg, match) {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
   let fundName = match[2];
 
@@ -827,9 +791,9 @@ bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, (msg, match) => {
   let message = success ? `Закрыт сбор ${fundName}` : `Не удалось закрыть сбор`;
 
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => {
+function changeFundStatusHandler(msg, match) {
   if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
   let fundName = match[2];
@@ -841,53 +805,52 @@ bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => {
     : `Не удалось изменить статус сбора`;
 
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(
-  /^\/addDonation(@.+?)? (\S+)\s?(\D*?) from (\S+?) to (.*\S)$/,
-  async (msg, match) => {
-    if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
-    let value = parseMoneyValue(match[2]);
-    let currency =
-      match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
-    let userName = match[4].replace("@", "");
-    let fundName = match[5];
 
-    let success =
-      !isNaN(value) &&
-      FundsRepository.addDonationTo(fundName, userName, value, currency);
-    let message = success
-      ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
-      : `Не удалось добавить донат`;
 
-    bot.sendMessage(msg.chat.id, message);
-  }
-);
+async function addDonationHandler (msg, match) {
+  if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
-bot.onText(
-  /^\/costs(@.+?)? (\S+)\s?(\D*?) from (\S+?)$/,
-  async (msg, match) => {
-    if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
+  let value = parseMoneyValue(match[2]);
+  let currency =
+    match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
+  let userName = match[4].replace("@", "");
+  let fundName = match[5];
 
-    let value = parseMoneyValue(match[2]);
-    let currency =
-      match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
-    let userName = match[4].replace("@", "");
-    let fundName = FundsRepository.getLatestCosts().name;
+  let success =
+    !isNaN(value) &&
+    FundsRepository.addDonationTo(fundName, userName, value, currency);
+  let message = success
+    ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
+    : `Не удалось добавить донат`;
 
-    let success =
-      !isNaN(value) &&
-      FundsRepository.addDonationTo(fundName, userName, value, currency);
-    let message = success
-      ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
-      : `Не удалось добавить донат`;
+  bot.sendMessage(msg.chat.id, message);
+}
 
-    bot.sendMessage(msg.chat.id, message);
-  }
-);
 
-bot.onText(/^\/removeDonation(@.+?)? (\d+)$/, (msg, match) => {
+async function costsHandler (msg, match){
+  if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
+
+  let value = parseMoneyValue(match[2]);
+  let currency =
+    match[3].length > 0 ? match[3].toUpperCase() : currencyConfig.default;
+  let userName = match[4].replace("@", "");
+  let fundName = FundsRepository.getLatestCosts().name;
+
+  let success =
+    !isNaN(value) &&
+    FundsRepository.addDonationTo(fundName, userName, value, currency);
+  let message = success
+    ? `💸 ${tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
+    : `Не удалось добавить донат`;
+
+  bot.sendMessage(msg.chat.id, message);
+}
+
+
+function removeDonationHandler(msg, match){
   if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
   let donationId = match[2];
@@ -898,9 +861,10 @@ bot.onText(/^\/removeDonation(@.+?)? (\d+)$/, (msg, match) => {
     : `Не удалось удалить донат (может его и не было?)`;
 
   bot.sendMessage(msg.chat.id, message);
-});
+}
 
-bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, async (msg, match) => {
+
+async function donateCardHandler(msg, match){
   let accountants = UsersRepository.getUsersByRole("accountant");
   let accountantsList = TextGenerators.getAccountsList(accountants, tag());
 
@@ -914,9 +878,10 @@ bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, async (msg, match) => {
 ${accountantsList}
 🛍 Если хочешь задонатить натурой или другим способом - жми /donate`
   );
-});
+}
 
-bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
+
+async function donateCoinHandler (msg, match) {
   let coinname = match[1].toLowerCase();
   let buffer = await CoinsHelper.getQR(coinname);
   let coin = CoinsHelper.getCoinDefinition(coinname);
@@ -935,9 +900,10 @@ bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, async (msg, match) => {
 🛍 Если хочешь задонатить натурой (ohh my) или другим способом - жми /donate`,
     parse_mode: "Markdown",
   });
-});
+}
 
-bot.onText(/^\/clear(@.+?)?(?: (\d*))?$/, (msg, match) => {
+
+function clearHandler (msg, match){
   if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
   let inputCount = Number(match[2]);
@@ -946,9 +912,9 @@ bot.onText(/^\/clear(@.+?)?(?: (\d*))?$/, (msg, match) => {
   for (const id of idsToRemove) {
     bot.deleteMessage(msg.chat.id, id);
   }
-});
+}
 
-bot.on("callback_query", (callbackQuery) => {
+function callbackHandler(callbackQuery) {
   const message = callbackQuery.message;
   const data = JSON.parse(callbackQuery.data);
   message.from = callbackQuery.from;
@@ -980,7 +946,76 @@ bot.on("callback_query", (callbackQuery) => {
   }
 
   bot.answerCallbackQuery(callbackQuery.id);
-});
+}
+
+bot.onText(/^\/(printer)(@.+?)?$/, printerHandler);
+bot.onText(/^\/(printerstatus)(@.+?)?$/, printerStatusHandler);
+bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) =>
+  exportDonutHandler(msg, match[2])
+);
+bot.onText(/^\/autoinside(@.+?)?(?: (.*\S))?$/, async (msg, match) =>
+  autoinsideHandler(msg, match[2])
+);
+bot.onText(/^\/(start|help)(@.+?)?$/, startHandler);
+bot.onText(/^\/(about)(@.+?)?$/, aboutHandler);
+bot.onText(/^\/(join)(@.+?)?$/, joinHandler);
+bot.onText(/^\/(donate)(@.+?)?$/, donateHandler);
+bot.onText(/^\/location(@.+?)?$/, locationHandler);
+bot.onText(/^\/status(@.+?)?$/, statusHandler);
+bot.onText(/^\/in(@.+?)?$/, inHandler);
+bot.onText(/^\/open(@.+?)?$/, openHandler);
+bot.onText(/^\/close(@.+?)?$/, closeHandler);
+bot.onText(/^\/inForce(@.+?)? (\S+)$/, inForceHandler);
+bot.onText(/^\/out(@.+?)?$/, outHandler);
+bot.onText(/^\/outForce(@.+?)? (\S+)$/, outForceHandler);
+bot.onText(/^\/birthdays(@.+?)?$/, async (msg) =>
+  birthdayHandler(msg)
+);
+bot.onText(/^\/mybirthday(@.+?)?(?: (.*\S)?)?$/, async (msg, match) =>
+  myBirthdayHandler(msg, match[2])
+);
+bot.onText(/^\/needs(@.+?)?$/, needsHandler);
+bot.onText(/^\/buy(@.+?)? (.*)$/, buyHandler);
+bot.onText(/^\/bought(@.+?)? (.*)$/, boughtHandler);
+bot.onText(/^\/getUsers(@.+?)?$/, getUsersHandler);
+bot.onText(/^\/addUser(@.+?)? (\S+?) as (\S+)$/, addUserHandler);
+bot.onText(/^\/updateRoles(@.+?)? of (\S+?) to (\S+)$/, updateRolesHandler);
+bot.onText(/^\/removeUser(@.+?)? (\S+)$/, removeUserHandler);
+bot.onText(/^\/funds(@.+?)?$/, fundsHandler);
+bot.onText(/^\/fund(@.+?)? (.*\S)$/, fundHandler);
+bot.onText(/^\/fundsall(@.+?)?$/, fundsallHandler);
+bot.onText(
+  /^\/addFund(@.+?)? (.*\S) with target (\S+)\s?(\D*)$/,
+  addFundHandler
+);
+bot.onText(
+  /^\/updateFund(@.+?)? (.*\S) with target (\S+)\s?(\D*?)(?: as (.*\S))?$/,
+  updateFundHandler
+);
+bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, removeFundHandler);
+bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) =>
+  exportFundHandler(msg, match[2])
+);
+bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, closeFundHandler);
+bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, changeFundStatusHandler);
+bot.onText(
+  /^\/addDonation(@.+?)? (\S+)\s?(\D*?) from (\S+?) to (.*\S)$/,
+  addDonationHandler
+);
+bot.onText(
+  /^\/costs(@.+?)? (\S+)\s?(\D*?) from (\S+?)$/,
+  costsHandler
+);
+bot.onText(/^\/removeDonation(@.+?)? (\d+)$/, removeDonationHandler);
+bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, donateCardHandler);
+bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, donateCoinHandler);
+bot.onText(/^\/clear(@.+?)?(?: (\d*))?$/, clearHandler);
+bot.on("callback_query", callbackHandler);
+bot.on("new_chat_members", newMemberHandler);
+
+
+
+
 
 // Debug echoing of received messages
 IsDebug &&

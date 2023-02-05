@@ -9,7 +9,7 @@
         },
         "timeouts":{
             "in": 60000,
-            "out": 1800000
+            "out": 900000
         },
         "autoWish": true
     },
@@ -19,7 +19,8 @@
     "embassy-api":{
         "port": 8001,
         "host": "http://127.0.0.1",
-        "networkRange": "192.168.1.1-192.168.1.254"
+        "networkRange": "192.168.1.1-192.168.1.254",
+        "routerip": "192.168.1.1"
     },
     "currency":{
         "default": "AMD",

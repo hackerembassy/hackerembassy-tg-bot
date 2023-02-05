@@ -1,4 +1,4 @@
-const Commands = require("../commands");
+const Commands = require("../resources/commands");
 const UsersRepository = require("../repositories/usersRepository");
 
 function hasRole(username, ...roles) {

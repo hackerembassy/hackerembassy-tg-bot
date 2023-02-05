@@ -16,7 +16,7 @@ class AdminHandlers extends BaseHandlers {
       userList += `${this.tag()}${user.username} \n    Roles: ${user.roles}${user.mac? `\n    MAC: ${user.mac}`:""}${user.birthday? `\n    Birthday: ${user.birthday}`:""}\n`;
     }
 
-    this.bot.sendMessage(msg.chat.id, `Текущие пользователи:\n` + userList);
+    this.bot.sendLongMessage(msg.chat.id, `Текущие пользователи:\n` + userList);
   }
 
   addUserHandler = (msg, username, roles) => {

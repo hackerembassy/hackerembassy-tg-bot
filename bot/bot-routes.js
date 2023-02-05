@@ -47,6 +47,7 @@ bot.onText(/^\/buy(@.+?)? (.*)$/, (msg, match) => NeedsHandlers.buyHandler(msg, 
 bot.onText(/^\/bought(@.+?)? (.*)$/, (msg, match) => NeedsHandlers.boughtHandler(msg, match[2]));
 
 bot.onText(/^\/birthdays(@.+?)?$/, async (msg) => BirthdayHandlers.birthdayHandler(msg));
+bot.onText(/^\/forceBirthdayWishes(@.+?)?$/, async (msg) => BirthdayHandlers.forceBirthdayWishHandler(msg));
 bot.onText(/^\/mybirthday(@.+?)?(?: (.*\S)?)?$/, async (msg, match) => BirthdayHandlers.myBirthdayHandler(msg, match[2]));
 
 bot.onText(/^\/getUsers(@.+?)?$/, AdminHandlers.getUsersHandler);

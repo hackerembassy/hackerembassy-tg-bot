@@ -1,11 +1,18 @@
 const UsersRepository = require("../../repositories/usersRepository");
 const TextGenerators = require("../../services/textGenerators");
 const BaseHandlers = require("./base");
+const UsersHelper = require("../../services/usersHelper");
 
 class BirthdayHandlers extends BaseHandlers {
   constructor() {
     super();
   }
+
+  forceBirthdayWishHandler = (msg) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
+    this.bot.sendBirthdayWishes(true);
+  };
 
   birthdayHandler = (msg) => {
     let birthdayUsers = UsersRepository.getUsers().filter((u) => u.birthday);

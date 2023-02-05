@@ -35,6 +35,7 @@ const AdminCommandsList = `
 \`/addUser telegram_username as user_role1|user_role2|user_role3\`
 \`/removeUser telegram_username\`
 \`/updateRoles of telegram_username to user_role1|user_role2|user_role3\`
+/forceBirthdayWishes
 
 \\* Roles: admin, accountant, member, default
 `;

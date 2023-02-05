@@ -177,9 +177,8 @@ async function getWish(username) {
   return wishTemplate.replaceAll(/\$username/g, `@${username}`);
 }
 
-async function sendBirthdayWishes(bot) {
-  let currentDate = new Date().toISOString().substring(5, 10);
-
+async function sendBirthdayWishes(force = false) {
+  let currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
   let birthdayUsers = UsersRepository.getUsers().filter((u) => {
     return u.birthday?.substring(5, 10) === currentDate;
   });
@@ -189,26 +188,28 @@ async function sendBirthdayWishes(bot) {
   }
 
   let wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
+  let wishedAmount = wishedToday?.length;
 
   for (const user of birthdayUsers) {
-    if (wishedToday.find((entry) => entry.username && entry.date === currentDate)) continue;
+    let wishedUser = wishedToday.find((entry) => entry.username && entry.date === currentDate);
+    if (!force && wishedUser) continue;
 
     let message = "🎂 ";
     message += await getWish(user.username);
 
-    bot.sendMessage(botConfig.chats.main, message);
-    wishedToday.push({ username: user.username, date: currentDate });
+    this.sendMessage(botConfig.chats.main, message);
+
+    if (!wishedUser) wishedToday.push({ username: user.username, date: currentDate });
 
     sleep(30000);
   }
 
-  JSON.stringify(wishedToday);
-
-  fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
+  if (wishedAmount !== wishedToday.length) fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
 }
 
 function enableAutoWishes(bot) {
-  setInterval(() => sendBirthdayWishes(bot), 3600000);
+  bot.sendBirthdayWishes = sendBirthdayWishes;
+  setInterval(() => bot.sendBirthdayWishes(false), 3600000);
 }
 
 module.exports = {

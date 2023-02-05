@@ -1,12 +1,12 @@
 const express = require("express");
-const cors = require('cors');
-const config = require('config');
+const cors = require("cors");
+const config = require("config");
 
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
 const FundsRepository = require("./repositories/fundsRepository");
 const UsersRepository = require("./repositories/usersRepository");
-const Commands = require("./commands");
+const Commands = require("./resources/commands");
 
 const apiConfig = config.get("api");
 const app = express();
@@ -38,7 +38,7 @@ app.get("/join", (_, res) => {
 });
 
 app.get("/funds", async (_, res) => {
-  let funds = FundsRepository.getfunds().filter(p => p.status === "open");
+  let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
   let list = await TextGenerators.createFundList(funds, donations, false, defaultTag);
 

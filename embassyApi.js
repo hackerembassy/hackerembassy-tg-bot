@@ -3,9 +3,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const printer3d = require("./services/printer3d");
-const find = require('local-devices');
-const { LUCI } = require('luci-rpc');
-const fetch = require('node-fetch');
+const find = require("local-devices");
+const { LUCI } = require("luci-rpc");
+const fetch = require("node-fetch");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -17,15 +17,15 @@ app.use(cors());
 
 app.get("/devicesscan", async (_, res) => {
   let devices = await find({ address: embassyApiConfig.networkRange });
-  res.send(devices.map(d=> d.mac));
+  res.send(devices.map((d) => d.mac));
 });
 
 app.get("/devices", async (_, res) => {
   try {
-    const luci = new LUCI(`https://${routerip}`, 'bot', process.env["LUCITOKEN"]);
+    const luci = new LUCI(`https://${routerip}`, "bot", process.env["LUCITOKEN"]);
     await luci.init();
     luci.autoUpdateToken(1000 * 60 * 30);
-  
+
     let rpc = [
       {
         jsonrpc: "2.0",
@@ -40,7 +40,7 @@ app.get("/devices", async (_, res) => {
         params: [luci.token, "iwinfo", "assoclist", { device: "wlan1" }],
       },
     ];
-  
+
     let response = await fetch(`http://${routerip}/ubus/`, {
       headers: {
         "Content-Type": "application/json",
@@ -48,37 +48,33 @@ app.get("/devices", async (_, res) => {
       body: JSON.stringify(rpc),
       method: "POST",
     });
-  
+
     let json = await response.json();
     let macs = [];
     for (const wlan of json) {
-      macs = macs.concat(wlan.result[1].results.map(dev => dev.mac.toLowerCase()));
+      macs = macs.concat(wlan.result[1].results.map((dev) => dev.mac.toLowerCase()));
     }
-  
+
     res.send(macs);
   } catch (error) {
     console.log(error);
-    res.send({message: "Device request failed", error})
+    res.send({ message: "Device request failed", error });
   }
 });
 
 app.get("/printer", async (_, res) => {
-  try {    
+  try {
     let fileMetadata;
     let thumbnailBuffer;
     let statusResponse = await printer3d.getPrinterStatus();
     let status = statusResponse && statusResponse.result.status;
 
     if (status) {
-      let fileMetadataResponse = await printer3d.getFileMetadata(
-        status.print_stats && status.print_stats.filename
-      );
+      let fileMetadataResponse = await printer3d.getFileMetadata(status.print_stats && status.print_stats.filename);
 
       if (fileMetadataResponse) {
         fileMetadata = fileMetadataResponse.result;
-        thumbnailBuffer = await printer3d.getThumbnail(
-          fileMetadata && fileMetadata.thumbnails[2].relative_path
-        );
+        thumbnailBuffer = await printer3d.getThumbnail(fileMetadata && fileMetadata.thumbnails[2].relative_path);
       }
     }
 

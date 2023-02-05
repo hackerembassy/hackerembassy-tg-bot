@@ -26,7 +26,7 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
       return (await prev) + newValue;
     }, 0);
 
-    let statusEmoji = `⚙️[${fund.status}]`;
+    let statusEmoji = `⚙️\\[${fund.status}]`;
 
     if (fund.status === "closed") {
       statusEmoji = "☑️ \\[закрыт]";

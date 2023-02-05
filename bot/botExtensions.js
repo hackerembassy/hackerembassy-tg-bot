@@ -1,6 +1,6 @@
 const config = require("config");
 const botConfig = config.get("bot");
-const UsersRepository = require("./repositories/usersRepository");
+const UsersRepository = require("../repositories/usersRepository");
 const fs = require("fs/promises");
 const path = require("path");
 
@@ -23,7 +23,7 @@ function chunkSubstr(str, size) {
 
   if (str.length < size) return [str];
 
-  while (str.length>0){
+  while (str.length > 0) {
     let tmp = str.substr(0, size);
     let indexOfLastNewLine = tmp.lastIndexOf("\n");
     let chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine : size;
@@ -44,16 +44,20 @@ function sleep(ms) {
 function addLongCommands(bot) {
   bot.sendLongMessage = async (chatid, text, options) => {
     let chunks = chunkSubstr(text, maxChunkSize);
-    
-    if (chunks.length === 1){
+
+    if (chunks.length === 1) {
       bot.sendMessage(chatid, chunks[0], options);
       return;
     }
 
     for (let index = 0; index < chunks.length; index++) {
-      bot.sendMessage(chatid, `{${index + 1} часть}
+      bot.sendMessage(
+        chatid,
+        `{${index + 1} часть}
 ${chunks[index]}
-{Конец части ${index + 1}}`, options);
+{Конец части ${index + 1}}`,
+        options
+      );
       await sleep(messagedelay);
     }
   };
@@ -92,7 +96,7 @@ function initGlobalModifiers(bot) {
       for (const key of Object.keys(mode)) {
         newCommand = newCommand.replace(` -${key}`, "");
       }
-      
+
       if (funcargs[1] !== undefined) funcargs[1] = originalRegex.exec(newCommand);
 
       let oldmode = { ...mode };
@@ -110,7 +114,7 @@ function initGlobalModifiers(bot) {
   };
 }
 
-function disableNotificationsByDefault(bot){
+function disableNotificationsByDefault(bot) {
   let sendMessageOriginal = bot.sendMessage;
 
   bot.sendMessage = async function (...args) {
@@ -120,7 +124,7 @@ function disableNotificationsByDefault(bot){
   };
 }
 
-function addSavingLastMessages(bot){
+function addSavingLastMessages(bot) {
   let sendMessageOriginal = bot.sendMessage;
   let sendPhotoOriginal = bot.sendPhoto;
 
@@ -128,7 +132,7 @@ function addSavingLastMessages(bot){
     let chatId = args[0];
     let message = await sendMessageOriginal.call(this, ...args);
     let messageId = message.message_id;
-    
+
     if (!history[chatId]) history[chatId] = [];
     history[chatId].push(messageId);
   };
@@ -137,7 +141,7 @@ function addSavingLastMessages(bot){
     let chatId = args[0];
     let message = await sendPhotoOriginal.call(this, ...args);
     let messageId = message.message_id;
-    
+
     if (!history[chatId]) history[chatId] = [];
     history[chatId].push(messageId);
   };
@@ -153,58 +157,58 @@ function needCommands() {
   return !mode.nocommands;
 }
 
-function* popLast(chatId, count){
+function* popLast(chatId, count) {
   for (let index = 0; index < count; index++) {
-    if (!history[chatId]) return [];
-    yield history[chatId].pop()
+    if (!history[chatId] || history[chatId].length === 0) return [];
+    yield history[chatId].pop();
   }
 }
 
 // Birthday autowishes
 
-const baseWishesDir = "./data/wishes";
+const baseWishesDir = "./resources/wishes";
 const wishedTodayPath = "./data/wished-today.json";
 
 async function getWish(username) {
   let files = await fs.readdir(baseWishesDir);
-  let randomNum = Math.floor((Math.random()*files.length));
-  let wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]),{encoding:'utf8'});
+  let randomNum = Math.floor(Math.random() * files.length);
+  let wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]), { encoding: "utf8" });
 
   return wishTemplate.replaceAll(/\$username/g, `@${username}`);
 }
 
-async function sendBirthdayWishes(bot){
-    let currentDate = (new Date()).toISOString().substring(5, 10);
+async function sendBirthdayWishes(bot) {
+  let currentDate = new Date().toISOString().substring(5, 10);
 
-    let birthdayUsers = UsersRepository.getUsers().filter(u => {
-      return u.birthday?.substring(5, 10) === currentDate
-    });
+  let birthdayUsers = UsersRepository.getUsers().filter((u) => {
+    return u.birthday?.substring(5, 10) === currentDate;
+  });
 
-    if (await fs.access(wishedTodayPath).catch(() => true)){
-      fs.writeFile(wishedTodayPath, "[]");
-    }
+  if (await fs.access(wishedTodayPath).catch(() => true)) {
+    fs.writeFile(wishedTodayPath, "[]");
+  }
 
-    let wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
+  let wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
 
-    for (const user of birthdayUsers) {
-      if (wishedToday.find(entry => entry.username && entry.date === currentDate)) continue;
-      
-      let message = "🎂 ";
-      message += await getWish(user.username);
+  for (const user of birthdayUsers) {
+    if (wishedToday.find((entry) => entry.username && entry.date === currentDate)) continue;
 
-      bot.sendMessage(botConfig.chats.main, message);
-      wishedToday.push({username: user.username, date: currentDate});
+    let message = "🎂 ";
+    message += await getWish(user.username);
 
-      sleep(30000);
-    }
+    bot.sendMessage(botConfig.chats.main, message);
+    wishedToday.push({ username: user.username, date: currentDate });
 
-    JSON.stringify(wishedToday);
+    sleep(30000);
+  }
 
-    fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
+  JSON.stringify(wishedToday);
+
+  fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
 }
 
-function enableAutoWishes(bot){
-  setInterval(()=>sendBirthdayWishes(bot), 3600000);
+function enableAutoWishes(bot) {
+  setInterval(() => sendBirthdayWishes(bot), 3600000);
 }
 
 module.exports = {
@@ -216,5 +220,5 @@ module.exports = {
   addLongCommands,
   disableNotificationsByDefault,
   addSavingLastMessages,
-  enableAutoWishes
+  enableAutoWishes,
 };

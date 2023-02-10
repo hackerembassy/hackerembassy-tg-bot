@@ -10,6 +10,7 @@ const GeneralCommandsList = `
 /out - Отметиться ушедшим из спейса
 /printer - О нашем 3D принтере
 /printerstatus - Статус 3D принтера
+/getresidents - Наши резиденты, можно к ним обратиться по любым спейсовским вопросам
 /funds - Наши открытые сборы
 /fundsall - Все сборы
 \`/fund fund_name\` - Вывести сбор по имени

@@ -85,7 +85,7 @@ async function exportFundToDonut(fundname) {
   let data = fundDonations.map((donation) => donation.donation);
   let sum = data.reduce((acc, val) => acc + val, 0);
   let target = fund.target_value;
-  let remained = sum - target;
+  let remained = Number(sum - target).toFixed(4);
   let spread = colorScheme.length / labels.length;
   let customColorScheme = labels.map(
     (_, index) =>
@@ -136,7 +136,7 @@ async function exportFundToDonut(fundname) {
         doughnutlabel: {
           labels: [
             { text: `${target} ${fund.target_currency}`, font: { size: 20 } },
-            { text: "target" },
+            { text: "min" },
           ],
         },
       },

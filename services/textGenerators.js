@@ -36,14 +36,14 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
       statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
     }
 
-    list += `${statusEmoji} \`${fund.name}\` - Собрано ${sum.toFixed(2)} из ${
+    list += `${statusEmoji} \`${fund.name}\` - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
       fund.target_value
     } ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
       list += `     \\[id:${donation.id}\] - ${tag}${escapeUnderscore(
         donation.username
-      )} - ${donation.value} ${donation.currency}\n`;
+      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}\n`;
     }
 
     if (addCommands) {

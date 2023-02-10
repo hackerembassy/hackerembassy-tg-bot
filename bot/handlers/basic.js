@@ -87,6 +87,18 @@ class BasicHandlers extends BaseHandlers {
 🛍 Если хочешь задонатить натурой или другим способом - жми /donate`
     );
   };
+
+  getResidentsHandler = (msg) => {
+    let users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
+    let userList = "";
+    for (const user of users) {
+      userList += `${this.tag()}${user.username}\n`;
+    }
+
+    let message = `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
+
+    this.bot.sendLongMessage(msg.chat.id, message);
+  }
 }
 
 module.exports = BasicHandlers;

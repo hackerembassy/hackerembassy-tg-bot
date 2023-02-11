@@ -42,6 +42,7 @@ bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => Fu
 bot.onText(/^\/addDonation(@.+?)? (\S+)\s?(\D*?) from (\S+?) to (.*\S)$/, (msg, match) => FundsHandlers.addDonationHandler(msg, match[2], match[3], match[4], match[5]));
 bot.onText(/^\/costs(@.+?)? (\S+)\s?(\D*?) from (\S+?)$/, (msg, match) => FundsHandlers.costsHandler(msg, match[2], match[3], match[4]));
 bot.onText(/^\/removeDonation(@.+?)? (\d+)$/, (msg, match) => FundsHandlers.removeDonationHandler(msg, match[2]));
+bot.onText(/^\/transferDonation(@.+?)? (\d+) to (.*\S)$/, (msg, match) => FundsHandlers.transferDonationHandler(msg, match[2], match[3]));
 
 bot.onText(/^\/needs(@.+?)?$/, NeedsHandlers.needsHandler);
 bot.onText(/^\/buy(@.+?)? (.*)$/, (msg, match) => NeedsHandlers.buyHandler(msg, match[2]));

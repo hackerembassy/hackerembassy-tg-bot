@@ -44,15 +44,16 @@ const AdminCommandsList = `
 const AccountantCommandsList = `
 Команды бухгалтера:
 \`/costs donation_value currency_code from telegram_username\` - Задонатить в последний актуальный сбор на аренду
-\`/addFund Fund_Name with target goal_value currency_code\`
-\`/updateFund Fund_Name with target goal_value currency_code as New_Name\`
-\`/exportFund fund_name\`
-\`/exportDonut fund_name\`
-\`/closeFund fund_name\`
-\`/changeFundStatus of fund_name to status_name\`
-\`/removeFund fund_name\`
+\`/addFund Fund_Name with target goal_value currency_code\` - Добавить сбор
+\`/updateFund Fund_Name with target goal_value currency_code as New_Name\` - Обновить параметры сбора
+\`/exportFund fund_name\` - Экспортировать донаты сбора как CSV
+\`/exportDonut fund_name\` - Экспортировать донаты сбора как диаграмму
+\`/closeFund fund_name\` - Изменить статус сбора на закрытый
+\`/changeFundStatus of fund_name to status_name\` - Изменить статус сбора
+\`/removeFund fund_name\` - Удалить сбор (не надо)
 \`/addDonation donation_value currency_code from telegram_username to fund_name\`
-\`/removeDonation donation_id\`
+\`/removeDonation donation_id\` - Удалить донат
+\`/transferDonation donation_id to username\` - Передать донат другому бухгалтеру
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead

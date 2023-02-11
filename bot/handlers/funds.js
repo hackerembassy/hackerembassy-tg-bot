@@ -3,7 +3,7 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const ExportHelper = require("../../services/export");
 const config = require("config");
-const { needCommands } = require("../botExtensions");
+const { needCommands, tag } = require("../botExtensions");
 const currencyConfig = config.get("currency");
 const BaseHandlers = require("./base");
 
@@ -25,10 +25,11 @@ class FundsHandlers extends BaseHandlers {
   fundsHandler = async (msg) => {
     let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
     let donations = FundsRepository.getDonations();
+    let showMoneyOwner = UsersHelper.hasRole(msg.from.username, "admin", "accountant");
     let addCommands =
       needCommands() && this.fromPrivateChat(msg) ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
 
-    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag());
+    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag(), showMoneyOwner);
 
     let message = `⚒ Вот наши текущие сборы:
       
@@ -41,6 +42,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
   fundHandler = async (msg, fundName) => {
     let funds = [FundsRepository.getfundByName(fundName)];
     let donations = FundsRepository.getDonationsForName(fundName);
+    let showMoneyOwner = UsersHelper.hasRole(msg.from.username, "admin", "accountant");
     let addCommands =
       needCommands() && this.fromPrivateChat(msg) ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
 
@@ -67,7 +69,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
           ]
         : [];
 
-    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag());
+    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag(), showMoneyOwner);
 
     let message = `${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
 
@@ -82,9 +84,11 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
   fundsallHandler = async (msg) => {
     let funds = FundsRepository.getfunds();
     let donations = FundsRepository.getDonations();
+    let showMoneyOwner = UsersHelper.hasRole(msg.from.username, "admin", "accountant");
+
     let addCommands =
       needCommands() && this.fromPrivateChat(msg) ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
-    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag());
+    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag(), showMoneyOwner);
 
     this.bot.sendLongMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
       parse_mode: "Markdown",
@@ -167,14 +171,26 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     this.bot.sendMessage(msg.chat.id, message);
   };
 
+  transferDonationHandler = (msg, id, accountant) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+
+    accountant = accountant.replace("@", "");
+
+    let success = FundsRepository.transferDonation(id, accountant);
+    let message = success ? `Донат ${id} передан ${tag()}${accountant}` : `Не удалось передать донат`;
+    
+    this.bot.sendMessage(msg.chat.id, message);
+  };
+
   addDonationHandler = async (msg, value, currency, userName, fundName) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     value = this.parseMoneyValue(value);
     currency = currency.length > 0 ? currency.toUpperCase() : currencyConfig.default;
     userName = userName.replace("@", "");
+    let accountant = msg.from.username;
 
-    let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency);
+    let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency, accountant);
     let message = success
       ? `💸 ${this.tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
       : `Не удалось добавить донат`;

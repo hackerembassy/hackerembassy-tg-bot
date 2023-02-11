@@ -7,7 +7,7 @@ function escapeUnderscore(text) {
   return text.replaceAll("_", "\\_");
 }
 
-async function createFundList(funds, donations, addCommands = false, tag = "") {
+async function createFundList(funds, donations, addCommands = false, tag = "", showMoneyOwner = false) {
   let list = "";
 
   for (const fund of funds) {
@@ -43,7 +43,7 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
     for (const donation of fundDonations) {
       list += `     \\[id:${donation.id}\] - ${tag}${escapeUnderscore(
         donation.username
-      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}\n`;
+      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${showMoneyOwner && donation.accountant ? ` ➡️ ${tag}${donation.accountant}` : ""}\n`;
     }
 
     if (addCommands) {
@@ -54,6 +54,7 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
       list += `\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}\`\n`;
       list += `\`/changeFundStatus of ${fund.name} to status_name\`\n`;
       list += `\`/closeFund ${fund.name}\`\n`;
+      list += `\`/transferDonation donation_id to username\`\n`;
       list += `\`/addDonation 5000 AMD from @username to ${fund.name}\`\n`;
       list += `\`/removeDonation donation_id\`\n`;
     }

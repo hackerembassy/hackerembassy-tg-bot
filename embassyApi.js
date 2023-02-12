@@ -29,15 +29,15 @@ app.get("/devices", async (_, res) => {
     let rpc = [
       {
         jsonrpc: "2.0",
-        id: 28,
+        id: 93,
         method: "call",
-        params: [luci.token, "iwinfo", "assoclist", { device: "wlan0" }],
+        params: [luci.token, "iwinfo", "assoclist", { device: "phy0-ap0" }],
       },
       {
         jsonrpc: "2.0",
-        id: 29,
+        id: 94,
         method: "call",
-        params: [luci.token, "iwinfo", "assoclist", { device: "wlan1" }],
+        params: [luci.token, "iwinfo", "assoclist", { device: "phy1-ap0" }],
       },
     ];
 

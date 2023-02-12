@@ -4,7 +4,7 @@ const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;
 const BotExtensions = require("../bot/botExtensions");
 
-async function createFundList(funds, donations, showAdmin = false) {
+async function createFundList(funds, donations, showAdmin = false, isApi = false) {
   let list = "";
 
   for (const fund of funds) {
@@ -33,14 +33,16 @@ async function createFundList(funds, donations, showAdmin = false) {
       statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
     }
 
-    list += `${statusEmoji} #\`${fund.name}#\` - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
+    let tgCopyDelimiter = isApi ? "" : "#\`";
+
+    list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
       fund.target_value
     } ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
       list += `      ${showAdmin ? `[id:${donation.id}] - `: ""}${BotExtensions.formatUsername(
-        donation.username
-      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant)}` : ""}\n`;
+        donation.username, isApi
+      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, isApi)}` : ""}\n`;
     }
 
     if (showAdmin) {
@@ -62,7 +64,7 @@ async function createFundList(funds, donations, showAdmin = false) {
   return list;
 }
 
-let getStatusMessage = (state, inside) => {
+let getStatusMessage = (state, inside, isApi = false) => {
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
@@ -74,11 +76,11 @@ let getStatusMessage = (state, inside) => {
       : "🛌 Внутри никто не отметился\n"
     : "";
   for (const user of inside) {
-    insideText += `${BotExtensions.formatUsername(user.username)}\n`;
+    insideText += `${BotExtensions.formatUsername(user.username, isApi)}\n`;
   }
 
   return (
-    `${stateEmoji} Спейс ${stateText} ${BotExtensions.formatUsername(state.changedby)}
+    `${stateEmoji} Спейс ${stateText} ${BotExtensions.formatUsername(state.changedby, isApi)}
 ${stateSubText}
 
 📅 ${state.date.toLocaleString()}
@@ -87,12 +89,12 @@ ${stateSubText}
   );
 };
 
-function getAccountsList(accountants) {
+function getAccountsList(accountants, isApi = false) {
   let accountantsList = "";
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${BotExtensions.formatUsername(user.username)}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)}\n`,
       ""
     );
   }
@@ -121,7 +123,7 @@ function getNeedsList(needs) {
 }
 
 function getDonateText(accountants, isApi = false) {
-  let accountantsList = getAccountsList(accountants);
+  let accountantsList = getAccountsList(accountants, isApi);
 
   return (
     `💸 Хакспейс не является коммерческим проектом и существует исключительно на пожертвования участников.

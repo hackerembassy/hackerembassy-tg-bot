@@ -1,6 +1,14 @@
 const BaseRepository = require("./baseRepository");
 
 class StatusRepository extends BaseRepository {
+  ChangeType = {
+    "Manual" : 0,
+    "Auto" : 1,
+    "Force" : 2,
+    "Opened" : 3,
+    "Evicted" : 4,
+  }
+
   getSpaceLastState() {
     let lastState = this.db
       .prepare("SELECT * FROM states ORDER BY date DESC")
@@ -30,6 +38,7 @@ class StatusRepository extends BaseRepository {
 
     return usersInside;
   }
+
   evictPeople() {
     let inside = this.getPeopleInside();
     let date = Date.now();
@@ -39,6 +48,7 @@ class StatusRepository extends BaseRepository {
         inside: false,
         date: date,
         username: userstate.username,
+        type: this.ChangeType.Evicted
       });
     }
   }
@@ -48,12 +58,13 @@ class StatusRepository extends BaseRepository {
       .prepare("INSERT INTO states (open, changedby, date) VALUES (?, ?, ?)")
       .run(state.open ? 1 : 0, state.changedby, state.date.valueOf());
   }
+
   pushPeopleState(state) {
     this.db
       .prepare(
-        "INSERT INTO userstates (inside, username, date) VALUES (?, ?, ?)"
+        "INSERT INTO userstates (inside, username, date, type) VALUES (?, ?, ?, ?)"
       )
-      .run(state.inside ? 1 : 0, state.username, state.date.valueOf());
+      .run(state.inside ? 1 : 0, state.username, state.date.valueOf(), state.type ?? 0);
   }
 }
 

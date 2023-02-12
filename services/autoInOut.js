@@ -25,6 +25,7 @@ async function autoinout(isIn){
             inside: isIn,
             date: new Date(),
             username: user.username,
+            type: StatusRepository.ChangeType.Auto
           });
   
           console.log(`Юзер ${user.username} автоматически ${isIn ? "пришел" : "ушел"}`);

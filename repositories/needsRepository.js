@@ -44,6 +44,21 @@ class NeedsRepository extends BaseRepository {
 
       this.db.prepare("UPDATE needs SET buyer = ?, updated = ? WHERE id = ?").run(buyer, date.valueOf(), need.id);
 
+      return need.id;
+    } catch (error) {
+      console.log(error);
+
+      return false;
+    }
+  }
+
+  undoClose(id) {
+    try {
+      let need = this.getNeedById(id);
+      if (!need) return false;
+
+      this.db.prepare("UPDATE needs SET buyer = NULL, updated = NULL WHERE id = ?").run(id);
+
       return true;
     } catch (error) {
       console.log(error);
@@ -51,6 +66,7 @@ class NeedsRepository extends BaseRepository {
       return false;
     }
   }
+
 }
 
 module.exports = new NeedsRepository();

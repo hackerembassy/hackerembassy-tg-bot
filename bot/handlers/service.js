@@ -22,7 +22,7 @@ class ServiceHandlers extends BaseHandlers {
     }
   }
 
-  callbackHandler = (callbackQuery) => {
+  callbackHandler = async (callbackQuery) => {
     const message = callbackQuery.message;
     const data = JSON.parse(callbackQuery.data);
     message.from = callbackQuery.from;
@@ -49,8 +49,8 @@ class ServiceHandlers extends BaseHandlers {
       case "/ed":
         FundsHandlers.exportDonutHandler(message, ...data.params);
         break;
-      case data.command.match(/^\/bought*/)?.input:
-        NeedsHandlers.boughtHandlerById(message, data.command.slice(8));
+      case "/bought":
+        NeedsHandlers.boughtByIdHandler(message, data.id);
         this.bot.editMessageReplyMarkup(
           {
             "inline_keyboard": message.reply_markup.inline_keyboard.filter(
@@ -62,7 +62,13 @@ class ServiceHandlers extends BaseHandlers {
             message_id: message.message_id
           }
         );
-        break
+        break;
+      case "/bought_undo":
+        const res = NeedsHandlers.boughtUndoHandler(message, data.id);
+        if (res) {
+          this.bot.deleteMessage(message.chat.id, message.message_id);
+        }
+        break;
       default:
         break;
     }

@@ -24,7 +24,7 @@ app.get("/status", (_, res) => {
 
   if (state) {
     let inside = StatusRepository.getPeopleInside();
-    content = TextGenerators.getStatusMessage(state, inside);
+    content = TextGenerators.getStatusMessage(state, inside, true);
   }
 
   res.send(content);
@@ -38,7 +38,7 @@ app.get("/join", (_, res) => {
 app.get("/funds", async (_, res) => {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
-  let list = await TextGenerators.createFundList(funds, donations, false);
+  let list = await TextGenerators.createFundList(funds, donations, false, true);
 
   let message = `⚒ Вот наши текущие сборы:
 

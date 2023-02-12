@@ -165,8 +165,11 @@ function extendWithFormatUserName(bot){
   bot.formatUsername = formatUsername;
 }
 
-function formatUsername(username){
+function formatUsername(username, isApi = false){
   username = username.replace("@","");
+
+  if (isApi)
+    return `@${username}`
 
   if (mode.mention)
     return `@${username}`.replaceAll("_", "\\_");

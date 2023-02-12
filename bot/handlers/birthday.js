@@ -22,11 +22,12 @@ class BirthdayHandlers extends BaseHandlers {
   };
 
   myBirthdayHandler = (msg, date) => {
-    let message = `Укажите дату в формате #\`YYYY-MM-DD#\` или укажите #\`remove#\``;
+    let message = `Укажите дату в формате #\`YYYY-MM-DD#\`, #\`MM-DD#\` или укажите #\`remove#\``;
     let username = msg.from.username;
 
-    if (/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date)) {
-      if (UsersRepository.setBirthday(username, date))
+    if (/^(?:\d{4}\-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date)) {
+      let fulldate = date.length === 5 ? "0000-" + date : date;
+      if (UsersRepository.setBirthday(username, fulldate))
         message = `🎂 День рождения ${this.bot.formatUsername(username)} установлен как ${date}`;
     } else if (date === "remove") {
       if (UsersRepository.setBirthday(username, null))

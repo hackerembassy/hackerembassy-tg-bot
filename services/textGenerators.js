@@ -175,6 +175,21 @@ ${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /lo
 `;
 }
 
+const shortMonthNames = [
+  "января",
+  "февраля",
+  "марта",
+  "апреля",
+  "мая",
+  "июня",
+  "июля",
+  "августа",
+  "сентября",
+  "октября",
+  "ноября",
+  "декабря",
+]
+
 function getBirthdaysList(birthdayUsers){
   let message = `🎂 В этом месяце празднуют свои днюхи:\n`;
 
@@ -198,14 +213,15 @@ function getBirthdaysList(birthdayUsers){
     if (usersWithDays.length > 0){
       usersList = ``;
       for (const user of usersWithDays) {      
-        message += `${user.day} - ${BotExtensions.formatUsername(user.username)}\n`;
+        message += `${user.day} ${shortMonthNames[user.month-1]} - ${BotExtensions.formatUsername(user.username)}\n`;
       }
     }
   }
 
   message += `${usersList}
-Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в формате:
+Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в форматах:
 #\`/mybirthday YYYY-MM-DD#\`
+#\`/mybirthday MM-DD#\`
 Надоели поздравления себя? Вводи команду:
 #\`/mybirthday remove#\``;
 

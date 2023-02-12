@@ -5,8 +5,10 @@ const {
   initGlobalModifiers,
   addLongCommands,
   addSavingLastMessages,
-  disableNotificationsByDefault,
+  makeAllMessagesMarkdown,
   enableAutoWishes,
+  extendWithFormatUserName,
+  extendWithIsAdminMode
 } = require("./botExtensions");
 
 process.env.TZ = botConfig.timezone;
@@ -16,10 +18,12 @@ const IsDebug = process.env["BOTDEBUG"] === "true";
 const bot = new TelegramBot(TOKEN, { polling: true });
 
 // Apply extensions to the bot
-addLongCommands(bot);
 initGlobalModifiers(bot);
+addLongCommands(bot);
+extendWithFormatUserName(bot);
+extendWithIsAdminMode(bot);
 addSavingLastMessages(bot);
-disableNotificationsByDefault(bot);
+makeAllMessagesMarkdown(bot);
 if (botConfig.autoWish) enableAutoWishes(bot);
 
 // Debug echoing of received messages

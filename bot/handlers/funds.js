@@ -3,7 +3,6 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const ExportHelper = require("../../services/export");
 const config = require("config");
-const { needCommands, tag } = require("../botExtensions");
 const currencyConfig = config.get("currency");
 const BaseHandlers = require("./base");
 
@@ -25,26 +24,23 @@ class FundsHandlers extends BaseHandlers {
   fundsHandler = async (msg) => {
     let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
     let donations = FundsRepository.getDonations();
-    let showMoneyOwner = UsersHelper.hasRole(msg.from.username, "admin", "accountant");
-    let addCommands =
-      needCommands() && this.fromPrivateChat(msg) ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
+    let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.fromPrivateChat(msg) || this.bot.isAdminMode());
 
-    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag(), showMoneyOwner);
+    let list = await TextGenerators.createFundList(funds, donations, showAdmin);
 
     let message = `⚒ Вот наши текущие сборы:
       
 ${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
 
-    this.bot.sendLongMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+    this.bot.sendLongMessage(msg.chat.id, message);
   };
   //funds
 
   fundHandler = async (msg, fundName) => {
     let funds = [FundsRepository.getfundByName(fundName)];
     let donations = FundsRepository.getDonationsForName(fundName);
-    let showMoneyOwner = UsersHelper.hasRole(msg.from.username, "admin", "accountant");
-    let addCommands =
-      needCommands() && this.fromPrivateChat(msg) ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
+    let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.fromPrivateChat(msg) || this.bot.isAdminMode());
+
 
     // telegram callback_data is restricted to 64 bytes
     let inlineKeyboard =
@@ -69,12 +65,11 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
           ]
         : [];
 
-    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag(), showMoneyOwner);
+    let list = await TextGenerators.createFundList(funds, donations, showAdmin);
 
     let message = `${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
 
     this.bot.sendMessage(msg.chat.id, message, {
-      parse_mode: "Markdown",
       reply_markup: {
         inline_keyboard: inlineKeyboard,
       },
@@ -84,15 +79,11 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
   fundsallHandler = async (msg) => {
     let funds = FundsRepository.getfunds();
     let donations = FundsRepository.getDonations();
-    let showMoneyOwner = UsersHelper.hasRole(msg.from.username, "admin", "accountant");
+    let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.fromPrivateChat(msg) || this.bot.isAdminMode());
 
-    let addCommands =
-      needCommands() && this.fromPrivateChat(msg) ? UsersHelper.hasRole(msg.from.username, "admin", "accountant") : false;
-    let list = await TextGenerators.createFundList(funds, donations, addCommands, this.tag(), showMoneyOwner);
+    let list = await TextGenerators.createFundList(funds, donations, showAdmin);
 
-    this.bot.sendLongMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list, {
-      parse_mode: "Markdown",
-    });
+    this.bot.sendLongMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list);
   };
 
   addFundHandler = (msg, fundName, target, currency) => {
@@ -177,7 +168,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     accountant = accountant.replace("@", "");
 
     let success = FundsRepository.transferDonation(id, accountant);
-    let message = success ? `Донат ${id} передан ${tag()}${accountant}` : `Не удалось передать донат`;
+    let message = success ? `Донат ${id} передан ${this.bot.formatUsername(accountant)}` : `Не удалось передать донат`;
     
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -192,7 +183,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
     let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency, accountant);
     let message = success
-      ? `💸 ${this.tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
+      ? `💸 ${this.bot.formatUsername(userName)} задонатил ${value} ${currency} в сбор ${fundName}`
       : `Не удалось добавить донат`;
 
     this.bot.sendMessage(msg.chat.id, message);
@@ -208,7 +199,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
     let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency);
     let message = success
-      ? `💸 ${this.tag()}${userName} задонатил ${value} ${currency} в сбор ${fundName}`
+      ? `💸 ${this.bot.formatUsername(userName)} задонатил ${value} ${currency} в сбор ${fundName}`
       : `Не удалось добавить донат`;
 
     this.bot.sendMessage(msg.chat.id, message);

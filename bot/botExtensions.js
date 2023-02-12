@@ -9,8 +9,8 @@ const messagedelay = 1500;
 
 let mode = {
   silent: false,
-  nomention: false,
-  nocommands: false,
+  mention: false,
+  admin: false,
 };
 
 let history = [];
@@ -79,7 +79,7 @@ function initGlobalModifiers(bot) {
     }
   };
 
-  bot.onText = function (...args) {
+  bot.onText = async function (...args) {
     let originalRegex = args[0];
     let originalFunc = args[1];
 
@@ -89,7 +89,7 @@ function initGlobalModifiers(bot) {
         .substring(1, originalRegex.toString().length - 1)
         .replace("$", `${addedModifiersString}$`)
     );
-    args[1] = function (...funcargs) {
+    args[1] = async function (...funcargs) {
       let match = funcargs[1];
       let newCommand = match[0];
 
@@ -105,7 +105,7 @@ function initGlobalModifiers(bot) {
         if (match[0].includes(`-${key}`)) mode[key] = true;
       }
 
-      originalFunc.call(this, ...funcargs);
+      await originalFunc.call(this, ...funcargs);
 
       mode = oldmode;
     };
@@ -114,12 +114,21 @@ function initGlobalModifiers(bot) {
   };
 }
 
-function disableNotificationsByDefault(bot) {
+function makeAllMessagesMarkdown(bot) {
   let sendMessageOriginal = bot.sendMessage;
 
   bot.sendMessage = async function (...args) {
-    if (!args[2]) args[2] = {};
-    args[2].disable_notification = true;
+    let message = args[1];
+    message = message.replaceAll(/((?<![\\|#])[_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "\\$1");
+    message = message.replaceAll(/#([_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "$1");
+    message = message.replaceAll(/#/g, "");
+    args[1] = message;
+
+    let options = {...args[2]};
+    options.parse_mode = "MarkdownV2";
+    options.disable_web_page_preview=true;
+    args[2] = options;
+
     return sendMessageOriginal.call(this, ...args);
   };
 }
@@ -131,6 +140,9 @@ function addSavingLastMessages(bot) {
   bot.sendMessage = async function (...args) {
     let chatId = args[0];
     let message = await sendMessageOriginal.call(this, ...args);
+
+    if (!message) return;
+
     let messageId = message.message_id;
 
     if (!history[chatId]) history[chatId] = [];
@@ -149,12 +161,25 @@ function addSavingLastMessages(bot) {
 
 // Public extension related functions
 
-function tag() {
-  return mode.nomention ? "" : "@";
+function extendWithFormatUserName(bot){
+  bot.formatUsername = formatUsername;
 }
 
-function needCommands() {
-  return !mode.nocommands;
+function formatUsername(username){
+  username = username.replace("@","");
+
+  if (mode.mention)
+    return `@${username}`.replaceAll("_", "\\_");
+  else
+    return `#[${username}#]#(t.me/${username}#)`
+}
+
+function extendWithIsAdminMode(bot){
+  bot.isAdminMode = isAdminMode;
+}
+
+function isAdminMode() {
+  return mode.admin;
 }
 
 function* popLast(chatId, count) {
@@ -215,11 +240,13 @@ function enableAutoWishes(bot) {
 module.exports = {
   mode,
   initGlobalModifiers,
-  tag,
+  formatUsername,
   popLast,
-  needCommands,
+  isAdminMode,
   addLongCommands,
-  disableNotificationsByDefault,
+  makeAllMessagesMarkdown,
   addSavingLastMessages,
   enableAutoWishes,
+  extendWithFormatUserName,
+  extendWithIsAdminMode
 };

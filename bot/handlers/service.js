@@ -22,7 +22,7 @@ class ServiceHandlers extends BaseHandlers {
     }
   }
 
-  callbackHandler = async (callbackQuery) => {
+  callbackHandler = (callbackQuery) => {
     const message = callbackQuery.message;
     const data = JSON.parse(callbackQuery.data);
     message.from = callbackQuery.from;

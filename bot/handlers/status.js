@@ -55,7 +55,6 @@ class StatusHandlers extends BaseHandlers {
     }
 
     let inside = StatusRepository.getPeopleInside();
-
     let statusMessage = TextGenerators.getStatusMessage(state, inside);
     let inlineKeyboard = state.open
       ? [
@@ -115,6 +114,8 @@ class StatusHandlers extends BaseHandlers {
       inside: true,
       date: opendate,
       username: msg.from.username,
+      type: StatusRepository.ChangeType.Opened
+
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -291,7 +292,7 @@ class StatusHandlers extends BaseHandlers {
     username = username.replace("@", "");
     let eventDate = new Date();
 
-    let gotIn = this.LetIn(username, eventDate);
+    let gotIn = this.LetIn(username, eventDate, true);
 
     let message = `🟢 ${this.bot.formatUsername(msg.from.username)} привёл ${this.bot.formatUsername(username)} в спейс 
 🗓 ${eventDate.toLocaleString()} `;
@@ -306,7 +307,7 @@ class StatusHandlers extends BaseHandlers {
     if (!UsersHelper.hasRole(msg.from.username, "member")) return;
     let eventDate = new Date();
     username = username.replace("@", "");
-    let gotOut = this.LetOut(username, eventDate);
+    let gotOut = this.LetOut(username, eventDate, true);
 
     let message = `🔴 ${this.bot.formatUsername(msg.from.username)} отправил домой ${this.bot.formatUsername(username)}
 🗓 ${eventDate.toLocaleString()} `;
@@ -318,17 +319,17 @@ class StatusHandlers extends BaseHandlers {
     this.bot.sendMessage(msg.chat.id, message);
   };
 
-  LetIn(username, date) {
+  LetIn(username, date, force = false) {
     // check that space is open
     let state = StatusRepository.getSpaceLastState();
-    if (!state?.open) {
-      return false;
-    }
+    
+    if (!state?.open) return false;
 
     let userstate = {
       inside: true,
       date: date,
       username: username,
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -336,16 +337,16 @@ class StatusHandlers extends BaseHandlers {
     return true;
   }
 
-  LetOut(username, date) {
+  LetOut(username, date, force = false) {
     let state = StatusRepository.getSpaceLastState();
-    if (!state?.open) {
-      return false;
-    }
+
+    if (!state?.open) return false;
 
     let userstate = {
       inside: false,
       date: date,
       username: username,
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
     };
 
     StatusRepository.pushPeopleState(userstate);

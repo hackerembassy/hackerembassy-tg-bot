@@ -21,29 +21,29 @@ class StatusHandlers extends BaseHandlers {
 📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
 ⚠️ Для работы обязательно отключите рандомизацию MAC адреса для сети спейса.
       
-\`/autoinside mac_address\` - Включить автовход и автовыход  
-\`/autoinside status\` - Статус автовхода и автовыхода  
-\`/autoinside disable\` - Выключить автовход и автовыход  
+#\`/autoinside mac_address#\` - Включить автовход и автовыход  
+#\`/autoinside status#\` - Статус автовхода и автовыхода  
+#\`/autoinside disable#\` - Выключить автовход и автовыход  
 `;
     } else if (mac && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(mac) && UsersRepository.setMAC(username, mac)) {
-      message = `Автовход и автовыход активированы для юзера ${this.tag()}${TextGenerators.excapeUnderscore(
+      message = `Автовход и автовыход активированы для юзера ${this.bot.formatUsername(
         username
       )} на MAC адрес ${mac}.
 Не забудьте отключить рандомизацию MAC адреса для сети спейса
       `;
     } else if (mac === "disable") {
       UsersRepository.setMAC(username, null);
-      message = `Автовход и автовыход выключены для юзера ${this.tag()}${TextGenerators.excapeUnderscore(username)}`;
+      message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
     } else if (mac === "status") {
       let usermac = UsersRepository.getUser(username)?.mac;
+
       if (usermac)
-        message = `Автовход и автовыход включены для юзера ${this.tag()}${TextGenerators.excapeUnderscore(
-          username
-        )} на MAC адрес ${usermac}`;
-      else message = `Автовход и автовыход выключены для юзера ${this.tag()}${TextGenerators.excapeUnderscore(username)}`;
+        message = `Автовход и автовыход включены для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
+      else 
+        message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
     }
 
-    this.bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+    this.bot.sendMessage(msg.chat.id, message);
   }
 
   statusHandler = (msg) => {
@@ -56,7 +56,7 @@ class StatusHandlers extends BaseHandlers {
 
     let inside = StatusRepository.getPeopleInside();
 
-    let statusMessage = TextGenerators.getStatusMessage(state, inside, this.tag());
+    let statusMessage = TextGenerators.getStatusMessage(state, inside);
     let inlineKeyboard = state.open
       ? [
           [
@@ -140,7 +140,7 @@ class StatusHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-      `🔓 ${this.tag()}${state.changedby} открыл спейс
+      `🔓 ${this.bot.formatUsername(state.changedby)} открыл спейс
 Отличный повод зайти
       
 🗓 ${state.date.toLocaleString()} `,
@@ -175,7 +175,7 @@ class StatusHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-      `🔒 ${this.tag()}${state.changedby} закрыл спейс
+      `🔒 ${this.bot.formatUsername(state.changedby)} закрыл спейс
 Все отметившиеся отправлены домой
       
 🗓 ${state.date.toLocaleString()}`,
@@ -191,7 +191,7 @@ class StatusHandlers extends BaseHandlers {
     let eventDate = new Date();
     let user = msg.from.username ?? msg.from.first_name;
     let gotIn = this.LetIn(user, eventDate);
-    let message = `🟢 ${this.tag()}${user} пришел в спейс
+    let message = `🟢 ${this.bot.formatUsername(user)} пришел в спейс
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
@@ -240,7 +240,7 @@ class StatusHandlers extends BaseHandlers {
   outHandler = (msg) => {
     let eventDate = new Date();
     let gotOut = this.LetOut(msg.from.username, eventDate);
-    let message = `🔴 ${this.tag()}${msg.from.username} ушел из спейса
+    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} ушел из спейса
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {
@@ -293,7 +293,7 @@ class StatusHandlers extends BaseHandlers {
 
     let gotIn = this.LetIn(username, eventDate);
 
-    let message = `🟢 ${this.tag()}${msg.from.username} привёл ${this.tag()}${username} в спейс 
+    let message = `🟢 ${this.bot.formatUsername(msg.from.username)} привёл ${this.bot.formatUsername(username)} в спейс 
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
@@ -308,7 +308,7 @@ class StatusHandlers extends BaseHandlers {
     username = username.replace("@", "");
     let gotOut = this.LetOut(username, eventDate);
 
-    let message = `🔴 ${this.tag()}${msg.from.username} отправил домой ${this.tag()}${username}
+    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} отправил домой ${this.bot.formatUsername(username)}
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {

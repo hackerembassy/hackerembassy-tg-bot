@@ -1,6 +1,7 @@
 const NeedsRepository = require("../../repositories/needsRepository");
 const TextGenerators = require("../../services/textGenerators");
 const BaseHandlers = require("./base");
+const UsersHelper = require("../../services/usersHelper");
 
 class NeedsHandlers extends BaseHandlers {
   constructor() {
@@ -9,9 +10,9 @@ class NeedsHandlers extends BaseHandlers {
 
   needsHandler = (msg) => {
     let needs = NeedsRepository.getOpenNeeds();
-    let message = TextGenerators.getNeedsList(needs, this.tag());
+    let message = TextGenerators.getNeedsList(needs);
 
-    this.bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+    this.bot.sendMessage(msg.chat.id, message);
   };
 
   buyHandler = (msg, text) => {
@@ -19,11 +20,11 @@ class NeedsHandlers extends BaseHandlers {
 
     NeedsRepository.addBuy(text, requester, new Date());
 
-    let message = `🙏 ${this.tag()}${TextGenerators.excapeUnderscore(
+    let message = `🙏 ${this.bot.formatUsername(
       requester
-    )} попросил кого-нибудь купить \`${text}\` по дороге в спейс.`;
+    )} попросил кого-нибудь купить #\`${text}#\` по дороге в спейс.`;
 
-    this.bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+    this.bot.sendMessage(msg.chat.id, message);
   };
 
   boughtHandler = (msg, text) => {
@@ -36,11 +37,11 @@ class NeedsHandlers extends BaseHandlers {
       return;
     }
 
-    let message = `✅ ${this.tag()}${TextGenerators.excapeUnderscore(buyer)} купил \`${text}\` в спейс`;
+    let message = `✅ ${this.bot.formatUsername(buyer)} купил #\`${text}#\` в спейс`;
 
     NeedsRepository.closeNeed(text, buyer, new Date());
 
-    this.bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+    this.bot.sendMessage(msg.chat.id, message);
   };
 }
 

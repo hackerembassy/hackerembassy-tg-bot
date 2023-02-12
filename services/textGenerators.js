@@ -2,12 +2,9 @@ const Currency = require("../services/currency");
 const config = require("config");
 const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;
+const BotExtensions = require("../bot/botExtensions");
 
-function escapeUnderscore(text) {
-  return text.replaceAll("_", "\\_");
-}
-
-async function createFundList(funds, donations, addCommands = false, tag = "", showMoneyOwner = false) {
+async function createFundList(funds, donations, showAdmin = false) {
   let list = "";
 
   for (const fund of funds) {
@@ -36,27 +33,27 @@ async function createFundList(funds, donations, addCommands = false, tag = "", s
       statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
     }
 
-    list += `${statusEmoji} \`${fund.name}\` - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
+    list += `${statusEmoji} #\`${fund.name}#\` - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
       fund.target_value
     } ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
-      list += `     \\[id:${donation.id}\] - ${tag}${escapeUnderscore(
+      list += `      ${showAdmin ? `[id:${donation.id}] - `: ""}${BotExtensions.formatUsername(
         donation.username
-      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${showMoneyOwner && donation.accountant ? ` ➡️ ${tag}${donation.accountant}` : ""}\n`;
+      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant)}` : ""}\n`;
     }
 
-    if (addCommands) {
+    if (showAdmin) {
       list += "\n";
-      list += `\`/fund ${fund.name}\`\n`;
-      list += `\`/exportFund ${fund.name}\`\n`;
-      list += `\`/exportDonut ${fund.name}\`\n`;
-      list += `\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}\`\n`;
-      list += `\`/changeFundStatus of ${fund.name} to status_name\`\n`;
-      list += `\`/closeFund ${fund.name}\`\n`;
-      list += `\`/transferDonation donation_id to username\`\n`;
-      list += `\`/addDonation 5000 AMD from @username to ${fund.name}\`\n`;
-      list += `\`/removeDonation donation_id\`\n`;
+      list += `#\`/fund ${fund.name}#\`\n`;
+      list += `#\`/exportFund ${fund.name}#\`\n`;
+      list += `#\`/exportDonut ${fund.name}#\`\n`;
+      list += `#\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
+      list += `#\`/changeFundStatus of ${fund.name} to status_name#\`\n`;
+      list += `#\`/closeFund ${fund.name}#\`\n`;
+      list += `#\`/transferDonation donation_id to username#\`\n`;
+      list += `#\`/addDonation 5000 AMD from @username to ${fund.name}#\`\n`;
+      list += `#\`/removeDonation donation_id#\`\n`;
     }
 
     list += "\n";
@@ -65,7 +62,7 @@ async function createFundList(funds, donations, addCommands = false, tag = "", s
   return list;
 }
 
-let getStatusMessage = (state, inside, tag = "") => {
+let getStatusMessage = (state, inside) => {
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
@@ -77,11 +74,11 @@ let getStatusMessage = (state, inside, tag = "") => {
       : "🛌 Внутри никто не отметился\n"
     : "";
   for (const user of inside) {
-    insideText += `${tag}${user.username}\n`;
+    insideText += `${BotExtensions.formatUsername(user.username)}\n`;
   }
 
   return (
-    `${stateEmoji} Спейс ${stateText} ${tag}${state.changedby}
+    `${stateEmoji} Спейс ${stateText} ${BotExtensions.formatUsername(state.changedby)}
 ${stateSubText}
 
 📅 ${state.date.toLocaleString()}
@@ -90,12 +87,12 @@ ${stateSubText}
   );
 };
 
-function getAccountsList(accountants, tag = "") {
+function getAccountsList(accountants) {
   let accountantsList = "";
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${tag}${user.username}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username)}\n`,
       ""
     );
   }
@@ -103,28 +100,28 @@ function getAccountsList(accountants, tag = "") {
   return accountantsList;
 }
 
-function getNeedsList(needs, tag = "") {
+function getNeedsList(needs) {
   let message = `👌 Пока никто не просил ничего\n`;
 
   if (needs.length > 0) {
     message = `🙏 Кто-нибудь, купите по дороге в спейс:\n`;
 
     for (const need of needs) {
-      message += `- \`${need.text}\` по просьбе ${tag}${escapeUnderscore(
+      message += `- #\`${need.text}#\` по просьбе ${BotExtensions.formatUsername(
         need.requester
       )}\n`;
     }
 
-    message += `\n✅ Отметить покупку сделанной можно с помощью команды \`/bought item_name\``;
+    message += `\n✅ Отметить покупку сделанной можно с помощью команды #\`/bought item_name#\``;
   }
 
-  message += `\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды \`/buy item_name\``;
+  message += `\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды #\`/buy item_name#\``;
 
   return message;
 }
 
-function getDonateText(accountants, tag = "", isApi = false) {
-  let accountantsList = getAccountsList(accountants, tag);
+function getDonateText(accountants, isApi = false) {
+  let accountantsList = getAccountsList(accountants);
 
   return (
     `💸 Хакспейс не является коммерческим проектом и существует исключительно на пожертвования участников.
@@ -176,7 +173,7 @@ ${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /lo
 `;
 }
 
-function getBirthdaysList(birthdayUsers, tag){
+function getBirthdaysList(birthdayUsers){
   let message = `🎂 В этом месяце празднуют свои днюхи:\n`;
 
   let usersList = `\nНикто? Странно...\n`;
@@ -199,16 +196,16 @@ function getBirthdaysList(birthdayUsers, tag){
     if (usersWithDays.length > 0){
       usersList = ``;
       for (const user of usersWithDays) {      
-        message += `${user.day} - ${tag}${escapeUnderscore(user.username)}\n`;
+        message += `${user.day} - ${BotExtensions.formatUsername(user.username)}\n`;
       }
     }
   }
 
   message += `${usersList}
 Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в формате:
-\`/mybirthday YYYY-MM-DD\`
+#\`/mybirthday YYYY-MM-DD#\`
 Надоели поздравления себя? Вводи команду:
-\`/mybirthday remove\``;
+#\`/mybirthday remove#\``;
 
   return message;
 }
@@ -260,7 +257,6 @@ module.exports = {
   getDonateText,
   getJoinText,
   getNeedsList,
-  excapeUnderscore: escapeUnderscore,
   getPrinterInfo,
   getPrinterStatus,
   getBirthdaysList

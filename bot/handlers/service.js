@@ -3,6 +3,7 @@ const { popLast } = require("../botExtensions");
 const BaseHandlers = require("./base");
 const StatusHandlers = new (require("./status"));
 const FundsHandlers = new (require("./funds"));
+const NeedsHandlers = new (require("./needs"));
 
 class ServiceHandlers extends BaseHandlers {
   constructor() {
@@ -48,6 +49,20 @@ class ServiceHandlers extends BaseHandlers {
       case "/ed":
         FundsHandlers.exportDonutHandler(message, ...data.params);
         break;
+      case data.command.match(/^\/bought*/)?.input:
+        NeedsHandlers.boughtHandlerById(message, data.command.slice(8));
+        this.bot.editMessageReplyMarkup(
+          {
+            "inline_keyboard": message.reply_markup.inline_keyboard.filter(
+              button => button[0].callback_data !== callbackQuery.data
+            )
+          },
+          {
+            chat_id: message.chat.id,
+            message_id: message.message_id
+          }
+        );
+        break
       default:
         break;
     }

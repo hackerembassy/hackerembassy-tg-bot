@@ -12,7 +12,14 @@ class NeedsHandlers extends BaseHandlers {
     let needs = NeedsRepository.getOpenNeeds();
     let message = TextGenerators.getNeedsList(needs);
 
-    this.bot.sendMessage(msg.chat.id, message);
+    this.bot.sendMessage(msg.chat.id, message, {
+      "reply_markup": {
+          "inline_keyboard": needs.map((need) => [{
+              text: need.text,
+              callback_data: JSON.stringify({ command: "/bought " + need.id }),
+          },])
+      }
+    });
   };
 
   buyHandler = (msg, text) => {
@@ -26,6 +33,11 @@ class NeedsHandlers extends BaseHandlers {
 
     this.bot.sendMessage(msg.chat.id, message);
   };
+
+  boughtHandlerById = (msg, id) => {
+    let need = NeedsRepository.getNeedById(id);
+    this.boughtHandler(msg, need.text || "");
+  }
 
   boughtHandler = (msg, text) => {
     let buyer = msg.from.username;

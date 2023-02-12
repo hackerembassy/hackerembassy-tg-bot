@@ -117,11 +117,13 @@ function getNeedsList(needs) {
       )}\n`;
     }
 
-    message += `\n✅ Отметить покупку сделанной можно с помощью команды #\`/bought item_name#\``;
   }
-
   message += `\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды #\`/buy item_name#\``;
 
+  if (needs.length > 0) {
+    message += `\n✅ Отметить покупку сделанной можно нажав на кнопку ниже: `;
+  }
+  
   return message;
 }
 

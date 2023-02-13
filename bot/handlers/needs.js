@@ -12,7 +12,14 @@ class NeedsHandlers extends BaseHandlers {
     let needs = NeedsRepository.getOpenNeeds();
     let message = TextGenerators.getNeedsList(needs);
 
-    this.bot.sendMessage(msg.chat.id, message);
+    this.bot.sendMessage(msg.chat.id, message, {
+      "reply_markup": {
+          "inline_keyboard": needs.map((need) => [{
+              text: need.text,
+              callback_data: JSON.stringify({ command: "/bought", id: need.id }),
+          },])
+      }
+    });
   };
 
   buyHandler = (msg, text) => {
@@ -27,6 +34,20 @@ class NeedsHandlers extends BaseHandlers {
     this.bot.sendMessage(msg.chat.id, message);
   };
 
+  boughtByIdHandler = (msg, id) => {
+    let need = NeedsRepository.getNeedById(id);
+    this.boughtHandler(msg, need.text || "");
+  }
+
+  boughtUndoHandler = (msg, id) => {
+    const need = NeedsRepository.getNeedById(id);
+    if (need && need.buyer === msg.from.username) {
+      NeedsRepository.undoClose(need.id);
+      return true;
+    }
+    return false;
+  }
+
   boughtHandler = (msg, text) => {
     let buyer = msg.from.username;
 
@@ -39,9 +60,16 @@ class NeedsHandlers extends BaseHandlers {
 
     let message = `✅ ${this.bot.formatUsername(buyer)} купил #\`${text}#\` в спейс`;
 
-    NeedsRepository.closeNeed(text, buyer, new Date());
+    const id = NeedsRepository.closeNeed(text, buyer, new Date());
 
-    this.bot.sendMessage(msg.chat.id, message);
+    this.bot.sendMessage(msg.chat.id, message, {
+      "reply_markup": {
+          "inline_keyboard": [[{
+              text: "Отменить покупку",
+              callback_data: JSON.stringify({ command: "/bought_undo", id: id }),
+          },],]
+      }
+    });
   };
 }
 

@@ -51,17 +51,18 @@ class ServiceHandlers extends BaseHandlers {
         break;
       case "/bought":
         NeedsHandlers.boughtByIdHandler(message, data.id);
-        this.bot.editMessageReplyMarkup(
-          {
-            "inline_keyboard": message.reply_markup.inline_keyboard.filter(
-              button => button[0].callback_data !== callbackQuery.data
-            )
-          },
-          {
-            chat_id: message.chat.id,
-            message_id: message.message_id
-          }
+        const new_keyboard = message.reply_markup.inline_keyboard.filter(
+          button => button[0].callback_data !== callbackQuery.data
         );
+        if (new_keyboard.length != message.reply_markup.inline_keyboard.length) {
+          this.bot.editMessageReplyMarkup(
+            { "inline_keyboard": new_keyboard },
+            {
+              chat_id: message.chat.id,
+              message_id: message.message_id
+            }
+          );
+        }
         break;
       case "/bought_undo":
         const res = NeedsHandlers.boughtUndoHandler(message, data.id);

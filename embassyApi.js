@@ -15,6 +15,12 @@ const routerip = embassyApiConfig.routerip;
 const app = express();
 app.use(cors());
 
+app.get("/webcam", async (_, res) => {
+  const response = await fetch(`${embassyApiConfig.webcam}/jpg`);
+  let imgbuffer = await response.arrayBuffer();
+  res.send(Buffer.from(imgbuffer));
+});
+
 app.get("/devicesscan", async (_, res) => {
   let devices = await find({ address: embassyApiConfig.networkRange });
   res.send(devices.map((d) => d.mac));

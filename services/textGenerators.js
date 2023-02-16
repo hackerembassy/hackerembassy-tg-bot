@@ -70,12 +70,10 @@ let getStatusMessage = (state, inside, isApi = false) => {
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
     ? "Отличный повод зайти, так что стучитесь в дверь или пишите находящимся внутри - вам откроют\n"
-    : "Ждем, пока кто-то из резидентов его откроет\n";
-  let insideText = state.open
-    ? inside.length > 0
+    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет или происходит тайное собрание? Who knows ...\n";
+  let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
-      : "🛌 Внутри никто не отметился\n"
-    : "";
+      : "🛌 Внутри никто не отметился\n";
 
   for (const user of inside) {
     insideText += `${BotExtensions.formatUsername(user.username, isApi)}${user.type === StatusRepository.ChangeType.Auto ? " (auto)" : ""}\n`;
@@ -84,7 +82,8 @@ let getStatusMessage = (state, inside, isApi = false) => {
   let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18)
 
   return (
-    `${stateEmoji} Спейс ${stateText} ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}
+    `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}
+    
 ${stateSubText}
 ` + insideText + `
 📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически

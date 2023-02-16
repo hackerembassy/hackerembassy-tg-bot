@@ -7,9 +7,6 @@ const embassyApiConfig = config.get("embassy-api");
 
 async function autoinout(isIn){
     try {
-      let spaceState = StatusRepository.getSpaceLastState();
-      if (!spaceState || !spaceState.open) return;
-  
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       let devices = await (await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/devices`, { signal: controller.signal }))?.json();

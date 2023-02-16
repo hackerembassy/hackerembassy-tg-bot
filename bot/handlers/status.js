@@ -141,7 +141,7 @@ class StatusHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-      `🔓 ${this.bot.formatUsername(state.changedby)} открыл спейс
+      `🔓 ${this.bot.formatUsername(state.changedby)} открыл спейс для гостей
 Отличный повод зайти
       
 🗓 ${state.date.toLocaleString()} `,
@@ -196,7 +196,7 @@ class StatusHandlers extends BaseHandlers {
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
-      message = "🔐 Откройте cпейс прежде чем туда входить!";
+      message = "🔐 Сейчас спейс не готов принять гостей";
     }
 
     let inlineKeyboard = gotIn
@@ -245,7 +245,7 @@ class StatusHandlers extends BaseHandlers {
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {
-      message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез?";
+      message = "🔐 Странно, ты же не должен был быть внутри...";
     }
 
     let inlineKeyboard = gotOut
@@ -298,7 +298,7 @@ class StatusHandlers extends BaseHandlers {
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
-      message = "🔐 Откройте cпейс прежде чем туда кого-то пускать!";
+      message = "🔐 Сорян, ты не можете сейчас его привести";
     }
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -313,7 +313,7 @@ class StatusHandlers extends BaseHandlers {
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {
-      message = "🔐 А что тот делал в закрытом спейсе, ты его там запер?";
+      message = "🔐 Ээ нее, ты не можешь его отправить домой";
     }
 
     this.bot.sendMessage(msg.chat.id, message);
@@ -323,7 +323,7 @@ class StatusHandlers extends BaseHandlers {
     // check that space is open
     let state = StatusRepository.getSpaceLastState();
     
-    if (!state?.open) return false;
+    if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
       inside: true,
@@ -340,7 +340,7 @@ class StatusHandlers extends BaseHandlers {
   LetOut(username, date, force = false) {
     let state = StatusRepository.getSpaceLastState();
 
-    if (!state?.open) return false;
+    if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
       inside: false,

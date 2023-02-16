@@ -17,10 +17,13 @@ app.use(cors());
 
 app.get("/webcam", async (_, res) => {
   try {
+    // tmp solution - flush previous image
+    await fetch(`${embassyApiConfig.webcam}/jpg`);
+    // main request
     const response = await fetch(`${embassyApiConfig.webcam}/jpg`);
     let imgbuffer = await response.arrayBuffer();
     res.send(Buffer.from(imgbuffer));
-  } catch {
+  } catch (error) {
     res.send({ message: "Device request failed", error });
   }
 });

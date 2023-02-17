@@ -24,9 +24,9 @@ class PrinterHandlers extends BaseHandlers {
 
       let webcamImage = Buffer.from(response);
 
-      if (webcamImage) this.bot.sendPhoto(msg.chat.id, webcamImage)
+      if (webcamImage) await this.bot.sendPhoto(msg.chat.id, webcamImage)
       else throw Error();
-    } catch {
+    } catch(error) {
       let message = `⚠️ Камера пока недоступна`;
       this.bot.sendMessage(msg.chat.id, message);
     }

@@ -9,8 +9,8 @@ const messagedelay = 1500;
 
 let mode = {
   silent: false,
-  nomention: false,
-  nocommands: false,
+  mention: false,
+  admin: false,
 };
 
 let history = [];
@@ -79,7 +79,7 @@ function initGlobalModifiers(bot) {
     }
   };
 
-  bot.onText = function (...args) {
+  bot.onText = async function (...args) {
     let originalRegex = args[0];
     let originalFunc = args[1];
 
@@ -89,7 +89,7 @@ function initGlobalModifiers(bot) {
         .substring(1, originalRegex.toString().length - 1)
         .replace("$", `${addedModifiersString}$`)
     );
-    args[1] = function (...funcargs) {
+    args[1] = async function (...funcargs) {
       let match = funcargs[1];
       let newCommand = match[0];
 
@@ -105,7 +105,7 @@ function initGlobalModifiers(bot) {
         if (match[0].includes(`-${key}`)) mode[key] = true;
       }
 
-      originalFunc.call(this, ...funcargs);
+      await originalFunc.call(this, ...funcargs);
 
       mode = oldmode;
     };
@@ -114,12 +114,21 @@ function initGlobalModifiers(bot) {
   };
 }
 
-function disableNotificationsByDefault(bot) {
+function makeAllMessagesMarkdown(bot) {
   let sendMessageOriginal = bot.sendMessage;
 
   bot.sendMessage = async function (...args) {
-    if (!args[2]) args[2] = {};
-    args[2].disable_notification = true;
+    let message = args[1];
+    message = message.replaceAll(/((?<![\\|#])[_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "\\$1");
+    message = message.replaceAll(/#([_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "$1");
+    message = message.replaceAll(/#/g, "");
+    args[1] = message;
+
+    let options = {...args[2]};
+    options.parse_mode = "MarkdownV2";
+    options.disable_web_page_preview=true;
+    args[2] = options;
+
     return sendMessageOriginal.call(this, ...args);
   };
 }
@@ -131,6 +140,9 @@ function addSavingLastMessages(bot) {
   bot.sendMessage = async function (...args) {
     let chatId = args[0];
     let message = await sendMessageOriginal.call(this, ...args);
+
+    if (!message) return;
+
     let messageId = message.message_id;
 
     if (!history[chatId]) history[chatId] = [];
@@ -149,12 +161,28 @@ function addSavingLastMessages(bot) {
 
 // Public extension related functions
 
-function tag() {
-  return mode.nomention ? "" : "@";
+function extendWithFormatUserName(bot){
+  bot.formatUsername = formatUsername;
 }
 
-function needCommands() {
-  return !mode.nocommands;
+function formatUsername(username, isApi = false){
+  username = username.replace("@","");
+
+  if (isApi)
+    return `@${username}`
+
+  if (mode.mention)
+    return `@${username}`.replaceAll("_", "\\_");
+  else
+    return `#[${username}#]#(t.me/${username}#)`
+}
+
+function extendWithIsAdminMode(bot){
+  bot.isAdminMode = isAdminMode;
+}
+
+function isAdminMode() {
+  return mode.admin;
 }
 
 function* popLast(chatId, count) {
@@ -177,9 +205,8 @@ async function getWish(username) {
   return wishTemplate.replaceAll(/\$username/g, `@${username}`);
 }
 
-async function sendBirthdayWishes(bot) {
-  let currentDate = new Date().toISOString().substring(5, 10);
-
+async function sendBirthdayWishes(force = false) {
+  let currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
   let birthdayUsers = UsersRepository.getUsers().filter((u) => {
     return u.birthday?.substring(5, 10) === currentDate;
   });
@@ -189,36 +216,40 @@ async function sendBirthdayWishes(bot) {
   }
 
   let wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
+  let wishedAmount = wishedToday?.length;
 
   for (const user of birthdayUsers) {
-    if (wishedToday.find((entry) => entry.username && entry.date === currentDate)) continue;
+    let wishedUser = wishedToday.find((entry) => entry.username && entry.date === currentDate);
+    if (!force && wishedUser) continue;
 
     let message = "🎂 ";
     message += await getWish(user.username);
 
-    bot.sendMessage(botConfig.chats.main, message);
-    wishedToday.push({ username: user.username, date: currentDate });
+    this.sendMessage(botConfig.chats.main, message);
+
+    if (!wishedUser) wishedToday.push({ username: user.username, date: currentDate });
 
     sleep(30000);
   }
 
-  JSON.stringify(wishedToday);
-
-  fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
+  if (wishedAmount !== wishedToday.length) fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
 }
 
 function enableAutoWishes(bot) {
-  setInterval(() => sendBirthdayWishes(bot), 3600000);
+  bot.sendBirthdayWishes = sendBirthdayWishes;
+  setInterval(() => bot.sendBirthdayWishes(false), 3600000);
 }
 
 module.exports = {
   mode,
   initGlobalModifiers,
-  tag,
+  formatUsername,
   popLast,
-  needCommands,
+  isAdminMode,
   addLongCommands,
-  disableNotificationsByDefault,
+  makeAllMessagesMarkdown,
   addSavingLastMessages,
   enableAutoWishes,
+  extendWithFormatUserName,
+  extendWithIsAdminMode
 };

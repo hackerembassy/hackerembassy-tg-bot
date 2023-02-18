@@ -3,6 +3,7 @@ const { popLast } = require("../botExtensions");
 const BaseHandlers = require("./base");
 const StatusHandlers = new (require("./status"));
 const FundsHandlers = new (require("./funds"));
+const NeedsHandlers = new (require("./needs"));
 
 class ServiceHandlers extends BaseHandlers {
   constructor() {
@@ -48,6 +49,27 @@ class ServiceHandlers extends BaseHandlers {
       case "/ed":
         FundsHandlers.exportDonutHandler(message, ...data.params);
         break;
+      case "/bought":
+        NeedsHandlers.boughtByIdHandler(message, data.id);
+        const new_keyboard = message.reply_markup.inline_keyboard.filter(
+          button => button[0].callback_data !== callbackQuery.data
+        );
+        if (new_keyboard.length != message.reply_markup.inline_keyboard.length) {
+          this.bot.editMessageReplyMarkup(
+            { "inline_keyboard": new_keyboard },
+            {
+              chat_id: message.chat.id,
+              message_id: message.message_id
+            }
+          );
+        }
+        break;
+      case "/bought_undo":
+        const res = NeedsHandlers.boughtUndoHandler(message, data.id);
+        if (res) {
+          this.bot.deleteMessage(message.chat.id, message.message_id);
+        }
+        break;
       default:
         break;
     }
@@ -57,7 +79,7 @@ class ServiceHandlers extends BaseHandlers {
 
   newMemberHandler = async (msg) => {
     let botName = (await this.bot.getMe()).username;
-    let newMembers = msg.new_chat_members.reduce((res, member) => res + `${this.tag()}${member.username} `, "");
+    let newMembers = msg.new_chat_members.reduce((res, member) => res + `${this.bot.formatUsername(member.username)} `, "");
     let message = `🇬🇧 Добро пожаловать в наш уютный уголок, ${newMembers}
       
 Я @${botName}, бот-менеджер хакерспейса. Ко мне в личку можно зайти пообщаться, вбить мои команды, и я расскажу вкратце о нас.

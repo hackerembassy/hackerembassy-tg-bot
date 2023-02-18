@@ -18,7 +18,6 @@ class BasicHandlers extends BaseHandlers {
 Держи мой список команд:\n` +
         UsersHelper.getAvailableCommands(msg.from.username) +
         `${Commands.GlobalModifiers}`,
-      { parse_mode: "Markdown" }
     );
   };
 
@@ -40,7 +39,7 @@ class BasicHandlers extends BaseHandlers {
 
   donateHandler = (msg) => {
     let accountants = UsersRepository.getUsersByRole("accountant");
-    let message = TextGenerators.getDonateText(accountants, this.tag());
+    let message = TextGenerators.getDonateText(accountants);
     this.bot.sendMessage(msg.chat.id, message);
   };
 
@@ -59,6 +58,7 @@ class BasicHandlers extends BaseHandlers {
     let coin = CoinsHelper.getCoinDefinition(coinname);
 
     this.bot.sendPhoto(msg.chat.id, buffer, {
+      parse_mode: "Markdown",
       caption: `🪙 Используй этот QR код или адрес ниже, чтобы задонатить нам в ${coin.fullname}.
       
 ⚠️ Обрати внимание, что сеть ${coin.network} и ты используешь правильный адрес:
@@ -70,13 +70,12 @@ class BasicHandlers extends BaseHandlers {
 в https://mempool.space/ или аналогичном сервисе
       
 🛍 Если хочешь задонатить натурой (ohh my) или другим способом - жми /donate`,
-      parse_mode: "Markdown",
     });
   };
 
   donateCardHandler = async (msg) => {
     let accountants = UsersRepository.getUsersByRole("accountant");
-    let accountantsList = TextGenerators.getAccountsList(accountants, this.tag());
+    let accountantsList = TextGenerators.getAccountsList(accountants);
 
     this.bot.sendMessage(
       msg.chat.id,
@@ -87,6 +86,18 @@ class BasicHandlers extends BaseHandlers {
 🛍 Если хочешь задонатить натурой или другим способом - жми /donate`
     );
   };
+
+  getResidentsHandler = (msg) => {
+    let users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
+    let userList = "";
+    for (const user of users) {
+      userList += `${this.bot.formatUsername(user.username)}\n`;
+    }
+
+    let message = `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
+
+    this.bot.sendLongMessage(msg.chat.id, message);
+  }
 }
 
 module.exports = BasicHandlers;

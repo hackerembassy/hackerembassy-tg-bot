@@ -2,12 +2,10 @@ const Currency = require("../services/currency");
 const config = require("config");
 const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;
+const BotExtensions = require("../bot/botExtensions");
+const StatusRepository = require("../repositories/statusRepository");
 
-function escapeUnderscore(text) {
-  return text.replaceAll("_", "\\_");
-}
-
-async function createFundList(funds, donations, addCommands = false, tag = "") {
+async function createFundList(funds, donations, showAdmin = false, isApi = false) {
   let list = "";
 
   for (const fund of funds) {
@@ -36,26 +34,29 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
       statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
     }
 
-    list += `${statusEmoji} \`${fund.name}\` - Собрано ${sum.toFixed(2)} из ${
+    let tgCopyDelimiter = isApi ? "" : "#\`";
+
+    list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
       fund.target_value
     } ${fund.target_currency}\n`;
 
     for (const donation of fundDonations) {
-      list += `     \\[id:${donation.id}\] - ${tag}${escapeUnderscore(
-        donation.username
-      )} - ${donation.value} ${donation.currency}\n`;
+      list += `      ${showAdmin ? `[id:${donation.id}] - `: ""}${BotExtensions.formatUsername(
+        donation.username, isApi
+      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, isApi)}` : ""}\n`;
     }
 
-    if (addCommands) {
+    if (showAdmin) {
       list += "\n";
-      list += `\`/fund ${fund.name}\`\n`;
-      list += `\`/exportFund ${fund.name}\`\n`;
-      list += `\`/exportDonut ${fund.name}\`\n`;
-      list += `\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}\`\n`;
-      list += `\`/changeFundStatus of ${fund.name} to status_name\`\n`;
-      list += `\`/closeFund ${fund.name}\`\n`;
-      list += `\`/addDonation 5000 AMD from @username to ${fund.name}\`\n`;
-      list += `\`/removeDonation donation_id\`\n`;
+      list += `#\`/fund ${fund.name}#\`\n`;
+      list += `#\`/exportFund ${fund.name}#\`\n`;
+      list += `#\`/exportDonut ${fund.name}#\`\n`;
+      list += `#\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
+      list += `#\`/changeFundStatus of ${fund.name} to status_name#\`\n`;
+      list += `#\`/closeFund ${fund.name}#\`\n`;
+      list += `#\`/transferDonation donation_id to username#\`\n`;
+      list += `#\`/addDonation 5000 AMD from @username to ${fund.name}#\`\n`;
+      list += `#\`/removeDonation donation_id#\`\n`;
     }
 
     list += "\n";
@@ -64,37 +65,38 @@ async function createFundList(funds, donations, addCommands = false, tag = "") {
   return list;
 }
 
-let getStatusMessage = (state, inside, tag = "") => {
+let getStatusMessage = (state, inside, isApi = false) => {
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
-    ? "Отличный повод зайти"
-    : "Ждем, пока кто-то из резидентов его откроет";
-  let insideText = state.open
-    ? inside.length > 0
+    ? "Отличный повод зайти, так что стучитесь в дверь или пишите находящимся внутри - вам откроют\n"
+    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет или происходит тайное собрание? Who knows ...\n";
+  let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
-      : "🛌 Внутри никто не отметился\n"
-    : "";
+      : "🛌 Внутри никто не отметился\n";
+
   for (const user of inside) {
-    insideText += `${tag}${user.username}\n`;
+    insideText += `${BotExtensions.formatUsername(user.username, isApi)}${user.type === StatusRepository.ChangeType.Auto ? " (auto)" : ""}\n`;
   }
 
-  return (
-    `${stateEmoji} Спейс ${stateText} ${tag}${state.changedby}
-${stateSubText}
+  let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18)
 
-📅 ${state.date.toLocaleString()}
-  
-` + insideText
+  return (
+    `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}
+    
+${stateSubText}
+` + insideText + `
+📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически
+`
   );
 };
 
-function getAccountsList(accountants, tag = "") {
+function getAccountsList(accountants, isApi = false) {
   let accountantsList = "";
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${tag}${user.username}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)}\n`,
       ""
     );
   }
@@ -102,28 +104,30 @@ function getAccountsList(accountants, tag = "") {
   return accountantsList;
 }
 
-function getNeedsList(needs, tag = "") {
+function getNeedsList(needs) {
   let message = `👌 Пока никто не просил ничего\n`;
 
   if (needs.length > 0) {
     message = `🙏 Кто-нибудь, купите по дороге в спейс:\n`;
 
     for (const need of needs) {
-      message += `- \`${need.text}\` по просьбе ${tag}${escapeUnderscore(
+      message += `- #\`${need.text}#\` по просьбе ${BotExtensions.formatUsername(
         need.requester
       )}\n`;
     }
 
-    message += `\n✅ Отметить покупку сделанной можно с помощью команды \`/bought item_name\``;
   }
+  message += `\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды #\`/buy item_name#\``;
 
-  message += `\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды \`/buy item_name\``;
-
+  if (needs.length > 0) {
+    message += `\n✅ Отметить покупку сделанной можно нажав на кнопку ниже: `;
+  }
+  
   return message;
 }
 
-function getDonateText(accountants, tag = "", isApi = false) {
-  let accountantsList = getAccountsList(accountants, tag);
+function getDonateText(accountants, isApi = false) {
+  let accountantsList = getAccountsList(accountants, isApi);
 
   return (
     `💸 Хакспейс не является коммерческим проектом и существует исключительно на пожертвования участников.
@@ -175,7 +179,22 @@ ${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /lo
 `;
 }
 
-function getBirthdaysList(birthdayUsers, tag){
+const shortMonthNames = [
+  "января",
+  "февраля",
+  "марта",
+  "апреля",
+  "мая",
+  "июня",
+  "июля",
+  "августа",
+  "сентября",
+  "октября",
+  "ноября",
+  "декабря",
+]
+
+function getBirthdaysList(birthdayUsers){
   let message = `🎂 В этом месяце празднуют свои днюхи:\n`;
 
   let usersList = `\nНикто? Странно...\n`;
@@ -198,16 +217,17 @@ function getBirthdaysList(birthdayUsers, tag){
     if (usersWithDays.length > 0){
       usersList = ``;
       for (const user of usersWithDays) {      
-        message += `${user.day} - ${tag}${escapeUnderscore(user.username)}\n`;
+        message += `${user.day} ${shortMonthNames[user.month-1]} - ${BotExtensions.formatUsername(user.username)}\n`;
       }
     }
   }
 
   message += `${usersList}
-Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в формате:
-\`/mybirthday YYYY-MM-DD\`
+Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в форматах:
+#\`/mybirthday YYYY-MM-DD#\`
+#\`/mybirthday MM-DD#\`
 Надоели поздравления себя? Вводи команду:
-\`/mybirthday remove\``;
+#\`/mybirthday remove#\``;
 
   return message;
 }
@@ -259,7 +279,6 @@ module.exports = {
   getDonateText,
   getJoinText,
   getNeedsList,
-  excapeUnderscore: escapeUnderscore,
   getPrinterInfo,
   getPrinterStatus,
   getBirthdaysList

@@ -116,7 +116,7 @@ class FundsRepository extends BaseRepository {
     }
   }
 
-  addDonationTo(fundName, username, value, currency = currencyConfig.default) {
+  addDonationTo(fundName, username, value, currency = currencyConfig.default, accountant = null) {
     try {
       let fundId = this.getfundByName(fundName)?.id;
 
@@ -124,9 +124,26 @@ class FundsRepository extends BaseRepository {
 
       this.db
         .prepare(
-          "INSERT INTO donations (fund_id, username, value, currency) VALUES (?, ?, ?, ?)"
+          "INSERT INTO donations (fund_id, username, value, currency, accountant) VALUES (?, ?, ?, ?, ?)"
         )
-        .run(fundId, username, value, currency);
+        .run(fundId, username, value, currency, accountant);
+
+      return true;
+    }
+    catch (error) {
+      console.log(error);
+
+      return false;
+    }
+  }
+
+  transferDonation(id, accountant) {
+    try {
+      if (this.getDonationById(id) === null) return false;
+
+      this.db
+        .prepare("UPDATE donations SET accountant = ? WHERE id = ?")
+        .run(accountant, id);
 
       return true;
     }

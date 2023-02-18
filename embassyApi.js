@@ -15,6 +15,19 @@ const routerip = embassyApiConfig.routerip;
 const app = express();
 app.use(cors());
 
+app.get("/webcam", async (_, res) => {
+  try {
+    // tmp solution - flush previous image
+    await fetch(`${embassyApiConfig.webcam}/jpg`);
+    // main request
+    const response = await fetch(`${embassyApiConfig.webcam}/jpg`);
+    let imgbuffer = await response.arrayBuffer();
+    res.send(Buffer.from(imgbuffer));
+  } catch (error) {
+    res.send({ message: "Device request failed", error });
+  }
+});
+
 app.get("/devicesscan", async (_, res) => {
   let devices = await find({ address: embassyApiConfig.networkRange });
   res.send(devices.map((d) => d.mac));
@@ -29,15 +42,15 @@ app.get("/devices", async (_, res) => {
     let rpc = [
       {
         jsonrpc: "2.0",
-        id: 28,
+        id: 93,
         method: "call",
-        params: [luci.token, "iwinfo", "assoclist", { device: "wlan0" }],
+        params: [luci.token, "iwinfo", "assoclist", { device: "phy0-ap0" }],
       },
       {
         jsonrpc: "2.0",
-        id: 29,
+        id: 94,
         method: "call",
-        params: [luci.token, "iwinfo", "assoclist", { device: "wlan1" }],
+        params: [luci.token, "iwinfo", "assoclist", { device: "phy1-ap0" }],
       },
     ];
 

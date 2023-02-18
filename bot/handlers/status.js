@@ -21,29 +21,29 @@ class StatusHandlers extends BaseHandlers {
 📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
 ⚠️ Для работы обязательно отключите рандомизацию MAC адреса для сети спейса.
       
-\`/autoinside mac_address\` - Включить автовход и автовыход  
-\`/autoinside status\` - Статус автовхода и автовыхода  
-\`/autoinside disable\` - Выключить автовход и автовыход  
+#\`/autoinside mac_address#\` - Включить автовход и автовыход  
+#\`/autoinside status#\` - Статус автовхода и автовыхода  
+#\`/autoinside disable#\` - Выключить автовход и автовыход  
 `;
     } else if (mac && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(mac) && UsersRepository.setMAC(username, mac)) {
-      message = `Автовход и автовыход активированы для юзера ${this.tag()}${TextGenerators.excapeUnderscore(
+      message = `Автовход и автовыход активированы для юзера ${this.bot.formatUsername(
         username
       )} на MAC адрес ${mac}.
 Не забудьте отключить рандомизацию MAC адреса для сети спейса
       `;
     } else if (mac === "disable") {
       UsersRepository.setMAC(username, null);
-      message = `Автовход и автовыход выключены для юзера ${this.tag()}${TextGenerators.excapeUnderscore(username)}`;
+      message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
     } else if (mac === "status") {
       let usermac = UsersRepository.getUser(username)?.mac;
+
       if (usermac)
-        message = `Автовход и автовыход включены для юзера ${this.tag()}${TextGenerators.excapeUnderscore(
-          username
-        )} на MAC адрес ${usermac}`;
-      else message = `Автовход и автовыход выключены для юзера ${this.tag()}${TextGenerators.excapeUnderscore(username)}`;
+        message = `Автовход и автовыход включены для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
+      else 
+        message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
     }
 
-    this.bot.sendMessage(msg.chat.id, message, { parse_mode: "Markdown" });
+    this.bot.sendMessage(msg.chat.id, message);
   }
 
   statusHandler = (msg) => {
@@ -55,8 +55,7 @@ class StatusHandlers extends BaseHandlers {
     }
 
     let inside = StatusRepository.getPeopleInside();
-
-    let statusMessage = TextGenerators.getStatusMessage(state, inside, this.tag());
+    let statusMessage = TextGenerators.getStatusMessage(state, inside);
     let inlineKeyboard = state.open
       ? [
           [
@@ -115,6 +114,8 @@ class StatusHandlers extends BaseHandlers {
       inside: true,
       date: opendate,
       username: msg.from.username,
+      type: StatusRepository.ChangeType.Opened
+
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -140,7 +141,7 @@ class StatusHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-      `🔓 ${this.tag()}${state.changedby} открыл спейс
+      `🔓 ${this.bot.formatUsername(state.changedby)} открыл спейс для гостей
 Отличный повод зайти
       
 🗓 ${state.date.toLocaleString()} `,
@@ -175,7 +176,7 @@ class StatusHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-      `🔒 ${this.tag()}${state.changedby} закрыл спейс
+      `🔒 ${this.bot.formatUsername(state.changedby)} закрыл спейс
 Все отметившиеся отправлены домой
       
 🗓 ${state.date.toLocaleString()}`,
@@ -191,11 +192,11 @@ class StatusHandlers extends BaseHandlers {
     let eventDate = new Date();
     let user = msg.from.username ?? msg.from.first_name;
     let gotIn = this.LetIn(user, eventDate);
-    let message = `🟢 ${this.tag()}${user} пришел в спейс
+    let message = `🟢 ${this.bot.formatUsername(user)} пришел в спейс
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
-      message = "🔐 Откройте cпейс прежде чем туда входить!";
+      message = "🔐 Сейчас спейс не готов принять гостей";
     }
 
     let inlineKeyboard = gotIn
@@ -240,11 +241,11 @@ class StatusHandlers extends BaseHandlers {
   outHandler = (msg) => {
     let eventDate = new Date();
     let gotOut = this.LetOut(msg.from.username, eventDate);
-    let message = `🔴 ${this.tag()}${msg.from.username} ушел из спейса
+    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} ушел из спейса
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {
-      message = "🔐 Спейс же закрыт, как ты там оказался? Через окно залез?";
+      message = "🔐 Странно, ты же не должен был быть внутри...";
     }
 
     let inlineKeyboard = gotOut
@@ -291,13 +292,13 @@ class StatusHandlers extends BaseHandlers {
     username = username.replace("@", "");
     let eventDate = new Date();
 
-    let gotIn = this.LetIn(username, eventDate);
+    let gotIn = this.LetIn(username, eventDate, true);
 
-    let message = `🟢 ${this.tag()}${msg.from.username} привёл ${this.tag()}${username} в спейс 
+    let message = `🟢 ${this.bot.formatUsername(msg.from.username)} привёл ${this.bot.formatUsername(username)} в спейс 
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
-      message = "🔐 Откройте cпейс прежде чем туда кого-то пускать!";
+      message = "🔐 Сорян, ты не можете сейчас его привести";
     }
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -306,29 +307,29 @@ class StatusHandlers extends BaseHandlers {
     if (!UsersHelper.hasRole(msg.from.username, "member")) return;
     let eventDate = new Date();
     username = username.replace("@", "");
-    let gotOut = this.LetOut(username, eventDate);
+    let gotOut = this.LetOut(username, eventDate, true);
 
-    let message = `🔴 ${this.tag()}${msg.from.username} отправил домой ${this.tag()}${username}
+    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} отправил домой ${this.bot.formatUsername(username)}
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {
-      message = "🔐 А что тот делал в закрытом спейсе, ты его там запер?";
+      message = "🔐 Ээ нее, ты не можешь его отправить домой";
     }
 
     this.bot.sendMessage(msg.chat.id, message);
   };
 
-  LetIn(username, date) {
+  LetIn(username, date, force = false) {
     // check that space is open
     let state = StatusRepository.getSpaceLastState();
-    if (!state?.open) {
-      return false;
-    }
+    
+    if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
       inside: true,
       date: date,
       username: username,
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -336,16 +337,16 @@ class StatusHandlers extends BaseHandlers {
     return true;
   }
 
-  LetOut(username, date) {
+  LetOut(username, date, force = false) {
     let state = StatusRepository.getSpaceLastState();
-    if (!state?.open) {
-      return false;
-    }
+
+    if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
       inside: false,
       date: date,
       username: username,
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
     };
 
     StatusRepository.pushPeopleState(userstate);

@@ -6,6 +6,7 @@ const printer3d = require("./services/printer3d");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
+const logger = require("./services/logger");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -24,6 +25,7 @@ app.get("/webcam", async (_, res) => {
     let imgbuffer = await response.arrayBuffer();
     res.send(Buffer.from(imgbuffer));
   } catch (error) {
+    logger.error(error);
     res.send({ message: "Device request failed", error });
   }
 });
@@ -70,7 +72,7 @@ app.get("/devices", async (_, res) => {
 
     res.send(macs);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     res.send({ message: "Device request failed", error });
   }
 });
@@ -93,11 +95,11 @@ app.get("/printer", async (_, res) => {
 
     res.send({ status, thumbnailBuffer });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     res.send({ message: "Printer request error", error });
   }
 });
 
 app.listen(port);
 
-console.log(`Embassy Api is ready on port ${port}`);
+logger.info(`Embassy Api is started on port ${port}`);

@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const config = require("config");
+const logger = require("./services/logger");
 
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
@@ -13,6 +14,13 @@ const app = express();
 const port = apiConfig.port;
 
 app.use(cors());
+
+function logError(err, req, res, next) {
+  logger.error({err, req, res});
+  next();
+}
+
+app.use(logError);
 
 app.get("/commands", (_, res) => {
   res.send(Commands.ApiCommandsList);
@@ -54,3 +62,5 @@ app.get("/donate", (_, res) => {
 });
 
 app.listen(port);
+
+logger.info(`Bot Api is ready to accept requests`);

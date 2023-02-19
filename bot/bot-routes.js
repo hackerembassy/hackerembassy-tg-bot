@@ -1,4 +1,5 @@
 const bot = require("./bot");
+const logger = require("../services/logger");
 const BasicHandlers = new (require("./handlers/basic"))();
 const StatusHandlers = new (require("./handlers/status"))();
 const FundsHandlers = new (require("./handlers/funds"))();
@@ -50,14 +51,18 @@ bot.onText(/^\/buy(@.+?)? (.*)$/, (msg, match) => NeedsHandlers.buyHandler(msg, 
 bot.onText(/^\/bought(@.+?)? (.*)$/, (msg, match) => NeedsHandlers.boughtHandler(msg, match[2]));
 
 bot.onText(/^\/birthdays(@.+?)?$/, async (msg) => BirthdayHandlers.birthdayHandler(msg));
-bot.onText(/^\/forceBirthdayWishes(@.+?)?$/, async (msg) => BirthdayHandlers.forceBirthdayWishHandler(msg));
+bot.onText(/^\/forcebirthdaywishes(@.+?)?$/, async (msg) => BirthdayHandlers.forceBirthdayWishHandler(msg));
 bot.onText(/^\/mybirthday(@.+?)?(?: (.*\S)?)?$/, async (msg, match) => BirthdayHandlers.myBirthdayHandler(msg, match[2]));
 
-bot.onText(/^\/getUsers(@.+?)?$/, AdminHandlers.getUsersHandler);
-bot.onText(/^\/addUser(@.+?)? (\S+?) as (\S+)$/, (msg, match) => AdminHandlers.addUserHandler(msg, match[2], match[3]));
-bot.onText(/^\/updateRoles(@.+?)? of (\S+?) to (\S+)$/, (msg, match) => AdminHandlers.updateRolesHandler(msg, match[2], match[3]));
-bot.onText(/^\/removeUser(@.+?)? (\S+)$/, (msg, match) => AdminHandlers.removeUserHandler(msg, match[2]));
+bot.onText(/^\/getusers(@.+?)?$/, AdminHandlers.getUsersHandler);
+bot.onText(/^\/adduser(@.+?)? (\S+?) as (\S+)$/, (msg, match) => AdminHandlers.addUserHandler(msg, match[2], match[3]));
+bot.onText(/^\/updateroles(@.+?)? of (\S+?) to (\S+)$/, (msg, match) => AdminHandlers.updateRolesHandler(msg, match[2], match[3]));
+bot.onText(/^\/removeuser(@.+?)? (\S+)$/, (msg, match) => AdminHandlers.removeUserHandler(msg, match[2]));
+bot.onText(/^\/forward(@.+?)? (.*)$/, (msg, match) => AdminHandlers.forwardHandler(msg, match[2]));
+bot.onText(/^\/getlog(@.+?)?$/, AdminHandlers.getLogHandler);
 
 bot.onText(/^\/clear(@.+?)?(?: (\d*))?$/, (msg, match) => ServiceHandlers.clearHandler(msg, match[2]));
 bot.on("callback_query", ServiceHandlers.callbackHandler);
 bot.on("new_chat_members", ServiceHandlers.newMemberHandler);
+
+logger.info(`Bot is ready to accept commands`);

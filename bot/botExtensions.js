@@ -3,6 +3,7 @@ const botConfig = config.get("bot");
 const UsersRepository = require("../repositories/usersRepository");
 const fs = require("fs/promises");
 const path = require("path");
+const logger = require("../services/logger");
 
 const maxChunkSize = 3000;
 const messagedelay = 1500;
@@ -226,6 +227,7 @@ async function sendBirthdayWishes(force = false) {
     message += await getWish(user.username);
 
     this.sendMessage(botConfig.chats.main, message);
+    logger.info(`Wished ${user.username} a happy birthday`);
 
     if (!wishedUser) wishedToday.push({ username: user.username, date: currentDate });
 

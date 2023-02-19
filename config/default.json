@@ -11,7 +11,8 @@
             "in": 60000,
             "out": 900000
         },
-        "autoWish": true
+        "autoWish": true,
+        "logpath": "log.log"
     },
     "printer3d" : {
         "apibase":"http://192.168.1.100"

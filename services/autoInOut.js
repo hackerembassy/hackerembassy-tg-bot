@@ -4,6 +4,7 @@ const fetch = require("node-fetch");
 const config = require("config");
 const botConfig = config.get("bot");
 const embassyApiConfig = config.get("embassy-api");
+const logger = require("./logger");
 
 async function autoinout(isIn){
     try {
@@ -25,12 +26,12 @@ async function autoinout(isIn){
             type: StatusRepository.ChangeType.Auto
           });
   
-          console.log(`Юзер ${user.username} автоматически ${isIn ? "пришел" : "ушел"}`);
+          logger.info(`Юзер ${user.username} автоматически ${isIn ? "пришел" : "ушел"}`);
         }
       }
     }
     catch(error) {
-      console.log("AutoInOut error");
+      logger.error(error);
     }
   }
   

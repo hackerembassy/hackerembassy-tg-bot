@@ -33,11 +33,13 @@ const MemberCommandsList = `
 
 const AdminCommandsList = ` 
 Команды админов:
-/getUsers
-#\`/addUser telegram_username as user_role1|user_role2|user_role3#\`
-#\`/removeUser telegram_username#\`
-#\`/updateRoles of telegram_username to user_role1|user_role2|user_role3#\`
-/forceBirthdayWishes
+/getusers
+#\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
+#\`/removeuser telegram_username#\`
+#\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
+/forcebirthdaywishes
+#\`/forward some_text#\`
+/getlog
 
 \\* Roles: admin, accountant, member, default
 `;

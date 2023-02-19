@@ -37,6 +37,7 @@
     "luci-rpc": "^1.0.5",
     "node-fetch": "^2.6.8",
     "node-telegram-bot-api": "^0.60.0",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "winston": "^3.8.2"
   }
 }

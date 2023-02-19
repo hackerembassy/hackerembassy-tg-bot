@@ -1,10 +1,29 @@
 const UsersRepository = require("../../repositories/usersRepository");
 const UsersHelper = require("../../services/usersHelper");
 const BaseHandlers = require("./base");
+const config = require("config");
+const botConfig = config.get("bot");
+const path = require("path");
+const fs = require("fs");
 
 class AdminHandlers extends BaseHandlers {
   constructor(){
     super();
+  }
+
+  forwardHandler(msg, text){
+    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
+    this.bot.sendMessage(botConfig.chats.main, text);
+  }
+
+  getLogHandler = (msg) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+    
+    let logpath = path.join(__dirname, "../..", botConfig.logpath);
+
+    if (fs.existsSync(logpath))
+      this.bot.sendDocument(msg.chat.id, logpath);
   }
   
   getUsersHandler = (msg) => {

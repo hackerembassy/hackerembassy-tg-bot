@@ -4,6 +4,7 @@ const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 const fetch = require("node-fetch");
 const BaseHandlers = require("./base");
+const logger = require("../../services/logger");
 
 class PrinterHandlers extends BaseHandlers {
   controller = new AbortController();
@@ -25,8 +26,9 @@ class PrinterHandlers extends BaseHandlers {
       let webcamImage = Buffer.from(response);
 
       if (webcamImage) await this.bot.sendPhoto(msg.chat.id, webcamImage)
-      else throw Error();
+      else throw Error("Empty webcam image");
     } catch(error) {
+      logger.error(error);
       let message = `⚠️ Камера пока недоступна`;
       this.bot.sendMessage(msg.chat.id, message);
     }
@@ -46,7 +48,8 @@ class PrinterHandlers extends BaseHandlers {
 
       if (status && !status.error) var message = await TextGenerators.getPrinterStatus(status);
       else throw Error();
-    } catch {
+    } catch (error) {
+      logger.error(error);
       message = `⚠️ Принтер пока недоступен`;
     } finally {
       if (thumbnailBuffer) this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), { caption: message });

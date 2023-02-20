@@ -1,11 +1,13 @@
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const config = require("config");
+const fs = require("fs").promises;
 const embassyApiConfig = config.get("embassy-api");
 const fetch = require("node-fetch");
 const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
 const usersRepository = require("../../repositories/usersRepository");
+const NodeRSA = require('node-rsa');
 
 class PrinterHandlers extends BaseHandlers {
   controller = new AbortController();
@@ -27,13 +29,14 @@ class PrinterHandlers extends BaseHandlers {
         return;
       }
 
-      let key = { unlockkey: process.env["UNLOCKKEY"]};
+      let key = new NodeRSA(await fs.readFile("./sec/pub.key", 'utf8'));
+      let encryptedKey = key.encrypt(process.env["UNLOCKKEY"], "base64");
 
       let response = await (
         await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/unlock`, { headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        }, signal: this.controller.signal, method:"post", body:JSON.stringify(key)})
+        }, signal: this.controller.signal, method:"post", body: JSON.stringify({ token:encryptedKey, from:msg.from.username })})
       );
       clearTimeout(this.timeoutId);
       

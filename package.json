@@ -24,6 +24,7 @@
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^8.0.1",
+    "body-parser": "^1.20.1",
     "chartjs-to-image": "^1.1.0",
     "config": "^3.3.8",
     "cors": "^2.8.5",
@@ -35,6 +36,7 @@
     "fast-csv": "^4.3.6",
     "local-devices": "^4.0.0",
     "luci-rpc": "^1.0.5",
+    "mqtt": "^4.3.7",
     "node-fetch": "^2.6.8",
     "node-telegram-bot-api": "^0.60.0",
     "nodemon": "^2.0.20",

@@ -30,6 +30,7 @@ bot.onText(/^\/autoinside(@.+?)?(?: (.*\S))?$/, async (msg, match) => StatusHand
 bot.onText(/^\/(webcam)(@.+?)?$/, EmbassyHandlers.webcamHandler);
 bot.onText(/^\/(printer)(@.+?)?$/, EmbassyHandlers.printerHandler);
 bot.onText(/^\/(printerstatus)(@.+?)?$/, EmbassyHandlers.printerStatusHandler);
+bot.onText(/^\/unlock(@.+?)?$/, EmbassyHandlers.unlockHandler);
 
 bot.onText(/^\/funds(@.+?)?$/, FundsHandlers.fundsHandler);
 bot.onText(/^\/fund(@.+?)? (.*\S)$/, (msg, match) => FundsHandlers.fundHandler(msg, match[2]));

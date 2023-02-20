@@ -2,11 +2,13 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require('body-parser')
 const printer3d = require("./services/printer3d");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
 const logger = require("./services/logger");
+const { unlock } = require("./services/mqtt");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -15,6 +17,7 @@ const routerip = embassyApiConfig.routerip;
 
 const app = express();
 app.use(cors());
+app.use(bodyParser.json()); 
 
 app.get("/webcam", async (_, res) => {
   try {
@@ -27,6 +30,19 @@ app.get("/webcam", async (_, res) => {
   } catch (error) {
     logger.error(error);
     res.send({ message: "Device request failed", error });
+  }
+});
+
+app.post("/unlock", async (req, res) => {
+  try {
+    console.log(req.body)
+    if (req.body.unlockkey === process.env["UNLOCKKEY"]) {
+      unlock();
+      res.send("Success");
+    } else res.statusCode(401);
+  } catch (error) {
+    console.log(error)
+    res.send(error);
   }
 });
 

@@ -6,7 +6,6 @@ const fetch = require("node-fetch");
 const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
 const usersRepository = require("../../repositories/usersRepository");
-const { json } = require("body-parser");
 
 class PrinterHandlers extends BaseHandlers {
   controller = new AbortController();

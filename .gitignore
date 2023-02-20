@@ -5,3 +5,4 @@ node_modules
 data.db
 data/wished-today.json
 *.log
+sec

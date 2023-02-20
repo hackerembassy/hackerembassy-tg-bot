@@ -23,7 +23,7 @@ class PrinterHandlers extends BaseHandlers {
 
       let currentUser = usersRepository.getUser(msg.from.username);
       if (!devices.includes(currentUser.mac)){
-        this.bot.sendMessage(msg.chat.id, "Ваш MAC адрес не обнаружен роутером. Вы должны быть рядом со спейсом, чтобы его открыть");
+        this.bot.sendMessage(msg.chat.id, "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть");
         return;
       }
 
@@ -36,8 +36,12 @@ class PrinterHandlers extends BaseHandlers {
         }, signal: this.controller.signal, method:"post", body:JSON.stringify(key)})
       );
       clearTimeout(this.timeoutId);
-      if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "Дверь открыта");
-      else throw Error("Не вышло открыть");
+      
+      if (response.status === 200){
+        logger.info(`${msg.from.username} открыл дверь`);
+        await this.bot.sendMessage(msg.chat.id, "🔑 Дверь открыта");
+      } 
+      else throw Error("Request error");
     } catch(error) {
       logger.error(error);
       let message = `⚠️ Сервис недоступен`;

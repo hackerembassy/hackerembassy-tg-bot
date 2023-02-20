@@ -38,10 +38,11 @@ app.post("/unlock", async (req, res) => {
     console.log(req.body)
     if (req.body.unlockkey === process.env["UNLOCKKEY"]) {
       unlock();
+      logger.info("Door is opened");
       res.send("Success");
     } else res.statusCode(401);
   } catch (error) {
-    console.log(error)
+    logger.error(error);
     res.send(error);
   }
 });

@@ -207,9 +207,22 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
   removeDonationHandler = (msg, donationId) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
+    
 
     let success = FundsRepository.removeDonationById(donationId);
     let message = success ? `Удален донат [id:${donationId}]` : `Не удалось удалить донат (может его и не было?)`;
+
+    this.bot.sendMessage(msg.chat.id, message);
+  };
+
+  changeDonationHandler = (msg, donationId, value, currency) => {
+    if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
+
+    value = this.parseMoneyValue(value);
+    currency = currency.length > 0 ? currency.toUpperCase() : currencyConfig.default;
+
+    let success = FundsRepository.updateDonation(donationId, value, currency);
+    let message = success ? `Обновлен донат [id:${donationId}]` : `Не удалось обновить донат (может его и не было?)`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };

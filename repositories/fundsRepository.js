@@ -137,6 +137,21 @@ class FundsRepository extends BaseRepository {
     }
   }
 
+  updateDonation(donationId, value, currency) {
+    try {
+      if (this.getDonationById(donationId) === null) return false;
+
+      this.db.prepare("UPDATE donations SET value = ?, currency = ? WHERE id = ?").run(value, currency, donationId);
+
+      return true;
+    }
+    catch (error) {
+      console.log(error);
+
+      return false;
+    }
+  }
+
   transferDonation(id, accountant) {
     try {
       if (this.getDonationById(id) === null) return false;

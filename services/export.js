@@ -114,7 +114,8 @@ async function exportFundToDonut(fundname) {
     customColorScheme.push(remainedColor);
   }
 
-  let chart = new ChartJsImage();
+  let chart = new ChartJsImage();  
+
 
   chart.setConfig({
     type: "donut",
@@ -125,16 +126,23 @@ async function exportFundToDonut(fundname) {
       ],
     },
     options: {
+      legend: {
+        position: "right",
+        labels: {fontSize: 20}
+      },
       title: {
         display: true,
         text: fundname,
+        padding: 40,
+        align: "end",
+        fontSize: 30
       },
       layout: {
         padding: {
-          left: 100,
-          right: 100,
+          left: 10,
+          right: 10,
           top: 0,
-          bottom: 20,
+          bottom: 50,
         },
       },
       plugins: {
@@ -144,6 +152,8 @@ async function exportFundToDonut(fundname) {
           borderRadius: 10,
           anchor: "end",
           align: "end",
+          display: 'auto',
+          offset: 10,
           formatter: (val) => val,
           font: {
             size: 15,
@@ -151,14 +161,15 @@ async function exportFundToDonut(fundname) {
         },
         doughnutlabel: {
           labels: [
-            { text: `${target} ${fund.target_currency}`, font: { size: 20 } },
-            { text: "min" },
+            { text: `${target} ${fund.target_currency}`, font: { size: 30 } },
+            { text: "min", font: { size: 20 } },
           ],
         },
       },
     },
   });
-  chart.setWidth(600).setHeight(600).setBackgroundColor("transparent");
+  chart.setWidth(1200).setHeight(900).setBackgroundColor("transparent");
+
 
   return await chart.toBinary();
 }

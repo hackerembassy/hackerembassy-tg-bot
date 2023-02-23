@@ -14,6 +14,19 @@ function getRandomColor() {
   return color;
 }
 
+function combineDonations(donations){
+  let uniqueUsernames = [...new Set(donations.map(d => d.username))];
+  let combinedDonations = [];
+
+  for (const username of uniqueUsernames) {
+    let userDonations = donations.filter(d => d.username === username);
+    let userCombinedDonation = userDonations.reduce((acc, curr) => acc + curr.donation, 0);
+    combinedDonations.push({username, donation: userCombinedDonation});
+  }
+
+  return combinedDonations;
+}
+
 const colorScheme = [
   "rgb(190, 30, 46)",
   "rgb(240, 65, 54)",
@@ -66,7 +79,6 @@ async function exportFundToCSV(fundname) {
 async function exportFundToDonut(fundname) {
   let fund = FundsRepository.getfundByName(fundname);
   let alldonations = FundsRepository.getDonationsForName(fundname);
-  let fractionDigits = Currency.CurrencyFractionDigits.find(fd => fd.currency === fund.target_currency)?.fraction ?? 4;
 
   let fundDonations = await Promise.all(
     alldonations.map(async (d) => {
@@ -78,10 +90,11 @@ async function exportFundToDonut(fundname) {
       return {
         username: d.username,
         donation: Number(convertedValue),
-        currency: fund.target_currency,
       };
     })
   );
+
+  fundDonations = combineDonations(fundDonations);
 
   let labels = fundDonations.map((donation) => donation.username);
   let data = fundDonations.map((donation) => donation.donation);

@@ -56,6 +56,7 @@ async function createFundList(funds, donations, showAdmin = false, isApi = false
       list += `#\`/closeFund ${fund.name}#\`\n`;
       list += `#\`/transferDonation donation_id to username#\`\n`;
       list += `#\`/addDonation 5000 AMD from @username to ${fund.name}#\`\n`;
+      list += `#\`/changeDonation donation_id to 5000 AMD#\`\n`;
       list += `#\`/removeDonation donation_id#\`\n`;
     }
 

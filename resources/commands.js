@@ -56,7 +56,7 @@ const AccountantCommandsList = `
 #\`/changeFundStatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removeFund fund_name#\` - Удалить сбор (не надо)
 #\`/addDonation donation_value currency_code from telegram_username to fund_name#\`
-#\`/changeDonation donation_id to donation_value currency_code\`
+#\`/changeDonation donation_id to donation_value currency_code#\`
 #\`/removeDonation donation_id#\` - Удалить донат
 #\`/transferDonation donation_id to username#\` - Передать донат другому бухгалтеру
 

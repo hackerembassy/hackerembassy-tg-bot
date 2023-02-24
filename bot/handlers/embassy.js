@@ -20,6 +20,8 @@ class PrinterHandlers extends BaseHandlers {
   unlockHandler = async (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
     try {
+      this.controller = new AbortController();
+
       let devices = await (await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/devices`, { signal: this.controller.signal }))?.json();
       clearTimeout(this.timeoutId);
 
@@ -58,6 +60,8 @@ class PrinterHandlers extends BaseHandlers {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
     try {
+      this.controller = new AbortController();
+
       let response = await (
         await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/webcam`, { signal: this.controller.signal })
       )?.arrayBuffer()
@@ -83,6 +87,8 @@ class PrinterHandlers extends BaseHandlers {
 
   printerStatusHandler = async (msg) => {
     try {
+      this.controller = new AbortController();
+
       var { status, thumbnailBuffer } = await (
         await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer`, { signal: this.controller.signal })
       )?.json();

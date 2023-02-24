@@ -196,8 +196,9 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     currency = currency.length > 0 ? currency.toUpperCase() : currencyConfig.default;
     userName = userName.replace("@", "");
     let fundName = FundsRepository.getLatestCosts().name;
+    let accountant = msg.from.username;
 
-    let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency);
+    let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency, accountant);
     let message = success
       ? `💸 ${this.bot.formatUsername(userName)} задонатил ${value} ${currency} в сбор ${fundName}`
       : `Не удалось добавить донат`;

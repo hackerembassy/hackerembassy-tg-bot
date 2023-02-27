@@ -105,6 +105,28 @@ class PrinterHandlers extends BaseHandlers {
       else this.bot.sendMessage(msg.chat.id, message);
     }
   };
+
+  
+  doorbellHandler = async (msg) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
+
+    try {
+      this.controller = new AbortController();
+
+      let status = await (
+        await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`, { signal: this.controller.signal })
+      )?.json();
+      clearTimeout(this.timeoutId);
+
+      if (status && !status.error) var message = "🔔 Звоним внутрь";
+      else throw Error();
+    } catch (error) {
+      logger.error(error);
+      message = `🔕 Не вышло позвонить`;
+    } finally {
+      this.bot.sendMessage(msg.chat.id, message);
+    }
+  };
 }
 
 module.exports = PrinterHandlers;

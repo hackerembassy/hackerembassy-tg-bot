@@ -57,6 +57,15 @@ app.get("/devicesscan", async (_, res) => {
   res.send(devices.map((d) => d.mac));
 });
 
+app.get("/doorbell", async (_, res) => {
+  try {
+    await fetch(`http://${embassyApiConfig.doorbell}/rpc/Switch.Set?id=0&on=true`);
+    res.send({message: "success"});
+  } catch (error) {
+    res.send({message: "error"});
+  }
+});
+
 app.get("/devices", async (_, res) => {
   try {
     const luci = new LUCI(`https://${routerip}`, "bot", process.env["LUCITOKEN"]);

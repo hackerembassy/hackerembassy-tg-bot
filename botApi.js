@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const config = require("config");
 const logger = require("./services/logger");
+const bodyParser = require('body-parser');
 
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
@@ -15,6 +16,8 @@ const port = apiConfig.port;
 
 app.use(cors());
 
+app.use(bodyParser.json()); 
+
 function logError(err, req, res, next) {
   logger.error({err, req, res});
   next();
@@ -24,6 +27,10 @@ app.use(logError);
 
 app.get("/commands", (_, res) => {
   res.send(Commands.ApiCommandsList);
+});
+
+app.post("/doorbell", (req, res) => {
+  res.send(req.body);
 });
 
 app.get("/status", (_, res) => {

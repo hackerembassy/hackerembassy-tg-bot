@@ -1,8 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const config = require("config");
 const logger = require("./services/logger");
 const bodyParser = require('body-parser');
+const config = require("config");
+const botConfig = config.get("bot");
+const bot = require("./bot/bot");
 
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
@@ -30,7 +32,20 @@ app.get("/commands", (_, res) => {
 });
 
 app.post("/doorbell", (req, res) => {
-  res.send(req.body);
+  if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
+    logger.info(`Got doorbell with invalid token`);
+    res.send({message: "Invalid token"});
+    return;
+  }
+
+  logger.info(`Got doorbell`);
+  let inside = StatusRepository.getPeopleInside();  
+  if (!inside || inside.length === 0){
+    logger.info(`No one inside. Notified members.`);
+    bot.sendMessage(botConfig.chats.key, "🔔 Кто-то позвонил в дверной звонок, а внутри никого.")
+  }
+
+  res.send({message: "Success"});
 });
 
 app.get("/status", (_, res) => {

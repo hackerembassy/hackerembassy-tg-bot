@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 const printer3d = require("./services/printer3d");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");

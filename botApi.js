@@ -68,7 +68,7 @@ app.get("/join", (_, res) => {
 app.get("/funds", async (_, res) => {
   let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
   let donations = FundsRepository.getDonations();
-  let list = await TextGenerators.createFundList(funds, donations, false, true);
+  let list = await TextGenerators.createFundList(funds, donations, {showAdmin:false, isApi:true});
 
   let message = `⚒ Вот наши текущие сборы:
 

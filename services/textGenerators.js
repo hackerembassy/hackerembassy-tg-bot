@@ -1,4 +1,4 @@
-const Currency = require("../services/currency");
+const Currency = require("../utils/currency");
 const config = require("config");
 const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;

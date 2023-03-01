@@ -9,8 +9,7 @@ const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
 const logger = require("./services/logger");
 const { unlock } = require("./services/mqtt");
-const fs = require("fs").promises;
-const NodeRSA = require('node-rsa');
+const { decrypt } = require("./utils/security");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -37,11 +36,7 @@ app.get("/webcam", async (_, res) => {
 
 app.post("/unlock", async (req, res) => {
   try {
-    
-    let key = new NodeRSA(await fs.readFile("./sec/priv.key", 'utf8'));
-    let decryptedKey = key.decrypt(req.body.token);
-
-    if (decryptedKey.toString("utf8") === process.env["UNLOCKKEY"]) {
+    if (decrypt(req.body.token) === process.env["UNLOCKKEY"]) {
       unlock();
       logger.info("Door is opened");
       res.send("Success");

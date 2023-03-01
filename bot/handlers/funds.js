@@ -26,7 +26,7 @@ class FundsHandlers extends BaseHandlers {
     let donations = FundsRepository.getDonations();
     let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.fromPrivateChat(msg) || this.bot.isAdminMode());
 
-    let list = await TextGenerators.createFundList(funds, donations, showAdmin);
+    let list = await TextGenerators.createFundList(funds, donations, {showAdmin});
 
     let message = `⚒ Вот наши текущие сборы:
       
@@ -65,7 +65,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
           ]
         : [];
 
-    let list = await TextGenerators.createFundList(funds, donations, showAdmin);
+    let list = await TextGenerators.createFundList(funds, donations, {showAdmin});
 
     let message = `${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
 
@@ -81,9 +81,9 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     let donations = FundsRepository.getDonations();
     let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.fromPrivateChat(msg) || this.bot.isAdminMode());
 
-    let list = await TextGenerators.createFundList(funds, donations, showAdmin);
+    let list = await TextGenerators.createFundList(funds, donations, {showAdmin, isHistory:true});
 
-    this.bot.sendLongMessage(msg.chat.id, "⚒ Вот все наши сборы:\n\n" + list);
+    this.bot.sendLongMessage(msg.chat.id, "💾 Вот архив всех наших сборов:\n\n" + list);
   };
 
   addFundHandler = (msg, fundName, target, currency) => {

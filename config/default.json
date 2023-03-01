@@ -19,6 +19,7 @@
         "apibase":"http://192.168.1.100"
     },
     "embassy-api":{
+        "timeout": 15000,
         "port": 8001,
         "host": "http://127.0.0.1",
         "networkRange": "192.168.1.1-192.168.1.254",

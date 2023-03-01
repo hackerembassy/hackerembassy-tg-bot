@@ -1,7 +1,7 @@
 const { writeToBuffer } = require("@fast-csv/format");
 const FundsRepository = require("../repositories/fundsRepository");
 const ChartJsImage = require("chartjs-to-image");
-const Currency = require("../services/currency");
+const Currency = require("../utils/currency");
 
 function getRandomColor() {
   let letters = "3456789AB";

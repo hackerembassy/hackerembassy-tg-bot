@@ -36,7 +36,9 @@ app.get("/webcam", async (_, res) => {
 
 app.post("/unlock", async (req, res) => {
   try {
-    if (decrypt(req.body.token) === process.env["UNLOCKKEY"]) {
+    let token = await decrypt(req.body.token);
+    
+    if (token === process.env["UNLOCKKEY"]) {
       unlock();
       logger.info("Door is opened");
       res.send("Success");

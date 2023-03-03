@@ -27,13 +27,15 @@ class PrinterHandlers extends BaseHandlers {
         return;
       }
 
+      let token = await encrypt(process.env["UNLOCKKEY"]);
+
       let response = await await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/unlock`, {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
         method: "post",
-        body: JSON.stringify({ token: encrypt(process.env["UNLOCKKEY"]), from: msg.from.username }),
+        body: JSON.stringify({ token, from: msg.from.username }),
       });
 
       if (response.status === 200) {

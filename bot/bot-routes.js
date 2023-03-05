@@ -26,6 +26,8 @@ bot.onText(/^\/inForce(@.+?)? (\S+)$/, (msg, match) => StatusHandlers.inForceHan
 bot.onText(/^\/outForce(@.+?)? (\S+)$/, (msg, match) => StatusHandlers.outForceHandler(msg, match[2]));
 bot.onText(/^\/out(@.+?)?$/, StatusHandlers.outHandler);
 bot.onText(/^\/autoinside(@.+?)?(?: (.*\S))?$/, async (msg, match) => StatusHandlers.autoinsideHandler(msg, match[2]));
+bot.onText(/^\/going(@.+?)?$/, StatusHandlers.goingHandler);
+bot.onText(/^\/notgoing(@.+?)?$/, StatusHandlers.notGoingHandler);
 
 bot.onText(/^\/(webcam)(@.+?)?$/, EmbassyHandlers.webcamHandler);
 bot.onText(/^\/(printer)(@.+?)?$/, EmbassyHandlers.printerHandler);

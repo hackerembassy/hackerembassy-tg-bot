@@ -34,6 +34,12 @@ class ServiceHandlers extends BaseHandlers {
       case "/out":
         StatusHandlers.outHandler(message);
         break;
+      case "/going":
+        StatusHandlers.goingHandler(message);
+        break;
+      case "/notgoing":
+        StatusHandlers.notGoingHandler(message);
+        break;
       case "/open":
         StatusHandlers.openHandler(message);
         break;

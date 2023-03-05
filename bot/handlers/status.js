@@ -55,42 +55,46 @@ class StatusHandlers extends BaseHandlers {
     }
 
     let inside = StatusRepository.getPeopleInside();
-    let statusMessage = TextGenerators.getStatusMessage(state, inside);
+    let going = StatusRepository.getPeopleGoing();
+    let statusMessage = TextGenerators.getStatusMessage(state, inside, going);
     let inlineKeyboard = state.open
       ? [
           [
             {
-              text: "Я пришёл в спейс",
+              text: "🤝 Я пришёл в спейс",
               callback_data: JSON.stringify({ command: "/in" }),
             },
             {
-              text: "Я ушёл из спейса",
+              text: "👋 Я ушёл из спейса",
               callback_data: JSON.stringify({ command: "/out" }),
             },
           ],
-          [
-            {
-              text: "Повторить команду",
-              callback_data: JSON.stringify({ command: "/status" }),
-            },
-            {
-              text: "Закрыть спейс",
-              callback_data: JSON.stringify({ command: "/close" }),
-            },
-          ],
         ]
-      : [
-          [
-            {
-              text: "Повторить команду",
-              callback_data: JSON.stringify({ command: "/status" }),
-            },
-            {
-              text: "Открыть спейс",
-              callback_data: JSON.stringify({ command: "/open" }),
-            },
-          ],
-        ];
+      : [];
+
+      inlineKeyboard.push([
+        {
+          text: "🚕 Планирую в спейс",
+          callback_data: JSON.stringify({ command: "/going" }),
+        },
+        {
+          text: "🛌 Уже не планирую",
+          callback_data: JSON.stringify({ command: "/notgoing" }),
+        },
+      ])
+
+
+      inlineKeyboard.push([
+        {
+          text: "🔃 Повторить команду",
+          callback_data: JSON.stringify({ command: "/status" }),
+        },
+        {
+          text: state.open ? "🔒 Закрыть спейс" : "🔓 Открыть спейс",
+          callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
+        },
+      ])
+
 
     this.bot.sendMessage(msg.chat.id, statusMessage, {
       reply_markup: {
@@ -111,11 +115,10 @@ class StatusHandlers extends BaseHandlers {
     StatusRepository.pushSpaceState(state);
 
     let userstate = {
-      inside: true,
+      status: StatusRepository.UserStatusType.Inside,
       date: opendate,
       username: msg.from.username,
       type: StatusRepository.ChangeType.Opened
-
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -123,17 +126,17 @@ class StatusHandlers extends BaseHandlers {
     let inlineKeyboard = [
       [
         {
-          text: "Я тоже пришёл",
+          text: "🤝 Я тоже пришёл",
           callback_data: JSON.stringify({ command: "/in" }),
         },
         {
-          text: "Закрыть снова",
+          text: "🔒 Закрыть снова",
           callback_data: JSON.stringify({ command: "/close" }),
         },
       ],
       [
         {
-          text: "Кто внутри",
+          text: "📹 Кто внутри",
           callback_data: JSON.stringify({ command: "/status" }),
         },
       ],
@@ -168,7 +171,7 @@ class StatusHandlers extends BaseHandlers {
     let inlineKeyboard = [
       [
         {
-          text: "Открыть снова",
+          text: "🔓 Открыть снова",
           callback_data: JSON.stringify({ command: "/open" }),
         },
       ],
@@ -192,7 +195,7 @@ class StatusHandlers extends BaseHandlers {
     let eventDate = new Date();
     let user = msg.from.username ?? msg.from.first_name;
     let gotIn = this.LetIn(user, eventDate);
-    let message = `🟢 ${this.bot.formatUsername(user)} пришел в спейс
+    let message = `🤝 ${this.bot.formatUsername(user)} пришел в спейс
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
@@ -203,17 +206,17 @@ class StatusHandlers extends BaseHandlers {
       ? [
           [
             {
-              text: "Я тоже пришёл",
+              text: "🤝 Я тоже пришёл",
               callback_data: JSON.stringify({ command: "/in" }),
             },
             {
-              text: "А я уже ушёл",
+              text: "👋 А я уже ушёл",
               callback_data: JSON.stringify({ command: "/out" }),
             },
           ],
           [
             {
-              text: "Кто внутри",
+              text: "📹 Кто внутри",
               callback_data: JSON.stringify({ command: "/status" }),
             },
           ],
@@ -221,11 +224,11 @@ class StatusHandlers extends BaseHandlers {
       : [
           [
             {
-              text: "Повторить команду",
+              text: "🔃 Повторить команду",
               callback_data: JSON.stringify({ command: "/in" }),
             },
             {
-              text: "Открыть спейс",
+              text: "🔓 Открыть спейс",
               callback_data: JSON.stringify({ command: "/open" }),
             },
           ],
@@ -241,7 +244,7 @@ class StatusHandlers extends BaseHandlers {
   outHandler = (msg) => {
     let eventDate = new Date();
     let gotOut = this.LetOut(msg.from.username, eventDate);
-    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} ушел из спейса
+    let message = `👋 ${this.bot.formatUsername(msg.from.username)} ушел из спейса
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {
@@ -252,17 +255,17 @@ class StatusHandlers extends BaseHandlers {
       ? [
           [
             {
-              text: "Я тоже ушёл",
+              text: "👋 Я тоже ушёл",
               callback_data: JSON.stringify({ command: "/out" }),
             },
             {
-              text: "А я пришёл",
+              text: "🤝 А я пришёл",
               callback_data: JSON.stringify({ command: "/in" }),
             },
           ],
           [
             {
-              text: "Кто внутри",
+              text: "📹 Кто внутри",
               callback_data: JSON.stringify({ command: "/status" }),
             },
           ],
@@ -270,11 +273,11 @@ class StatusHandlers extends BaseHandlers {
       : [
           [
             {
-              text: "Повторить команду",
+              text: "🔃 Повторить команду",
               callback_data: JSON.stringify({ command: "/out" }),
             },
             {
-              text: "Открыть спейс",
+              text: "🔓 Открыть спейс",
               callback_data: JSON.stringify({ command: "/open" }),
             },
           ],
@@ -326,7 +329,7 @@ class StatusHandlers extends BaseHandlers {
     if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
-      inside: true,
+      status: StatusRepository.UserStatusType.Inside,
       date: date,
       username: username,
       type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
@@ -343,7 +346,7 @@ class StatusHandlers extends BaseHandlers {
     if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
-      inside: false,
+      status: StatusRepository.UserStatusType.Outside,
       date: date,
       username: username,
       type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
@@ -353,6 +356,42 @@ class StatusHandlers extends BaseHandlers {
 
     return true;
   }
+
+  goingHandler = (msg) => {
+    let username = msg.from.username.replace("@", "");
+    let eventDate = new Date();
+
+    let userstate = {
+      status: StatusRepository.UserStatusType.Going,
+      date: eventDate,
+      username: username,
+      type: StatusRepository.ChangeType.Manual
+    };
+
+    StatusRepository.pushPeopleState(userstate);
+
+    let message = `🚕 ${this.bot.formatUsername(msg.from.username)} планирует сегодня зайти в спейс`;
+
+    this.bot.sendMessage(msg.chat.id, message);
+  };
+
+  notGoingHandler = (msg) => {
+    let username = msg.from.username.replace("@", "");
+    let eventDate = new Date();
+
+    let userstate = {
+      status: StatusRepository.UserStatusType.Outside,
+      date: eventDate,
+      username: username,
+      type: StatusRepository.ChangeType.Manual
+    };
+
+    StatusRepository.pushPeopleState(userstate);
+
+    let message = `🛌 ${this.bot.formatUsername(msg.from.username)} больше не планирует сегодня в спейс`;
+    
+    this.bot.sendMessage(msg.chat.id, message);
+  };
 }
 
 module.exports = StatusHandlers;

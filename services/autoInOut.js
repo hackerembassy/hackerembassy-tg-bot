@@ -20,7 +20,7 @@ async function autoinout(isIn){
       for (const user of selectedautousers) {
         if (isIn ? devices.includes(user.mac) : !devices.includes(user.mac)){
           StatusRepository.pushPeopleState({
-            inside: isIn ? StatusRepository.UserStatusType.Inside : StatusRepository.UserStatusType.Outside,
+            status: isIn ? StatusRepository.UserStatusType.Inside : StatusRepository.UserStatusType.Outside,
             date: new Date(),
             username: user.username,
             type: StatusRepository.ChangeType.Auto

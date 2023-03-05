@@ -1,5 +1,12 @@
 const BaseRepository = require("./baseRepository");
 
+const isToday = (someDate) => {
+  const today = new Date()
+  return someDate.getDate() == today.getDate() &&
+    someDate.getMonth() == today.getMonth() &&
+    someDate.getFullYear() == today.getFullYear()
+}
+
 class StatusRepository extends BaseRepository {
   ChangeType = {
     "Manual" : 0,
@@ -7,6 +14,12 @@ class StatusRepository extends BaseRepository {
     "Force" : 2,
     "Opened" : 3,
     "Evicted" : 4,
+  }
+
+  UserStatusType = {
+    "Outside" : 0,
+    "Inside" : 1,
+    "Going" : 2,
   }
 
   getSpaceLastState() {
@@ -21,7 +34,7 @@ class StatusRepository extends BaseRepository {
     return lastState;
   }
 
-  getPeopleInside() {
+  getLastStatuses() {
     let userstates = this.db
       .prepare("SELECT * FROM userstates ORDER BY date DESC")
       .all();
@@ -34,9 +47,21 @@ class StatusRepository extends BaseRepository {
       }
     }
 
-    let usersInside = usersLastStatuses.filter((us) => us.inside);
+    return usersLastStatuses;
+  }
+
+  getPeopleInside() {
+    let usersLastStatuses = this.getLastStatuses();
+    let usersInside = usersLastStatuses.filter(us => us.status === this.UserStatusType.Inside);
 
     return usersInside;
+  }
+
+  getPeopleGoing() {
+    let usersLastStatuses = this.getLastStatuses();
+    let usersGoing = usersLastStatuses.filter(us => us.status === this.UserStatusType.Going && isToday(us.date));
+
+    return usersGoing;
   }
 
   evictPeople() {
@@ -45,7 +70,7 @@ class StatusRepository extends BaseRepository {
 
     for (const userstate of inside) {
       this.pushPeopleState({
-        inside: false,
+        status: this.UserStatusType.Outside,
         date: date,
         username: userstate.username,
         type: this.ChangeType.Evicted
@@ -62,9 +87,9 @@ class StatusRepository extends BaseRepository {
   pushPeopleState(state) {
     this.db
       .prepare(
-        "INSERT INTO userstates (inside, username, date, type) VALUES (?, ?, ?, ?)"
+        "INSERT INTO userstates (status, username, date, type) VALUES (?, ?, ?, ?)"
       )
-      .run(state.inside ? 1 : 0, state.username, state.date.valueOf(), state.type ?? 0);
+      .run(state.status ? state.status : this.UserStatusType.Outside, state.username, state.date.valueOf(), state.type ?? 0);
   }
 }
 

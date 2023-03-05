@@ -54,7 +54,8 @@ app.get("/status", (_, res) => {
 
   if (state) {
     let inside = StatusRepository.getPeopleInside();
-    content = TextGenerators.getStatusMessage(state, inside, true);
+    let going = StatusRepository.getPeopleGoing();
+    content = TextGenerators.getStatusMessage(state, inside, going, true);
   }
 
   res.send(content);

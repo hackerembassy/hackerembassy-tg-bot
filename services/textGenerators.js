@@ -77,7 +77,7 @@ async function createFundList(funds, donations, options = {}) {
   return list;
 }
 
-let getStatusMessage = (state, inside, isApi = false) => {
+let getStatusMessage = (state, inside, going, isApi = false) => {
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
@@ -91,13 +91,21 @@ let getStatusMessage = (state, inside, isApi = false) => {
     insideText += `${BotExtensions.formatUsername(user.username, isApi)}${user.type === StatusRepository.ChangeType.Auto ? " (auto)" : ""}\n`;
   }
 
+  let goingText = going.length > 0
+    ? "\n🚕 Планируют сегодня зайти:\n"
+    : "";
+
+  for (const user of going) {
+    goingText += `${BotExtensions.formatUsername(user.username, isApi)}\n`;
+  }
+
   let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18)
 
   return (
     `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}
     
 ${stateSubText}
-` + insideText + `
+` + insideText + goingText + `
 📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически
 `
   );

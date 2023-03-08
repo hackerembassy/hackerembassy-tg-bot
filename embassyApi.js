@@ -117,7 +117,8 @@ app.get("/printer", async (_, res) => {
 
       if (fileMetadataResponse) {
         fileMetadata = fileMetadataResponse.result;
-        thumbnailBuffer = await printer3d.getThumbnail(fileMetadata && fileMetadata.thumbnails && fileMetadata.thumbnails[2].relative_path);
+        let thumbnailPath = fileMetadata && fileMetadata.thumbnails && fileMetadata.thumbnails[fileMetadata.thumbnails.length - 1].relative_path;
+        thumbnailBuffer = await printer3d.getThumbnail(thumbnailPath);
       }
     }
 

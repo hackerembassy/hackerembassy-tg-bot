@@ -49,6 +49,9 @@ class ServiceHandlers extends BaseHandlers {
       case "/status":
         StatusHandlers.statusHandler(message);
         break;
+      case "/ustatus":
+        StatusHandlers.statusHandler(message, true);
+        break;
       case "/ef":
         FundsHandlers.exportFundHandler(message, ...data.params);
         break;

@@ -26,9 +26,7 @@ class StatusHandlers extends BaseHandlers {
 #\`/autoinside disable#\` - Выключить автовход и автовыход  
 `;
     } else if (mac && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(mac) && UsersRepository.setMAC(username, mac)) {
-      message = `Автовход и автовыход активированы для юзера ${this.bot.formatUsername(
-        username
-      )} на MAC адрес ${mac}.
+      message = `Автовход и автовыход активированы для юзера ${this.bot.formatUsername(username)} на MAC адрес ${mac}.
 Не забудьте отключить рандомизацию MAC адреса для сети спейса
       `;
     } else if (mac === "disable") {
@@ -39,14 +37,13 @@ class StatusHandlers extends BaseHandlers {
 
       if (usermac)
         message = `Автовход и автовыход включены для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
-      else 
-        message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
+      else message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
     }
 
     this.bot.sendMessage(msg.chat.id, message);
   }
 
-  statusHandler = (msg) => {
+  statusHandler = async (msg, edit = false) => {
     let state = StatusRepository.getSpaceLastState();
 
     if (!state) {
@@ -72,35 +69,47 @@ class StatusHandlers extends BaseHandlers {
         ]
       : [];
 
-      inlineKeyboard.push([
-        {
-          text: "🚕 Планирую в спейс",
-          callback_data: JSON.stringify({ command: "/going" }),
-        },
-        {
-          text: "🛌 Уже не планирую",
-          callback_data: JSON.stringify({ command: "/notgoing" }),
-        },
-      ])
-
-
-      inlineKeyboard.push([
-        {
-          text: "🔃 Повторить команду",
-          callback_data: JSON.stringify({ command: "/status" }),
-        },
-        {
-          text: state.open ? "🔒 Закрыть спейс" : "🔓 Открыть спейс",
-          callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
-        },
-      ])
-
-
-    this.bot.sendMessage(msg.chat.id, statusMessage, {
-      reply_markup: {
-        inline_keyboard: inlineKeyboard,
+    inlineKeyboard.push([
+      {
+        text: "🚕 Планирую в спейс",
+        callback_data: JSON.stringify({ command: "/going" }),
       },
-    });
+      {
+        text: "🛌 Уже не планирую",
+        callback_data: JSON.stringify({ command: "/notgoing" }),
+      },
+    ]);
+
+    inlineKeyboard.push([
+      {
+        text: "🔃 Обновить",
+        callback_data: JSON.stringify({ command: "/ustatus" }),
+      },
+      {
+        text: state.open ? "🔒 Закрыть спейс" : "🔓 Открыть спейс",
+        callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
+      },
+    ]);
+
+    if (edit) {
+      try {
+        await this.bot.editMessageText(statusMessage, {
+          chat_id: msg.chat.id,
+          message_id: msg.message_id,
+          reply_markup: {
+            inline_keyboard: inlineKeyboard,
+          },
+        });
+      } catch {
+        // Message was not modified
+      }
+    } else {
+      await this.bot.sendMessage(msg.chat.id, statusMessage, {
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        },
+      });
+    }
   };
 
   openHandler = (msg) => {
@@ -118,7 +127,7 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Inside,
       date: opendate,
       username: msg.from.username,
-      type: StatusRepository.ChangeType.Opened
+      type: StatusRepository.ChangeType.Opened,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -325,14 +334,14 @@ class StatusHandlers extends BaseHandlers {
   LetIn(username, date, force = false) {
     // check that space is open
     let state = StatusRepository.getSpaceLastState();
-    
+
     if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
       status: StatusRepository.UserStatusType.Inside,
       date: date,
       username: username,
-      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -349,7 +358,7 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Outside,
       date: date,
       username: username,
-      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -365,7 +374,7 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Going,
       date: eventDate,
       username: username,
-      type: StatusRepository.ChangeType.Manual
+      type: StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -383,13 +392,13 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Outside,
       date: eventDate,
       username: username,
-      type: StatusRepository.ChangeType.Manual
+      type: StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
 
     let message = `🛌 ${this.bot.formatUsername(msg.from.username)} больше не планирует сегодня в спейс`;
-    
+
     this.bot.sendMessage(msg.chat.id, message);
   };
 }

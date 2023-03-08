@@ -18,7 +18,7 @@ bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, BasicHandlers.donateCardHandler);
 bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, (msg, match) => BasicHandlers.donateCoinHandler(msg, match[1]));
 bot.onText(/^\/getresidents(@.+?)?$/, BasicHandlers.getResidentsHandler);
 
-bot.onText(/^\/status(@.+?)?$/, StatusHandlers.statusHandler);
+bot.onText(/^\/status(@.+?)?$/, (msg) => StatusHandlers.statusHandler(msg));
 bot.onText(/^\/in(@.+?)?$/, StatusHandlers.inHandler);
 bot.onText(/^\/open(@.+?)?$/, StatusHandlers.openHandler);
 bot.onText(/^\/close(@.+?)?$/, StatusHandlers.closeHandler);

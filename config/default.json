@@ -5,23 +5,28 @@
             "main" : -1001605898533,
             "horny" : -1687064759,
             "offtopic" : -1555805688,
-            "test" : -830038395
+            "test" : -830038395,
+            "key" : "-1001807382938"
         },
         "timeouts":{
             "in": 60000,
             "out": 900000
         },
-        "autoWish": true
+        "autoWish": true,
+        "logpath": "log.log"
     },
     "printer3d" : {
         "apibase":"http://192.168.1.100"
     },
     "embassy-api":{
+        "timeout": 15000,
         "port": 8001,
         "host": "http://127.0.0.1",
         "networkRange": "192.168.1.1-192.168.1.254",
         "routerip": "192.168.1.1",
-        "webcam": "http://192.168.1.210"
+        "webcam": "http://192.168.1.210",
+        "mqtthost": "192.168.1.100",
+        "doorbell": "192.168.1.217"
     },
     "currency":{
         "default": "AMD",

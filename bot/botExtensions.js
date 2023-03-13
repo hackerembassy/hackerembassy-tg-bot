@@ -3,6 +3,7 @@ const botConfig = config.get("bot");
 const UsersRepository = require("../repositories/usersRepository");
 const fs = require("fs/promises");
 const path = require("path");
+const logger = require("../services/logger");
 
 const maxChunkSize = 3000;
 const messagedelay = 1500;
@@ -114,22 +115,36 @@ function initGlobalModifiers(bot) {
   };
 }
 
+function prepareMessageForMarkdown(message) {
+  return message
+    .replaceAll(/((?<![\\|#])[_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "\\$1")
+    .replaceAll(/#([_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "$1")
+    .replaceAll(/#/g, "");
+}
+
+function prepareOptionsForMarkdown(options) {
+  options.parse_mode = "MarkdownV2";
+  options.disable_web_page_preview = true;
+
+  return options;
+}
+
 function makeAllMessagesMarkdown(bot) {
   let sendMessageOriginal = bot.sendMessage;
+  let editMessageTextOriginal = bot.editMessageText;
 
   bot.sendMessage = async function (...args) {
-    let message = args[1];
-    message = message.replaceAll(/((?<![\\|#])[_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "\\$1");
-    message = message.replaceAll(/#([_\*\[\]\(\)~`>\+\-=\|{}\.!]{1})/g, "$1");
-    message = message.replaceAll(/#/g, "");
-    args[1] = message;
-
-    let options = {...args[2]};
-    options.parse_mode = "MarkdownV2";
-    options.disable_web_page_preview=true;
-    args[2] = options;
+    args[1] = prepareMessageForMarkdown(args[1]);
+    args[2] = prepareOptionsForMarkdown({...args[2]});
 
     return sendMessageOriginal.call(this, ...args);
+  };
+
+  bot.editMessageText = async function (...args) {
+    args[0] = prepareMessageForMarkdown(args[0]);
+    args[1] = prepareOptionsForMarkdown({...args[1]});
+
+    return editMessageTextOriginal.call(this, ...args);
   };
 }
 
@@ -226,6 +241,7 @@ async function sendBirthdayWishes(force = false) {
     message += await getWish(user.username);
 
     this.sendMessage(botConfig.chats.main, message);
+    logger.info(`Wished ${user.username} a happy birthday`);
 
     if (!wishedUser) wishedToday.push({ username: user.username, date: currentDate });
 

@@ -63,6 +63,23 @@ class UserRepository extends BaseRepository {
     }
   }
 
+  setAutoinside(username, value) {
+    try {
+      let user = this.getUser(username);
+      if (user === null && !this.addUser(username, ["default"]) || (value && !user.mac)) return false; 
+
+      this.db
+        .prepare("UPDATE users SET autoinside = ? WHERE username = ?")
+        .run(Number(value), username);
+
+      return true;
+    } catch (error) {
+      console.log(error);
+
+      return false;
+    }
+  }
+
   setBirthday(username, birthday = null) {
     try {
       if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 

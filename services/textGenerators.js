@@ -1,11 +1,14 @@
-const Currency = require("../services/currency");
+const Currency = require("../utils/currency");
 const config = require("config");
 const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;
 const BotExtensions = require("../bot/botExtensions");
 const StatusRepository = require("../repositories/statusRepository");
 
-async function createFundList(funds, donations, showAdmin = false, isApi = false) {
+async function createFundList(funds, donations, options = {}) {
+  const defaultOptions = {showAdmin: false, isApi: false, isHistory: false};
+  options = {defaultOptions, ...options};
+
   let list = "";
 
   for (const fund of funds) {
@@ -24,7 +27,7 @@ async function createFundList(funds, donations, showAdmin = false, isApi = false
       return (await prev) + newValue;
     }, 0);
 
-    let statusEmoji = `⚙️\\[${fund.status}]`;
+    let statusEmoji = `⚙️ \\[${fund.status}]`;
 
     if (fund.status === "closed") {
       statusEmoji = "☑️ \\[закрыт]";
@@ -32,31 +35,39 @@ async function createFundList(funds, donations, showAdmin = false, isApi = false
       statusEmoji = "⏱ \\[отложен]";
     } else if (fund.status === "open") {
       statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
+      statusEmoji += options.isHistory ? " \\[открыт]" : "";
     }
 
-    let tgCopyDelimiter = isApi ? "" : "#\`";
+    let tgCopyDelimiter = options.isApi ? "" : "#\`";
 
     list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
       fund.target_value
     } ${fund.target_currency}\n`;
 
-    for (const donation of fundDonations) {
-      list += `      ${showAdmin ? `[id:${donation.id}] - `: ""}${BotExtensions.formatUsername(
-        donation.username, isApi
-      )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, isApi)}` : ""}\n`;
+    if (!options.isHistory){
+      for (const donation of fundDonations) {
+        list += `      ${options.showAdmin ? `[id:${donation.id}] - `: ""}${BotExtensions.formatUsername(
+          donation.username, options.isApi
+        )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${options.showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, options.isApi)}` : ""}\n`;
+      }
     }
 
-    if (showAdmin) {
-      list += "\n";
-      list += `#\`/fund ${fund.name}#\`\n`;
-      list += `#\`/exportFund ${fund.name}#\`\n`;
-      list += `#\`/exportDonut ${fund.name}#\`\n`;
-      list += `#\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
-      list += `#\`/changeFundStatus of ${fund.name} to status_name#\`\n`;
-      list += `#\`/closeFund ${fund.name}#\`\n`;
-      list += `#\`/transferDonation donation_id to username#\`\n`;
-      list += `#\`/addDonation 5000 AMD from @username to ${fund.name}#\`\n`;
-      list += `#\`/removeDonation donation_id#\`\n`;
+    if (options.showAdmin) {
+      if (!options.isHistory){
+        list += "\n";
+        list += `#\`/fund ${fund.name}#\`\n`;
+        list += `#\`/exportFund ${fund.name}#\`\n`;
+        list += `#\`/exportDonut ${fund.name}#\`\n`;
+        list += `#\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
+        list += `#\`/changeFundStatus of ${fund.name} to status_name#\`\n`;
+        list += `#\`/closeFund ${fund.name}#\`\n`;
+        list += `#\`/transferDonation donation_id to username#\`\n`;
+        list += `#\`/addDonation 5000 AMD from @username to ${fund.name}#\`\n`;
+        list += `#\`/changeDonation donation_id to 5000 AMD#\`\n`;
+        list += `#\`/removeDonation donation_id#\`\n`;
+      } else {
+        list += `#\`/fund ${fund.name}#\`\n`;
+      }
     }
 
     list += "\n";
@@ -65,30 +76,36 @@ async function createFundList(funds, donations, showAdmin = false, isApi = false
   return list;
 }
 
-let getStatusMessage = (state, inside, isApi = false) => {
+let getStatusMessage = (state, inside, going, isApi = false) => {
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
-    ? "Отличный повод зайти, так что стучитесь в дверь или пишите находящимся внутри - вам откроют\n"
-    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет или происходит тайное собрание? Who knows ...\n";
+    ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
+    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит тайное собрание, или они опять забыли сделать /open? Who knows...\n";
+  let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18);
+  let updateText = !isApi ? `⏱ Обновлено ${(new Date()).toLocaleString("RU-ru").replace(","," в").substr(0, 21)}\n`: "";
+  let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}\n`;
+  let autoinsideText = !isApi ? `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
+
   let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
       : "🛌 Внутри никто не отметился\n";
-
   for (const user of inside) {
     insideText += `${BotExtensions.formatUsername(user.username, isApi)}${user.type === StatusRepository.ChangeType.Auto ? " (auto)" : ""}\n`;
   }
 
-  let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18)
+  let goingText = going.length > 0
+    ? "\n🚕 Планируют сегодня зайти:\n"
+    : "";
+  for (const user of going) {
+    goingText += `${BotExtensions.formatUsername(user.username, isApi)}\n`;
+  }
 
-  return (
-    `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}
-    
+  return `${stateFullText}
 ${stateSubText}
-` + insideText + `
-📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически
-`
-  );
+${insideText}${goingText}
+${updateText}
+${autoinsideText}`;
 };
 
 function getAccountsList(accountants, isApi = false) {
@@ -235,7 +252,7 @@ function getBirthdaysList(birthdayUsers){
 function getPrinterInfo(){
   return `🖨 3D принтер Anette от ubershy и cake64
 Документация по нему доступна тут:
-https://github.com/hackerembassy/printer-anette
+https://wiki.hackerembassy.site/ru/equipment/anette
 Веб интерфейс доступен внутри сети спейса по адресу ${apiBase}
 Статус принтера можно узнать по команде /printerstatus
 `

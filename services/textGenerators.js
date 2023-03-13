@@ -52,7 +52,6 @@ async function createFundList(funds, donations, options = {}) {
       }
     }
 
-
     if (options.showAdmin) {
       if (!options.isHistory){
         list += "\n";
@@ -81,12 +80,16 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
   let stateText = state.open ? "открыт" : "закрыт";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
-    ? "Отличный повод зайти, так что стучитесь в дверь или пишите находящимся внутри - вам откроют\n"
-    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет или происходит тайное собрание? Who knows ...\n";
+    ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
+    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит тайное собрание, или они опять забыли сделать /open? Who knows...\n";
+  let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18);
+  let updateText = !isApi ? `⏱ Обновлено ${(new Date()).toLocaleString("RU-ru").replace(","," в").substr(0, 21)}\n`: "";
+  let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}\n`;
+  let autoinsideText = !isApi ? `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
+
   let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
       : "🛌 Внутри никто не отметился\n";
-
   for (const user of inside) {
     insideText += `${BotExtensions.formatUsername(user.username, isApi)}${user.type === StatusRepository.ChangeType.Auto ? " (auto)" : ""}\n`;
   }
@@ -94,21 +97,15 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
   let goingText = going.length > 0
     ? "\n🚕 Планируют сегодня зайти:\n"
     : "";
-
   for (const user of going) {
     goingText += `${BotExtensions.formatUsername(user.username, isApi)}\n`;
   }
 
-  let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18)
-
-  return (
-    `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}
-    
+  return `${stateFullText}
 ${stateSubText}
-` + insideText + goingText + `
-📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически
-`
-  );
+${insideText}${goingText}
+${updateText}
+${autoinsideText}`;
 };
 
 function getAccountsList(accountants, isApi = false) {
@@ -255,7 +252,7 @@ function getBirthdaysList(birthdayUsers){
 function getPrinterInfo(){
   return `🖨 3D принтер Anette от ubershy и cake64
 Документация по нему доступна тут:
-https://github.com/hackerembassy/printer-anette
+https://wiki.hackerembassy.site/ru/equipment/anette
 Веб интерфейс доступен внутри сети спейса по адресу ${apiBase}
 Статус принтера можно узнать по команде /printerstatus
 `

@@ -14,7 +14,7 @@
     "git-redo": "git add * && git commit --amend && git push --force",
     "update-and-start": "npm run kill && git pull && npm i && npm run start-bot && npm run start-api-https",
     "start-bot": "nohup node app.js &",
-    "start-api-https": "caddy start ./deploy/api/Caddyfile",
+    "start-api-https": "caddy start --config ./deploy/api/Caddyfile 2>/dev/null",
     "kill": "skill -c nohup node app.js &",
     "backup": "mkdir ./data/.backup -p && cp ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
     "reset": "mkdir ./data/.backup -p && mv ./data/data.db ./data/.backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db",

@@ -14,7 +14,7 @@ async function autoinout(isIn){
       clearTimeout(timeoutId);
   
       let insideusernames = StatusRepository.getPeopleInside()?.map(us=>us.username);
-      let autousers = UsersRepository.getUsers()?.filter(u => u.mac);
+      let autousers = UsersRepository.getUsers()?.filter(u => u.autoinside && u.mac);
       let selectedautousers = isIn ? autousers.filter(u=>!insideusernames.includes(u.username)) : autousers.filter(u=>insideusernames.includes(u.username));
   
       for (const user of selectedautousers) {

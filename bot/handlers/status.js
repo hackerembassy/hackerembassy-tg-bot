@@ -9,35 +9,66 @@ class StatusHandlers extends BaseHandlers {
     super();
   }
 
-  autoinsideHandler(msg, mac) {
-    let message = `Укажите валидный MAC адрес`;
+  setmacHandler(msg, cmd){
+    let message = `⚠️ Укажите валидный MAC адрес`;
     let username = msg.from.username;
+    if (!cmd || cmd === "help") {
+      message = `
+📡 С помощью этой команды можно задать MAC адрес для функций автовхода и управления замком 
 
-    if (!mac || mac === "help") {
+#\`/setmac mac_address#\` - Добавить свой MAC адрес 
+#\`/setmac status#\` - Посмотреть свой установленный в боте MAC адрес
+#\`/setmac remove#\` - Удалить свой MAC адрес из бота  
+ `;
+    } else if (cmd && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(cmd) && UsersRepository.setMAC(username, cmd)) {
+      message = `📡 MAC адрес ${cmd} успешно добавлен для юзера ${this.bot.formatUsername(username)}.`;
+    } else if (cmd === "remove") {
+      UsersRepository.setMAC(username, null);
+      UsersRepository.setAutoinside(username, false);
+      message = `🗑 MAC удален для юзера ${this.bot.formatUsername(username)}. Автовход теперь работать не будет.`;
+    } else if (cmd === "status") {
+      let usermac = UsersRepository.getUser(username)?.mac;
+
+      if (usermac)
+        message = `📡 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
+      else message = `📡 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
+    }
+
+    this.bot.sendMessage(msg.chat.id, message);
+  }
+
+  autoinsideHandler(msg, cmd) {
+    let message = `⚠️ Не удалось включить автовход, хотя MAC задан. Кто-нибудь, накостыляйте моему разработчику`;
+    let username = msg.from.username;
+    let user = UsersRepository.getUser(username);
+    let usermac = user?.mac;
+    let userautoinside = user?.autoinside;
+
+    if (!cmd || cmd === "help") {
       message = `⏲ С помощью этой команды можно автоматически отмечаться в спейсе как только MAC адрес вашего устройства будет обнаружен в сети.
 📌 При отсутствии активности устройства в сети спейса в течение ${
         this.botConfig.timeouts.out / 60000
       } минут произойдет автовыход юзера.
 📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
-⚠️ Для работы обязательно отключите рандомизацию MAC адреса для сети спейса.
+⚠️ Для работы обязательно задайте MAC адреса вашего устройства и отключите его рандомизацию для сети спейса.
       
-#\`/autoinside mac_address#\` - Включить автовход и автовыход  
-#\`/autoinside status#\` - Статус автовхода и автовыхода  
+#\`/setmac#\` - Управление своим MAC адресом  
+#\`/autoinside status#\` - Статус автовхода и автовыхода
+#\`/autoinside enable#\` - Включить автовход и автовыход  
 #\`/autoinside disable#\` - Выключить автовход и автовыход  
 `;
-    } else if (mac && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(mac) && UsersRepository.setMAC(username, mac)) {
-      message = `Автовход и автовыход активированы для юзера ${this.bot.formatUsername(username)} на MAC адрес ${mac}.
-Не забудьте отключить рандомизацию MAC адреса для сети спейса
-      `;
-    } else if (mac === "disable") {
-      UsersRepository.setMAC(username, null);
-      message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
-    } else if (mac === "status") {
-      let usermac = UsersRepository.getUser(username)?.mac;
-
-      if (usermac)
-        message = `Автовход и автовыход включены для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
-      else message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
+    } else if (cmd === "enable") {
+      if (!usermac)
+        message = `⚠️ Твой MAC адрес не задан. Добавь его командой #\`/setmac mac_address#\``;
+      else if (UsersRepository.setAutoinside(username, true))
+        message = `🕺 Автовход и автовыход активированы для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
+    } else if (cmd === "disable") {
+      UsersRepository.setAutoinside(username, false);
+      message = `🚷 Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
+    } else if (cmd === "status") {
+      if (userautoinside)
+        message = `🕺 Автовход и автовыход включены для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
+      else message = `🚷 Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
     }
 
     this.bot.sendMessage(msg.chat.id, message);

@@ -48,14 +48,14 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
         ? [
             [
               {
-                text: "Экспортнуть в CSV",
+                text: "🧾 Экспортнуть в CSV",
                 callback_data: JSON.stringify({
                   command: "/ef",
                   params: [fundName],
                 }),
               },
               {
-                text: "Посмотреть диаграмму",
+                text: "📊 Посмотреть диаграмму",
                 callback_data: JSON.stringify({
                   command: "/ed",
                   params: [fundName],
@@ -94,8 +94,8 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
     let success = !isNaN(targetValue) && FundsRepository.addfund(fundName, targetValue, currency);
     let message = success
-      ? `Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
-      : `Не удалось добавить сбор (может он уже есть?)`;
+      ? `💰 Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
+      : `⚠️ Не удалось добавить сбор (может он уже есть?)`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -109,8 +109,8 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
     let success = !isNaN(targetValue) && FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
     let message = success
-      ? `Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
-      : `Не удалось обновить сбор (может не то имя?)`;
+      ? `🔄 Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
+      : `⚠️ Не удалось обновить сбор (может не то имя?)`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -119,7 +119,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
     let success = FundsRepository.removefund(fundName);
-    let message = success ? `Удален сбор ${fundName}` : `Не удалось удалить сбор`;
+    let message = success ? `🗑 Удален сбор ${fundName}` : `⚠️ Не удалось удалить сбор`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -130,7 +130,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     let csvBuffer = await ExportHelper.exportFundToCSV(fundName);
 
     if (!csvBuffer?.length) {
-      this.bot.sendMessage(msg.chat.id, "Нечего экспортировать");
+      this.bot.sendMessage(msg.chat.id, "⚠️ Нечего экспортировать");
       return;
     }
 
@@ -146,7 +146,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
     let success = FundsRepository.closefund(fundName);
-    let message = success ? `Закрыт сбор ${fundName}` : `Не удалось закрыть сбор`;
+    let message = success ? `☑️ Закрыт сбор ${fundName}` : `⚠️ Не удалось закрыть сбор`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -157,7 +157,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     fundStatus = fundStatus.toLowerCase();
 
     let success = FundsRepository.changefundStatus(fundName, fundStatus);
-    let message = success ? `Статус сбора ${fundName} изменен на ${fundStatus}` : `Не удалось изменить статус сбора`;
+    let message = success ? `✳️ Статус сбора ${fundName} изменен на ${fundStatus}` : `⚠️ Не удалось изменить статус сбора`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -168,7 +168,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     accountant = accountant.replace("@", "");
 
     let success = FundsRepository.transferDonation(id, accountant);
-    let message = success ? `Донат ${id} передан ${this.bot.formatUsername(accountant)}` : `Не удалось передать донат`;
+    let message = success ? `↪️ Донат ${id} передан ${this.bot.formatUsername(accountant)}` : `⚠️ Не удалось передать донат`;
     
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -184,7 +184,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency, accountant);
     let message = success
       ? `💸 ${this.bot.formatUsername(userName)} задонатил ${value} ${currency} в сбор ${fundName}`
-      : `Не удалось добавить донат`;
+      : `⚠️ Не удалось добавить донат`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -201,7 +201,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     let success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency, accountant);
     let message = success
       ? `💸 ${this.bot.formatUsername(userName)} задонатил ${value} ${currency} в сбор ${fundName}`
-      : `Не удалось добавить донат`;
+      : `⚠️ Не удалось добавить донат`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -211,7 +211,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     
 
     let success = FundsRepository.removeDonationById(donationId);
-    let message = success ? `Удален донат [id:${donationId}]` : `Не удалось удалить донат (может его и не было?)`;
+    let message = success ? `🗑 Удален донат [id:${donationId}]` : `⚠️ Не удалось удалить донат (может его и не было?)`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -223,7 +223,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     currency = currency.length > 0 ? currency.toUpperCase() : currencyConfig.default;
 
     let success = FundsRepository.updateDonation(donationId, value, currency);
-    let message = success ? `Обновлен донат [id:${donationId}]` : `Не удалось обновить донат (может его и не было?)`;
+    let message = success ? `🔄 Обновлен донат [id:${donationId}]` : `⚠️ Не удалось обновить донат (может его и не было?)`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
@@ -235,12 +235,12 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     try {
       imageBuffer = await ExportHelper.exportFundToDonut(fundName);
     } catch (error) {
-      this.bot.sendMessage(msg.chat.id, "Что-то не так");
+      this.bot.sendMessage(msg.chat.id, "⚠️ Что-то не так");
       return;
     }
 
     if (!imageBuffer?.length) {
-      this.bot.sendMessage(msg.chat.id, "Нечего экспортировать");
+      this.bot.sendMessage(msg.chat.id, "⚠️ Нечего экспортировать");
       return;
     }
 

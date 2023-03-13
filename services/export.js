@@ -1,7 +1,7 @@
 const { writeToBuffer } = require("@fast-csv/format");
 const FundsRepository = require("../repositories/fundsRepository");
 const ChartJsImage = require("chartjs-to-image");
-const Currency = require("../services/currency");
+const Currency = require("../utils/currency");
 
 function getRandomColor() {
   let letters = "3456789AB";
@@ -12,6 +12,19 @@ function getRandomColor() {
   }
 
   return color;
+}
+
+function combineDonations(donations){
+  let uniqueUsernames = [...new Set(donations.map(d => d.username))];
+  let combinedDonations = [];
+
+  for (const username of uniqueUsernames) {
+    let userDonations = donations.filter(d => d.username === username);
+    let userCombinedDonation = userDonations.reduce((acc, curr) => acc + curr.donation, 0);
+    combinedDonations.push({username, donation: userCombinedDonation});
+  }
+
+  return combinedDonations;
 }
 
 const colorScheme = [
@@ -66,7 +79,6 @@ async function exportFundToCSV(fundname) {
 async function exportFundToDonut(fundname) {
   let fund = FundsRepository.getfundByName(fundname);
   let alldonations = FundsRepository.getDonationsForName(fundname);
-  let fractionDigits = Currency.CurrencyFractionDigits.find(fd => fd.currency === fund.target_currency)?.fraction ?? 4;
 
   let fundDonations = await Promise.all(
     alldonations.map(async (d) => {
@@ -78,10 +90,11 @@ async function exportFundToDonut(fundname) {
       return {
         username: d.username,
         donation: Number(convertedValue),
-        currency: fund.target_currency,
       };
     })
   );
+
+  fundDonations = combineDonations(fundDonations);
 
   let labels = fundDonations.map((donation) => donation.username);
   let data = fundDonations.map((donation) => donation.donation);
@@ -101,7 +114,8 @@ async function exportFundToDonut(fundname) {
     customColorScheme.push(remainedColor);
   }
 
-  let chart = new ChartJsImage();
+  let chart = new ChartJsImage();  
+
 
   chart.setConfig({
     type: "donut",
@@ -112,16 +126,23 @@ async function exportFundToDonut(fundname) {
       ],
     },
     options: {
+      legend: {
+        position: "right",
+        labels: {fontSize: 20}
+      },
       title: {
         display: true,
         text: fundname,
+        padding: 40,
+        align: "end",
+        fontSize: 30
       },
       layout: {
         padding: {
-          left: 100,
-          right: 100,
+          left: 10,
+          right: 10,
           top: 0,
-          bottom: 20,
+          bottom: 50,
         },
       },
       plugins: {
@@ -131,6 +152,8 @@ async function exportFundToDonut(fundname) {
           borderRadius: 10,
           anchor: "end",
           align: "end",
+          display: 'auto',
+          offset: 10,
           formatter: (val) => val,
           font: {
             size: 15,
@@ -138,14 +161,15 @@ async function exportFundToDonut(fundname) {
         },
         doughnutlabel: {
           labels: [
-            { text: `${target} ${fund.target_currency}`, font: { size: 20 } },
-            { text: "min" },
+            { text: `${target} ${fund.target_currency}`, font: { size: 30 } },
+            { text: "min", font: { size: 20 } },
           ],
         },
       },
     },
   });
-  chart.setWidth(600).setHeight(600).setBackgroundColor("transparent");
+  chart.setWidth(1200).setHeight(900).setBackgroundColor("transparent");
+
 
   return await chart.toBinary();
 }

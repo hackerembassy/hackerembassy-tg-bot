@@ -8,6 +8,8 @@ const GeneralCommandsList = `
 /status - Статус спейса и кто отметился внутри
 /in - Отметиться находящимся в спейсе
 /out - Отметиться ушедшим из спейса
+/going - Планирую сегодня в спейс
+/notgoing - Больше не планирую сегодня в спейс
 /printer - О нашем 3D принтере
 /printerstatus - Статус 3D принтера
 /getresidents - Наши резиденты, можно к ним обратиться по любым спейсовским вопросам
@@ -18,6 +20,7 @@ const GeneralCommandsList = `
 /needs - Посмотреть, что просили купить в спейс по дороге
 #\`/buy item_name#\` - Попросить купить что-нибудь в спейс по дороге (бумага, чай, и.т.п)
 #\`/bought item_name#\` - Отметить что-то купленным из needs
+/setmac - Управление своим MAC адресом
 /autoinside - Настроить автоматический вход и выход из спейса
 `;
 
@@ -26,6 +29,8 @@ const MemberCommandsList = `
 /open - Открыть спейс
 /close - Закрыть спейс
 /webcam - Глянуть камеру из спейса
+/doorbell - Позвонить в дверной звонок
+/unlock - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (можно без параметра для удаления одного последнего ответа)
 #\`/inForce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outForce telegram_username#\` - Отметить другого юзера ушедшим из спейса
@@ -33,11 +38,13 @@ const MemberCommandsList = `
 
 const AdminCommandsList = ` 
 Команды админов:
-/getUsers
-#\`/addUser telegram_username as user_role1|user_role2|user_role3#\`
-#\`/removeUser telegram_username#\`
-#\`/updateRoles of telegram_username to user_role1|user_role2|user_role3#\`
-/forceBirthdayWishes
+/getusers
+#\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
+#\`/removeuser telegram_username#\`
+#\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
+/forcebirthdaywishes
+#\`/forward some_text#\`
+/getlog
 
 \\* Roles: admin, accountant, member, default
 `;
@@ -53,6 +60,7 @@ const AccountantCommandsList = `
 #\`/changeFundStatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removeFund fund_name#\` - Удалить сбор (не надо)
 #\`/addDonation donation_value currency_code from telegram_username to fund_name#\`
+#\`/changeDonation donation_id to donation_value currency_code#\`
 #\`/removeDonation donation_id#\` - Удалить донат
 #\`/transferDonation donation_id to username#\` - Передать донат другому бухгалтеру
 

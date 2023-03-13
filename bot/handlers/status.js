@@ -9,44 +9,72 @@ class StatusHandlers extends BaseHandlers {
     super();
   }
 
-  autoinsideHandler(msg, mac) {
-    let message = `Укажите валидный MAC адрес`;
+  setmacHandler(msg, cmd){
+    let message = `⚠️ Укажите валидный MAC адрес`;
     let username = msg.from.username;
+    if (!cmd || cmd === "help") {
+      message = `
+📡 С помощью этой команды можно задать MAC адрес для функций автовхода и управления замком 
 
-    if (!mac || mac === "help") {
-      message = `⏲ С помощью этой команды можно автоматически отмечаться в спейсе как только MAC адрес вашего устройства будет обнаружен в сети.
-📌 При отсутствии активности устройства в сети спейса в течение ${
-        this.botConfig.timeouts.out / 60000
-      } минут произойдет автовыход юзера.
-📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
-⚠️ Для работы обязательно отключите рандомизацию MAC адреса для сети спейса.
-      
-#\`/autoinside mac_address#\` - Включить автовход и автовыход  
-#\`/autoinside status#\` - Статус автовхода и автовыхода  
-#\`/autoinside disable#\` - Выключить автовход и автовыход  
-`;
-    } else if (mac && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(mac) && UsersRepository.setMAC(username, mac)) {
-      message = `Автовход и автовыход активированы для юзера ${this.bot.formatUsername(
-        username
-      )} на MAC адрес ${mac}.
-Не забудьте отключить рандомизацию MAC адреса для сети спейса
-      `;
-    } else if (mac === "disable") {
+#\`/setmac mac_address#\` - Добавить свой MAC адрес 
+#\`/setmac status#\` - Посмотреть свой установленный в боте MAC адрес
+#\`/setmac remove#\` - Удалить свой MAC адрес из бота  
+ `;
+    } else if (cmd && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(cmd) && UsersRepository.setMAC(username, cmd)) {
+      message = `📡 MAC адрес ${cmd} успешно добавлен для юзера ${this.bot.formatUsername(username)}.`;
+    } else if (cmd === "remove") {
       UsersRepository.setMAC(username, null);
-      message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
-    } else if (mac === "status") {
+      UsersRepository.setAutoinside(username, false);
+      message = `🗑 MAC удален для юзера ${this.bot.formatUsername(username)}. Автовход теперь работать не будет.`;
+    } else if (cmd === "status") {
       let usermac = UsersRepository.getUser(username)?.mac;
 
       if (usermac)
-        message = `Автовход и автовыход включены для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
-      else 
-        message = `Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
+        message = `📡 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
+      else message = `📡 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
     }
 
     this.bot.sendMessage(msg.chat.id, message);
   }
 
-  statusHandler = (msg) => {
+  autoinsideHandler(msg, cmd) {
+    let message = `⚠️ Не удалось включить автовход, хотя MAC задан. Кто-нибудь, накостыляйте моему разработчику`;
+    let username = msg.from.username;
+    let user = UsersRepository.getUser(username);
+    let usermac = user?.mac;
+    let userautoinside = user?.autoinside;
+
+    if (!cmd || cmd === "help") {
+      message = `⏲ С помощью этой команды можно автоматически отмечаться в спейсе как только MAC адрес вашего устройства будет обнаружен в сети.
+📌 При отсутствии активности устройства в сети спейса в течение ${
+        this.botConfig.timeouts.out / 60000
+      } минут произойдет автовыход юзера.
+📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
+⚠️ Для работы обязательно задайте MAC адреса вашего устройства и отключите его рандомизацию для сети спейса.
+      
+#\`/setmac#\` - Управление своим MAC адресом  
+#\`/autoinside status#\` - Статус автовхода и автовыхода
+#\`/autoinside enable#\` - Включить автовход и автовыход  
+#\`/autoinside disable#\` - Выключить автовход и автовыход  
+`;
+    } else if (cmd === "enable") {
+      if (!usermac)
+        message = `⚠️ Твой MAC адрес не задан. Добавь его командой #\`/setmac mac_address#\``;
+      else if (UsersRepository.setAutoinside(username, true))
+        message = `🕺 Автовход и автовыход активированы для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
+    } else if (cmd === "disable") {
+      UsersRepository.setAutoinside(username, false);
+      message = `🚷 Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
+    } else if (cmd === "status") {
+      if (userautoinside)
+        message = `🕺 Автовход и автовыход включены для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
+      else message = `🚷 Автовход и автовыход выключены для юзера ${this.bot.formatUsername(username)}`;
+    }
+
+    this.bot.sendMessage(msg.chat.id, message);
+  }
+
+  statusHandler = async (msg, edit = false) => {
     let state = StatusRepository.getSpaceLastState();
 
     if (!state) {
@@ -55,48 +83,64 @@ class StatusHandlers extends BaseHandlers {
     }
 
     let inside = StatusRepository.getPeopleInside();
-    let statusMessage = TextGenerators.getStatusMessage(state, inside);
+    let going = StatusRepository.getPeopleGoing();
+    let statusMessage = TextGenerators.getStatusMessage(state, inside, going);
     let inlineKeyboard = state.open
       ? [
           [
             {
-              text: "Я пришёл в спейс",
+              text: "🤝 Я пришёл в спейс",
               callback_data: JSON.stringify({ command: "/in" }),
             },
             {
-              text: "Я ушёл из спейса",
+              text: "👋 Я ушёл из спейса",
               callback_data: JSON.stringify({ command: "/out" }),
             },
           ],
-          [
-            {
-              text: "Повторить команду",
-              callback_data: JSON.stringify({ command: "/status" }),
-            },
-            {
-              text: "Закрыть спейс",
-              callback_data: JSON.stringify({ command: "/close" }),
-            },
-          ],
         ]
-      : [
-          [
-            {
-              text: "Повторить команду",
-              callback_data: JSON.stringify({ command: "/status" }),
-            },
-            {
-              text: "Открыть спейс",
-              callback_data: JSON.stringify({ command: "/open" }),
-            },
-          ],
-        ];
+      : [];
 
-    this.bot.sendMessage(msg.chat.id, statusMessage, {
-      reply_markup: {
-        inline_keyboard: inlineKeyboard,
+    inlineKeyboard.push([
+      {
+        text: "🚕 Планирую в спейс",
+        callback_data: JSON.stringify({ command: "/going" }),
       },
-    });
+      {
+        text: "🛌 Уже не планирую",
+        callback_data: JSON.stringify({ command: "/notgoing" }),
+      },
+    ]);
+
+    inlineKeyboard.push([
+      {
+        text: "🔃 Обновить",
+        callback_data: JSON.stringify({ command: "/ustatus" }),
+      },
+      {
+        text: state.open ? "🔒 Закрыть спейс" : "🔓 Открыть спейс",
+        callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
+      },
+    ]);
+
+    if (edit) {
+      try {
+        await this.bot.editMessageText(statusMessage, {
+          chat_id: msg.chat.id,
+          message_id: msg.message_id,
+          reply_markup: {
+            inline_keyboard: inlineKeyboard,
+          },
+        });
+      } catch {
+        // Message was not modified
+      }
+    } else {
+      await this.bot.sendMessage(msg.chat.id, statusMessage, {
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        },
+      });
+    }
   };
 
   openHandler = (msg) => {
@@ -111,11 +155,10 @@ class StatusHandlers extends BaseHandlers {
     StatusRepository.pushSpaceState(state);
 
     let userstate = {
-      inside: true,
+      status: StatusRepository.UserStatusType.Inside,
       date: opendate,
       username: msg.from.username,
-      type: StatusRepository.ChangeType.Opened
-
+      type: StatusRepository.ChangeType.Opened,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -123,17 +166,17 @@ class StatusHandlers extends BaseHandlers {
     let inlineKeyboard = [
       [
         {
-          text: "Я тоже пришёл",
+          text: "🤝 Я тоже пришёл",
           callback_data: JSON.stringify({ command: "/in" }),
         },
         {
-          text: "Закрыть снова",
+          text: "🔒 Закрыть снова",
           callback_data: JSON.stringify({ command: "/close" }),
         },
       ],
       [
         {
-          text: "Кто внутри",
+          text: "📹 Кто внутри",
           callback_data: JSON.stringify({ command: "/status" }),
         },
       ],
@@ -168,7 +211,7 @@ class StatusHandlers extends BaseHandlers {
     let inlineKeyboard = [
       [
         {
-          text: "Открыть снова",
+          text: "🔓 Открыть снова",
           callback_data: JSON.stringify({ command: "/open" }),
         },
       ],
@@ -192,7 +235,7 @@ class StatusHandlers extends BaseHandlers {
     let eventDate = new Date();
     let user = msg.from.username ?? msg.from.first_name;
     let gotIn = this.LetIn(user, eventDate);
-    let message = `🟢 ${this.bot.formatUsername(user)} пришел в спейс
+    let message = `🤝 ${this.bot.formatUsername(user)} пришел в спейс
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotIn) {
@@ -203,17 +246,17 @@ class StatusHandlers extends BaseHandlers {
       ? [
           [
             {
-              text: "Я тоже пришёл",
+              text: "🤝 Я тоже пришёл",
               callback_data: JSON.stringify({ command: "/in" }),
             },
             {
-              text: "А я уже ушёл",
+              text: "👋 А я уже ушёл",
               callback_data: JSON.stringify({ command: "/out" }),
             },
           ],
           [
             {
-              text: "Кто внутри",
+              text: "📹 Кто внутри",
               callback_data: JSON.stringify({ command: "/status" }),
             },
           ],
@@ -221,11 +264,11 @@ class StatusHandlers extends BaseHandlers {
       : [
           [
             {
-              text: "Повторить команду",
+              text: "🔃 Повторить команду",
               callback_data: JSON.stringify({ command: "/in" }),
             },
             {
-              text: "Открыть спейс",
+              text: "🔓 Открыть спейс",
               callback_data: JSON.stringify({ command: "/open" }),
             },
           ],
@@ -241,7 +284,7 @@ class StatusHandlers extends BaseHandlers {
   outHandler = (msg) => {
     let eventDate = new Date();
     let gotOut = this.LetOut(msg.from.username, eventDate);
-    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} ушел из спейса
+    let message = `👋 ${this.bot.formatUsername(msg.from.username)} ушел из спейса
 🗓 ${eventDate.toLocaleString()} `;
 
     if (!gotOut) {
@@ -252,17 +295,17 @@ class StatusHandlers extends BaseHandlers {
       ? [
           [
             {
-              text: "Я тоже ушёл",
+              text: "👋 Я тоже ушёл",
               callback_data: JSON.stringify({ command: "/out" }),
             },
             {
-              text: "А я пришёл",
+              text: "🤝 А я пришёл",
               callback_data: JSON.stringify({ command: "/in" }),
             },
           ],
           [
             {
-              text: "Кто внутри",
+              text: "📹 Кто внутри",
               callback_data: JSON.stringify({ command: "/status" }),
             },
           ],
@@ -270,11 +313,11 @@ class StatusHandlers extends BaseHandlers {
       : [
           [
             {
-              text: "Повторить команду",
+              text: "🔃 Повторить команду",
               callback_data: JSON.stringify({ command: "/out" }),
             },
             {
-              text: "Открыть спейс",
+              text: "🔓 Открыть спейс",
               callback_data: JSON.stringify({ command: "/open" }),
             },
           ],
@@ -322,14 +365,14 @@ class StatusHandlers extends BaseHandlers {
   LetIn(username, date, force = false) {
     // check that space is open
     let state = StatusRepository.getSpaceLastState();
-    
+
     if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
-      inside: true,
+      status: StatusRepository.UserStatusType.Inside,
       date: date,
       username: username,
-      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -343,16 +386,52 @@ class StatusHandlers extends BaseHandlers {
     if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
 
     let userstate = {
-      inside: false,
+      status: StatusRepository.UserStatusType.Outside,
       date: date,
       username: username,
-      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
 
     return true;
   }
+
+  goingHandler = (msg) => {
+    let username = msg.from.username.replace("@", "");
+    let eventDate = new Date();
+
+    let userstate = {
+      status: StatusRepository.UserStatusType.Going,
+      date: eventDate,
+      username: username,
+      type: StatusRepository.ChangeType.Manual,
+    };
+
+    StatusRepository.pushPeopleState(userstate);
+
+    let message = `🚕 ${this.bot.formatUsername(msg.from.username)} планирует сегодня зайти в спейс`;
+
+    this.bot.sendMessage(msg.chat.id, message);
+  };
+
+  notGoingHandler = (msg) => {
+    let username = msg.from.username.replace("@", "");
+    let eventDate = new Date();
+
+    let userstate = {
+      status: StatusRepository.UserStatusType.Outside,
+      date: eventDate,
+      username: username,
+      type: StatusRepository.ChangeType.Manual,
+    };
+
+    StatusRepository.pushPeopleState(userstate);
+
+    let message = `🛌 ${this.bot.formatUsername(msg.from.username)} больше не планирует сегодня в спейс`;
+
+    this.bot.sendMessage(msg.chat.id, message);
+  };
 }
 
 module.exports = StatusHandlers;

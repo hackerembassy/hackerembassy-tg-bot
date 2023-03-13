@@ -1,7 +1,6 @@
 const NeedsRepository = require("../../repositories/needsRepository");
 const TextGenerators = require("../../services/textGenerators");
 const BaseHandlers = require("./base");
-const UsersHelper = require("../../services/usersHelper");
 
 class NeedsHandlers extends BaseHandlers {
   constructor() {
@@ -65,7 +64,7 @@ class NeedsHandlers extends BaseHandlers {
     this.bot.sendMessage(msg.chat.id, message, {
       "reply_markup": {
           "inline_keyboard": [[{
-              text: "Отменить покупку",
+              text: "❌ Отменить покупку",
               callback_data: JSON.stringify({ command: "/bought_undo", id: id }),
           },],]
       }

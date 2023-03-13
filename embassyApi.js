@@ -2,10 +2,14 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require('body-parser');
 const printer3d = require("./services/printer3d");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
+const logger = require("./services/logger");
+const { unlock } = require("./services/mqtt");
+const { decrypt } = require("./utils/security");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -14,6 +18,7 @@ const routerip = embassyApiConfig.routerip;
 
 const app = express();
 app.use(cors());
+app.use(bodyParser.json()); 
 
 app.get("/webcam", async (_, res) => {
   try {
@@ -24,13 +29,38 @@ app.get("/webcam", async (_, res) => {
     let imgbuffer = await response.arrayBuffer();
     res.send(Buffer.from(imgbuffer));
   } catch (error) {
+    logger.error(error);
     res.send({ message: "Device request failed", error });
+  }
+});
+
+app.post("/unlock", async (req, res) => {
+  try {
+    let token = await decrypt(req.body.token);
+    
+    if (token === process.env["UNLOCKKEY"]) {
+      unlock();
+      logger.info("Door is opened");
+      res.send("Success");
+    } else res.sendStatus(401);
+  } catch (error) {
+    logger.error(error);
+    res.send(error);
   }
 });
 
 app.get("/devicesscan", async (_, res) => {
   let devices = await find({ address: embassyApiConfig.networkRange });
   res.send(devices.map((d) => d.mac));
+});
+
+app.get("/doorbell", async (_, res) => {
+  try {
+    await fetch(`http://${embassyApiConfig.doorbell}/rpc/Switch.Set?id=0&on=true`);
+    res.send({message: "success"});
+  } catch (error) {
+    res.send({message: "error"});
+  }
 });
 
 app.get("/devices", async (_, res) => {
@@ -70,7 +100,7 @@ app.get("/devices", async (_, res) => {
 
     res.send(macs);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     res.send({ message: "Device request failed", error });
   }
 });
@@ -87,17 +117,18 @@ app.get("/printer", async (_, res) => {
 
       if (fileMetadataResponse) {
         fileMetadata = fileMetadataResponse.result;
-        thumbnailBuffer = await printer3d.getThumbnail(fileMetadata && fileMetadata.thumbnails[2].relative_path);
+        let thumbnailPath = fileMetadata && fileMetadata.thumbnails && fileMetadata.thumbnails[fileMetadata.thumbnails.length - 1].relative_path;
+        thumbnailBuffer = await printer3d.getThumbnail(thumbnailPath);
       }
     }
 
     res.send({ status, thumbnailBuffer });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     res.send({ message: "Printer request error", error });
   }
 });
 
 app.listen(port);
 
-console.log(`Embassy Api is ready on port ${port}`);
+logger.info(`Embassy Api is started on port ${port}`);

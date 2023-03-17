@@ -6,4 +6,10 @@ https://gateway.hackerembassy.site:9000 {
     reverse_proxy http://localhost:3000 {
         header_up Host {upstream_hostport}
     }
+
+    
+    tls {
+        issuer acme
+    }
+
 }

@@ -108,7 +108,7 @@ class PrinterHandlers extends BaseHandlers {
     try {
       let status = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`))?.json();
 
-      if (status && !status.error) var message = "🔔 Звоним внутрь";
+      if (status && !status.error) var message = "🔔 Звоним в дверной звонок";
       else throw Error();
     } catch (error) {
       message = `🔕 Не вышло позвонить`;

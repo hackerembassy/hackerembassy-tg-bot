@@ -1,4 +1,8 @@
-https://nickkiselev.me:9000 {
+{
+    auto_https disable_redirects
+}
+
+https://gateway.hackerembassy.site:9000 {
     reverse_proxy http://localhost:3000 {
         header_up Host {upstream_hostport}
     }

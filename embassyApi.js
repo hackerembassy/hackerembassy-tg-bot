@@ -22,9 +22,6 @@ app.use(bodyParser.json());
 
 app.get("/webcam", async (_, res) => {
   try {
-    // tmp solution - flush previous image
-    await fetch(`${embassyApiConfig.webcam}/jpg`);
-    // main request
     const response = await fetch(`${embassyApiConfig.webcam}`);
     let imgbuffer = await response.arrayBuffer();
     res.send(Buffer.from(imgbuffer));

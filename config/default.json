@@ -24,7 +24,7 @@
         "host": "http://127.0.0.1",
         "networkRange": "192.168.1.1-192.168.1.254",
         "routerip": "192.168.1.1",
-        "webcam": "http://192.168.1.210",
+        "webcam": "http://hackem-espcam.lan:8081/",
         "mqtthost": "192.168.1.100",
         "doorbell": "doorbell-shelly.lan"
     },

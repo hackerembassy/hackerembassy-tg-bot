@@ -175,7 +175,7 @@ class BasicHandlers extends BaseHandlers {
   };
 
   controlPanelHandler = async (msg, edit = false) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
     let message = "🕹 Панель управления спейсом для резидентов";
 

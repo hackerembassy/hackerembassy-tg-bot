@@ -142,7 +142,7 @@ class ServiceHandlers extends BaseHandlers {
 
   newMemberHandler = async (msg) => {
     let botName = (await this.bot.getMe()).username;
-    let newMembers = msg.new_chat_members.reduce((res, member) => res + `${this.bot.formatUsername(member.username)} `, "");
+    let newMembers = msg.new_chat_members.reduce((res, member) => res + `${member?.username ? this.bot.formatUsername(member.username) : member?.first_name} `, "");
     let message = `🇬🇧 Добро пожаловать в наш уютный уголок, ${newMembers}
       
 Я @${botName}, бот-менеджер хакерспейса. Ко мне в личку можно зайти пообщаться, вбить мои команды, и я расскажу вкратце о нас.

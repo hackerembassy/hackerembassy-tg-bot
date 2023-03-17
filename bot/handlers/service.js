@@ -4,6 +4,9 @@ const BaseHandlers = require("./base");
 const StatusHandlers = new (require("./status"));
 const FundsHandlers = new (require("./funds"));
 const NeedsHandlers = new (require("./needs"));
+const BirthdayHandlers = new (require("./birthday"));
+const BasicHandlers = new (require("./basic"));
+const EmbassyHandlers = new (require("./embassy"));
 
 class ServiceHandlers extends BaseHandlers {
   constructor() {
@@ -52,23 +55,74 @@ class ServiceHandlers extends BaseHandlers {
       case "/ustatus":
         StatusHandlers.statusHandler(message, true);
         break;
+      case "/birthdays":
+        BirthdayHandlers.birthdayHandler(message);
+        break;
+      case "/needs":
+        NeedsHandlers.needsHandler(message);
+        break;
+      case "/funds":
+        FundsHandlers.fundsHandler(message);
+        break;
+      case "/startpanel":
+        BasicHandlers.startPanelHandler(message, true);
+        break;
+      case "/infopanel":
+        BasicHandlers.infoPanelHandler(message, true);
+        break;
+      case "/controlpanel":
+        BasicHandlers.controlPanelHandler(message, true);
+        break;
+      case "/about":
+        BasicHandlers.aboutHandler(message);
+        break;
+      case "/help":
+        BasicHandlers.helpHandler(message);
+        break;
+      case "/donate":
+        BasicHandlers.donateHandler(message);
+        break;
+      case "/join":
+        BasicHandlers.joinHandler(message);
+        break;
+      case "/location":
+        BasicHandlers.locationHandler(message);
+        break;
+      case "/getresidents":
+        BasicHandlers.getResidentsHandler(message);
+        break;
       case "/ef":
         FundsHandlers.exportFundHandler(message, ...data.params);
         break;
       case "/ed":
         FundsHandlers.exportDonutHandler(message, ...data.params);
         break;
+      case "/unlock":
+        EmbassyHandlers.unlockHandler(message);
+        break;
+      case "/doorbell":
+        EmbassyHandlers.doorbellHandler(message);
+        break;
+      case "/webcam":
+        EmbassyHandlers.webcamHandler(message);
+        break;
+      case "/printer":
+        EmbassyHandlers.printerHandler(message);
+        break;
+      case "/printerstatus":
+      EmbassyHandlers.printerStatusHandler(message);
+      break;
       case "/bought":
         NeedsHandlers.boughtByIdHandler(message, data.id);
         const new_keyboard = message.reply_markup.inline_keyboard.filter(
-          button => button[0].callback_data !== callbackQuery.data
+          (button) => button[0].callback_data !== callbackQuery.data
         );
         if (new_keyboard.length != message.reply_markup.inline_keyboard.length) {
           this.bot.editMessageReplyMarkup(
-            { "inline_keyboard": new_keyboard },
+            { inline_keyboard: new_keyboard },
             {
               chat_id: message.chat.id,
-              message_id: message.message_id
+              message_id: message.message_id,
             }
           );
         }

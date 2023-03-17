@@ -10,14 +10,14 @@ class BasicHandlers extends BaseHandlers {
     super();
   }
 
-  startHandler = (msg) => {
+  helpHandler = (msg) => {
     this.bot.sendMessage(
       msg.chat.id,
-      `🛠 Привет хакерчан. Я новый бот для менеджмента всяких процессов в спейсе. 
+      `🇬🇧 Привет хакерчан. Я новый бот для менеджмента всяких процессов в спейсе. 
 [Я еще нахожусь в разработке, ты можешь поучаствовать в моем развитии в репозитории на гитхабе спейса].
 Держи мой список команд:\n` +
         UsersHelper.getAvailableCommands(msg.from.username) +
-        `${Commands.GlobalModifiers}`,
+        `${Commands.GlobalModifiers}`
     );
   };
 
@@ -27,6 +27,8 @@ class BasicHandlers extends BaseHandlers {
       `🏫 Hacker Embassy (Ереванский Хакспейс) - это пространство, где собираются единомышленники, увлеченные технологиями и творчеством. Мы вместе работаем над проектами, делимся идеями и знаниями, просто общаемся.
       
 💻 Ты можешь почитать о нас подробнее на нашем сайте https://hackerembassy.site/
+
+📓 Информацию о наших проектах, оборудовании и правилах мы храним на нашей вики https://wiki.hackerembassy.site/
       
 🍕 Мы всегда рады новым резидентам. Хочешь узнать, как стать участником? Жми команду /join`
     );
@@ -79,7 +81,7 @@ class BasicHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-`💌Для того, чтобы задонатить этим способом, напишите нашим бухгалтерам. Они подскажут вам текущие реквизиты или вы сможете договориться о времени и месте передачи. 
+      `💌Для того, чтобы задонатить этим способом, напишите нашим бухгалтерам. Они подскажут вам текущие реквизиты или вы сможете договориться о времени и месте передачи. 
       
 Вот они, слева-направо:
       ${accountantsList}
@@ -88,16 +90,196 @@ class BasicHandlers extends BaseHandlers {
   };
 
   getResidentsHandler = (msg) => {
-    let users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
+    let users = UsersRepository.getUsers().filter((u) => UsersHelper.hasRole(u.username, "member"));
     let userList = "";
     for (const user of users) {
       userList += `${this.bot.formatUsername(user.username)}\n`;
     }
 
-    let message = `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
+    let message =
+      `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
 
     this.bot.sendLongMessage(msg.chat.id, message);
-  }
+  };
+
+  startPanelHandler = async (msg, edit = false) => {
+    let message = `🇬🇧 Привет хакерчан. Я новый бот для менеджмента всяких процессов в спейсе. 
+[Я еще нахожусь в разработке, ты можешь поучаствовать в моем развитии в репозитории на гитхабе спейса, обращайся к @korn9509].
+
+🔖 Для получения полного списка команд доступных тебе вводи /help.
+Некоторые команды видны только резидентам.
+`;
+
+    let inlineKeyboard = [
+      [
+        {
+          text: "📯 Статус",
+          callback_data: JSON.stringify({ command: "/status" }),
+        },
+        {
+          text: "💸 Сборы",
+          callback_data: JSON.stringify({ command: "/funds" }),
+        },
+      ],
+      [
+        {
+          text: "🕹 Управление",
+          callback_data: JSON.stringify({ command: "/controlpanel" }),
+        },
+        {
+          text: "📚 Инфа",
+          callback_data: JSON.stringify({ command: "/infopanel" }),
+        },
+      ],
+      [
+        {
+          text: "🎉 Дни рождения",
+          callback_data: JSON.stringify({ command: "/birthdays" }),
+        },
+        {
+          text: "🛍 Нужды",
+          callback_data: JSON.stringify({ command: "/needs" }),
+        },
+      ],
+      [
+        {
+          text: "🖨 3D Принтеры",
+          callback_data: JSON.stringify({ command: "/printer" }),
+        },
+        {
+          text: "📝 Команды бота",
+          callback_data: JSON.stringify({ command: "/help" }),
+        },
+      ],
+    ];
+
+    if (edit) {
+      try {
+        await this.bot.editMessageText(message, {
+          chat_id: msg.chat.id,
+          message_id: msg.message_id,
+          reply_markup: {
+            inline_keyboard: inlineKeyboard,
+          },
+        });
+      } catch {
+        // Message was not modified
+      }
+    } else {
+      await this.bot.sendMessage(msg.chat.id, message, {
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        },
+      });
+    }
+  };
+
+  controlPanelHandler = async (msg, edit = false) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+
+    let message = "🕹 Панель управления спейсом для резидентов";
+
+    let inlineKeyboard = [
+      [
+        {
+          text: "🔑 Открыть дверь",
+          callback_data: JSON.stringify({ command: "/unlock" }),
+        },
+        {
+          text: "🔔 Позвонить в звонок",
+          callback_data: JSON.stringify({ command: "/doorbell" }),
+        },
+      ],
+      [
+        {
+          text: "📹 Посмотреть камеру",
+          callback_data: JSON.stringify({ command: "/webcam" }),
+        },
+        {
+          text: "↩️ Назад",
+          callback_data: JSON.stringify({ command: "/startpanel" }),
+        },
+      ],
+    ];
+
+    if (edit) {
+      try {
+        await this.bot.editMessageText(message, {
+          chat_id: msg.chat.id,
+          message_id: msg.message_id,
+          reply_markup: {
+            inline_keyboard: inlineKeyboard,
+          },
+        });
+      } catch {
+        // Message was not modified
+      }
+    } else {
+      await this.bot.sendMessage(msg.chat.id, message, {
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        },
+      });
+    }
+  };
+
+  infoPanelHandler = async (msg, edit = false) => {
+    let message = `📚 Тут можно немного почитать о нас.
+Если хочешь узнать побольше, не стесняйся, заходи на наш сайт и вики https://hackerembassy.site/`;
+
+    let inlineKeyboard = [
+      [
+        {
+          text: "🏠 О спейсе",
+          callback_data: JSON.stringify({ command: "/about" }),
+        },
+        {
+          text: "🙋‍♀️ Как присоединиться",
+          callback_data: JSON.stringify({ command: "/join" }),
+        },
+      ],
+      [
+        {
+          text: "🗺 Как найти",
+          callback_data: JSON.stringify({ command: "/location" }),
+        },
+        {
+          text: "🎁 Как задонатить",
+          callback_data: JSON.stringify({ command: "/donate" }),
+        },
+      ],
+      [
+        {
+          text: "👩‍💻 Наши резиденты",
+          callback_data: JSON.stringify({ command: "/getresidents" }),
+        },
+        {
+          text: "↩️ Назад",
+          callback_data: JSON.stringify({ command: "/startpanel" }),
+        },
+      ],
+    ];
+
+    if (edit) {
+      try {
+        await this.bot.editMessageText(message, {
+          chat_id: msg.chat.id,
+          message_id: msg.message_id,
+          reply_markup: {
+            inline_keyboard: inlineKeyboard,
+          },
+        });
+      } catch {
+        // Message was not modified
+      }
+    } else {
+      await this.bot.sendMessage(msg.chat.id, message, {
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        },
+      });
+    }
+  };
 }
 
 module.exports = BasicHandlers;

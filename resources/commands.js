@@ -1,5 +1,6 @@
 const GeneralCommandsList = `
 Общие команды:
+/start - Панель управления бота
 /help - Помощь
 /about - О спейсе
 /join - Как присоединиться к нам

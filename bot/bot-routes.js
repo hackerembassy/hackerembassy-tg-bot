@@ -9,7 +9,7 @@ const BirthdayHandlers = new (require("./handlers/birthday"))();
 const AdminHandlers = new (require("./handlers/admin"))();
 const ServiceHandlers = new (require("./handlers/service"))();
 
-bot.onText(/^\/(start|help)(@.+?)?$/, BasicHandlers.startHandler);
+bot.onText(/^\/(help)(@.+?)?$/, BasicHandlers.helpHandler);
 bot.onText(/^\/(about)(@.+?)?$/, BasicHandlers.aboutHandler);
 bot.onText(/^\/(join)(@.+?)?$/, BasicHandlers.joinHandler);
 bot.onText(/^\/(donate)(@.+?)?$/, BasicHandlers.donateHandler);
@@ -17,6 +17,9 @@ bot.onText(/^\/location(@.+?)?$/, BasicHandlers.locationHandler);
 bot.onText(/^\/donate(Cash|Card)(@.+?)?$/, BasicHandlers.donateCardHandler);
 bot.onText(/^\/donate(BTC|ETH|USDC|USDT)(@.+?)?$/, (msg, match) => BasicHandlers.donateCoinHandler(msg, match[1]));
 bot.onText(/^\/getresidents(@.+?)?$/, BasicHandlers.getResidentsHandler);
+bot.onText(/^\/(start|startpanel)(@.+?)?$/, (msg) => BasicHandlers.startPanelHandler(msg));
+bot.onText(/^\/infopanel(@.+?)?$/, (msg) => BasicHandlers.infoPanelHandler(msg));
+bot.onText(/^\/controlpanel(@.+?)?$/, (msg) => BasicHandlers.controlPanelHandler(msg));
 
 bot.onText(/^\/status(@.+?)?$/, (msg) => StatusHandlers.statusHandler(msg));
 bot.onText(/^\/in(@.+?)?$/, StatusHandlers.inHandler);

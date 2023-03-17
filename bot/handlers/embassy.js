@@ -69,7 +69,20 @@ class PrinterHandlers extends BaseHandlers {
 
   printerHandler = async (msg) => {
     let message = TextGenerators.getPrinterInfo();
-    this.bot.sendMessage(msg.chat.id, message);
+    let inlineKeyboard = [
+      [
+        {
+          text: "Статус Anette",
+          callback_data: JSON.stringify({ command: "/printerstatus" }),
+        },
+      ],
+    ]
+
+    this.bot.sendMessage(msg.chat.id, message, {
+      reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      },
+    });
   };
 
   printerStatusHandler = async (msg) => {

@@ -11,6 +11,15 @@ function hasRole(username, ...roles) {
   return intersection.length > 0;
 }
 
+function getRoles(username) {
+  return UsersRepository.getUser(username)?.roles ?? [];
+}
+
+function isMember(username){
+  let userRoles = UsersRepository.getUser(username)?.roles;
+  return userRoles.includes("member");
+}
+
 function getAvailableCommands(username) {
   let availableCommands = Commands.GeneralCommandsList;
   let userRoles = UsersRepository.getUser(username)?.roles;
@@ -27,4 +36,4 @@ function getAvailableCommands(username) {
   return availableCommands;
 }
 
-module.exports = { getAvailableCommands, hasRole };
+module.exports = { getAvailableCommands, hasRole, isMember, getRoles };

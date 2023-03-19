@@ -4,6 +4,7 @@ const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;
 const BotExtensions = require("../bot/botExtensions");
 const StatusRepository = require("../repositories/statusRepository");
+const UsersHelper = require("./usersHelper");
 
 async function createFundList(funds, donations, options = {}) {
   const defaultOptions = {showAdmin: false, isApi: false, isHistory: false};
@@ -81,24 +82,24 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
     ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
-    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит тайное собрание, или они опять забыли сделать /open? Who knows...\n";
+    : `Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит закрытое собрание резидентов, или они опять забыли сделать /open? Who knows... Лучше спроси у них в чате.\n`
   let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18);
   let updateText = !isApi ? `⏱ Обновлено ${(new Date()).toLocaleString("RU-ru").replace(","," в").substr(0, 21)}\n`: "";
   let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}\n`;
-  let autoinsideText = !isApi ? `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
+  let autoinsideText = !isApi ? `📡 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
 
   let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
       : "🛌 Внутри никто не отметился\n";
   for (const user of inside) {
-    insideText += `${BotExtensions.formatUsername(user.username, isApi)}${user.type === StatusRepository.ChangeType.Auto ? " (auto)" : ""}\n`;
+    insideText += `${BotExtensions.formatUsername(user.username, isApi)} ${getAutoBadge(user)}${getRoleBadges(user.username)}\n`;
   }
 
   let goingText = going.length > 0
     ? "\n🚕 Планируют сегодня зайти:\n"
     : "";
   for (const user of going) {
-    goingText += `${BotExtensions.formatUsername(user.username, isApi)}\n`;
+    goingText += `${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user.username)}\n `;
   }
 
   return `${stateFullText}
@@ -107,6 +108,15 @@ ${insideText}${goingText}
 ${updateText}
 ${autoinsideText}`;
 };
+
+function getRoleBadges(username){
+  let roles = UsersHelper.getRoles(username);
+  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "🪙" : ""}${roles.includes("admin") ? "🐸" : ""}`
+}
+
+function getAutoBadge(user){
+  return user.type === StatusRepository.ChangeType.Auto ? "📡" : "";
+}
 
 function getAccountsList(accountants, isApi = false) {
   let accountantsList = "";

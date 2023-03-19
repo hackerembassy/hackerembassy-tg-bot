@@ -11,12 +11,13 @@ function hasRole(username, ...roles) {
   return intersection.length > 0;
 }
 
-function getRoles(username) {
-  return UsersRepository.getUser(username)?.roles ?? [];
+function getRoles(user) {
+  if (user.roles) return user.roles;
+  return UsersRepository.getUser(user)?.roles ?? [];
 }
 
-function isMember(username){
-  let userRoles = UsersRepository.getUser(username)?.roles;
+function isMember(user){
+  let userRoles = user?.roles ? user?.roles : UsersRepository.getUser(user)?.roles;
   return userRoles.includes("member");
 }
 

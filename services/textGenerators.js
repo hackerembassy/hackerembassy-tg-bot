@@ -123,12 +123,21 @@ function getAccountsList(accountants, isApi = false) {
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user)}\n`,
       ""
     );
   }
 
   return accountantsList;
+}
+
+function getResidentsList(residents){
+  let userList = "";
+    for (const user of residents) {
+      userList += `${BotExtensions.formatUsername(user.username)} ${getRoleBadges(user)}\n`;
+    }
+
+    return `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
 }
 
 function getNeedsList(needs) {
@@ -302,6 +311,7 @@ async function getPrinterStatus(status) {
 module.exports = {
   createFundList,
   getAccountsList,
+  getResidentsList,
   getStatusMessage,
   getDonateText,
   getJoinText,

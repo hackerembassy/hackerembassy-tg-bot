@@ -111,7 +111,7 @@ ${autoinsideText}`;
 
 function getRoleBadges(username){
   let roles = UsersHelper.getRoles(username);
-  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "🪙" : ""}${roles.includes("admin") ? "🐸" : ""}`
+  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "💰" : ""}${roles.includes("admin") ? "🐸" : ""}`
 }
 
 function getAutoBadge(user){

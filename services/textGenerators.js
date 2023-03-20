@@ -86,7 +86,7 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
   let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18);
   let updateText = !isApi ? `⏱ Обновлено ${(new Date()).toLocaleString("RU-ru").replace(","," в").substr(0, 21)}\n`: "";
   let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}\n`;
-  let autoinsideText = !isApi ? `📡 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
+  let autoinsideText = !isApi ? `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
 
   let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
@@ -111,11 +111,11 @@ ${autoinsideText}`;
 
 function getRoleBadges(username){
   let roles = UsersHelper.getRoles(username);
-  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "💰" : ""}${roles.includes("admin") ? "🐸" : ""}${roles.includes("kitten") ? "😺" : ""}`
+  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${roles.includes("admin") ? "🐸" : ""}${roles.includes("kitten") ? "😺" : ""}`
 }
 
 function getAutoBadge(user){
-  return user.type === StatusRepository.ChangeType.Auto ? "📡" : "";
+  return user.type === StatusRepository.ChangeType.Auto ? "📲" : "";
 }
 
 function getAccountsList(accountants, isApi = false) {

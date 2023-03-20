@@ -99,7 +99,7 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
     ? "\n🚕 Планируют сегодня зайти:\n"
     : "";
   for (const user of going) {
-    goingText += `${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user.username)}\n `;
+    goingText += `${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user.username)}\n`;
   }
 
   return `${stateFullText}
@@ -111,7 +111,7 @@ ${autoinsideText}`;
 
 function getRoleBadges(username){
   let roles = UsersHelper.getRoles(username);
-  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "💰" : ""}${roles.includes("admin") ? "🐸" : ""}`
+  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "💰" : ""}${roles.includes("admin") ? "🐸" : ""}${roles.includes("kitten") ? "😺" : ""}`
 }
 
 function getAutoBadge(user){

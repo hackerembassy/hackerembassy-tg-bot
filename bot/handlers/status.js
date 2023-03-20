@@ -30,8 +30,8 @@ class StatusHandlers extends BaseHandlers {
       let usermac = UsersRepository.getUser(username)?.mac;
 
       if (usermac)
-        message = `📡 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
-      else message = `📡 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
+        message = `📲 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
+      else message = `📲 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
     }
 
     this.bot.sendMessage(msg.chat.id, message);

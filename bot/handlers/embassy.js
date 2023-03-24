@@ -87,7 +87,7 @@ class PrinterHandlers extends BaseHandlers {
 
   printerStatusHandler = async (msg) => {
     try {
-      var { status, thumbnailBuffer } = await (
+      var { status, thumbnailBuffer, cam } = await (
         await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer`)
       )?.json();
 
@@ -97,8 +97,23 @@ class PrinterHandlers extends BaseHandlers {
       logger.error(error);
       message = `⚠️ Принтер пока недоступен`;
     } finally {
-      if (thumbnailBuffer) this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), { caption: message });
-      else this.bot.sendMessage(msg.chat.id, message);
+      if (cam) await this.bot.sendPhoto(msg.chat.id, Buffer.from(cam));
+
+      let inlineKeyboard = [
+        [
+          {
+            text: "Обновить статус Anette",
+            callback_data: JSON.stringify({ command: "/printerstatus" }),
+          },
+        ],
+      ]
+
+      if (thumbnailBuffer) await this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), { caption: message, reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      } });
+      else await this.bot.sendMessage(msg.chat.id, message, {reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      }});
     }
   };
 

@@ -16,7 +16,8 @@
         "logpath": "log.log"
     },
     "printer3d" : {
-        "apibase":"http://anette.lan"
+        "apibase": "http://anette.lan",
+        "camport": 8080
     },
     "embassy-api":{
         "timeout": 15000,

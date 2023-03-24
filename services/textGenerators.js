@@ -290,9 +290,9 @@ async function getPrinterStatus(status) {
     let progress = (status.display_status.progress * 100).toFixed(0);
     let estimate = (((minutesPast / progress) * (100 - progress))).toFixed(2);
 
-    message = `⏲ Печатается ${print_stats.filename}
+    message = `⏲ Печатается файл ${print_stats.filename}
 
-🕔 Процент файл завершения ${progress}%
+🕔 Процент завершения ${progress}%
    Прошло ${minutesPast} минут
    Осталось ~${estimate} минут
 
@@ -301,7 +301,7 @@ async function getPrinterStatus(status) {
 🔥 Температура экструдера ${extruder.temperature} C, целевая ${
       extruder.target
     } C
-   Температура стола ${heater_bed.temperature} C, целевая ${heater_bed.target} C
+    Температура стола ${heater_bed.temperature} C, целевая ${heater_bed.target} C
 `;
   }
 

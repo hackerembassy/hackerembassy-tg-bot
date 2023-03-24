@@ -106,11 +106,13 @@ app.get("/printer", async (_, res) => {
   try {
     let fileMetadata;
     let thumbnailBuffer;
+    let cam;
     let statusResponse = await printer3d.getPrinterStatus();
     let status = statusResponse && statusResponse.result.status;
 
     if (status) {
       let fileMetadataResponse = await printer3d.getFileMetadata(status.print_stats && status.print_stats.filename);
+      cam = await printer3d.getCam();
 
       if (fileMetadataResponse) {
         fileMetadata = fileMetadataResponse.result;
@@ -119,7 +121,7 @@ app.get("/printer", async (_, res) => {
       }
     }
 
-    res.send({ status, thumbnailBuffer });
+    res.send({ status, thumbnailBuffer, cam });
   } catch (error) {
     logger.error(error);
     res.send({ message: "Printer request error", error });

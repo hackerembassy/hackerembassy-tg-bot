@@ -2,6 +2,7 @@ const fetch = require('node-fetch');
 const config = require('config');
 const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;
+const camPort = printer3dConfig.camport;
 
 class Printer3d{
     static async getPrinterStatus(){
@@ -21,6 +22,16 @@ class Printer3d{
 
         const response = await fetch(`${apiBase}/server/files/gcodes/${path}`);
         return response.status === 200 ? await response.blob() : null;
+    }
+
+    static async getCam(){
+        const response = await fetch(`${apiBase}:${camPort}/snapshot`);
+        let camblob = response.status === 200 ? await response.blob() : null;
+
+        if (camblob)
+            return await camblob.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, "binary"));
+        
+        return null;
     }
 
     static async getThumbnail(path){

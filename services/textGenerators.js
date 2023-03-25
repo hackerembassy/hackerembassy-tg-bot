@@ -277,6 +277,14 @@ https://wiki.hackerembassy.site/ru/equipment/anette
 `
 }
 
+function toMinSec(num){
+  if (isNaN(num) || !isFinite(num)) return "Хз";
+  let numstr = num.toFixed(2);
+  let [integral, decimal] = numstr.split(".");
+  decimal = Math.floor((Number(decimal)*60/100)).toString();
+  return `${integral}.${decimal.substring(0,2).padStart(2,"0")}`;
+}
+
 async function getPrinterStatus(status) {
   let print_stats = status.print_stats;
   let state = print_stats.state;
@@ -286,9 +294,9 @@ async function getPrinterStatus(status) {
   let message = `💤 Статус принтера: ${state}`;
 
   if (state === "printing") {
-    let minutesPast = (print_stats.total_duration / 60).toFixed(2);
+    let minutesPast = toMinSec(print_stats.total_duration / 60);
     let progress = (status.display_status.progress * 100).toFixed(0);
-    let estimate = (((minutesPast / progress) * (100 - progress))).toFixed(2);
+    let estimate = toMinSec((minutesPast / progress) * (100 - progress));
 
     message = `⏲ Печатается файл ${print_stats.filename}
 

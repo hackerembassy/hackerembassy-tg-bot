@@ -112,7 +112,12 @@ app.get("/printer", async (_, res) => {
 
     if (status) {
       let fileMetadataResponse = await printer3d.getFileMetadata(status.print_stats && status.print_stats.filename);
-      cam = await printer3d.getCam();
+      try {
+        cam = await printer3d.getCam();
+      }
+      catch {
+        cam = null;
+      }
 
       if (fileMetadataResponse) {
         fileMetadata = fileMetadataResponse.result;

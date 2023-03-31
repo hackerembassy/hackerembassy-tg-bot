@@ -23,6 +23,11 @@ const GeneralCommandsList = `
 #\`/bought item_name#\` - Отметить что-то купленным из needs
 /setmac - Управление своим MAC адресом
 /autoinside - Настроить автоматический вход и выход из спейса
+
+Мем команды:
+/randomcat
+/randomdog
+/randomcab
 `;
 
 const MemberCommandsList = `

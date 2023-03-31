@@ -8,6 +8,7 @@ const EmbassyHandlers = new (require("./handlers/embassy"))();
 const BirthdayHandlers = new (require("./handlers/birthday"))();
 const AdminHandlers = new (require("./handlers/admin"))();
 const ServiceHandlers = new (require("./handlers/service"))();
+const MemeHandlers = new (require("./handlers/meme"))();
 
 bot.onText(/^\/(help)(@.+?)?$/, BasicHandlers.helpHandler);
 bot.onText(/^\/(about)(@.+?)?$/, BasicHandlers.aboutHandler);
@@ -69,6 +70,10 @@ bot.onText(/^\/updateroles(@.+?)? of (\S+?) to (\S+)$/, (msg, match) => AdminHan
 bot.onText(/^\/removeuser(@.+?)? (\S+)$/, (msg, match) => AdminHandlers.removeUserHandler(msg, match[2]));
 bot.onText(/^\/forward(@.+?)? (.*)$/, (msg, match) => AdminHandlers.forwardHandler(msg, match[2]));
 bot.onText(/^\/getlog(@.+?)?$/, AdminHandlers.getLogHandler);
+
+bot.onText(/^\/randomdog(@.+?)?$/, MemeHandlers.randomDogHandler);
+bot.onText(/^\/randomcat(@.+?)?$/, MemeHandlers.randomCatHandler);
+bot.onText(/^\/randomcab(@.+?)?$/, MemeHandlers.randomCabHandler);
 
 bot.onText(/^\/clear(@.+?)?(?: (\d*))?$/, (msg, match) => ServiceHandlers.clearHandler(msg, match[2]));
 bot.on("callback_query", ServiceHandlers.callbackHandler);

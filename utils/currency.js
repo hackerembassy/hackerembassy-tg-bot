@@ -19,6 +19,24 @@ function formatCurrency(value, currency) {
     return Number(value.toFixed(fraction));
 }
 
+function prepareCurrency(currencyInput){
+    if (!currencyInput.length) 
+      return currencyConfig.default;
+  
+    let outputCurrency = currencyInput;
+  
+    switch (currencyInput){
+      case "$": outputCurrency = "USD"; break;
+      case "€": outputCurrency = "EUR"; break;
+      case "£": outputCurrency = "GBP"; break;
+      case "֏": outputCurrency = "AMD"; break;
+      case "₽": outputCurrency = "RUB"; break;
+      default: outputCurrency = currencyInput.toUpperCase()
+    }
+  
+    return outputCurrency;
+  }
+
 const convert = new CryptoConvert({
 	cryptoInterval: currencyConfig.cryptoUpdateInterval,
 	fiatInterval: currencyConfig.fiatUpdateInterval,
@@ -41,4 +59,4 @@ async function convertCurrency(amount, from, to){
     }
 }
 
-module.exports = {convertCurrency, CurrencyFractionDigits, formatCurrency}
+module.exports = {convertCurrency, CurrencyFractionDigits, formatCurrency, prepareCurrency}

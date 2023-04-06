@@ -2,9 +2,8 @@ const FundsRepository = require("../../repositories/fundsRepository");
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const ExportHelper = require("../../services/export");
-const config = require("config");
-const currencyConfig = config.get("currency");
 const BaseHandlers = require("./base");
+const {prepareCurrency} = require("../../utils/currency");
 
 const CALLBACK_DATA_RESTRICTION = 20;
 
@@ -90,7 +89,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
     let targetValue = this.parseMoneyValue(target);
-    currency = currency?.length > 0 ? currency.toUpperCase() : currencyConfig.default;
+    currency = prepareCurrency(currency);
 
     let success = !isNaN(targetValue) && FundsRepository.addfund(fundName, targetValue, currency);
     let message = success
@@ -104,7 +103,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
     let targetValue = this.parseMoneyValue(target);
-    currency = currency?.length > 0 ? currency.toUpperCase() : currencyConfig.default;
+    currency = prepareCurrency(currency);
     let newFundName = newFund?.length > 0 ? newFund : fundName;
 
     let success = !isNaN(targetValue) && FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
@@ -175,9 +174,12 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
   addDonationHandler = async (msg, value, currency, userName, fundName) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
+    console.log(value);
+    console.log(currency);
+    console.log(userName);
 
     value = this.parseMoneyValue(value);
-    currency = currency.length > 0 ? currency.toUpperCase() : currencyConfig.default;
+    currency = prepareCurrency(currency);
     userName = userName.replace("@", "");
     let accountant = msg.from.username;
 
@@ -193,7 +195,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     value = this.parseMoneyValue(value);
-    currency = currency.length > 0 ? currency.toUpperCase() : currencyConfig.default;
+    currency = prepareCurrency(currency);
     userName = userName.replace("@", "");
     let fundName = FundsRepository.getLatestCosts().name;
     let accountant = msg.from.username;
@@ -220,7 +222,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 
     value = this.parseMoneyValue(value);
-    currency = currency.length > 0 ? currency.toUpperCase() : currencyConfig.default;
+    currency = prepareCurrency(currency);
 
     let success = FundsRepository.updateDonation(donationId, value, currency);
     let message = success ? `🔄 Обновлен донат [id:${donationId}]` : `⚠️ Не удалось обновить донат (может его и не было?)`;

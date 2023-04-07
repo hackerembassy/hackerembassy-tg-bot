@@ -9,7 +9,8 @@ const {
   enableAutoWishes,
   extendWithFormatUserName,
   extendWithIsAdminMode,
-  enablePaymentNotifications
+  enablePaymentNotifications,
+  AddHelperFunctions
 } = require("./botExtensions");
 
 process.env.TZ = botConfig.timezone;
@@ -26,6 +27,7 @@ extendWithIsAdminMode(bot);
 addSavingLastMessages(bot);
 makeAllMessagesMarkdown(bot);
 enablePaymentNotifications(bot);
+AddHelperFunctions(bot);
 if (botConfig.autoWish) enableAutoWishes(bot);
 
 // Debug echoing of received messages

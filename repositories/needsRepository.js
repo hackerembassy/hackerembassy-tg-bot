@@ -15,7 +15,6 @@ class NeedsRepository extends BaseRepository {
       .all();
 
     return needs;
-    s;
   }
 
   addBuy(text, requester, date) {
@@ -31,8 +30,7 @@ class NeedsRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -46,8 +44,7 @@ class NeedsRepository extends BaseRepository {
 
       return need.id;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -61,8 +58,7 @@ class NeedsRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }

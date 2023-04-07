@@ -41,7 +41,7 @@ async function createFundList(funds, donations, options = {}) {
 
     let tgCopyDelimiter = options.isApi ? "" : "#\`";
 
-    list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
+    list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatValueForCurrency(sum, fund.target_currency)} из ${
       fund.target_value
     } ${fund.target_currency}\n`;
 
@@ -49,7 +49,7 @@ async function createFundList(funds, donations, options = {}) {
       for (const donation of fundDonations) {
         list += `      ${options.showAdmin ? `[id:${donation.id}] - `: ""}${BotExtensions.formatUsername(
           donation.username, options.isApi
-        )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${options.showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, options.isApi)}` : ""}\n`;
+        )} - ${Currency.formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${options.showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, options.isApi)}` : ""}\n`;
       }
     }
 

@@ -277,8 +277,15 @@ function enablePaymentNotifications(bot) {
   setInterval(() => bot.sendNotification( `📢 Котики, проверьте оплату за интернет, иначе его отключат завтра`, "18", botConfig.chats.key), 43200000); // 12hr
 }
 
+function AddHelperFunctions(bot) {
+  bot.IsMessageFromPrivateChat = (msg) => {
+    return msg?.chat.type === "private";
+  };
+}
+
 module.exports = {
   mode,
+  AddHelperFunctions,
   initGlobalModifiers,
   formatUsername,
   popLast,

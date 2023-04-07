@@ -4,9 +4,7 @@ const currencyConfig = config.get("currency");
 
 class FundsRepository extends BaseRepository {
   getfunds() {
-    let funds = this.db.prepare("SELECT * FROM funds").all();
-
-    return funds;
+    return this.db.prepare("SELECT * FROM funds").all();
   }
 
   getfundByName(fundName) {
@@ -24,11 +22,9 @@ class FundsRepository extends BaseRepository {
   }
 
   getDonationsForId(fundId) {
-    let donations = this.db
+    return this.db
       .prepare("SELECT * FROM donations WHERE fund_id = ?")
       .all(fundId);
-
-    return donations;
   }
 
   getDonationsForName(fundName) {
@@ -45,7 +41,9 @@ class FundsRepository extends BaseRepository {
 
   addfund(fundName, target, currency = currencyConfig.default, status = "open") {
     try {
-      if (this.getfundByName(fundName) !== undefined) return false;
+      if (this.getfundByName(fundName) !== undefined) throw new Error(`Fund ${fundName} already exists`);
+
+      if (!currency) throw new Error(`Invalid currency ${currency}`);
 
       this.db
         .prepare(
@@ -56,6 +54,7 @@ class FundsRepository extends BaseRepository {
       return true;
     }
     catch (error) {
+      this.logger.error(error);
       return false;
     }
   }
@@ -64,7 +63,8 @@ class FundsRepository extends BaseRepository {
     try {
       let fund = this.getfundByName(fundName);
 
-      if (!fund) return false;
+      if (!fund) throw new Error(`Fund ${fundName} not found`);
+      if (!currency) throw new Error(`Invalid currency ${currency}`);
 
       this.db
         .prepare(
@@ -75,22 +75,20 @@ class FundsRepository extends BaseRepository {
       return true;
     }
     catch (error) {
-      console.log(error);
+      this.logger.error(error);
       return false;
     }
   }
   
   removefund(fundName) {
     try {
-      if (this.getfundByName(fundName) === null) return false;
+      if (!this.getfundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
 
       this.db.prepare("DELETE FROM funds WHERE name = ?").run(fundName);
-
       return true;
     }
     catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -101,7 +99,7 @@ class FundsRepository extends BaseRepository {
 
   changefundStatus(fundName, status) {
     try {
-      if (this.getfundByName(fundName) === null) return false;
+      if (!this.getfundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
 
       this.db
         .prepare("UPDATE funds SET status = ? WHERE name = ?")
@@ -110,8 +108,7 @@ class FundsRepository extends BaseRepository {
       return true;
     }
     catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -120,7 +117,8 @@ class FundsRepository extends BaseRepository {
     try {
       let fundId = this.getfundByName(fundName)?.id;
 
-      if (fundId === undefined) return false;
+      if (!fundId) throw new Error(`Fund ${fundName} not found`);
+      if (!currency) throw new Error(`Invalid currency ${currency}`);
 
       this.db
         .prepare(
@@ -131,30 +129,29 @@ class FundsRepository extends BaseRepository {
       return true;
     }
     catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
 
   updateDonation(donationId, value, currency) {
     try {
-      if (this.getDonationById(donationId) === null) return false;
+      if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
+      if (!currency) throw new Error(`Invalid currency ${currency}`);;
 
       this.db.prepare("UPDATE donations SET value = ?, currency = ? WHERE id = ?").run(value, currency, donationId);
 
       return true;
     }
     catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
 
   transferDonation(id, accountant) {
     try {
-      if (this.getDonationById(id) === null) return false;
+      if (!this.getDonationById(id)) throw new Error(`Donation with id ${id} not found`);
 
       this.db
         .prepare("UPDATE donations SET accountant = ? WHERE id = ?")
@@ -163,23 +160,21 @@ class FundsRepository extends BaseRepository {
       return true;
     }
     catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
 
   removeDonationById(donationId) {
     try {
-      if (this.getDonationById(donationId) === null) return false;
+      if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
 
       this.db.prepare("DELETE FROM donations WHERE id = ?").run(donationId);
 
       return true;
     }
     catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }

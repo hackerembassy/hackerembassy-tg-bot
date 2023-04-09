@@ -6,6 +6,8 @@ const config = require("config");
 const botConfig = config.get("bot");
 const bot = require("./bot/bot");
 
+const EmbassyHandlers = new (require("./bot/handlers/embassy"))();
+
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
 const FundsRepository = require("./repositories/fundsRepository");
@@ -31,7 +33,7 @@ app.get("/commands", (_, res) => {
   res.send(Commands.ApiCommandsList);
 });
 
-app.post("/doorbell", (req, res) => {
+app.get("/doorbell", async (req, res) => {
   if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
     logger.info(`Got doorbell with invalid token`);
     res.send({message: "Invalid token"});
@@ -42,7 +44,8 @@ app.post("/doorbell", (req, res) => {
   let inside = StatusRepository.getPeopleInside();  
   if (!inside || inside.length === 0){
     logger.info(`No one inside. Notified members.`);
-    bot.sendMessage(botConfig.chats.key, "🔔 Кто-то позвонил в дверной звонок, а внутри никого.")
+    await bot.sendMessage(botConfig.chats.key, "🔔 Кто-то позвонил в дверной звонок, а внутри никого.");
+    await EmbassyHandlers.sendDoorcam(botConfig.chats.key);
   }
 
   res.send({message: "Success"});

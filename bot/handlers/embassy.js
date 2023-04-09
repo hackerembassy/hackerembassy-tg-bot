@@ -67,6 +67,27 @@ class PrinterHandlers extends BaseHandlers {
     }
   };
 
+  sendDoorcam = async (chatid) => {
+    try {
+      let response = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorcam`))?.arrayBuffer();
+  
+      let webcamImage = Buffer.from(response);
+  
+      if (webcamImage) await this.bot.sendPhoto(chatid, webcamImage);
+      else throw Error("Empty doorcam image");
+    } catch (error) {
+      let message = `⚠️ Камера пока недоступна`;
+      this.bot.sendMessage(chatid, message);
+      logger.error(error);
+    }
+  }
+
+  doorcamHandler = async (msg) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
+
+    await this.sendDoorcam(msg.chat.id);
+  };
+
   printerHandler = async (msg) => {
     let message = TextGenerators.getPrinterInfo();
     let inlineKeyboard = [

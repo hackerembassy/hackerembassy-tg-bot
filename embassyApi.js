@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require('body-parser');
 const printer3d = require("./services/printer3d");
+const {getDoorcamImage} = require("./services/media");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
@@ -19,6 +20,16 @@ const routerip = embassyApiConfig.routerip;
 const app = express();
 app.use(cors());
 app.use(bodyParser.json()); 
+
+app.get("/doorcam", async (_, res) => {
+  try {
+    let imgbuffer = await getDoorcamImage();
+    res.send(Buffer.from(imgbuffer));
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Device request failed", error });
+  }
+});
 
 app.get("/webcam", async (_, res) => {
   try {

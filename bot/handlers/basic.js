@@ -186,9 +186,15 @@ class BasicHandlers extends BaseHandlers {
       ],
       [
         {
-          text: "📹 Посмотреть камеру",
+          text: "📹 Камера 1-го этажа",
           callback_data: JSON.stringify({ command: "/webcam" }),
         },
+        {
+          text: "📹 Камера на улицу",
+          callback_data: JSON.stringify({ command: "/doorcam" }),
+        },
+      ],
+      [
         {
           text: "↩️ Назад",
           callback_data: JSON.stringify({ command: "/startpanel" }),

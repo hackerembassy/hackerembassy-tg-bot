@@ -27,6 +27,7 @@
         "routerip": "192.168.1.1",
         "webcam": "http://hackem-espcam.lan:8081/",
         "mqtthost": "blackbox.lan",
+        "doorcam": "doorcam.lan:554/10",
         "doorbell": "doorbell-shelly.lan"
     },
     "currency":{

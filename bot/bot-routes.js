@@ -35,6 +35,7 @@ bot.onText(/^\/going(@.+?)?$/, StatusHandlers.goingHandler);
 bot.onText(/^\/notgoing(@.+?)?$/, StatusHandlers.notGoingHandler);
 
 bot.onText(/^\/(webcam)(@.+?)?$/, EmbassyHandlers.webcamHandler);
+bot.onText(/^\/(doorcam)(@.+?)?$/, EmbassyHandlers.doorcamHandler);
 bot.onText(/^\/(printer)(@.+?)?$/, EmbassyHandlers.printerHandler);
 bot.onText(/^\/(printerstatus)(@.+?)?$/, EmbassyHandlers.printerStatusHandler);
 bot.onText(/^\/unlock(@.+?)?$/, EmbassyHandlers.unlockHandler);

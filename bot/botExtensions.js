@@ -4,6 +4,8 @@ const UsersRepository = require("../repositories/usersRepository");
 const fs = require("fs/promises");
 const path = require("path");
 const logger = require("../services/logger");
+const { fetchWithTimeout } = require("../utils/network");
+const embassyApiConfig = config.get("embassy-api");
 
 const maxChunkSize = 3000;
 const messagedelay = 1500;

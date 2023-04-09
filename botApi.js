@@ -33,7 +33,7 @@ app.get("/commands", (_, res) => {
   res.send(Commands.ApiCommandsList);
 });
 
-app.get("/doorbell", async (req, res) => {
+app.post("/doorbell", async (req, res) => {
   if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
     logger.info(`Got doorbell with invalid token`);
     res.send({message: "Invalid token"});

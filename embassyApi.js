@@ -100,12 +100,15 @@ app.get("/devices", async (_, res) => {
       method: "POST",
     });
 
-    let json = await response.json();
+    let adapters = await response.json();
     let macs = [];
-    for (const wlan of json) {
-      macs = macs.concat(wlan.result[1].results.map((dev) => dev.mac.toLowerCase()));
-    }
 
+    for (const wlanAdapter of adapters) {
+      let devices = wlanAdapter.result[1]?.results;
+      if (devices)
+        macs = macs.concat(devices.map((dev) => dev.mac.toLowerCase()));
+    }
+    
     res.send(macs);
   } catch (error) {
     logger.error(error);

@@ -4,6 +4,7 @@ const UsersHelper = require("../../services/usersHelper");
 const ExportHelper = require("../../services/export");
 const BaseHandlers = require("./base");
 const {prepareCurrency, parseMoneyValue} = require("../../utils/currency");
+const logger = require("../../services/logger");
 
 const CALLBACK_DATA_RESTRICTION = 20;
 
@@ -13,11 +14,13 @@ class FundsHandlers extends BaseHandlers {
   }
 
   fundsHandler = async (msg) => {
-    let funds = FundsRepository.getfunds().filter((p) => p.status === "open");
+    let funds = FundsRepository.getFunds().filter((p) => p.status === "open");
     let donations = FundsRepository.getDonations();
-    let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.bot.IsMessageFromPrivateChat(msg) || this.bot.isAdminMode());
+    let showAdmin =
+      UsersHelper.hasRole(msg.from.username, "admin", "accountant") &&
+      (this.bot.IsMessageFromPrivateChat(msg) || this.bot.isAdminMode());
 
-    let list = await TextGenerators.createFundList(funds, donations, {showAdmin});
+    let list = await TextGenerators.createFundList(funds, donations, { showAdmin });
 
     let message = `⚒ Вот наши текущие сборы:
       
@@ -27,10 +30,11 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
   };
 
   fundHandler = async (msg, fundName) => {
-    let funds = [FundsRepository.getfundByName(fundName)];
+    let funds = [FundsRepository.getFundByName(fundName)];
     let donations = FundsRepository.getDonationsForName(fundName);
-    let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.bot.IsMessageFromPrivateChat(msg) || this.bot.isAdminMode());
-
+    let showAdmin =
+      UsersHelper.hasRole(msg.from.username, "admin", "accountant") &&
+      (this.bot.IsMessageFromPrivateChat(msg) || this.bot.isAdminMode());
 
     // telegram callback_data is restricted to 64 bytes
     let inlineKeyboard =
@@ -55,7 +59,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
           ]
         : [];
 
-    let list = await TextGenerators.createFundList(funds, donations, {showAdmin});
+    let list = await TextGenerators.createFundList(funds, donations, { showAdmin });
 
     let message = `${list}💸 Чтобы узнать, как нам помочь - жми /donate`;
 
@@ -67,11 +71,13 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
   };
 
   fundsallHandler = async (msg) => {
-    let funds = FundsRepository.getfunds();
+    let funds = FundsRepository.getFunds();
     let donations = FundsRepository.getDonations();
-    let showAdmin = UsersHelper.hasRole(msg.from.username, "admin", "accountant") && (this.bot.IsMessageFromPrivateChat(msg) || this.bot.isAdminMode());
+    let showAdmin =
+      UsersHelper.hasRole(msg.from.username, "admin", "accountant") &&
+      (this.bot.IsMessageFromPrivateChat(msg) || this.bot.isAdminMode());
 
-    let list = await TextGenerators.createFundList(funds, donations, {showAdmin, isHistory:true});
+    let list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true });
 
     this.bot.sendLongMessage(msg.chat.id, "💾 Вот архив всех наших сборов:\n\n" + list);
   };
@@ -82,7 +88,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     let targetValue = parseMoneyValue(target);
     currency = await prepareCurrency(currency);
 
-    let success = !isNaN(targetValue) && FundsRepository.addfund(fundName, targetValue, currency);
+    let success = !isNaN(targetValue) && FundsRepository.addFund(fundName, targetValue, currency);
     let message = success
       ? `💰 Добавлен сбор ${fundName} с целью в ${targetValue} ${currency}`
       : `⚠️ Не удалось добавить сбор (может он уже есть?)`;
@@ -97,7 +103,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     currency = await prepareCurrency(currency);
     let newFundName = newFund?.length > 0 ? newFund : fundName;
 
-    let success = !isNaN(targetValue) && FundsRepository.updatefund(fundName, targetValue, currency, newFundName);
+    let success = !isNaN(targetValue) && FundsRepository.updateFund(fundName, targetValue, currency, newFundName);
     let message = success
       ? `🔄 Обновлен сбор ${fundName} с новой целью в ${targetValue} ${currency}`
       : `⚠️ Не удалось обновить сбор (может не то имя?)`;
@@ -108,34 +114,16 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
   removeFundHandler = (msg, fundName) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-    let success = FundsRepository.removefund(fundName);
+    let success = FundsRepository.removeFund(fundName);
     let message = success ? `🗑 Удален сбор ${fundName}` : `⚠️ Не удалось удалить сбор`;
 
     this.bot.sendMessage(msg.chat.id, message);
   };
 
-  async exportFundHandler(msg, fundName) {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
-    let csvBuffer = await ExportHelper.exportFundToCSV(fundName);
-
-    if (!csvBuffer?.length) {
-      this.bot.sendMessage(msg.chat.id, "⚠️ Нечего экспортировать");
-      return;
-    }
-
-    const fileOptions = {
-      filename: `${fundName} donations.csv`,
-      contentType: "text/csv",
-    };
-
-    this.bot.sendDocument(msg.chat.id, csvBuffer, {}, fileOptions);
-  }
-
   closeFundHandler = (msg, fundName) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
-    let success = FundsRepository.closefund(fundName);
+    let success = FundsRepository.closeFund(fundName);
     let message = success ? `☑️ Закрыт сбор ${fundName}` : `⚠️ Не удалось закрыть сбор`;
 
     this.bot.sendMessage(msg.chat.id, message);
@@ -146,7 +134,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
     fundStatus = fundStatus.toLowerCase();
 
-    let success = FundsRepository.changefundStatus(fundName, fundStatus);
+    let success = FundsRepository.changeFundStatus(fundName, fundStatus);
     let message = success ? `✳️ Статус сбора ${fundName} изменен на ${fundStatus}` : `⚠️ Не удалось изменить статус сбора`;
 
     this.bot.sendMessage(msg.chat.id, message);
@@ -158,8 +146,15 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     accountant = accountant.replace("@", "");
 
     let success = FundsRepository.transferDonation(id, accountant);
-    let message = success ? `↪️ Донат ${id} передан ${this.bot.formatUsername(accountant)}` : `⚠️ Не удалось передать донат`;
-    
+    let message = `⚠️ Не удалось передать донат`;
+
+    if (success) {
+      let donation = FundsRepository.getDonationById(id);
+      let fund = FundsRepository.getFundById(donation.fund_id);
+      message = `↪️ Донат [id:${id}] передан ${this.bot.formatUsername(accountant)}
+${this.bot.formatUsername(donation.username)} донатил в сбор ${fund.name} в размере ${donation.value} ${donation.currency}`;
+    }
+
     this.bot.sendMessage(msg.chat.id, message);
   };
 
@@ -198,7 +193,6 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
 
   removeDonationHandler = (msg, donationId) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
-    
 
     let success = FundsRepository.removeDonationById(donationId);
     let message = success ? `🗑 Удален донат [id:${donationId}]` : `⚠️ Не удалось удалить донат (может его и не было?)`;
@@ -218,23 +212,48 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
     this.bot.sendMessage(msg.chat.id, message);
   };
 
+  exportCSVHandler = async (msg, fundName) => {
+    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
+
+    try {
+      let csvBuffer = await ExportHelper.exportFundToCSV(fundName);
+
+      if (!csvBuffer?.length) {
+        this.bot.sendMessage(msg.chat.id, "⚠️ Нечего экспортировать");
+        return;
+      }
+
+      const fileOptions = {
+        filename: `${fundName} donations.csv`,
+        contentType: "text/csv",
+      };
+
+      await this.bot.sendDocument(msg.chat.id, csvBuffer, {}, fileOptions);
+    } 
+    catch (error) {
+      logger.error(error);
+      this.bot.sendMessage(msg.chat.id, "⚠️ Что-то не так");
+    }
+  }
+
   exportDonutHandler = async (msg, fundName) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
 
     let imageBuffer;
     try {
       imageBuffer = await ExportHelper.exportFundToDonut(fundName);
-    } catch (error) {
+
+      if (!imageBuffer?.length) {
+        this.bot.sendMessage(msg.chat.id, "⚠️ Нечего экспортировать");
+        return;
+      }
+
+      await this.bot.sendPhoto(msg.chat.id, imageBuffer);
+    } 
+    catch (error) {
+      logger.error(error);
       this.bot.sendMessage(msg.chat.id, "⚠️ Что-то не так");
-      return;
     }
-
-    if (!imageBuffer?.length) {
-      this.bot.sendMessage(msg.chat.id, "⚠️ Нечего экспортировать");
-      return;
-    }
-
-    this.bot.sendPhoto(msg.chat.id, imageBuffer);
   };
 }
 

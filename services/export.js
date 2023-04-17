@@ -54,7 +54,7 @@ const colorScheme = [
 const remainedColor = "rgba(0,0,0,0.025)";
 
 async function exportFundToCSV(fundname) {
-  let fund = FundsRepository.getfundByName(fundname);
+  let fund = FundsRepository.getFundByName(fundname);
   let donations = FundsRepository.getDonationsForName(fundname);
   let fundDonations = await Promise.all(
     donations.map(async (d) => {
@@ -77,7 +77,7 @@ async function exportFundToCSV(fundname) {
 }
 
 async function exportFundToDonut(fundname) {
-  let fund = FundsRepository.getfundByName(fundname);
+  let fund = FundsRepository.getFundByName(fundname);
   let alldonations = FundsRepository.getDonationsForName(fundname);
 
   let fundDonations = await Promise.all(

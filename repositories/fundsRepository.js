@@ -3,18 +3,24 @@ const config = require('config');
 const currencyConfig = config.get("currency");
 
 class FundsRepository extends BaseRepository {
-  getfunds() {
+  getFunds() {
     return this.db.prepare("SELECT * FROM funds").all();
   }
 
-  getfundByName(fundName) {
+  getFundByName(fundName) {
     return this.db
       .prepare("SELECT * FROM funds WHERE name = ?")
       .get(fundName);
   }
 
+  getFundById(id) {
+    return this.db
+      .prepare("SELECT * FROM funds WHERE id = ?")
+      .get(id);
+  }
+
   getLatestCosts(){
-    return this.getfunds().find(fund => /(А|а)ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
+    return this.getFunds().find(fund => /(А|а)ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
   }
 
   getDonations() {
@@ -39,9 +45,9 @@ class FundsRepository extends BaseRepository {
       .get(donationId);
   }
 
-  addfund(fundName, target, currency = currencyConfig.default, status = "open") {
+  addFund(fundName, target, currency = currencyConfig.default, status = "open") {
     try {
-      if (this.getfundByName(fundName) !== undefined) throw new Error(`Fund ${fundName} already exists`);
+      if (this.getFundByName(fundName) !== undefined) throw new Error(`Fund ${fundName} already exists`);
 
       if (!currency) throw new Error(`Invalid currency ${currency}`);
 
@@ -59,9 +65,9 @@ class FundsRepository extends BaseRepository {
     }
   }
 
-  updatefund(fundName, target, currency = currencyConfig.default, newFundName = fundName) {
+  updateFund(fundName, target, currency = currencyConfig.default, newFundName = fundName) {
     try {
-      let fund = this.getfundByName(fundName);
+      let fund = this.getFundByName(fundName);
 
       if (!fund) throw new Error(`Fund ${fundName} not found`);
       if (!currency) throw new Error(`Invalid currency ${currency}`);
@@ -80,9 +86,9 @@ class FundsRepository extends BaseRepository {
     }
   }
   
-  removefund(fundName) {
+  removeFund(fundName) {
     try {
-      if (!this.getfundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
+      if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
 
       this.db.prepare("DELETE FROM funds WHERE name = ?").run(fundName);
       return true;
@@ -93,13 +99,13 @@ class FundsRepository extends BaseRepository {
     }
   }
 
-  closefund(fundName) {
-    return this.changefundStatus(fundName, "closed");
+  closeFund(fundName) {
+    return this.changeFundStatus(fundName, "closed");
   }
 
-  changefundStatus(fundName, status) {
+  changeFundStatus(fundName, status) {
     try {
-      if (!this.getfundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
+      if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
 
       this.db
         .prepare("UPDATE funds SET status = ? WHERE name = ?")
@@ -115,7 +121,7 @@ class FundsRepository extends BaseRepository {
 
   addDonationTo(fundName, username, value, currency = currencyConfig.default, accountant = null) {
     try {
-      let fundId = this.getfundByName(fundName)?.id;
+      let fundId = this.getFundByName(fundName)?.id;
 
       if (!fundId) throw new Error(`Fund ${fundName} not found`);
       if (!currency) throw new Error(`Invalid currency ${currency}`);

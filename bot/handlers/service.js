@@ -92,7 +92,7 @@ class ServiceHandlers extends BaseHandlers {
         BasicHandlers.getResidentsHandler(message);
         break;
       case "/ef":
-        FundsHandlers.exportFundHandler(message, ...data.params);
+        FundsHandlers.exportCSVHandler(message, ...data.params);
         break;
       case "/ed":
         FundsHandlers.exportDonutHandler(message, ...data.params);

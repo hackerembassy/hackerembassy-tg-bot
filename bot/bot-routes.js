@@ -47,7 +47,7 @@ bot.onText(/^\/fundsall(@.+?)?$/, FundsHandlers.fundsallHandler);
 bot.onText(/^\/addFund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)$/, (msg, match) => FundsHandlers.addFundHandler(msg, match[2], match[3], match[4]));
 bot.onText(/^\/updateFund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?$/, (msg, match) => FundsHandlers.updateFundHandler(msg, match[2], match[3], match[4], match[5]));
 bot.onText(/^\/removeFund(@.+?)? (.*\S)$/, (msg, match) => FundsHandlers.removeFundHandler(msg, match[2]));
-bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) => FundsHandlers.exportFundHandler(msg, match[2]));
+bot.onText(/^\/exportFund(@.+?)? (.*\S)$/, async (msg, match) => FundsHandlers.exportCSVHandler(msg, match[2]));
 bot.onText(/^\/exportDonut(@.+?)? (.*\S)$/, async (msg, match) => FundsHandlers.exportDonutHandler(msg, match[2]));
 bot.onText(/^\/closeFund(@.+?)? (.*\S)$/, (msg, match) => FundsHandlers.closeFundHandler(msg, match[2]));
 bot.onText(/^\/changeFundStatus(@.+?)? of (.*\S) to (.*\S)$/, (msg, match) => FundsHandlers.changeFundStatusHandler(msg, match[2], match[3]));

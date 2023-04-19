@@ -16,7 +16,7 @@ class PrinterHandlers extends BaseHandlers {
   unlockHandler = async (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
     try {
-      let devices = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/devices`))?.json();
+      let devices = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`))?.json();
 
       let currentUser = usersRepository.getUser(msg.from.username);
       if (!devices.includes(currentUser.mac)) {

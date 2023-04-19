@@ -10,7 +10,7 @@ async function autoinout(isIn){
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000);
-      let devices = await (await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/devices`, { signal: controller.signal }))?.json();
+      let devices = await (await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`, { signal: controller.signal }))?.json();
       clearTimeout(timeoutId);
   
       let insideusernames = StatusRepository.getPeopleInside()?.map(us=>us.username);

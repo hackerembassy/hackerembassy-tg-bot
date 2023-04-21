@@ -64,6 +64,11 @@ app.get("/status", (_, res) => {
   res.send(content);
 });
 
+app.get("/api/inside", (_, res) => {
+  let inside = StatusRepository.getPeopleInside();
+  res.json(inside);
+});
+
 app.get("/join", (_, res) => {
   let message = TextGenerators.getJoinText(true);
   res.send(message);

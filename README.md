@@ -65,6 +65,8 @@ LUCITOKEN
 UNLOCKKEY
 MQTTUSER
 MQTTPASSWORD
+WIFIUSER
+WIFIPASSWORD
 
 ## Additional notes
 Для взаимодействия между ботом и сервисом понадобится добавить папку sec с rsa ключами в файлах pub.key и priv.key. 

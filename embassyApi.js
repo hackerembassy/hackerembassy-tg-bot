@@ -16,10 +16,15 @@ const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
+const wifiip = embassyApiConfig.wifiip;
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json()); 
+
+const {NodeSSH} = require('node-ssh');
+
+
 
 app.get("/doorcam", async (_, res) => {
   try {
@@ -110,6 +115,25 @@ app.get("/devices", async (_, res) => {
     }
     
     res.send(macs);
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Device request failed", error });
+  }
+});
+
+app.get("/devicesFromKeenetic", async (_, res) => {
+  try {
+    const ssh = new NodeSSH()
+
+    await ssh.connect({
+      host: '192.168.1.2',
+      username: process.env["WIFIUSER"],
+      password: process.env["WIFIPASSWORD"]
+    })
+
+    let sshdata = await ssh.exec("show associations", [""]);
+    let macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)]. map(item=>item[1]);
+    res.json(macs);
   } catch (error) {
     logger.error(error);
     res.send({ message: "Device request failed", error });

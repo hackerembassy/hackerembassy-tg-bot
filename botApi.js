@@ -69,6 +69,15 @@ app.get("/api/inside", (_, res) => {
   res.json(inside);
 });
 
+app.get("/api/insidecount", (_, res) => {
+  try{
+    let inside = StatusRepository.getPeopleInside();
+    res.status(200).send(inside.length.toString());
+  } catch{
+    res.status(500).send("-1");
+  }
+});
+
 app.get("/join", (_, res) => {
   let message = TextGenerators.getJoinText(true);
   res.send(message);

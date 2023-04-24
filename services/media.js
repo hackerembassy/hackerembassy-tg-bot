@@ -4,9 +4,18 @@ const fs = require("fs").promises;
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 const doorcamPath = embassyApiConfig.doorcam;
+const webcamPath = embassyApiConfig.webcam;
 
 async function getDoorcamImage(){
-    let child = exec(`ffmpeg -i rtsp://${doorcamPath} -frames:v 1 -f image2 tmp.jpg -y`, (error, stdout, stderr) => {
+    return await getImageFromHTTP(doorcamPath, process.env["HASSTOKEN"]);
+}
+
+async function getWebcamImage(){
+    return await getImageFromHTTP(webcamPath, process.env["HASSTOKEN"]);
+}
+
+async function getImageFromRTSP(url, filename) {
+    let child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;
@@ -25,4 +34,16 @@ async function getDoorcamImage(){
     return await fs.readFile("./tmp.jpg");
 }
 
-module.exports = { getDoorcamImage}
+async function getImageFromHTTP(url, token) {
+    let response = await fetch(`${url}`, {
+        headers:{
+           "Authorization": token ? `Bearer ${token}`: "",
+           "Content-Type": "application/json"
+        }
+    });
+    let imgbuffer = await response.arrayBuffer();
+
+    return Buffer.from(imgbuffer);
+}
+
+module.exports = { getDoorcamImage, getWebcamImage }

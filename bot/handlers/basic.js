@@ -196,6 +196,12 @@ class BasicHandlers extends BaseHandlers {
       ],
       [
         {
+          text: "🩻 Суперстатус спейса",
+          callback_data: JSON.stringify({ command: "/superstatus" }),
+        },
+      ],
+      [
+        {
           text: "↩️ Назад",
           callback_data: JSON.stringify({ command: "/startpanel" }),
         },

@@ -25,6 +25,14 @@ class ServiceHandlers extends BaseHandlers {
     }
   }
 
+  superstatusHandler = async (msg) => {
+    if (!UsersHelper.hasRole(msg.from.username, "member", "admin")) return;
+
+    await StatusHandlers.statusHandler(msg);
+    await EmbassyHandlers.webcamHandler(msg);
+    await EmbassyHandlers.doorcamHandler(msg);
+  }
+
   callbackHandler = (callbackQuery) => {
     const message = callbackQuery.message;
     const data = JSON.parse(callbackQuery.data);
@@ -54,6 +62,9 @@ class ServiceHandlers extends BaseHandlers {
         break;
       case "/ustatus":
         StatusHandlers.statusHandler(message, true);
+        break;
+      case "/superstatus":
+        this.superstatusHandler(message);
         break;
       case "/birthdays":
         BirthdayHandlers.birthdayHandler(message);
@@ -113,7 +124,7 @@ class ServiceHandlers extends BaseHandlers {
         EmbassyHandlers.printerHandler(message);
         break;
       case "/printerstatus":
-      EmbassyHandlers.printerStatusHandler(message);
+        EmbassyHandlers.printerStatusHandler(message);
       break;
       case "/bought":
         NeedsHandlers.boughtByIdHandler(message, data.id);

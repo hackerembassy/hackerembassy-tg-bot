@@ -77,7 +77,9 @@ bot.onText(/^\/randomcat(@.+?)?$/, MemeHandlers.randomCatHandler);
 bot.onText(/^\/randomcab(@.+?)?$/, MemeHandlers.randomCabHandler);
 
 bot.onText(/^\/clear(@.+?)?(?: (\d*))?$/, (msg, match) => ServiceHandlers.clearHandler(msg, match[2]));
+bot.onText(/^\/(superstatus)(@.+?)?$/, ServiceHandlers.superstatusHandler);
 bot.on("callback_query", ServiceHandlers.callbackHandler);
 bot.on("new_chat_members", ServiceHandlers.newMemberHandler);
+
 
 logger.info(`Bot is ready to accept commands`);

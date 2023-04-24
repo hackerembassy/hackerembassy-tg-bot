@@ -176,27 +176,27 @@ class BasicHandlers extends BaseHandlers {
     let inlineKeyboard = [
       [
         {
-          text: "🔑 Открыть дверь",
+          text: "🔑 Замок",
           callback_data: JSON.stringify({ command: "/unlock" }),
         },
         {
-          text: "🔔 Позвонить в звонок",
+          text: "🔔 Звонок",
           callback_data: JSON.stringify({ command: "/doorbell" }),
         },
       ],
       [
         {
-          text: "📹 Камера 1-го этажа",
+          text: "📹 1-й этаж",
           callback_data: JSON.stringify({ command: "/webcam" }),
         },
         {
-          text: "📹 Камера на улицу",
+          text: "📹 Вход",
           callback_data: JSON.stringify({ command: "/doorcam" }),
         },
       ],
       [
         {
-          text: "🩻 Суперстатус спейса",
+          text: "🩻 Суперстатус",
           callback_data: JSON.stringify({ command: "/superstatus" }),
         },
       ],

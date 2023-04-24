@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require('body-parser');
 const printer3d = require("./services/printer3d");
-const {getDoorcamImage} = require("./services/media");
+const {getDoorcamImage, getWebcamImage } = require("./services/media");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
@@ -24,12 +24,9 @@ app.use(bodyParser.json());
 
 const {NodeSSH} = require('node-ssh');
 
-
-
 app.get("/doorcam", async (_, res) => {
   try {
-    let imgbuffer = await getDoorcamImage();
-    res.send(Buffer.from(imgbuffer));
+    res.send(await getDoorcamImage());
   } catch (error) {
     logger.error(error);
     res.send({ message: "Device request failed", error });
@@ -38,9 +35,7 @@ app.get("/doorcam", async (_, res) => {
 
 app.get("/webcam", async (_, res) => {
   try {
-    const response = await fetch(`${embassyApiConfig.webcam}`);
-    let imgbuffer = await response.arrayBuffer();
-    res.send(Buffer.from(imgbuffer));
+    res.send(await getWebcamImage());
   } catch (error) {
     logger.error(error);
     res.send({ message: "Device request failed", error });
@@ -126,7 +121,7 @@ app.get("/devicesFromKeenetic", async (_, res) => {
     const ssh = new NodeSSH()
 
     await ssh.connect({
-      host: '192.168.1.2',
+      host: wifiip,
       username: process.env["WIFIUSER"],
       password: process.env["WIFIPASSWORD"]
     })

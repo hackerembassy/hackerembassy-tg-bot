@@ -27,9 +27,9 @@
         "networkRange": "192.168.1.1-192.168.1.254",
         "routerip": "192.168.1.1",
         "wifiip": "192.168.1.2",
-        "webcam": "http://hackem-espcam.lan:8081/",
+        "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
         "mqtthost": "minimi.lan",
-        "doorcam": "doorcam.lan:554/10",
+        "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
         "doorbell": "doorbell-shelly.lan"
     },
     "currency":{

@@ -5,6 +5,7 @@ const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;
+const webcam2Path = embassyApiConfig.webcam2;
 
 async function getDoorcamImage(){
     return await getImageFromHTTP(doorcamPath, process.env["HASSTOKEN"]);
@@ -12,6 +13,10 @@ async function getDoorcamImage(){
 
 async function getWebcamImage(){
     return await getImageFromHTTP(webcamPath, process.env["HASSTOKEN"]);
+}
+
+async function getWebcam2Image(){
+    return await getImageFromHTTP(webcam2Path);
 }
 
 async function getImageFromRTSP(url, filename) {
@@ -46,4 +51,4 @@ async function getImageFromHTTP(url, token) {
     return Buffer.from(imgbuffer);
 }
 
-module.exports = { getDoorcamImage, getWebcamImage }
+module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image }

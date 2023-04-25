@@ -51,10 +51,18 @@ class PrinterHandlers extends BaseHandlers {
   };
 
   webcamHandler = async (msg) => {
+    await this.webcamGenericHandler(msg, "webcam")
+  };
+
+  webcam2Handler = async (msg) => {
+    await this.webcamGenericHandler(msg, "webcam2")
+  };
+  
+  webcamGenericHandler = async (msg, path) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
     try {
-      let response = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/webcam`))?.arrayBuffer();
+      let response = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`))?.arrayBuffer();
 
       let webcamImage = Buffer.from(response);
 
@@ -62,7 +70,7 @@ class PrinterHandlers extends BaseHandlers {
       else throw Error("Empty webcam image");
     } catch (error) {
       let message = `⚠️ Камера пока недоступна`;
-      this.bot.sendMessage(msg.chat.id, message);
+      await this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
     }
   };

@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require('body-parser');
 const printer3d = require("./services/printer3d");
-const {getDoorcamImage, getWebcamImage } = require("./services/media");
+const {getDoorcamImage, getWebcamImage, getWebcam2Image } = require("./services/media");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
@@ -36,6 +36,15 @@ app.get("/doorcam", async (_, res) => {
 app.get("/webcam", async (_, res) => {
   try {
     res.send(await getWebcamImage());
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Device request failed", error });
+  }
+});
+
+app.get("/webcam2", async (_, res) => {
+  try {
+    res.send(await getWebcam2Image());
   } catch (error) {
     logger.error(error);
     res.send({ message: "Device request failed", error });

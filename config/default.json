@@ -30,7 +30,7 @@
         "mqtthost": "minimi.lan",
         "doorbell": "doorbell-shelly.lan",
         "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
-        "webcam2": "http://hackem-espcam.lan:8081",
+        "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
         "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor"
     },
     "currency":{

@@ -16,7 +16,7 @@ async function getWebcamImage(){
 }
 
 async function getWebcam2Image(){
-    return await getImageFromHTTP(webcam2Path);
+    return await getImageFromHTTP(webcam2Path, process.env["HASSTOKEN"]);
 }
 
 async function getImageFromRTSP(url, filename) {

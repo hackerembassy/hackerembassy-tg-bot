@@ -30,6 +30,7 @@ class ServiceHandlers extends BaseHandlers {
 
     await StatusHandlers.statusHandler(msg);
     await EmbassyHandlers.webcamHandler(msg);
+    await EmbassyHandlers.webcam2Handler(msg);
     await EmbassyHandlers.doorcamHandler(msg);
   }
 
@@ -116,6 +117,9 @@ class ServiceHandlers extends BaseHandlers {
         break;
       case "/webcam":
         EmbassyHandlers.webcamHandler(message);
+        break;
+      case "/webcam2":
+        EmbassyHandlers.webcam2Handler(message);
         break;
       case "/doorcam":
         EmbassyHandlers.doorcamHandler(message);

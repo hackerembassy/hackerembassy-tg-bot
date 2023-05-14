@@ -2,7 +2,7 @@ const GeneralCommandsList = `
 Общие команды:
 /start - Панель управления бота
 /help - Помощь
-/about - О спейсе
+/about - О спейсе и боте
 /join - Как присоединиться к нам
 /donate - Как задонатить
 /location - Как нас найти

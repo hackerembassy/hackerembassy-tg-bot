@@ -2,13 +2,14 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
+const botConfig = config.get("bot");
 const { fetchWithTimeout } = require("../../utils/network");
 const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
 const usersRepository = require("../../repositories/usersRepository");
 const { encrypt } = require("../../utils/security");
 
-class PrinterHandlers extends BaseHandlers {
+class EmbassyHanlers extends BaseHandlers {
   constructor() {
     super();
   }
@@ -90,6 +91,31 @@ class PrinterHandlers extends BaseHandlers {
     }
   }
 
+  monitorHandler = async (msg, notifyEmpty = false) => {
+    try {
+      let statusMessages = await this.queryStatusMonitor();  
+
+      if (!notifyEmpty && statusMessages.length === 0) return;
+
+      let message = statusMessages.length > 0 ? TextGenerators.getMonitorMessagesList(statusMessages) : "Новых сообщений нет";
+
+      this.bot.sendMessage(msg.chat.id, message);
+    }
+     catch (error) {
+      let message = `⚠️ Не удалось получить статус, может что-то с инетом, электричеством или le-fail?`;
+      this.bot.sendMessage(msg.chat.id, message);
+      logger.error(error);
+    }
+  }
+
+  queryStatusMonitor = async () => {
+    return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();  
+  }
+  
+  enableStatusMonitor() {
+    setInterval(() => this.monitorHandler({chat: {id: botConfig.chats.test}}), embassyApiConfig.queryMonitorInterval);
+  }
+
   doorcamHandler = async (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
@@ -163,4 +189,4 @@ class PrinterHandlers extends BaseHandlers {
   };
 }
 
-module.exports = PrinterHandlers;
+module.exports = EmbassyHanlers;

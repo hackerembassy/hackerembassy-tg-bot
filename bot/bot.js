@@ -11,7 +11,7 @@ const {
   extendWithIsAdminMode,
   enablePaymentNotifications,
   AddHelperFunctions,
-  AddSendDoorcamFunction
+  AddSendDoorcamFunction,
 } = require("./botExtensions");
 
 process.env.TZ = botConfig.timezone;

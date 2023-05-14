@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require('body-parser');
@@ -14,15 +13,30 @@ const { decrypt } = require("./utils/security");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
+const botConfig = config.get("bot");
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
+
+process.env.TZ = botConfig.timezone;
+
+const statusMonitor =  require("./services/statusMonitor");
+statusMonitor.startMonitoring();
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json()); 
 
 const {NodeSSH} = require('node-ssh');
+
+app.get("/statusmonitor", async (_, res) => {
+  try {
+    res.json(statusMonitor.readNewMessages());
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Reading monitor messages failed", error });
+  }
+});
 
 app.get("/doorcam", async (_, res) => {
   try {

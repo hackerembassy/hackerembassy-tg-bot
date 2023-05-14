@@ -140,6 +140,16 @@ function getResidentsList(residents){
     return `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
 }
 
+function getMonitorMessagesList(monitorMessages){
+  let messageList = "";
+
+  for (const message of monitorMessages) {
+    messageList += `${(message.level === "error") ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}\n`;
+  }
+
+  return messageList;
+}
+
 function getNeedsList(needs) {
   let message = `👌 Пока никто не просил ничего\n`;
 
@@ -326,5 +336,6 @@ module.exports = {
   getNeedsList,
   getPrinterInfo,
   getPrinterStatus,
-  getBirthdaysList
+  getBirthdaysList,
+  getMonitorMessagesList
 };

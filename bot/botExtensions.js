@@ -298,5 +298,5 @@ module.exports = {
   enableAutoWishes,
   extendWithFormatUserName,
   extendWithIsAdminMode,
-  enablePaymentNotifications
+  enablePaymentNotifications,
 };

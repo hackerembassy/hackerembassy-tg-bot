@@ -30,8 +30,8 @@ class StatusHandlers extends BaseHandlers {
       let usermac = UsersRepository.getUser(username)?.mac;
 
       if (usermac)
-        message = `📡 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
-      else message = `📡 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
+        message = `📲 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
+      else message = `📲 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
     }
 
     this.bot.sendMessage(msg.chat.id, message);
@@ -235,8 +235,7 @@ class StatusHandlers extends BaseHandlers {
     let eventDate = new Date();
     let user = msg.from.username ?? msg.from.first_name;
     let gotIn = this.LetIn(user, eventDate);
-    let message = `🤝 ${this.bot.formatUsername(user)} пришел в спейс
-🗓 ${eventDate.toLocaleString()} `;
+    let message = `🤝 ${this.bot.formatUsername(user)} пришел в спейс`;
 
     if (!gotIn) {
       message = "🔐 Сейчас спейс не готов принять гостей";
@@ -284,8 +283,7 @@ class StatusHandlers extends BaseHandlers {
   outHandler = (msg) => {
     let eventDate = new Date();
     let gotOut = this.LetOut(msg.from.username, eventDate);
-    let message = `👋 ${this.bot.formatUsername(msg.from.username)} ушел из спейса
-🗓 ${eventDate.toLocaleString()} `;
+    let message = `👋 ${this.bot.formatUsername(msg.from.username)} ушел из спейса`;
 
     if (!gotOut) {
       message = "🔐 Странно, ты же не должен был быть внутри...";
@@ -337,8 +335,7 @@ class StatusHandlers extends BaseHandlers {
 
     let gotIn = this.LetIn(username, eventDate, true);
 
-    let message = `🟢 ${this.bot.formatUsername(msg.from.username)} привёл ${this.bot.formatUsername(username)} в спейс 
-🗓 ${eventDate.toLocaleString()} `;
+    let message = `🟢 ${this.bot.formatUsername(msg.from.username)} привёл ${this.bot.formatUsername(username)} в спейс`;
 
     if (!gotIn) {
       message = "🔐 Сорян, ты не можете сейчас его привести";
@@ -352,8 +349,7 @@ class StatusHandlers extends BaseHandlers {
     username = username.replace("@", "");
     let gotOut = this.LetOut(username, eventDate, true);
 
-    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} отправил домой ${this.bot.formatUsername(username)}
-🗓 ${eventDate.toLocaleString()} `;
+    let message = `🔴 ${this.bot.formatUsername(msg.from.username)} отправил домой ${this.bot.formatUsername(username)}`;
 
     if (!gotOut) {
       message = "🔐 Ээ нее, ты не можешь его отправить домой";
@@ -412,7 +408,22 @@ class StatusHandlers extends BaseHandlers {
 
     let message = `🚕 ${this.bot.formatUsername(msg.from.username)} планирует сегодня зайти в спейс`;
 
-    this.bot.sendMessage(msg.chat.id, message);
+    let inlineKeyboard = [[
+      {
+        text: "🚕 Я тоже планирую",
+        callback_data: JSON.stringify({ command: "/going" }),
+      },
+      {
+        text: "❓ А кто еще будет?",
+        callback_data: JSON.stringify({ command: "/status" }),
+      },
+    ]]
+
+    this.bot.sendMessage(msg.chat.id, message, {
+      reply_markup: {
+        inline_keyboard: inlineKeyboard,
+      },
+    });
   };
 
   notGoingHandler = (msg) => {

@@ -4,6 +4,7 @@ const printer3dConfig = config.get("printer3d");
 const apiBase = printer3dConfig.apibase;
 const BotExtensions = require("../bot/botExtensions");
 const StatusRepository = require("../repositories/statusRepository");
+const UsersHelper = require("./usersHelper");
 
 async function createFundList(funds, donations, options = {}) {
   const defaultOptions = {showAdmin: false, isApi: false, isHistory: false};
@@ -40,7 +41,7 @@ async function createFundList(funds, donations, options = {}) {
 
     let tgCopyDelimiter = options.isApi ? "" : "#\`";
 
-    list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatCurrency(sum, fund.target_currency)} из ${
+    list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatValueForCurrency(sum, fund.target_currency)} из ${
       fund.target_value
     } ${fund.target_currency}\n`;
 
@@ -48,7 +49,7 @@ async function createFundList(funds, donations, options = {}) {
       for (const donation of fundDonations) {
         list += `      ${options.showAdmin ? `[id:${donation.id}] - `: ""}${BotExtensions.formatUsername(
           donation.username, options.isApi
-        )} - ${Currency.formatCurrency(donation.value, donation.currency)} ${donation.currency}${options.showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, options.isApi)}` : ""}\n`;
+        )} - ${Currency.formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${options.showAdmin && donation.accountant ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, options.isApi)}` : ""}\n`;
       }
     }
 
@@ -81,7 +82,7 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
     ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
-    : "Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит тайное собрание, или они опять забыли сделать /open? Who knows...\n";
+    : `Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит закрытое собрание резидентов, или они опять забыли сделать /open? Who knows... Лучше спроси у них в чате.\n`
   let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18);
   let updateText = !isApi ? `⏱ Обновлено ${(new Date()).toLocaleString("RU-ru").replace(","," в").substr(0, 21)}\n`: "";
   let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}\n`;
@@ -91,14 +92,14 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
       ? "👨‍💻 Внутри отметились:\n"
       : "🛌 Внутри никто не отметился\n";
   for (const user of inside) {
-    insideText += `${BotExtensions.formatUsername(user.username, isApi)}${user.type === StatusRepository.ChangeType.Auto ? " (auto)" : ""}\n`;
+    insideText += `${BotExtensions.formatUsername(user.username, isApi)} ${getAutoBadge(user)}${getRoleBadges(user.username)}\n`;
   }
 
   let goingText = going.length > 0
     ? "\n🚕 Планируют сегодня зайти:\n"
     : "";
   for (const user of going) {
-    goingText += `${BotExtensions.formatUsername(user.username, isApi)}\n`;
+    goingText += `${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user.username)}\n`;
   }
 
   return `${stateFullText}
@@ -108,17 +109,45 @@ ${updateText}
 ${autoinsideText}`;
 };
 
+function getRoleBadges(username){
+  let roles = UsersHelper.getRoles(username);
+  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${roles.includes("admin") ? "🐸" : ""}${roles.includes("kitten") ? "😺" : ""}`
+}
+
+function getAutoBadge(user){
+  return user.type === StatusRepository.ChangeType.Auto ? "📲" : "";
+}
+
 function getAccountsList(accountants, isApi = false) {
   let accountantsList = "";
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user)}\n`,
       ""
     );
   }
 
   return accountantsList;
+}
+
+function getResidentsList(residents){
+  let userList = "";
+    for (const user of residents) {
+      userList += `${BotExtensions.formatUsername(user.username)} ${getRoleBadges(user)}\n`;
+    }
+
+    return `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
+}
+
+function getMonitorMessagesList(monitorMessages){
+  let messageList = "";
+
+  for (const message of monitorMessages) {
+    messageList += `${(message.level === "error") ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}\n`;
+  }
+
+  return messageList;
 }
 
 function getNeedsList(needs) {
@@ -258,6 +287,14 @@ https://wiki.hackerembassy.site/ru/equipment/anette
 `
 }
 
+function toMinSec(num){
+  if (isNaN(num) || !isFinite(num)) return "Хз";
+  let numstr = num.toFixed(2);
+  let [integral, decimal] = numstr.split(".");
+  decimal = Math.floor((Number(decimal)*60/100)).toString();
+  return `${integral}.${decimal.substring(0,2).padStart(2,"0")}`;
+}
+
 async function getPrinterStatus(status) {
   let print_stats = status.print_stats;
   let state = print_stats.state;
@@ -267,13 +304,13 @@ async function getPrinterStatus(status) {
   let message = `💤 Статус принтера: ${state}`;
 
   if (state === "printing") {
-    let minutesPast = (print_stats.total_duration / 60).toFixed(2);
+    let minutesPast = toMinSec(print_stats.total_duration / 60);
     let progress = (status.display_status.progress * 100).toFixed(0);
-    let estimate = (((minutesPast / progress) * (100 - progress))).toFixed(2);
+    let estimate = toMinSec((minutesPast / progress) * (100 - progress));
 
-    message = `⏲ Печатается ${print_stats.filename}
+    message = `⏲ Печатается файл ${print_stats.filename}
 
-🕔 Процент файл завершения ${progress}%
+🕔 Процент завершения ${progress}%
    Прошло ${minutesPast} минут
    Осталось ~${estimate} минут
 
@@ -282,7 +319,7 @@ async function getPrinterStatus(status) {
 🔥 Температура экструдера ${extruder.temperature} C, целевая ${
       extruder.target
     } C
-   Температура стола ${heater_bed.temperature} C, целевая ${heater_bed.target} C
+    Температура стола ${heater_bed.temperature} C, целевая ${heater_bed.target} C
 `;
   }
 
@@ -292,11 +329,13 @@ async function getPrinterStatus(status) {
 module.exports = {
   createFundList,
   getAccountsList,
+  getResidentsList,
   getStatusMessage,
   getDonateText,
   getJoinText,
   getNeedsList,
   getPrinterInfo,
   getPrinterStatus,
-  getBirthdaysList
+  getBirthdaysList,
+  getMonitorMessagesList
 };

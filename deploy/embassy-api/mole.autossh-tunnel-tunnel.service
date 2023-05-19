@@ -1,0 +1,13 @@
+Description=AutoSSH tunnel
+After=network-online.target
+
+[Service]
+Type=simple
+Environment="HOME=/root"
+ExecStart=/bin/mole start remote --source :8222 --destination :22 --server root@nickkiselev.me /root/.ssh/gateway
+Restart=always
+RuntimeMaxSec=1800
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

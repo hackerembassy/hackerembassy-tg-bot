@@ -4,11 +4,11 @@ After=network-online.target
 
 [Service]
 Type=simple
-Environment="AUTOSSH_GATETIME=0"
-ExecStart=/usr/bin/ssh -N -R 8222:127.0.0.1:22 root@nickkiselev.me -o "ServerAliveInterval=30" -o "ServerAliveCountMax=3" -o ExitOnForwardFailure=yes
-RuntimeMaxSec=1800
+Environment="HOME=/root"
+ExecStart=/bin/mole start remote --source :8222 --destination :22 --server ubuntu@gateway.hackerembassy.site --key /root/.ssh/gateway
 Restart=always
-RestartSec=15
+RuntimeMaxSec=1800
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

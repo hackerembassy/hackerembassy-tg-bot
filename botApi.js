@@ -131,6 +131,8 @@ app.post("/api/close", tokenSecured, (_, res) => {
     changedby: "api",
   });
 
+  StatusRepository.evictPeople();
+
   return  res.send({message: "Success"});
 });
 

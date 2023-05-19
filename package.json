@@ -12,7 +12,7 @@
     "stop-embassy-api": "skill -c 'nohup node embassyApi.js &'",
     "git": "git add * && git commit && git push",
     "git-redo": "git add * && git commit --amend && git push --force",
-    "update-and-start": "npm run kill && git pull && npm i && npm run start-bot && npm run start-api-https",
+    "update-and-start": "npm run kill && git pull && npm i && npm run start-bot",
     "start-bot": "nohup node app.js &",
     "start-api-https": "sudo caddy start --config ./deploy/api/Caddyfile 2>/dev/null",
     "kill": "skill -c nohup node app.js &",

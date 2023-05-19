@@ -54,7 +54,7 @@ const colorScheme = [
 const remainedColor = "rgba(0,0,0,0.025)";
 
 async function exportFundToCSV(fundname) {
-  let fund = FundsRepository.getfundByName(fundname);
+  let fund = FundsRepository.getFundByName(fundname);
   let donations = FundsRepository.getDonationsForName(fundname);
   let fundDonations = await Promise.all(
     donations.map(async (d) => {
@@ -67,7 +67,7 @@ async function exportFundToCSV(fundname) {
         username: d.username,
         donation: d.value,
         currency: d.currency,
-        converted: Currency.formatCurrency(convertedValue, fund.target_currency),
+        converted: Currency.formatValueForCurrency(convertedValue, fund.target_currency),
         target_currency: fund.target_currency,
       };
     })
@@ -77,7 +77,7 @@ async function exportFundToCSV(fundname) {
 }
 
 async function exportFundToDonut(fundname) {
-  let fund = FundsRepository.getfundByName(fundname);
+  let fund = FundsRepository.getFundByName(fundname);
   let alldonations = FundsRepository.getDonationsForName(fundname);
 
   let fundDonations = await Promise.all(
@@ -99,9 +99,9 @@ async function exportFundToDonut(fundname) {
   let labels = fundDonations.map((donation) => donation.username);
   let data = fundDonations.map((donation) => donation.donation);
   let sum = data.reduce((acc, val) => acc + val, 0);
-  data = data.map(d => Currency.formatCurrency(d, fund.target_currency));
+  data = data.map(d => Currency.formatValueForCurrency(d, fund.target_currency));
   let target = fund.target_value;
-  let remained = Currency.formatCurrency(sum - target, fund.target_currency);
+  let remained = Currency.formatValueForCurrency(sum - target, fund.target_currency);
   let spread = colorScheme.length / labels.length;
   let customColorScheme = labels.map(
     (_, index) =>

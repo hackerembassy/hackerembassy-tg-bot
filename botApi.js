@@ -6,6 +6,8 @@ const config = require("config");
 const botConfig = config.get("bot");
 const bot = require("./bot/bot");
 
+const EmbassyHandlers = new (require("./bot/handlers/embassy"))();
+
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
 const FundsRepository = require("./repositories/fundsRepository");
@@ -16,33 +18,38 @@ const apiConfig = config.get("api");
 const app = express();
 const port = apiConfig.port;
 
-app.use(cors());
-
-app.use(bodyParser.json()); 
-
+// Middleware
 function logError(err, req, res, next) {
   logger.error({err, req, res});
   next();
 }
 
+function tokenSecured(req, res, next) {
+  if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
+    logger.info(`Got request with invalid token`);
+    res.status(401).send({message: "Invalid token"});
+    return;
+  }
+
+  next();
+}
+
+app.use(cors());
+app.use(bodyParser.json()); 
 app.use(logError);
 
+// Routes
 app.get("/commands", (_, res) => {
   res.send(Commands.ApiCommandsList);
 });
 
-app.post("/doorbell", (req, res) => {
-  if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
-    logger.info(`Got doorbell with invalid token`);
-    res.send({message: "Invalid token"});
-    return;
-  }
-
+app.post("/doorbell", tokenSecured, async (req, res) => {
   logger.info(`Got doorbell`);
   let inside = StatusRepository.getPeopleInside();  
   if (!inside || inside.length === 0){
     logger.info(`No one inside. Notified members.`);
-    bot.sendMessage(botConfig.chats.key, "🔔 Кто-то позвонил в дверной звонок, а внутри никого.")
+    await bot.sendMessage(botConfig.chats.key, "🔔 Кто-то позвонил в дверной звонок, а внутри никого.");
+    await EmbassyHandlers.sendDoorcam(botConfig.chats.key);
   }
 
   res.send({message: "Success"});
@@ -59,6 +66,72 @@ app.get("/status", (_, res) => {
   }
 
   res.send(content);
+});
+
+app.get("/api/status", (_, res) => {
+  let status = StatusRepository.getSpaceLastState();
+
+  if (!status) {
+    res.json({
+      error: "Status is not defined",
+    });
+    return;
+  }
+
+  let inside = StatusRepository.getPeopleInside().map(p=> {
+    return {
+      username: p.username,
+      dateChanged: p.date,
+    }
+  });
+  let planningToGo = StatusRepository.getPeopleGoing().map(p=> {
+    return {
+      username: p.username,
+      dateChanged: p.date,
+    }
+  });
+
+  res.json({
+    open: status.open == true,
+    dateChanged:  status.date,
+    changedBy: status.changedBy,
+    inside,
+    planningToGo
+  });
+});
+
+app.get("/api/inside", (_, res) => {
+  let inside = StatusRepository.getPeopleInside();
+  res.json(inside);
+});
+
+app.get("/api/insidecount", (_, res) => {
+  try{
+    let inside = StatusRepository.getPeopleInside();
+    res.status(200).send(inside.length.toString());
+  } catch{
+    res.status(500).send("-1");
+  }
+});
+
+app.post("/api/open", tokenSecured, (_, res) => {
+  StatusRepository.pushSpaceState({
+    open: true,
+    date: new Date(),
+    changedby: "api",
+  });
+
+  return  res.send({message: "Success"});
+});
+
+app.post("/api/close", tokenSecured, (_, res) => {
+  StatusRepository.pushSpaceState({
+    open: false,
+    date: new Date(),
+    changedby: "api",
+  });
+
+  return  res.send({message: "Success"});
 });
 
 app.get("/join", (_, res) => {

@@ -22,8 +22,7 @@ class UserRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -40,8 +39,7 @@ class UserRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -57,8 +55,7 @@ class UserRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -74,8 +71,7 @@ class UserRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -90,8 +86,7 @@ class UserRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -102,8 +97,7 @@ class UserRepository extends BaseRepository {
 
       return true;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return false;
     }
   }
@@ -120,8 +114,7 @@ class UserRepository extends BaseRepository {
 
       return user;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return null;
     }
   }
@@ -134,8 +127,7 @@ class UserRepository extends BaseRepository {
 
       return users;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error);
       return null;
     }
   }

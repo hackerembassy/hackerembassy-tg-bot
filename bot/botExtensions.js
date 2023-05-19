@@ -4,6 +4,8 @@ const UsersRepository = require("../repositories/usersRepository");
 const fs = require("fs/promises");
 const path = require("path");
 const logger = require("../services/logger");
+const { fetchWithTimeout } = require("../utils/network");
+const embassyApiConfig = config.get("embassy-api");
 
 const maxChunkSize = 3000;
 const messagedelay = 1500;
@@ -256,8 +258,36 @@ function enableAutoWishes(bot) {
   setInterval(() => bot.sendBirthdayWishes(false), 3600000);
 }
 
+async function sendNotification(message, date, chat) {
+  let currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
+  if (date !== currentDate) return;
+
+  this.sendMessage(chat, message);
+  logger.info(`Sent a notification to ${chat}: ${message}`);
+}
+
+function enableAutoWishes(bot) {
+  bot.sendBirthdayWishes = sendBirthdayWishes;
+  setInterval(() => bot.sendBirthdayWishes(false), 3600000); // 1hr
+}
+
+function enablePaymentNotifications(bot) {
+  bot.sendNotification = sendNotification;
+  setInterval(() => bot.sendNotification( `📢 Котики, сегодня надо заплатить за газ и электричество, не забудьте пожалуйста`, "13", botConfig.chats.key), 43200000); // 12hr
+  setInterval(() => bot.sendNotification( `📢 Котики, сегодня надо заплатить за интернет 9900 AMD, не забудьте пожалуйста`, "13", botConfig.chats.key), 43200000); // 12hr
+  setInterval(() => bot.sendNotification( `📢 Котики, проверьте оплату за газ и электричество, иначе их отключат завтра`, "20", botConfig.chats.key), 43200000); // 12hr
+  setInterval(() => bot.sendNotification( `📢 Котики, проверьте оплату за интернет, иначе его отключат завтра`, "18", botConfig.chats.key), 43200000); // 12hr
+}
+
+function AddHelperFunctions(bot) {
+  bot.IsMessageFromPrivateChat = (msg) => {
+    return msg?.chat.type === "private";
+  };
+}
+
 module.exports = {
   mode,
+  AddHelperFunctions,
   initGlobalModifiers,
   formatUsername,
   popLast,
@@ -267,5 +297,6 @@ module.exports = {
   addSavingLastMessages,
   enableAutoWishes,
   extendWithFormatUserName,
-  extendWithIsAdminMode
+  extendWithIsAdminMode,
+  enablePaymentNotifications,
 };

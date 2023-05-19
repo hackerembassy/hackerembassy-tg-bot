@@ -1,9 +1,9 @@
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require('body-parser');
 const printer3d = require("./services/printer3d");
+const {getDoorcamImage, getWebcamImage, getWebcam2Image } = require("./services/media");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
@@ -13,21 +13,52 @@ const { decrypt } = require("./utils/security");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
+const botConfig = config.get("bot");
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
+const wifiip = embassyApiConfig.wifiip;
+
+process.env.TZ = botConfig.timezone;
+
+const statusMonitor =  require("./services/statusMonitor");
+statusMonitor.startMonitoring();
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json()); 
 
+const {NodeSSH} = require('node-ssh');
+
+app.get("/statusmonitor", async (_, res) => {
+  try {
+    res.json(statusMonitor.readNewMessages());
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Reading monitor messages failed", error });
+  }
+});
+
+app.get("/doorcam", async (_, res) => {
+  try {
+    res.send(await getDoorcamImage());
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Device request failed", error });
+  }
+});
+
 app.get("/webcam", async (_, res) => {
   try {
-    // tmp solution - flush previous image
-    await fetch(`${embassyApiConfig.webcam}/jpg`);
-    // main request
-    const response = await fetch(`${embassyApiConfig.webcam}/jpg`);
-    let imgbuffer = await response.arrayBuffer();
-    res.send(Buffer.from(imgbuffer));
+    res.send(await getWebcamImage());
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Device request failed", error });
+  }
+});
+
+app.get("/webcam2", async (_, res) => {
+  try {
+    res.send(await getWebcam2Image());
   } catch (error) {
     logger.error(error);
     res.send({ message: "Device request failed", error });
@@ -92,13 +123,35 @@ app.get("/devices", async (_, res) => {
       method: "POST",
     });
 
-    let json = await response.json();
+    let adapters = await response.json();
     let macs = [];
-    for (const wlan of json) {
-      macs = macs.concat(wlan.result[1].results.map((dev) => dev.mac.toLowerCase()));
-    }
 
+    for (const wlanAdapter of adapters) {
+      let devices = wlanAdapter.result[1]?.results;
+      if (devices)
+        macs = macs.concat(devices.map((dev) => dev.mac.toLowerCase()));
+    }
+    
     res.send(macs);
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Device request failed", error });
+  }
+});
+
+app.get("/devicesFromKeenetic", async (_, res) => {
+  try {
+    const ssh = new NodeSSH()
+
+    await ssh.connect({
+      host: wifiip,
+      username: process.env["WIFIUSER"],
+      password: process.env["WIFIPASSWORD"]
+    })
+
+    let sshdata = await ssh.exec("show associations", [""]);
+    let macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)]. map(item=>item[1]);
+    res.json(macs);
   } catch (error) {
     logger.error(error);
     res.send({ message: "Device request failed", error });
@@ -109,11 +162,18 @@ app.get("/printer", async (_, res) => {
   try {
     let fileMetadata;
     let thumbnailBuffer;
+    let cam;
     let statusResponse = await printer3d.getPrinterStatus();
     let status = statusResponse && statusResponse.result.status;
 
     if (status) {
       let fileMetadataResponse = await printer3d.getFileMetadata(status.print_stats && status.print_stats.filename);
+      try {
+        cam = await printer3d.getCam();
+      }
+      catch {
+        cam = null;
+      }
 
       if (fileMetadataResponse) {
         fileMetadata = fileMetadataResponse.result;
@@ -122,7 +182,7 @@ app.get("/printer", async (_, res) => {
       }
     }
 
-    res.send({ status, thumbnailBuffer });
+    res.send({ status, thumbnailBuffer, cam });
   } catch (error) {
     logger.error(error);
     res.send({ message: "Printer request error", error });

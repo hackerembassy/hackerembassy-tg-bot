@@ -57,15 +57,15 @@ async function createFundList(funds, donations, options = {}) {
       if (!options.isHistory){
         list += "\n";
         list += `#\`/fund ${fund.name}#\`\n`;
-        list += `#\`/exportFund ${fund.name}#\`\n`;
-        list += `#\`/exportDonut ${fund.name}#\`\n`;
-        list += `#\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
-        list += `#\`/changeFundStatus of ${fund.name} to status_name#\`\n`;
-        list += `#\`/closeFund ${fund.name}#\`\n`;
-        list += `#\`/transferDonation donation_id to username#\`\n`;
-        list += `#\`/addDonation 5000 AMD from @username to ${fund.name}#\`\n`;
-        list += `#\`/changeDonation donation_id to 5000 AMD#\`\n`;
-        list += `#\`/removeDonation donation_id#\`\n`;
+        list += `#\`/exportfund ${fund.name}#\`\n`;
+        list += `#\`/exportdonut ${fund.name}#\`\n`;
+        list += `#\`/updatefund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
+        list += `#\`/changefundstatus of ${fund.name} to status_name#\`\n`;
+        list += `#\`/closefund ${fund.name}#\`\n`;
+        list += `#\`/transferdonation donation_id to username#\`\n`;
+        list += `#\`/adddonation 5000 AMD from @username to ${fund.name}#\`\n`;
+        list += `#\`/changedonation donation_id to 5000 AMD#\`\n`;
+        list += `#\`/removedonation donation_id#\`\n`;
       } else {
         list += `#\`/fund ${fund.name}#\`\n`;
       }
@@ -187,14 +187,14 @@ function getDonateText(accountants, isApi = false) {
  💰 Криптовалюта ${
    !isApi
      ? `(по следующим командам)
-       /donateBTC
-       /donateETH
-       /donateUSDC
-       /donateUSDT`
+       /donatebtc
+       /donateeth
+       /donateusdc
+       /donateusdt`
      : ""
  }
  💵 Наличкой при встрече (самый лучший вариант).
-       ${!isApi ? "/donateCash\n" : ""}
+       ${!isApi ? "/donatecash\n" : ""}
  📊 Увидеть наши текущие сборы и ваш вклад можно по команде ${
    !isApi ? "/" : ""
  }funds

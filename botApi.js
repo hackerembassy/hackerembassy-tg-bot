@@ -43,18 +43,6 @@ app.get("/commands", (_, res) => {
   res.send(Commands.ApiCommandsList);
 });
 
-app.post("/doorbell", tokenSecured, async (req, res) => {
-  logger.info(`Got doorbell`);
-  let inside = StatusRepository.getPeopleInside();  
-  if (!inside || inside.length === 0){
-    logger.info(`No one inside. Notified members.`);
-    await bot.sendMessage(botConfig.chats.key, "🔔 Кто-то позвонил в дверной звонок, а внутри никого.");
-    await EmbassyHandlers.sendDoorcam(botConfig.chats.key);
-  }
-
-  res.send({message: "Success"});
-});
-
 app.get("/status", (_, res) => {
   let state = StatusRepository.getSpaceLastState();
   let content = `🔐 Статус спейса неопределен`;

@@ -242,7 +242,7 @@ class BasicHandlers extends BaseHandlers {
     let inlineKeyboard = [
       [
         {
-          text: "🏠 О спейсе",
+          text: "🏠 О спейсе и боте",
           callback_data: JSON.stringify({ command: "/about" }),
         },
         {

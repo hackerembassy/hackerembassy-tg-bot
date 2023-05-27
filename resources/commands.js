@@ -40,8 +40,8 @@ const MemberCommandsList = `
 /doorbell - Позвонить в дверной звонок
 /unlock - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (можно без параметра для удаления одного последнего ответа)
-#\`/inForce telegram_username#\` - Отметить другого юзера пришедшим в спейс
-#\`/outForce telegram_username#\` - Отметить другого юзера ушедшим из спейса
+#\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
+#\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
 `;
 
 const AdminCommandsList = ` 
@@ -60,17 +60,17 @@ const AdminCommandsList = `
 const AccountantCommandsList = `
 Команды бухгалтера:
 #\`/costs donation_value currency_code from telegram_username#\` - Задонатить в последний актуальный сбор на аренду
-#\`/addFund Fund_Name with target goal_value currency_code#\` - Добавить сбор
-#\`/updateFund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
-#\`/exportFund fund_name#\` - Экспортировать донаты сбора как CSV
-#\`/exportDonut fund_name#\` - Экспортировать донаты сбора как диаграмму
-#\`/closeFund fund_name#\` - Изменить статус сбора на закрытый
-#\`/changeFundStatus of fund_name to status_name#\` - Изменить статус сбора
-#\`/removeFund fund_name#\` - Удалить сбор (не надо)
-#\`/addDonation donation_value currency_code from telegram_username to fund_name#\`
-#\`/changeDonation donation_id to donation_value currency_code#\`
-#\`/removeDonation donation_id#\` - Удалить донат
-#\`/transferDonation donation_id to username#\` - Передать донат другому бухгалтеру
+#\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
+#\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
+#\`/exportfund fund_name#\` - Экспортировать донаты сбора как CSV
+#\`/exportfonut fund_name#\` - Экспортировать донаты сбора как диаграмму
+#\`/closefund fund_name#\` - Изменить статус сбора на закрытый
+#\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
+#\`/removefund fund_name#\` - Удалить сбор (не надо)
+#\`/adddonation donation_value currency_code from telegram_username to fund_name#\`
+#\`/changedonation donation_id to donation_value currency_code#\`
+#\`/removedonation donation_id#\` - Удалить донат
+#\`/transferdonation donation_id to username#\` - Передать донат другому бухгалтеру
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead

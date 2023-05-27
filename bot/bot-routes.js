@@ -22,10 +22,10 @@ bot.onText(/^\/(start|startpanel|sp)(@.+?)?$/i, (msg) => BasicHandlers.startPane
 bot.onText(/^\/(infopanel|ip)(@.+?)?$/i, (msg) => BasicHandlers.infoPanelHandler(msg));
 bot.onText(/^\/(controlpanel|cp)(@.+?)?$/i, (msg) => BasicHandlers.controlPanelHandler(msg));
 
-bot.onText(/^\/status(@.+?)?$/i, (msg) => StatusHandlers.statusHandler(msg));
+bot.onText(/^\/(status|s)(@.+?)?$/i, (msg) => StatusHandlers.statusHandler(msg));
 bot.onText(/^\/in(@.+?)?$/i, StatusHandlers.inHandler);
-bot.onText(/^\/open(@.+?)?$/i, StatusHandlers.openHandler);
-bot.onText(/^\/close(@.+?)?$/i, StatusHandlers.closeHandler);
+bot.onText(/^\/(open|o)(@.+?)?$/i, StatusHandlers.openHandler);
+bot.onText(/^\/(close|c)(@.+?)?$/i, StatusHandlers.closeHandler);
 bot.onText(/^\/inforce(@.+?)? (\S+)$/i, (msg, match) => StatusHandlers.inForceHandler(msg, match[2]));
 bot.onText(/^\/outforce(@.+?)? (\S+)$/i, (msg, match) => StatusHandlers.outForceHandler(msg, match[2]));
 bot.onText(/^\/out(@.+?)?$/i, StatusHandlers.outHandler);
@@ -39,8 +39,8 @@ bot.onText(/^\/(webcam2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handle
 bot.onText(/^\/(doorcam|dc)(@.+?)?$/i, EmbassyHandlers.doorcamHandler);
 bot.onText(/^\/(printer|anette)(@.+?)?$/i, EmbassyHandlers.printerHandler);
 bot.onText(/^\/(printerstatus|anettestatus)(@.+?)?$/i, EmbassyHandlers.printerStatusHandler);
-bot.onText(/^\/unlock(@.+?)?$/i, EmbassyHandlers.unlockHandler);
-bot.onText(/^\/doorbell(@.+?)?$/i, EmbassyHandlers.doorbellHandler);
+bot.onText(/^\/(unlock|u)(@.+?)?$/i, EmbassyHandlers.unlockHandler);
+bot.onText(/^\/(doorbell|db)(@.+?)?$/i, EmbassyHandlers.doorbellHandler);
 bot.onText(/^\/monitor(@.+?)?$/i, EmbassyHandlers.monitorHandler);
 
 bot.onText(/^\/funds(@.+?)?$/i, FundsHandlers.fundsHandler);

@@ -16,6 +16,7 @@ class EmbassyHanlers extends BaseHandlers {
 
   unlockHandler = async (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
+
     try {
       let devices = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`))?.json();
 
@@ -25,6 +26,7 @@ class EmbassyHanlers extends BaseHandlers {
           msg.chat.id,
           "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"
         );
+        
         return;
       }
 
@@ -52,14 +54,18 @@ class EmbassyHanlers extends BaseHandlers {
   };
 
   webcamHandler = async (msg) => {
-    await this.webcamGenericHandler(msg, "webcam")
+    await this.webcamGenericHandler(msg, "webcam", "Первый этаж")
   };
 
   webcam2Handler = async (msg) => {
-    await this.webcamGenericHandler(msg, "webcam2")
+    await this.webcamGenericHandler(msg, "webcam2", "Второй этаж")
+  };
+
+  doorcamHandler = async (msg) => {
+    await this.webcamGenericHandler(msg, "doorcam", "Входная дверь")
   };
   
-  webcamGenericHandler = async (msg, path) => {
+  webcamGenericHandler = async (msg, path, prefix) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
     try {
@@ -70,26 +76,11 @@ class EmbassyHanlers extends BaseHandlers {
       if (webcamImage) await this.bot.sendPhoto(msg.chat.id, webcamImage);
       else throw Error("Empty webcam image");
     } catch (error) {
-      let message = `⚠️ Камера пока недоступна`;
+      let message = `⚠️ ${prefix}: Камера пока недоступна`;
       await this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
     }
   };
-
-  sendDoorcam = async (chatid) => {
-    try {
-      let response = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorcam`))?.arrayBuffer();
-  
-      let webcamImage = Buffer.from(response);
-  
-      if (webcamImage) await this.bot.sendPhoto(chatid, webcamImage);
-      else throw Error("Empty doorcam image");
-    } catch (error) {
-      let message = `⚠️ Камера пока недоступна`;
-      this.bot.sendMessage(chatid, message);
-      logger.error(error);
-    }
-  }
 
   monitorHandler = async (msg, notifyEmpty = false) => {
     try {
@@ -115,12 +106,6 @@ class EmbassyHanlers extends BaseHandlers {
   enableStatusMonitor() {
     setInterval(() => this.monitorHandler({chat: {id: botConfig.chats.test}}), embassyApiConfig.queryMonitorInterval);
   }
-
-  doorcamHandler = async (msg) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
-
-    await this.sendDoorcam(msg.chat.id);
-  };
 
   printerHandler = async (msg) => {
     let message = TextGenerators.getPrinterInfo();

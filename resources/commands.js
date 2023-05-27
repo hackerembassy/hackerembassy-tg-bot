@@ -6,11 +6,11 @@ const GeneralCommandsList = `
 /join - Как присоединиться к нам
 /donate - Как задонатить
 /location - Как нас найти
-/status - Статус спейса и кто отметился внутри
+/status (s) - Статус спейса и кто отметился внутри
 /in - Отметиться находящимся в спейсе
 /out - Отметиться ушедшим из спейса
-/going - Планирую сегодня в спейс
-/notgoing - Больше не планирую сегодня в спейс
+/going (g) - Планирую сегодня в спейс
+/notgoing (ng) - Больше не планирую сегодня в спейс
 /printer - О нашем 3D принтере
 /printerstatus - Статус 3D принтера
 /getresidents - Наши резиденты, можно к ним обратиться по любым спейсовским вопросам
@@ -32,13 +32,14 @@ const GeneralCommandsList = `
 
 const MemberCommandsList = `
 Команды резидентов:
-/open - Открыть спейс
-/close - Закрыть спейс
-/superstatus - Статус и изображения со всех камер
-/webcam - Глянуть камеру внутри
-/doorcam - Глянуть камеру снаружи
-/doorbell - Позвонить в дверной звонок
-/unlock - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
+/open (o) - Открыть спейс
+/close (c) - Закрыть спейс
+/superstatus (ss) - Статус и изображения со всех камер
+/firstfloor (ff) - Глянуть камеру первого этажа
+/secondfloor (sf) - Глянуть камеру второго этажа
+/doorcam (dc) - Глянуть камеру снаружи
+/doorbell (db) - Позвонить в дверной звонок
+/unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (можно без параметра для удаления одного последнего ответа)
 #\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
@@ -52,7 +53,7 @@ const AdminCommandsList = `
 #\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
 /forcebirthdaywishes
 #\`/forward some_text#\`
-/getlog
+/getlogs
 
 \\* Roles: admin, accountant, member, default
 `;

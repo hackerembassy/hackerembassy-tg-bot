@@ -17,6 +17,7 @@ bot.onText(/^\/(donate)(@.+?)?$/i, BasicHandlers.donateHandler);
 bot.onText(/^\/(location|where)(@.+?)?$/i, BasicHandlers.locationHandler);
 bot.onText(/^\/donate(cash|card)(@.+?)?$/i, BasicHandlers.donateCardHandler);
 bot.onText(/^\/donate(btc|eth|usdc|usdt)(@.+?)?$/i, (msg, match) => BasicHandlers.donateCoinHandler(msg, match[1]));
+bot.onText(/^\/issue(@.+?)?(?: (.*))?$/i, (msg, match) => BasicHandlers.issueHandler(msg, match[2]));
 bot.onText(/^\/(getresidents|gr)(@.+?)?$/i, BasicHandlers.getResidentsHandler);
 bot.onText(/^\/(start|startpanel|sp)(@.+?)?$/i, (msg) => BasicHandlers.startPanelHandler(msg));
 bot.onText(/^\/(infopanel|ip)(@.+?)?$/i, (msg) => BasicHandlers.infoPanelHandler(msg));

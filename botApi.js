@@ -3,10 +3,6 @@ const cors = require("cors");
 const logger = require("./services/logger");
 const bodyParser = require('body-parser');
 const config = require("config");
-const botConfig = config.get("bot");
-const bot = require("./bot/bot");
-
-const EmbassyHandlers = new (require("./bot/handlers/embassy"))();
 
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");

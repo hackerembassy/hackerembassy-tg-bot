@@ -1,0 +1,6 @@
+services:
+  bot:
+    image: hackerembassy-bot
+    build:
+      context: ../
+      dockerfile: ./deploy/Containerfile

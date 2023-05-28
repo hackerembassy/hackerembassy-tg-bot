@@ -1,0 +1,10 @@
+README.md
+.*
+*.log
+*.jpg
+deploy
+config
+node_modules
+data
+sec
+log

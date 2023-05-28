@@ -1,0 +1,5 @@
+FROM docker.io/library/node:lts-alpine
+WORKDIR /app
+COPY . .
+RUN npm ci
+CMD ["npm", "run", "start"]

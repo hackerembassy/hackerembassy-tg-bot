@@ -35,6 +35,7 @@
         "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
         "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
         "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
+        "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
         "hostsToMonitor": ["192.168.1.2", "jigglypuff.lan", "minimi.lan"]
     },
     "currency":{

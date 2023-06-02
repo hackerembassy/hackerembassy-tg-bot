@@ -26,7 +26,7 @@ class EmbassyHanlers extends BaseHandlers {
           msg.chat.id,
           "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"
         );
-        
+
         return;
       }
 
@@ -64,7 +64,7 @@ class EmbassyHanlers extends BaseHandlers {
   doorcamHandler = async (msg) => {
     await this.webcamGenericHandler(msg, "doorcam", "Входная дверь")
   };
-  
+
   webcamGenericHandler = async (msg, path, prefix) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
@@ -84,7 +84,7 @@ class EmbassyHanlers extends BaseHandlers {
 
   monitorHandler = async (msg, notifyEmpty = false) => {
     try {
-      let statusMessages = await this.queryStatusMonitor();  
+      let statusMessages = await this.queryStatusMonitor();
 
       if (!notifyEmpty && statusMessages.length === 0) return;
 
@@ -92,7 +92,7 @@ class EmbassyHanlers extends BaseHandlers {
 
       this.bot.sendMessage(msg.chat.id, message);
     }
-     catch (error) {
+    catch (error) {
       let message = `⚠️ Не удалось получить статус, может что-то с инетом, электричеством или le-fail?`;
       this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
@@ -100,11 +100,11 @@ class EmbassyHanlers extends BaseHandlers {
   }
 
   queryStatusMonitor = async () => {
-    return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();  
+    return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();
   }
-  
+
   enableStatusMonitor() {
-    setInterval(() => this.monitorHandler({chat: {id: botConfig.chats.test}}), embassyApiConfig.queryMonitorInterval);
+    setInterval(() => this.monitorHandler({ chat: { id: botConfig.chats.test } }), embassyApiConfig.queryMonitorInterval);
   }
 
   printerHandler = async (msg) => {
@@ -148,12 +148,16 @@ class EmbassyHanlers extends BaseHandlers {
         ],
       ]
 
-      if (thumbnailBuffer) await this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), { caption: message, reply_markup: {
-        inline_keyboard: inlineKeyboard,
-      } });
-      else await this.bot.sendMessage(msg.chat.id, message, {reply_markup: {
-        inline_keyboard: inlineKeyboard,
-      }});
+      if (thumbnailBuffer) await this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), {
+        caption: message, reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        }
+      });
+      else await this.bot.sendMessage(msg.chat.id, message, {
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        }
+      });
     }
   };
 
@@ -172,6 +176,31 @@ class EmbassyHanlers extends BaseHandlers {
       this.bot.sendMessage(msg.chat.id, message);
     }
   };
+
+
+  sayinspaceHandler = async (msg, text) => {
+    try {
+      if (!text) {
+        this.bot.sendMessage(msg.chat.id, `🗣 С помощью этой команды можно сказать что-нибудь на динамике в спейсе (на английском), например #\`/say Hello, hackers#\``);
+        return;
+      }
+
+      let response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/sayinspace`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+      });
+
+      if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Сообщение отправлено на динамик");
+      else throw Error("Failed to say in space");
+    } catch (error) {
+      let message = `⚠️ Не вышло сказать`;
+      await this.bot.sendMessage(msg.chat.id, message);
+      logger.error(error);
+    }
+  }
 }
 
 module.exports = EmbassyHanlers;

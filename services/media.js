@@ -62,7 +62,8 @@ async function sayInSpace(text) {
         },
         body: JSON.stringify({
             entity_id: "media_player.hackem_speaker",
-            message: text
+            message: text,
+            language: "ru"
         }),
     });
 

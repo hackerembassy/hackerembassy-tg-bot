@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require('body-parser');
 const printer3d = require("./services/printer3d");
-const {getDoorcamImage, getWebcamImage, getWebcam2Image } = require("./services/media");
+const {getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace } = require("./services/media");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const fetch = require("node-fetch");
@@ -28,6 +28,20 @@ app.use(cors());
 app.use(bodyParser.json()); 
 
 const {NodeSSH} = require('node-ssh');
+
+app.post("/sayinspace", async (req, res) => {
+  try {
+    let status = await sayInSpace(req.body.text);
+    if (status === 200){
+      res.send({ message: "Success" });
+    } else {
+      throw new Error(`Reqest failed with status ${status}`);
+    }
+  } catch (error) {
+    logger.error(error);
+    res.send({ message: "Saying in space failed", error });
+  }
+});
 
 app.get("/statusmonitor", async (_, res) => {
   try {

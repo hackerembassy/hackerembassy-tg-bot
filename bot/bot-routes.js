@@ -43,7 +43,7 @@ bot.onText(/^\/(printerstatus|anettestatus)(@.+?)?$/i, EmbassyHandlers.printerSt
 bot.onText(/^\/(unlock|u)(@.+?)?$/i, EmbassyHandlers.unlockHandler);
 bot.onText(/^\/(doorbell|db)(@.+?)?$/i, EmbassyHandlers.doorbellHandler);
 bot.onText(/^\/monitor(@.+?)?$/i, EmbassyHandlers.monitorHandler);
-bot.onText(/^\/(?:sayinspace|say)(@.+?)?(?: (.*))?$/i, (msg, match) => EmbassyHandlers.sayinspaceHandler(msg, match[2]));
+bot.onText(/^\/(?:sayinspace|say)(@.+?)?(?: (.*))?$/mis, (msg, match) => EmbassyHandlers.sayinspaceHandler(msg, match[2]));
 
 bot.onText(/^\/funds(@.+?)?$/i, FundsHandlers.fundsHandler);
 bot.onText(/^\/fund(@.+?)? (.*\S)$/i, (msg, match) => FundsHandlers.fundHandler(msg, match[2]));

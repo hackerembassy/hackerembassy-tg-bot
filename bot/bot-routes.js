@@ -45,6 +45,9 @@ bot.onText(/^\/(unlock|u)(@.+?)?$/i, EmbassyHandlers.unlockHandler);
 bot.onText(/^\/(doorbell|db)(@.+?)?$/i, EmbassyHandlers.doorbellHandler);
 bot.onText(/^\/monitor(@.+?)?$/i, EmbassyHandlers.monitorHandler);
 bot.onText(/^\/(?:sayinspace|say)(@.+?)?(?: (.*))?$/mis, (msg, match) => EmbassyHandlers.sayinspaceHandler(msg, match[2]));
+bot.onText(/^\/(?:playinspace|play)(@.+?)?(?: (.*))?$/mis, (msg, match) => EmbassyHandlers.playinspaceHandler(msg, match[2]));
+bot.onText(/^\/(fartinspace|fart)(@.+?)?$/i, (msg, match) => EmbassyHandlers.playinspaceHandler(msg, "https://www.tones7.com/media/farts.mp3"));
+bot.onText(/^\/(moaninspace|moan)(@.+?)?$/i, (msg, match) => EmbassyHandlers.playinspaceHandler(msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3"));
 
 bot.onText(/^\/funds(@.+?)?$/i, FundsHandlers.fundsHandler);
 bot.onText(/^\/fund(@.+?)? (.*\S)$/i, (msg, match) => FundsHandlers.fundHandler(msg, match[2]));

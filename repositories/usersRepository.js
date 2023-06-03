@@ -60,6 +60,21 @@ class UserRepository extends BaseRepository {
     }
   }
 
+  setEmoji(username, emoji = null) {
+    try {
+      if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 
+
+      this.db
+        .prepare("UPDATE users SET emoji = ? WHERE username = ?")
+        .run(emoji, username);
+
+      return true;
+    } catch (error) {
+      this.logger.error(error);
+      return false;
+    }
+  }
+
   setAutoinside(username, value) {
     try {
       let user = this.getUser(username);

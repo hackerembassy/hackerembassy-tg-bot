@@ -34,6 +34,7 @@ bot.onText(/^\/autoinside(@.+?)?(?: (.*\S))?$/i, async (msg, match) => StatusHan
 bot.onText(/^\/setmac(@.+?)?(?: (.*\S))?$/i, async (msg, match) => StatusHandlers.setmacHandler(msg, match[2]));
 bot.onText(/^\/(going|g)(@.+?)?$/i, StatusHandlers.goingHandler);
 bot.onText(/^\/(notgoing|ng)(@.+?)?$/i, StatusHandlers.notGoingHandler);
+bot.onText(/^\/(?:setemoji|emoji|myemoji)(@.+?)?(?: (.*))?$/i, (msg, match) => StatusHandlers.setemojiHandler(msg, match[2]));
 
 bot.onText(/^\/(webcam|firstfloor|ff)(@.+?)?$/i, EmbassyHandlers.webcamHandler);
 bot.onText(/^\/(webcam2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handler);

@@ -201,6 +201,30 @@ class EmbassyHanlers extends BaseHandlers {
       logger.error(error);
     }
   }
+
+  playinspaceHandler = async (msg, link) => {
+    try {
+      if (!link) {
+        this.bot.sendMessage(msg.chat.id, `🗣 С помощью этой команды можно воспроизвести любой звук по ссылке`);
+        return;
+      }
+
+      let response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/playinspace`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ link })
+      });
+
+      if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Звук отправлен на динамик");
+      else throw Error("Failed to play in space");
+    } catch (error) {
+      let message = `⚠️ Не вышло воспроизвести`;
+      await this.bot.sendMessage(msg.chat.id, message);
+      logger.error(error);
+    }
+  }
 }
 
 module.exports = EmbassyHanlers;

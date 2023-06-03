@@ -1,0 +1,6 @@
+apt_packages:
+  - sudo
+  - bash-completion
+  - ca-certificates
+  - python3-pip
+  - curl

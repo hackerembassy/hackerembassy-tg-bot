@@ -1,0 +1,86 @@
+- name: apt packages
+  block:
+    - name: all apt packages updated
+      apt:
+        name: '*'
+        state: latest
+        update_cache: yes
+        autoremove: yes
+      become: yes
+
+    - name: required apt packages installed
+      apt:
+        name: '{{ apt_packages }}'
+      when: apt_packages is defined
+  become: yes
+  tags: apt
+
+
+- name: pip packages
+  block:
+    - name: pip is up to date
+      pip:
+        name: pip
+        state: latest
+
+    - name: required pip packages are up to date
+      pip:
+        name: '{{ pip_packages }}'
+        state: latest
+      when: pip_packages is defined
+  become: yes
+  tags: pip
+
+
+
+- name: host initialization
+  block:
+    - name: passwordless sudo enabled
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regex: '^%sudo'
+        line: '%sudo	ALL=(ALL:ALL) NOPASSWD: ALL'
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: authorized keys are added to users
+      authorized_key:
+        user: '{{ item.name }}'
+        key: '{{ item.ssh_keys }}'
+        exclusive: yes
+      with_items: '{{ linux_users }}'
+      loop_control:
+        label: '{{ item.name }}'
+
+    - name: user passwords are locked
+      user:
+        name: '{{ item.name }}'
+        password: ''
+        password_lock: yes
+      with_items: '{{ linux_users }}'
+      loop_control:
+        label: '{{ item.name }}'
+
+    - name: root password is locked
+      user:
+        name: root
+        password: ''
+        password_lock: yes
+      when: lock_root_password is defined and lock_root_password
+
+    - name: sshd configured
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regex: '^(#)?{{ item.key }}'
+        line: '{{ item.key }} {{ item.value }}'
+      loop:
+        - { key: 'PermitRootLogin', value: 'no' }
+        - { key: 'PasswordAuthentication', value: 'no' }
+        - { key: 'ClientAliveInterval', value: '120' }
+        - { key: 'ClientAliveCountMax', value: '3' }
+      notify:
+        - restart sshd
+
+  become: yes
+  tags: init
+

@@ -1,0 +1,15 @@
+- name: docker-compose up
+  docker_compose:
+    project_name: watchtower
+    pull: yes
+    definition: 
+      version: "3"
+      services:
+        app:
+          container_name: watchtower
+          image: containrrr/watchtower
+          volumes:
+            - config:/etc/watchtower
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /etc/docker/daemon.json:/config.json
+          restart: unless-stopped

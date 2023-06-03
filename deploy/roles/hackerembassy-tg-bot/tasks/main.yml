@@ -1,0 +1,11 @@
+- name: docker-compose up
+  docker_compose:
+    project_name: hackerembassy-tg-bot
+    pull: yes
+    definition: 
+      version: "3"
+      services:
+        app:
+          container_name: hackerembassy-tg-bot
+          image: ghcr.io/hackerembassy/hackerembassy-tg-bot:ci-cd  # TODO
+          restart: unless-stopped

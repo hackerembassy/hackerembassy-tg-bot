@@ -112,8 +112,8 @@ ${updateText}
 ${autoinsideText}`;
 };
 
-function getBadges(username){
-  let user = usersRepository.getUser(username);
+function getBadges(user){
+  user = typeof(user)==="string" ? usersRepository.getUser(user) : user;
   let roles = UsersHelper.getRoles(user);
   return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${roles.includes("admin") ? "🐸" : ""}${user.emoji??""}`
 }

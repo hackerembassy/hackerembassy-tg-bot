@@ -12,7 +12,7 @@ function hasRole(username, ...roles) {
 }
 
 function getRoles(user) {
-  if (user.roles) return user.roles;
+  if (user?.roles) return user.roles;
   return UsersRepository.getUser(user)?.roles ?? [];
 }
 

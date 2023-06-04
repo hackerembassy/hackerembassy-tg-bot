@@ -33,7 +33,7 @@
 
 
 
-- name: host initialization
+- name: host configuration
   block:
     - name: passwordless sudo enabled
       lineinfile:
@@ -80,7 +80,6 @@
         - { key: 'ClientAliveCountMax', value: '3' }
       notify:
         - restart sshd
-
   become: yes
-  tags: init
-
+  tags: host-config
+  when: not (skip_host_config is defined and skip_host_config)

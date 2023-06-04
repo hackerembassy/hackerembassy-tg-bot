@@ -1,14 +1,16 @@
 - hosts: all
   vars:
     linux_users:
-      - name: '{{ ansible_user }}'
+      - name: '{{ ansible_user_id }}'
         ssh_keys: |
           ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBh43317pq5H98m+tsV+1VdvWtf+MxEgeaOn3dDSfwWf termux@zenfone
           ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHZEGTS/7CdQtGPduRCz0Ie0FMJgfIVvSWkxz1pzmst himura-personal@work-nb
           ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID07e+8zSrQ9sZ6oIMoo6nE45VLGw5eftkjKInT9K3A6 himura-work@work-nb
 
   roles:
-    - common
-    - docker
-    - watchtower
+    # - role: common
+    #   vars:
+    #     skip_host_config: true
+    # - docker
+    - watchtower  # TODO
     - hackerembassy-tg-bot

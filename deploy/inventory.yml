@@ -1,5 +1,5 @@
 all:
   hosts:
     vps:
-      ansible_host: hackerembassy-vps   # defiend in ~/.ssh/config
+      ansible_host: oc7   # defiend in ~/.ssh/config
       ansible_python_interpreter: /usr/bin/python3

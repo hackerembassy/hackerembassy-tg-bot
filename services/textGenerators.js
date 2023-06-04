@@ -113,9 +113,10 @@ ${autoinsideText}`;
 };
 
 function getBadges(user){
-  user = typeof(user)==="string" ? usersRepository.getUser(user) : user;
+  user = typeof(user) === "string" ? usersRepository.getUser(user) : user;
+  if (!user) return "";
   let roles = UsersHelper.getRoles(user);
-  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${roles.includes("admin") ? "🐸" : ""}${user.emoji??""}`
+  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${user.emoji??""}`
 }
 
 function getAutoBadge(user){

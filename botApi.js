@@ -9,6 +9,7 @@ const StatusRepository = require("./repositories/statusRepository");
 const FundsRepository = require("./repositories/fundsRepository");
 const UsersRepository = require("./repositories/usersRepository");
 const Commands = require("./resources/commands");
+const { openSpace, closeSpace } = require("./services/statusHelper");
 
 const apiConfig = config.get("api");
 const app = express();
@@ -99,25 +100,15 @@ app.get("/api/insidecount", (_, res) => {
 });
 
 app.post("/api/open", tokenSecured, (_, res) => {
-  StatusRepository.pushSpaceState({
-    open: true,
-    date: new Date(),
-    changedby: "api",
-  });
+  openSpace("api");
 
-  return  res.send({message: "Success"});
+  return res.send({message: "Success"});
 });
 
 app.post("/api/close", tokenSecured, (_, res) => {
-  StatusRepository.pushSpaceState({
-    open: false,
-    date: new Date(),
-    changedby: "api",
-  });
+  closeSpace("api", {evict: true})
 
-  StatusRepository.evictPeople();
-
-  return  res.send({message: "Success"});
+  return res.send({message: "Success"});
 });
 
 app.get("/join", (_, res) => {

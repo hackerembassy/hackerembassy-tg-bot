@@ -95,7 +95,7 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
 
 
   for (const user of inside) {
-    insideText += `${BotExtensions.formatUsername(user.username, isApi)} ${getAutoBadge(user)}${getBadges(user.username)}\n`;
+    insideText += `${BotExtensions.formatUsername(user.username, isApi)} ${getBadges(user.username, {auto: true})}\n`;
   }
 
   let goingText = going.length > 0
@@ -112,15 +112,16 @@ ${updateText}
 ${autoinsideText}`;
 };
 
-function getBadges(user){
-  user = typeof(user) === "string" ? usersRepository.getUser(user) : user;
+function getBadges(username, options = {auto:false}){
+  user = usersRepository.getUser(username);
   if (!user) return "";
-  let roles = UsersHelper.getRoles(user);
-  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${user.emoji??""}`
-}
 
-function getAutoBadge(user){
-  return user.type === StatusRepository.ChangeType.Auto ? "📲" : "";
+  let roles = UsersHelper.getRoles(user);
+  let roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}`
+  let autoBadge = (options.auto && user.type === StatusRepository.ChangeType.Auto) ? "📲" : "";
+  let customBadge = user.emoji ?? "";
+
+  return `${autoBadge}${roleBadges}${customBadge}`
 }
 
 function getAccountsList(accountants, isApi = false) {
@@ -128,7 +129,7 @@ function getAccountsList(accountants, isApi = false) {
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getBadges(user)}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getBadges(user.username)}\n`,
       ""
     );
   }
@@ -139,7 +140,7 @@ function getAccountsList(accountants, isApi = false) {
 function getResidentsList(residents){
   let userList = "";
     for (const user of residents) {
-      userList += `${BotExtensions.formatUsername(user.username)} ${getBadges(user)}\n`;
+      userList += `${BotExtensions.formatUsername(user.username)} ${getBadges(user.username)}\n`;
     }
 
     return `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;

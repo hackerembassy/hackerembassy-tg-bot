@@ -79,15 +79,13 @@ async function createFundList(funds, donations, options = {}) {
 }
 
 let getStatusMessage = (state, inside, going, isApi = false) => {
-  let stateText = state.open ? "открыт" : "закрыт";
+  let stateText = state.open ? "#*открыт#*" : "#*закрыт#*";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
     ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
     : `Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит закрытое собрание резидентов, или они опять забыли сделать /open? Who knows... Лучше спроси у них в чате.\n`
-  let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18);
   let updateText = !isApi ? `⏱ Обновлено ${(new Date()).toLocaleString("RU-ru").replace(","," в").substr(0, 21)}\n`: "";
-  let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}\n`;
-  let autoinsideText = !isApi ? `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
+  let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)}\n`;
 
   let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
@@ -108,8 +106,7 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
   return `${stateFullText}
 ${stateSubText}
 ${insideText}${goingText}
-${updateText}
-${autoinsideText}`;
+${updateText}`;
 };
 
 function getBadges(username, options = {auto:false}){

@@ -3,6 +3,7 @@ const UsersRepository = require("../../repositories/usersRepository");
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const BaseHandlers = require("./base");
+const { openSpace, closeSpace } = require("../../services/statusHelper");
 
 class StatusHandlers extends BaseHandlers {
   constructor() {
@@ -144,23 +145,8 @@ class StatusHandlers extends BaseHandlers {
 
   openHandler = (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-    let opendate = new Date();
-    let state = {
-      open: true,
-      date: opendate,
-      changedby: msg.from.username,
-    };
 
-    StatusRepository.pushSpaceState(state);
-
-    let userstate = {
-      status: StatusRepository.UserStatusType.Inside,
-      date: opendate,
-      username: msg.from.username,
-      type: StatusRepository.ChangeType.Opened,
-    };
-
-    StatusRepository.pushPeopleState(userstate);
+    openSpace(msg.from.username, {checkOpener: true})
 
     let inlineKeyboard = [
       [
@@ -183,10 +169,7 @@ class StatusHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-      `🔓 ${this.bot.formatUsername(state.changedby)} открыл спейс для гостей
-Отличный повод зайти
-      
-🗓 ${state.date.toLocaleString()} `,
+      `🔑 ${this.bot.formatUsername(msg.from.username)} #*открыл#* спейс для гостей. Отличный повод зайти`,
       {
         reply_markup: {
           inline_keyboard: inlineKeyboard,
@@ -198,14 +181,7 @@ class StatusHandlers extends BaseHandlers {
   closeHandler = (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
-    let state = {
-      open: false,
-      date: new Date(),
-      changedby: msg.from.username,
-    };
-
-    StatusRepository.pushSpaceState(state);
-    StatusRepository.evictPeople();
+    closeSpace(msg.from.username, {evict: true});
 
     let inlineKeyboard = [
       [
@@ -218,10 +194,7 @@ class StatusHandlers extends BaseHandlers {
 
     this.bot.sendMessage(
       msg.chat.id,
-      `🔒 ${this.bot.formatUsername(state.changedby)} закрыл спейс
-Все отметившиеся отправлены домой
-      
-🗓 ${state.date.toLocaleString()}`,
+      `🔒 ${this.bot.formatUsername(msg.from.username)} #*закрыл#* спейс. Все отметившиеся отправлены домой`,
       {
         reply_markup: {
           inline_keyboard: inlineKeyboard,
@@ -234,7 +207,8 @@ class StatusHandlers extends BaseHandlers {
     let eventDate = new Date();
     let user = msg.from.username ?? msg.from.first_name;
     let gotIn = this.LetIn(user, eventDate);
-    let message = `🤝 ${this.bot.formatUsername(user)} пришел в спейс`;
+    let autoinsideText = `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически`;
+    let message = `🤝 ${this.bot.formatUsername(user)} пришел в спейс\n\n${autoinsideText}`;
 
     if (!gotIn) {
       message = "🔐 Сейчас спейс не готов принять гостей";

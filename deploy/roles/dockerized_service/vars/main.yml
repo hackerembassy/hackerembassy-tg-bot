@@ -1,0 +1,1 @@
+config_volume_proxy_container_name: "ansible-{{ service_name }}-config-volume-proxy"

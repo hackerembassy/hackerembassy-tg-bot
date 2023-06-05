@@ -30,14 +30,14 @@
         state: latest
       tags: compose
       when: install_compose is defined and install_compose
-
-    - name: logged into private registries
-      docker_login:
-        registry_url: "{{ item.registry_url }}"
-        username: "{{ item.username }}"
-        password: "{{ item.password }}"
-      with_items: "{{ docker_login }}"
-      loop_control:
-        label: "{{ item.registry_url }}"
-      when: docker_login is defined
   become: yes
+
+- name: logged into private registries
+  docker_login:
+    registry_url: "{{ item.registry_url }}"
+    username: "{{ item.username }}"
+    password: "{{ item.password }}"
+  with_items: "{{ docker_login }}"
+  loop_control:
+    label: "{{ item.registry_url }}"
+  when: docker_login is defined

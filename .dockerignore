@@ -5,6 +5,7 @@ README.md
 deploy
 config
 node_modules
-data
 sec
 log
+
+!deploy/entrypoint.sh

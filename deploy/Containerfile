@@ -1,5 +1,9 @@
 FROM docker.io/library/node:lts-alpine
 WORKDIR /app
 COPY . .
-RUN npm ci
+RUN mv ./deploy/entrypoint.sh / &&\
+    chmod +x /entrypoint.sh &&\
+    mv ./data ./sample-data &&\
+    npm ci
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "run", "start"]

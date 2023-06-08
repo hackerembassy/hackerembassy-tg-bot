@@ -21,7 +21,7 @@ async function autoinout(isIn){
       let selectedautousers = isIn ? autousers.filter(u=>!insideusernames.includes(u.username)) : autousers.filter(u=>insideusernames.includes(u.username));
 
       statusError = false;
-
+  
       for (const user of selectedautousers) {
         if (isIn ? anyItemIsInList(user.mac.split(','), devices) : !anyItemIsInList(user.mac.split(','), devices)) {
           StatusRepository.pushPeopleState({
@@ -37,7 +37,6 @@ async function autoinout(isIn){
     }
     catch(error) {
       statusError = true;
-      console.log(isStatusError)
       logger.error(error);
     }
   }

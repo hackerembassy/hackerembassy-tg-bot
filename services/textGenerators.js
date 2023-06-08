@@ -92,15 +92,15 @@ let getStatusMessage = (state, inside, going, isApi = false) => {
       : "🛌 Внутри никто не отметился\n";
 
 
-  for (const user of inside) {
-    insideText += `${BotExtensions.formatUsername(user.username, isApi)} ${getBadges(user.username, {auto: true})}\n`;
+  for (const userStatus of inside) {
+    insideText += `${BotExtensions.formatUsername(userStatus.username, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
   }
 
   let goingText = going.length > 0
     ? "\n🚕 Планируют сегодня зайти:\n"
     : "";
-  for (const user of going) {
-    goingText += `${BotExtensions.formatUsername(user.username, isApi)} ${getBadges(user.username)}\n`;
+  for (const userStatus of going) {
+    goingText += `${BotExtensions.formatUsername(userStatus.username, isApi)} ${getUserBadges(userStatus.username)}\n`;
   }
 
   return `${stateFullText}
@@ -109,16 +109,22 @@ ${insideText}${goingText}
 ${updateText}`;
 };
 
-function getBadges(username, options = {auto:false}){
+function getUserBadges(username){
   user = usersRepository.getUser(username);
   if (!user) return "";
 
   let roles = UsersHelper.getRoles(user);
   let roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}`
-  let autoBadge = (options.auto && user.type === StatusRepository.ChangeType.Auto) ? "📲" : "";
   let customBadge = user.emoji ?? "";
 
-  return `${autoBadge}${roleBadges}${customBadge}`
+  return `${roleBadges}${customBadge}`
+}
+
+function getUserBadgesWithStatus(userStatus){
+  let userBadges = getUserBadges(userStatus.username);
+  let autoBadge = userStatus.type === StatusRepository.ChangeType.Auto ? "📲" : "";
+
+  return `${autoBadge}${userBadges}`
 }
 
 function getAccountsList(accountants, isApi = false) {
@@ -126,7 +132,7 @@ function getAccountsList(accountants, isApi = false) {
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getBadges(user.username)}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getUserBadges(user.username)}\n`,
       ""
     );
   }
@@ -137,7 +143,7 @@ function getAccountsList(accountants, isApi = false) {
 function getResidentsList(residents){
   let userList = "";
     for (const user of residents) {
-      userList += `${BotExtensions.formatUsername(user.username)} ${getBadges(user.username)}\n`;
+      userList += `${BotExtensions.formatUsername(user.username)} ${getUserBadges(user.username)}\n`;
     }
 
     return `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;

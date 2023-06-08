@@ -5,7 +5,7 @@ const config = require("config");
 const botConfig = config.get("bot");
 const embassyApiConfig = config.get("embassy-api");
 const logger = require("./logger");
-const { anyItemIsInList } = require("../utils/common");
+const { isMacInside } = require("./statusHelper");
 
 let statusError = true;
 let isStatusError = () => statusError;
@@ -24,7 +24,8 @@ async function autoinout(isIn){
       statusError = false;
   
       for (const user of selectedautousers) {
-        if (isIn ? anyItemIsInList(user.mac.split(','), devices) : !anyItemIsInList(user.mac.split(','), devices)) {
+        let hasDeviceInside = isMacInside(user.mac, devices);
+        if (isIn ? hasDeviceInside : !hasDeviceInside) {
           StatusRepository.pushPeopleState({
             status: isIn ? StatusRepository.UserStatusType.Inside : StatusRepository.UserStatusType.Outside,
             date: new Date(),

@@ -8,13 +8,12 @@ const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
 const usersRepository = require("../../repositories/usersRepository");
 const { encrypt } = require("../../utils/security");
-const { anyItemIsInList } = require("../../utils/common");
+const { isMacInside } = require("../../services/statusHelper");
 
 class EmbassyHanlers extends BaseHandlers {
   constructor() {
     super();
   }
-  
 
   unlockHandler = async (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
@@ -24,7 +23,7 @@ class EmbassyHanlers extends BaseHandlers {
 
       let currentUser = usersRepository.getUser(msg.from.username);
 
-      if(!anyItemIsInList(currentUser.mac.split(","), devices)){
+      if(!isMacInside(currentUser.mac, devices)){
         this.bot.sendMessage(
           msg.chat.id,
           "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"

@@ -21,16 +21,16 @@ async function autoinout(isIn){
       let selectedautousers = isIn ? autousers.filter(u=>!insideusernames.includes(u.username)) : autousers.filter(u=>insideusernames.includes(u.username));
 
       statusError = false;
-  
+
       for (const user of selectedautousers) {
-        if (isIn ? devices.includes(user.mac) : !devices.includes(user.mac)){
+        if (isIn ? anyItemIsInList(user.mac.split(','), devices) : !anyItemIsInList(user.mac.split(','), devices)) {
           StatusRepository.pushPeopleState({
             status: isIn ? StatusRepository.UserStatusType.Inside : StatusRepository.UserStatusType.Outside,
             date: new Date(),
             username: user.username,
             type: StatusRepository.ChangeType.Auto
           });
-  
+
           logger.info(`Юзер ${user.username} автоматически ${isIn ? "пришел" : "ушел"}`);
         }
       }
@@ -42,6 +42,10 @@ async function autoinout(isIn){
     }
   }
   
+  function anyItemIsInList(items, list) {
+    return items.some(item => list.includes(item))
+  }
+
   setInterval(()=>autoinout(true), botConfig.timeouts.in);
   setInterval(()=>autoinout(false), botConfig.timeouts.out);
 

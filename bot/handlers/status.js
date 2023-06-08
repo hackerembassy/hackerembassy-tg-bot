@@ -20,18 +20,18 @@ class StatusHandlers extends BaseHandlers {
 
 #\`/setmac mac_address#\` - Добавить свой MAC адрес (или несколько, через запятую)
 #\`/setmac status#\` - Посмотреть свой установленный в боте MAC адрес
-#\`/setmac remove#\` - Удалить свой MAC адрес из бота  
+#\`/setmac remove#\` - Удалить свои MAC адреса из бота  
  `;
     } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-      message = `📡 MAC адрес ${cmd} успешно добавлен для юзера ${this.bot.formatUsername(username)}.`;
+      message = `📡 MAC адреса ${cmd} успешно добавлены для юзера ${this.bot.formatUsername(username)}.`;
     } else if (cmd === "remove") {
       UsersRepository.setMACs(username, null);
       UsersRepository.setAutoinside(username, false);
-      message = `🗑 MAC удален для юзера ${this.bot.formatUsername(username)}. Автовход теперь работать не будет.`;
+      message = `🗑 MAC адреса удалены для юзера ${this.bot.formatUsername(username)}. Автовход теперь работать не будет.`;
     } else if (cmd === "status") {
       let usermac = UsersRepository.getUser(username)?.mac;
       if (usermac)
-        message = `📲 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
+        message = `📲 Для юзера ${this.bot.formatUsername(username)} заданы MAC адреса ${usermac}`;
       else message = `📲 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
     }
 

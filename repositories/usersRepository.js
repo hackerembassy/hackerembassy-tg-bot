@@ -55,7 +55,7 @@ class UserRepository extends BaseRepository {
       if (macs) macs = macs.split(',').map(mac => mac.toLowerCase().replaceAll("-", ":").trim()).join(',');
       this.db
         .prepare("UPDATE users SET mac = ? WHERE username = ?")
-        .run(mac, username);
+        .run(macs, username);
 
       return true;
     } catch (error) {

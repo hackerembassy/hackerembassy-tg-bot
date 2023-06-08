@@ -8,11 +8,13 @@ const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
 const usersRepository = require("../../repositories/usersRepository");
 const { encrypt } = require("../../utils/security");
+const { anyItemIsInList } = require("../../utils/common");
 
 class EmbassyHanlers extends BaseHandlers {
   constructor() {
     super();
   }
+  
 
   unlockHandler = async (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
@@ -21,7 +23,8 @@ class EmbassyHanlers extends BaseHandlers {
       let devices = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`))?.json();
 
       let currentUser = usersRepository.getUser(msg.from.username);
-      if (!devices.includes(currentUser.mac)) {
+
+      if(!anyItemIsInList(currentUser.mac.split(","), devices)){
         this.bot.sendMessage(
           msg.chat.id,
           "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"

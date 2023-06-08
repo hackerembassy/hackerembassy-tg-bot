@@ -5,6 +5,7 @@ const config = require("config");
 const botConfig = config.get("bot");
 const embassyApiConfig = config.get("embassy-api");
 const logger = require("./logger");
+const { anyItemIsInList } = require("../utils/common");
 
 let statusError = true;
 let isStatusError = () => statusError;
@@ -39,10 +40,6 @@ async function autoinout(isIn){
       statusError = true;
       logger.error(error);
     }
-  }
-  
-  function anyItemIsInList(items, list) {
-    return items.some(item => list.includes(item))
   }
 
   setInterval(()=>autoinout(true), botConfig.timeouts.in);

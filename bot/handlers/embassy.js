@@ -8,6 +8,7 @@ const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
 const usersRepository = require("../../repositories/usersRepository");
 const { encrypt } = require("../../utils/security");
+const { isMacInside } = require("../../services/statusHelper");
 
 class EmbassyHanlers extends BaseHandlers {
   constructor() {
@@ -21,7 +22,8 @@ class EmbassyHanlers extends BaseHandlers {
       let devices = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`))?.json();
 
       let currentUser = usersRepository.getUser(msg.from.username);
-      if (!devices.includes(currentUser.mac)) {
+
+      if(!isMacInside(currentUser.mac, devices)){
         this.bot.sendMessage(
           msg.chat.id,
           "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"

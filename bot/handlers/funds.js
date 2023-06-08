@@ -225,8 +225,6 @@ ${this.bot.formatUsername(donation.username)} донатил в сбор ${fund.
   };
 
   exportCSVHandler = async (msg, fundName) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
     try {
       let csvBuffer = await ExportHelper.exportFundToCSV(fundName);
 
@@ -249,8 +247,6 @@ ${this.bot.formatUsername(donation.username)} донатил в сбор ${fund.
   }
 
   exportDonutHandler = async (msg, fundName) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
     let imageBuffer;
     try {
       imageBuffer = await ExportHelper.exportFundToDonut(fundName);

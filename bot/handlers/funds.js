@@ -191,6 +191,18 @@ ${this.bot.formatUsername(donation.username)} донатил в сбор ${fund.
     this.bot.sendMessage(msg.chat.id, message);
   };
 
+  showCostsHandler = async (msg) => {
+    let fundName = FundsRepository.getLatestCosts().name;
+
+    return this.fundHandler(msg, fundName)
+  };
+
+  showCostsDonutHandler = async (msg) => {
+    let fundName = FundsRepository.getLatestCosts().name;
+
+    return this.exportDonutHandler(msg, fundName)
+  };
+
   removeDonationHandler = (msg, donationId) => {
     if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
 

@@ -208,6 +208,17 @@ class StatusHandlers extends BaseHandlers {
     );
   };
 
+  evictHandler = (msg) => {
+    if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+
+    StatusRepository.evictPeople();
+
+    this.bot.sendMessage(
+      msg.chat.id,
+      `🔒 Список отметившихся очищен`,
+    );
+  };
+
   inHandler = (msg) => {
     let eventDate = new Date();
     let user = msg.from.username ?? msg.from.first_name;

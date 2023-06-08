@@ -46,6 +46,7 @@ const MemberCommandsList = `
 /setemoji - Поставить себе эмодзи в боте
 #\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
+/evict - Очистить список отметившихся внутри
 `;
 
 const AdminCommandsList = ` 

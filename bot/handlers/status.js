@@ -18,12 +18,12 @@ class StatusHandlers extends BaseHandlers {
       message = `
 📡 С помощью этой команды можно задать MAC адреса для функций автовхода и управления замком 
 
-#\`/setmac mac_address#\` - Добавить свой MAC адрес (или несколько, через запятую)
+#\`/setmac mac_address#\` - Установить свой MAC адрес (или несколько, через запятую)
 #\`/setmac status#\` - Посмотреть свой установленный в боте MAC адрес
 #\`/setmac remove#\` - Удалить свои MAC адреса из бота  
  `;
     } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-      message = `📡 MAC адреса ${cmd} успешно добавлены для юзера ${this.bot.formatUsername(username)}.`;
+      message = `📡 MAC адреса ${cmd} успешно установлены для юзера ${this.bot.formatUsername(username)}.`;
     } else if (cmd === "remove") {
       UsersRepository.setMACs(username, null);
       UsersRepository.setAutoinside(username, false);

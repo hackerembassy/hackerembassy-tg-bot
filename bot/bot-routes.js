@@ -30,6 +30,7 @@ bot.onText(/^\/(close|c)(@.+?)?$/i, StatusHandlers.closeHandler);
 bot.onText(/^\/inforce(@.+?)? (\S+)$/i, (msg, match) => StatusHandlers.inForceHandler(msg, match[2]));
 bot.onText(/^\/outforce(@.+?)? (\S+)$/i, (msg, match) => StatusHandlers.outForceHandler(msg, match[2]));
 bot.onText(/^\/out(@.+?)?$/i, StatusHandlers.outHandler);
+bot.onText(/^\/(evict|outforceall)(@.+?)?$/i, StatusHandlers.evictHandler);
 bot.onText(/^\/autoinside(@.+?)?(?: (.*\S))?$/i, async (msg, match) => StatusHandlers.autoinsideHandler(msg, match[2]));
 bot.onText(/^\/setmac(@.+?)?(?: (.*\S))?$/i, async (msg, match) => StatusHandlers.setmacHandler(msg, match[2]));
 bot.onText(/^\/(going|g)(@.+?)?$/i, StatusHandlers.goingHandler);

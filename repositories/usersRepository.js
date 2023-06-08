@@ -44,11 +44,15 @@ class UserRepository extends BaseRepository {
     }
   }
 
-  setMAC(username, mac = null) {
+  testMACs(cmd) {
+    const macRegex = /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/;
+    return cmd.split(',').every(mac => macRegex.test(mac));
+  }
+
+  setMACs(username, macs = null) {
     try {
       if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 
-      if (mac) mac = mac.toLowerCase().replaceAll("-",":");
-
+      if (macs) macs = macs.split(',').map(mac => mac.toLowerCase().replaceAll("-", ":").trim()).join(',');
       this.db
         .prepare("UPDATE users SET mac = ? WHERE username = ?")
         .run(mac, username);

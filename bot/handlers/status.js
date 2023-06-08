@@ -4,6 +4,7 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const BaseHandlers = require("./base");
 const { openSpace, closeSpace } = require("../../services/statusHelper");
+const { isStatusError } = require("../../services/autoInOut")
 
 class StatusHandlers extends BaseHandlers {
   constructor() {
@@ -85,6 +86,11 @@ class StatusHandlers extends BaseHandlers {
     let inside = StatusRepository.getPeopleInside();
     let going = StatusRepository.getPeopleGoing();
     let statusMessage = TextGenerators.getStatusMessage(state, inside, going);
+
+    if (isStatusError())
+      statusMessage = `📵 Не удалось связаться со спейсом. Данные о посетителях могут быть неактуальными \n\n${statusMessage}`;
+    
+
     let inlineKeyboard = state.open
       ? [
         [

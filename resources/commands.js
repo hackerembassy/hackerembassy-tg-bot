@@ -6,16 +6,17 @@ const GeneralCommandsList = `
 /join - Как присоединиться к нам
 /donate - Как задонатить
 /location - Как нас найти
-/status - Статус спейса и кто отметился внутри
+/status (s) - Статус спейса и кто отметился внутри
 /in - Отметиться находящимся в спейсе
 /out - Отметиться ушедшим из спейса
-/going - Планирую сегодня в спейс
-/notgoing - Больше не планирую сегодня в спейс
+/going (g) - Планирую сегодня в спейс
+/notgoing (ng) - Больше не планирую сегодня в спейс
 /printer - О нашем 3D принтере
 /printerstatus - Статус 3D принтера
 /getresidents - Наши резиденты, можно к ним обратиться по любым спейсовским вопросам
 /funds - Наши открытые сборы
 /fundsall - Все сборы
+#\`/sayinspace some_text#\` - Сказать что-нибудь на динамике в спейсе
 #\`/fund fund_name#\` - Вывести сбор по имени
 /birthdays - Кто празднует днюху в этом месяце
 /needs - Посмотреть, что просили купить в спейс по дороге
@@ -23,6 +24,7 @@ const GeneralCommandsList = `
 #\`/bought item_name#\` - Отметить что-то купленным из needs
 /setmac - Управление своим MAC адресом
 /autoinside - Настроить автоматический вход и выход из спейса
+/issue issue_text - Полностью анонимно сообщить о какой-либо проблеме в спейсе (чего-то не хватает, что-то не работает, кто-то делает что-то очень неправильное в спейсе). Резиденты обязательно её рассмотрят и постараются решить.
 
 Мем команды:
 /randomcat
@@ -32,16 +34,18 @@ const GeneralCommandsList = `
 
 const MemberCommandsList = `
 Команды резидентов:
-/open - Открыть спейс
-/close - Закрыть спейс
-/superstatus - Статус и изображения со всех камер
-/webcam - Глянуть камеру внутри
-/doorcam - Глянуть камеру снаружи
-/doorbell - Позвонить в дверной звонок
-/unlock - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
+/open (o) - Открыть спейс
+/close (c) - Закрыть спейс
+/superstatus (ss) - Статус и изображения со всех камер
+/firstfloor (ff) - Глянуть камеру первого этажа
+/secondfloor (sf) - Глянуть камеру второго этажа
+/doorcam (dc) - Глянуть камеру снаружи
+/doorbell (db) - Позвонить в дверной звонок
+/unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (можно без параметра для удаления одного последнего ответа)
-#\`/inForce telegram_username#\` - Отметить другого юзера пришедшим в спейс
-#\`/outForce telegram_username#\` - Отметить другого юзера ушедшим из спейса
+/setemoji - Поставить себе эмодзи в боте
+#\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
+#\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
 `;
 
 const AdminCommandsList = ` 
@@ -52,7 +56,7 @@ const AdminCommandsList = `
 #\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
 /forcebirthdaywishes
 #\`/forward some_text#\`
-/getlog
+/getlogs
 
 \\* Roles: admin, accountant, member, default
 `;
@@ -60,17 +64,17 @@ const AdminCommandsList = `
 const AccountantCommandsList = `
 Команды бухгалтера:
 #\`/costs donation_value currency_code from telegram_username#\` - Задонатить в последний актуальный сбор на аренду
-#\`/addFund Fund_Name with target goal_value currency_code#\` - Добавить сбор
-#\`/updateFund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
-#\`/exportFund fund_name#\` - Экспортировать донаты сбора как CSV
-#\`/exportDonut fund_name#\` - Экспортировать донаты сбора как диаграмму
-#\`/closeFund fund_name#\` - Изменить статус сбора на закрытый
-#\`/changeFundStatus of fund_name to status_name#\` - Изменить статус сбора
-#\`/removeFund fund_name#\` - Удалить сбор (не надо)
-#\`/addDonation donation_value currency_code from telegram_username to fund_name#\`
-#\`/changeDonation donation_id to donation_value currency_code#\`
-#\`/removeDonation donation_id#\` - Удалить донат
-#\`/transferDonation donation_id to username#\` - Передать донат другому бухгалтеру
+#\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
+#\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
+#\`/exportfund fund_name#\` - Экспортировать донаты сбора как CSV
+#\`/exportfonut fund_name#\` - Экспортировать донаты сбора как диаграмму
+#\`/closefund fund_name#\` - Изменить статус сбора на закрытый
+#\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
+#\`/removefund fund_name#\` - Удалить сбор (не надо)
+#\`/adddonation donation_value currency_code from telegram_username to fund_name#\`
+#\`/changedonation donation_id to donation_value currency_code#\`
+#\`/removedonation donation_id#\` - Удалить донат
+#\`/transferdonation donation_id to username#\` - Передать донат другому бухгалтеру
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead

@@ -5,6 +5,7 @@ const apiBase = printer3dConfig.apibase;
 const BotExtensions = require("../bot/botExtensions");
 const StatusRepository = require("../repositories/statusRepository");
 const UsersHelper = require("./usersHelper");
+const usersRepository = require("../repositories/usersRepository");
 
 async function createFundList(funds, donations, options = {}) {
   const defaultOptions = {showAdmin: false, isApi: false, isHistory: false};
@@ -57,15 +58,15 @@ async function createFundList(funds, donations, options = {}) {
       if (!options.isHistory){
         list += "\n";
         list += `#\`/fund ${fund.name}#\`\n`;
-        list += `#\`/exportFund ${fund.name}#\`\n`;
-        list += `#\`/exportDonut ${fund.name}#\`\n`;
-        list += `#\`/updateFund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
-        list += `#\`/changeFundStatus of ${fund.name} to status_name#\`\n`;
-        list += `#\`/closeFund ${fund.name}#\`\n`;
-        list += `#\`/transferDonation donation_id to username#\`\n`;
-        list += `#\`/addDonation 5000 AMD from @username to ${fund.name}#\`\n`;
-        list += `#\`/changeDonation donation_id to 5000 AMD#\`\n`;
-        list += `#\`/removeDonation donation_id#\`\n`;
+        list += `#\`/exportfund ${fund.name}#\`\n`;
+        list += `#\`/exportdonut ${fund.name}#\`\n`;
+        list += `#\`/updatefund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
+        list += `#\`/changefundstatus of ${fund.name} to status_name#\`\n`;
+        list += `#\`/closefund ${fund.name}#\`\n`;
+        list += `#\`/transferdonation donation_id to username#\`\n`;
+        list += `#\`/adddonation 5000 AMD from @username to ${fund.name}#\`\n`;
+        list += `#\`/changedonation donation_id to 5000 AMD#\`\n`;
+        list += `#\`/removedonation donation_id#\`\n`;
       } else {
         list += `#\`/fund ${fund.name}#\`\n`;
       }
@@ -78,44 +79,52 @@ async function createFundList(funds, donations, options = {}) {
 }
 
 let getStatusMessage = (state, inside, going, isApi = false) => {
-  let stateText = state.open ? "открыт" : "закрыт";
+  let stateText = state.open ? "#*открыт#*" : "#*закрыт#*";
   let stateEmoji = state.open ? "🔓" : "🔒";
   let stateSubText = state.open
     ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
     : `Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит закрытое собрание резидентов, или они опять забыли сделать /open? Who knows... Лучше спроси у них в чате.\n`
-  let dateString = state.date.toLocaleString("RU-ru").replace(","," в").substr(0, 18);
   let updateText = !isApi ? `⏱ Обновлено ${(new Date()).toLocaleString("RU-ru").replace(","," в").substr(0, 21)}\n`: "";
-  let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)} ${dateString}\n`;
-  let autoinsideText = !isApi ? `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически` : "";
+  let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)}\n`;
 
   let insideText = inside.length > 0
       ? "👨‍💻 Внутри отметились:\n"
       : "🛌 Внутри никто не отметился\n";
-  for (const user of inside) {
-    insideText += `${BotExtensions.formatUsername(user.username, isApi)} ${getAutoBadge(user)}${getRoleBadges(user.username)}\n`;
+
+
+  for (const userStatus of inside) {
+    insideText += `${BotExtensions.formatUsername(userStatus.username, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
   }
 
   let goingText = going.length > 0
     ? "\n🚕 Планируют сегодня зайти:\n"
     : "";
-  for (const user of going) {
-    goingText += `${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user.username)}\n`;
+  for (const userStatus of going) {
+    goingText += `${BotExtensions.formatUsername(userStatus.username, isApi)} ${getUserBadges(userStatus.username)}\n`;
   }
 
   return `${stateFullText}
 ${stateSubText}
 ${insideText}${goingText}
-${updateText}
-${autoinsideText}`;
+${updateText}`;
 };
 
-function getRoleBadges(username){
-  let roles = UsersHelper.getRoles(username);
-  return `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${roles.includes("admin") ? "🐸" : ""}${roles.includes("kitten") ? "😺" : ""}`
+function getUserBadges(username){
+  user = usersRepository.getUser(username);
+  if (!user) return "";
+
+  let roles = UsersHelper.getRoles(user);
+  let roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}`
+  let customBadge = user.emoji ?? "";
+
+  return `${roleBadges}${customBadge}`
 }
 
-function getAutoBadge(user){
-  return user.type === StatusRepository.ChangeType.Auto ? "📲" : "";
+function getUserBadgesWithStatus(userStatus){
+  let userBadges = getUserBadges(userStatus.username);
+  let autoBadge = userStatus.type === StatusRepository.ChangeType.Auto ? "📲" : "";
+
+  return `${autoBadge}${userBadges}`
 }
 
 function getAccountsList(accountants, isApi = false) {
@@ -123,7 +132,7 @@ function getAccountsList(accountants, isApi = false) {
 
   if (accountants !== null) {
     accountantsList = accountants.reduce(
-      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getRoleBadges(user)}\n`,
+      (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getUserBadges(user.username)}\n`,
       ""
     );
   }
@@ -134,7 +143,7 @@ function getAccountsList(accountants, isApi = false) {
 function getResidentsList(residents){
   let userList = "";
     for (const user of residents) {
-      userList += `${BotExtensions.formatUsername(user.username)} ${getRoleBadges(user)}\n`;
+      userList += `${BotExtensions.formatUsername(user.username)} ${getUserBadges(user.username)}\n`;
     }
 
     return `👥 Вот они - наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`;
@@ -187,14 +196,14 @@ function getDonateText(accountants, isApi = false) {
  💰 Криптовалюта ${
    !isApi
      ? `(по следующим командам)
-       /donateBTC
-       /donateETH
-       /donateUSDC
-       /donateUSDT`
+       /donatebtc
+       /donateeth
+       /donateusdc
+       /donateusdt`
      : ""
  }
  💵 Наличкой при встрече (самый лучший вариант).
-       ${!isApi ? "/donateCash\n" : ""}
+       ${!isApi ? "/donatecash\n" : ""}
  📊 Увидеть наши текущие сборы и ваш вклад можно по команде ${
    !isApi ? "/" : ""
  }funds

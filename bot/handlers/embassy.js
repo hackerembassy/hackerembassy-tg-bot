@@ -8,6 +8,7 @@ const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
 const usersRepository = require("../../repositories/usersRepository");
 const { encrypt } = require("../../utils/security");
+const { isMacInside } = require("../../services/statusHelper");
 
 class EmbassyHanlers extends BaseHandlers {
   constructor() {
@@ -16,15 +17,18 @@ class EmbassyHanlers extends BaseHandlers {
 
   unlockHandler = async (msg) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
+
     try {
       let devices = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`))?.json();
 
       let currentUser = usersRepository.getUser(msg.from.username);
-      if (!devices.includes(currentUser.mac)) {
+
+      if(!isMacInside(currentUser.mac, devices)){
         this.bot.sendMessage(
           msg.chat.id,
           "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"
         );
+
         return;
       }
 
@@ -52,14 +56,18 @@ class EmbassyHanlers extends BaseHandlers {
   };
 
   webcamHandler = async (msg) => {
-    await this.webcamGenericHandler(msg, "webcam")
+    await this.webcamGenericHandler(msg, "webcam", "Первый этаж")
   };
 
   webcam2Handler = async (msg) => {
-    await this.webcamGenericHandler(msg, "webcam2")
+    await this.webcamGenericHandler(msg, "webcam2", "Второй этаж")
   };
-  
-  webcamGenericHandler = async (msg, path) => {
+
+  doorcamHandler = async (msg) => {
+    await this.webcamGenericHandler(msg, "doorcam", "Входная дверь")
+  };
+
+  webcamGenericHandler = async (msg, path, prefix) => {
     if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
     try {
@@ -70,30 +78,15 @@ class EmbassyHanlers extends BaseHandlers {
       if (webcamImage) await this.bot.sendPhoto(msg.chat.id, webcamImage);
       else throw Error("Empty webcam image");
     } catch (error) {
-      let message = `⚠️ Камера пока недоступна`;
+      let message = `⚠️ ${prefix}: Камера пока недоступна`;
       await this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
     }
   };
 
-  sendDoorcam = async (chatid) => {
-    try {
-      let response = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorcam`))?.arrayBuffer();
-  
-      let webcamImage = Buffer.from(response);
-  
-      if (webcamImage) await this.bot.sendPhoto(chatid, webcamImage);
-      else throw Error("Empty doorcam image");
-    } catch (error) {
-      let message = `⚠️ Камера пока недоступна`;
-      this.bot.sendMessage(chatid, message);
-      logger.error(error);
-    }
-  }
-
   monitorHandler = async (msg, notifyEmpty = false) => {
     try {
-      let statusMessages = await this.queryStatusMonitor();  
+      let statusMessages = await this.queryStatusMonitor();
 
       if (!notifyEmpty && statusMessages.length === 0) return;
 
@@ -101,7 +94,7 @@ class EmbassyHanlers extends BaseHandlers {
 
       this.bot.sendMessage(msg.chat.id, message);
     }
-     catch (error) {
+    catch (error) {
       let message = `⚠️ Не удалось получить статус, может что-то с инетом, электричеством или le-fail?`;
       this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
@@ -109,18 +102,12 @@ class EmbassyHanlers extends BaseHandlers {
   }
 
   queryStatusMonitor = async () => {
-    return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();  
+    return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();
   }
-  
+
   enableStatusMonitor() {
-    setInterval(() => this.monitorHandler({chat: {id: botConfig.chats.test}}), embassyApiConfig.queryMonitorInterval);
+    setInterval(() => this.monitorHandler({ chat: { id: botConfig.chats.test } }), embassyApiConfig.queryMonitorInterval);
   }
-
-  doorcamHandler = async (msg) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
-
-    await this.sendDoorcam(msg.chat.id);
-  };
 
   printerHandler = async (msg) => {
     let message = TextGenerators.getPrinterInfo();
@@ -163,12 +150,16 @@ class EmbassyHanlers extends BaseHandlers {
         ],
       ]
 
-      if (thumbnailBuffer) await this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), { caption: message, reply_markup: {
-        inline_keyboard: inlineKeyboard,
-      } });
-      else await this.bot.sendMessage(msg.chat.id, message, {reply_markup: {
-        inline_keyboard: inlineKeyboard,
-      }});
+      if (thumbnailBuffer) await this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), {
+        caption: message, reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        }
+      });
+      else await this.bot.sendMessage(msg.chat.id, message, {
+        reply_markup: {
+          inline_keyboard: inlineKeyboard,
+        }
+      });
     }
   };
 
@@ -187,6 +178,55 @@ class EmbassyHanlers extends BaseHandlers {
       this.bot.sendMessage(msg.chat.id, message);
     }
   };
+
+
+  sayinspaceHandler = async (msg, text) => {
+    try {
+      if (!text) {
+        this.bot.sendMessage(msg.chat.id, `🗣 С помощью этой команды можно сказать что-нибудь на динамике в спейсе, например #\`/say Привет, хакеры#\``);
+        return;
+      }
+
+      let response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/sayinspace`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+      });
+
+      if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Сообщение отправлено на динамик");
+      else throw Error("Failed to say in space");
+    } catch (error) {
+      let message = `⚠️ Не вышло сказать`;
+      await this.bot.sendMessage(msg.chat.id, message);
+      logger.error(error);
+    }
+  }
+
+  playinspaceHandler = async (msg, link) => {
+    try {
+      if (!link) {
+        this.bot.sendMessage(msg.chat.id, `🗣 С помощью этой команды можно воспроизвести любой звук по ссылке`);
+        return;
+      }
+
+      let response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/playinspace`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ link })
+      });
+
+      if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Звук отправлен на динамик");
+      else throw Error("Failed to play in space");
+    } catch (error) {
+      let message = `⚠️ Не вышло воспроизвести`;
+      await this.bot.sendMessage(msg.chat.id, message);
+      logger.error(error);
+    }
+  }
 }
 
 module.exports = EmbassyHanlers;

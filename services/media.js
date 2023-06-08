@@ -1,4 +1,5 @@
 
+const fetch = require('node-fetch');
 const { exec } = require("child_process");
 const fs = require("fs").promises;
 const config = require("config");
@@ -6,6 +7,8 @@ const embassyApiConfig = config.get("embassy-api");
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;
 const webcam2Path = embassyApiConfig.webcam2;
+const ttspath = embassyApiConfig.ttspath;
+const playpath = embassyApiConfig.playpath;
 
 async function getDoorcamImage(){
     return await getImageFromHTTP(doorcamPath, process.env["HASSTOKEN"]);
@@ -51,4 +54,38 @@ async function getImageFromHTTP(url, token) {
     return Buffer.from(imgbuffer);
 }
 
-module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image }
+async function sayInSpace(text) {
+    let response = await fetch(ttspath, {
+        method: "POST",
+        headers:{
+           "Authorization": `Bearer ${process.env["HASSTOKEN"]}`,
+           "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            entity_id: "media_player.hackem_speaker",
+            message: text,
+            language: "ru"
+        }),
+    });
+
+    return response.status;
+}
+
+async function playInSpace(link) {
+    let response = await fetch(playpath, {
+        method: "POST",
+        headers:{
+           "Authorization": `Bearer ${process.env["HASSTOKEN"]}`,
+           "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            entity_id: "media_player.hackem_speaker",
+            media_content_id: link,
+            media_content_type: "music"
+        }),
+    });
+
+    return response.status;
+}
+
+module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace }

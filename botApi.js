@@ -3,16 +3,13 @@ const cors = require("cors");
 const logger = require("./services/logger");
 const bodyParser = require('body-parser');
 const config = require("config");
-const botConfig = config.get("bot");
-const bot = require("./bot/bot");
-
-const EmbassyHandlers = new (require("./bot/handlers/embassy"))();
 
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
 const FundsRepository = require("./repositories/fundsRepository");
 const UsersRepository = require("./repositories/usersRepository");
 const Commands = require("./resources/commands");
+const { openSpace, closeSpace } = require("./services/statusHelper");
 
 const apiConfig = config.get("api");
 const app = express();
@@ -41,18 +38,6 @@ app.use(logError);
 // Routes
 app.get("/commands", (_, res) => {
   res.send(Commands.ApiCommandsList);
-});
-
-app.post("/doorbell", tokenSecured, async (req, res) => {
-  logger.info(`Got doorbell`);
-  let inside = StatusRepository.getPeopleInside();  
-  if (!inside || inside.length === 0){
-    logger.info(`No one inside. Notified members.`);
-    await bot.sendMessage(botConfig.chats.key, "🔔 Кто-то позвонил в дверной звонок, а внутри никого.");
-    await EmbassyHandlers.sendDoorcam(botConfig.chats.key);
-  }
-
-  res.send({message: "Success"});
 });
 
 app.get("/status", (_, res) => {
@@ -115,23 +100,15 @@ app.get("/api/insidecount", (_, res) => {
 });
 
 app.post("/api/open", tokenSecured, (_, res) => {
-  StatusRepository.pushSpaceState({
-    open: true,
-    date: new Date(),
-    changedby: "api",
-  });
+  openSpace("api");
 
-  return  res.send({message: "Success"});
+  return res.send({message: "Success"});
 });
 
 app.post("/api/close", tokenSecured, (_, res) => {
-  StatusRepository.pushSpaceState({
-    open: false,
-    date: new Date(),
-    changedby: "api",
-  });
+  closeSpace("api", {evict: true})
 
-  return  res.send({message: "Success"});
+  return res.send({message: "Success"});
 });
 
 app.get("/join", (_, res) => {

@@ -4,8 +4,6 @@ const UsersRepository = require("../repositories/usersRepository");
 const fs = require("fs/promises");
 const path = require("path");
 const logger = require("../services/logger");
-const { fetchWithTimeout } = require("../utils/network");
-const embassyApiConfig = config.get("embassy-api");
 
 const maxChunkSize = 3000;
 const messagedelay = 1500;
@@ -85,13 +83,12 @@ function initGlobalModifiers(bot) {
   bot.onText = async function (...args) {
     let originalRegex = args[0];
     let originalFunc = args[1];
+    let regexString = originalRegex.toString();
+    let endOfBodyIndex = regexString.lastIndexOf("/");
+    let regexBody = regexString.substring(1, endOfBodyIndex);
+    let regexParams = regexString.substring(endOfBodyIndex + 1);
 
-    args[0] = new RegExp(
-      originalRegex
-        .toString()
-        .substring(1, originalRegex.toString().length - 1)
-        .replace("$", `${addedModifiersString}$`)
-    );
+    args[0] = new RegExp(regexBody.replace("$", `${addedModifiersString}$`), regexParams);
     args[1] = async function (...funcargs) {
       let match = funcargs[1];
       let newCommand = match[0];

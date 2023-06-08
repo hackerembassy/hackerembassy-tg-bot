@@ -5,6 +5,7 @@ const config = require("config");
 const botConfig = config.get("bot");
 const embassyApiConfig = config.get("embassy-api");
 const logger = require("./logger");
+const { isMacInside } = require("./statusHelper");
 
 let statusError = true;
 let isStatusError = () => statusError;
@@ -23,14 +24,15 @@ async function autoinout(isIn){
       statusError = false;
   
       for (const user of selectedautousers) {
-        if (isIn ? devices.includes(user.mac) : !devices.includes(user.mac)){
+        let hasDeviceInside = isMacInside(user.mac, devices);
+        if (isIn ? hasDeviceInside : !hasDeviceInside) {
           StatusRepository.pushPeopleState({
             status: isIn ? StatusRepository.UserStatusType.Inside : StatusRepository.UserStatusType.Outside,
             date: new Date(),
             username: user.username,
             type: StatusRepository.ChangeType.Auto
           });
-  
+
           logger.info(`Юзер ${user.username} автоматически ${isIn ? "пришел" : "ушел"}`);
         }
       }
@@ -40,7 +42,7 @@ async function autoinout(isIn){
       logger.error(error);
     }
   }
-  
+
   setInterval(()=>autoinout(true), botConfig.timeouts.in);
   setInterval(()=>autoinout(false), botConfig.timeouts.out);
 

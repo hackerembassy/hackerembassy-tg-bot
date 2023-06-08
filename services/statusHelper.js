@@ -1,4 +1,5 @@
 const StatusRepository = require("../repositories/statusRepository");
+const { anyItemIsInList } = require("../utils/common");
 
 function openSpace(opener, options = { checkOpener: false }) {
     let opendate = new Date();
@@ -35,4 +36,8 @@ function closeSpace(closer, options = { evict: false }){
         StatusRepository.evictPeople();
 }
 
-module.exports = {openSpace, closeSpace}
+function isMacInside(mac, devices){
+    return anyItemIsInList(mac.split(','), devices);
+}
+
+module.exports = {openSpace, closeSpace, isMacInside}

@@ -12,27 +12,26 @@ class StatusHandlers extends BaseHandlers {
   }
 
   setmacHandler(msg, cmd) {
-    let message = `⚠️ Укажите валидный MAC адрес`;
+    let message = `⚠️ Укажите валидный MAC адрес (или несколько, через запятую)`;
     let username = msg.from.username;
     if (!cmd || cmd === "help") {
       message = `
-📡 С помощью этой команды можно задать MAC адрес для функций автовхода и управления замком 
+📡 С помощью этой команды можно задать MAC адреса для функций автовхода и управления замком 
 
-#\`/setmac mac_address#\` - Добавить свой MAC адрес 
+#\`/setmac mac_address#\` - Установить свой MAC адрес (или несколько, через запятую)
 #\`/setmac status#\` - Посмотреть свой установленный в боте MAC адрес
-#\`/setmac remove#\` - Удалить свой MAC адрес из бота  
+#\`/setmac remove#\` - Удалить свои MAC адреса из бота  
  `;
-    } else if (cmd && /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/.test(cmd) && UsersRepository.setMAC(username, cmd)) {
-      message = `📡 MAC адрес ${cmd} успешно добавлен для юзера ${this.bot.formatUsername(username)}.`;
+    } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
+      message = `📡 MAC адреса ${cmd} успешно установлены для юзера ${this.bot.formatUsername(username)}.`;
     } else if (cmd === "remove") {
-      UsersRepository.setMAC(username, null);
+      UsersRepository.setMACs(username, null);
       UsersRepository.setAutoinside(username, false);
-      message = `🗑 MAC удален для юзера ${this.bot.formatUsername(username)}. Автовход теперь работать не будет.`;
+      message = `🗑 MAC адреса удалены для юзера ${this.bot.formatUsername(username)}. Автовход теперь работать не будет.`;
     } else if (cmd === "status") {
       let usermac = UsersRepository.getUser(username)?.mac;
-
       if (usermac)
-        message = `📲 Для юзера ${this.bot.formatUsername(username)} задан MAC адрес ${usermac}`;
+        message = `📲 Для юзера ${this.bot.formatUsername(username)} заданы MAC адреса ${usermac}`;
       else message = `📲 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
     }
 

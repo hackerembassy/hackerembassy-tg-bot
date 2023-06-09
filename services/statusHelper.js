@@ -37,7 +37,7 @@ function closeSpace(closer, options = { evict: false }){
 }
 
 function isMacInside(mac, devices){
-    return anyItemIsInList(mac.split(','), devices);
+    return mac ? anyItemIsInList(mac.split(','), devices) : false;
 }
 
 module.exports = {openSpace, closeSpace, isMacInside}

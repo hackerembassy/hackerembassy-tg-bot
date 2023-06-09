@@ -1,7 +1,7 @@
 const Currency = require("../utils/currency");
 const config = require("config");
-const printer3dConfig = config.get("printer3d");
-const apiBase = printer3dConfig.apibase;
+const printersConfig = config.get("printers");
+const printer3d = require("../services/printer3d");
 const BotExtensions = require("../bot/botExtensions");
 const StatusRepository = require("../repositories/statusRepository");
 const UsersHelper = require("./usersHelper");
@@ -287,12 +287,20 @@ function getBirthdaysList(birthdayUsers){
   return message;
 }
 
-function getPrinterInfo(){
-  return `🖨 3D принтер Anette от ubershy и cake64
+function getPrintersInfo(){
+  return `🖨 У нас есть два 3D принтера:
+
+🚺 Anette от ubershy и cake64
 Документация по нему доступна тут:
 https://wiki.hackerembassy.site/ru/equipment/anette
-Веб интерфейс доступен внутри сети спейса по адресу ${apiBase}
-Статус принтера можно узнать по команде /printerstatus
+Веб интерфейс доступен внутри сети спейса по адресу ${printersConfig.anette.apibase}
+Статус принтера можно узнать по команде /anette
+
+🚹 Plumbus от the_mihalich
+Документация по нему доступна тут:
+https://wiki.hackerembassy.site/ru/equipment/plumbus
+Веб интерфейс доступен внутри сети спейса по адресу ${printersConfig.plumbus.apibase}
+Статус принтера можно узнать по команде /plumbus
 `
 }
 
@@ -343,7 +351,7 @@ module.exports = {
   getDonateText,
   getJoinText,
   getNeedsList,
-  getPrinterInfo,
+  getPrintersInfo,
   getPrinterStatus,
   getBirthdaysList,
   getMonitorMessagesList

@@ -127,8 +127,13 @@ class ServiceHandlers extends BaseHandlers {
       case "/printer":
         EmbassyHandlers.printerHandler(message);
         break;
-      case "/printerstatus":
-        EmbassyHandlers.printerStatusHandler(message);
+      case "/printerstatus anette":
+      case "/anettestatus":
+        EmbassyHandlers.printerStatusHandler(message, "anette");
+      break;
+      case "/printerstatus plumbus":
+      case "/plumbusstatus":
+        EmbassyHandlers.printerStatusHandler(message, "plumbus");
       break;
       case "/bought":
         NeedsHandlers.boughtByIdHandler(message, data.id);

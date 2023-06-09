@@ -109,13 +109,17 @@ class EmbassyHanlers extends BaseHandlers {
     setInterval(() => this.monitorHandler({ chat: { id: botConfig.chats.test } }), embassyApiConfig.queryMonitorInterval);
   }
 
-  printerHandler = async (msg) => {
-    let message = TextGenerators.getPrinterInfo();
+  printersHandler = async (msg) => {
+    let message = TextGenerators.getPrintersInfo();
     let inlineKeyboard = [
       [
         {
           text: "Статус Anette",
-          callback_data: JSON.stringify({ command: "/printerstatus" }),
+          callback_data: JSON.stringify({ command: "/printerstatus anette" }),
+        },
+        {
+          text: "Статус Plumbus",
+          callback_data: JSON.stringify({ command: "/printerstatus plumbus" }),
         },
       ],
     ]
@@ -127,10 +131,11 @@ class EmbassyHanlers extends BaseHandlers {
     });
   };
 
-  printerStatusHandler = async (msg) => {
+  printerStatusHandler = async (msg, printername) => {
     try {
+      console.log(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`);
       var { status, thumbnailBuffer, cam } = await (
-        await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer`)
+        await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
       )?.json();
 
       if (status && !status.error) var message = await TextGenerators.getPrinterStatus(status);
@@ -144,8 +149,8 @@ class EmbassyHanlers extends BaseHandlers {
       let inlineKeyboard = [
         [
           {
-            text: "Обновить статус Anette",
-            callback_data: JSON.stringify({ command: "/printerstatus" }),
+            text: `Обновить статус ${printername}`,
+            callback_data: JSON.stringify({ command: `/printerstatus ${printername}` }),
           },
         ],
       ]

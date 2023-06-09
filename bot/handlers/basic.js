@@ -159,7 +159,7 @@ class BasicHandlers extends BaseHandlers {
       [
         {
           text: "🖨 3D Принтеры",
-          callback_data: JSON.stringify({ command: "/printer" }),
+          callback_data: JSON.stringify({ command: "/printers" }),
         },
         {
           text: "📝 Команды бота",

@@ -133,7 +133,6 @@ class EmbassyHanlers extends BaseHandlers {
 
   printerStatusHandler = async (msg, printername) => {
     try {
-      console.log(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`);
       var { status, thumbnailBuffer, cam } = await (
         await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
       )?.json();

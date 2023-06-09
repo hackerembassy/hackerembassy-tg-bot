@@ -124,8 +124,8 @@ class ServiceHandlers extends BaseHandlers {
       case "/doorcam":
         EmbassyHandlers.doorcamHandler(message);
         break;
-      case "/printer":
-        EmbassyHandlers.printerHandler(message);
+      case "/printers":
+        EmbassyHandlers.printersHandler(message);
         break;
       case "/printerstatus anette":
       case "/anettestatus":

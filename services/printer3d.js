@@ -45,7 +45,8 @@ class Printer3d{
         let apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
         
-        let thumbnailBlob = await this.getFile(path);
+        let thumbnailBlob = await this.getFile(printername, path);
+        
         if (!thumbnailBlob) return null;
 
         return await thumbnailBlob.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, "binary"));

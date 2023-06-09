@@ -186,18 +186,26 @@ app.get("/devicesFromKeenetic", async (_, res) => {
   }
 });
 
-app.get("/printer", async (_, res) => {
+app.get("/printer", async (req, res) => {
   try {
+    let printername = req.query.printername;
+
+    if (!printername) {
+      res.status(400).send({ message: "Printer name is required" });
+      return;
+    }
+
     let fileMetadata;
     let thumbnailBuffer;
     let cam;
-    let statusResponse = await printer3d.getPrinterStatus();
+    let statusResponse = await printer3d.getPrinterStatus(printername);
     let status = statusResponse && statusResponse.result.status;
 
     if (status) {
-      let fileMetadataResponse = await printer3d.getFileMetadata(status.print_stats && status.print_stats.filename);
+      let fileMetadataResponse = await printer3d.getFileMetadata(printername, status.print_stats && status.print_stats.filename);
+      console.log("HERWRERE1")
       try {
-        cam = await printer3d.getCam();
+        cam = await printer3d.getCam(printername);
       }
       catch {
         cam = null;
@@ -206,7 +214,7 @@ app.get("/printer", async (_, res) => {
       if (fileMetadataResponse) {
         fileMetadata = fileMetadataResponse.result;
         let thumbnailPath = fileMetadata && fileMetadata.thumbnails && fileMetadata.thumbnails[fileMetadata.thumbnails.length - 1].relative_path;
-        thumbnailBuffer = await printer3d.getThumbnail(thumbnailPath);
+        thumbnailBuffer = await printer3d.getThumbnail(printername, thumbnailPath);
       }
     }
 

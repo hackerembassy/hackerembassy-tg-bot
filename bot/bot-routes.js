@@ -40,8 +40,10 @@ bot.onText(/^\/(?:setemoji|emoji|myemoji)(@.+?)?(?: (.*))?$/i, (msg, match) => S
 bot.onText(/^\/(webcam|firstfloor|ff)(@.+?)?$/i, EmbassyHandlers.webcamHandler);
 bot.onText(/^\/(webcam2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handler);
 bot.onText(/^\/(doorcam|dc)(@.+?)?$/i, EmbassyHandlers.doorcamHandler);
-bot.onText(/^\/(printer|anette)(@.+?)?$/i, EmbassyHandlers.printerHandler);
-bot.onText(/^\/(printerstatus|anettestatus)(@.+?)?$/i, EmbassyHandlers.printerStatusHandler);
+bot.onText(/^\/(printers)(@.+?)?$/i, EmbassyHandlers.printersHandler);
+bot.onText(/^\/(anette|anettestatus)(@.+?)?$/i, (msg) => EmbassyHandlers.printerStatusHandler(msg, "anette"));
+bot.onText(/^\/(plumbus|plumbusstatus)(@.+?)?$/i, (msg) => EmbassyHandlers.printerStatusHandler(msg, "plumbus"));
+bot.onText(/^\/printerstatus(@.+?)? (.*\S)$/i, (msg, match) => EmbassyHandlers.printerStatusHandler(msg, match[2]));
 bot.onText(/^\/(unlock|u)(@.+?)?$/i, EmbassyHandlers.unlockHandler);
 bot.onText(/^\/(doorbell|db)(@.+?)?$/i, EmbassyHandlers.doorbellHandler);
 bot.onText(/^\/monitor(@.+?)?$/i, EmbassyHandlers.monitorHandler);

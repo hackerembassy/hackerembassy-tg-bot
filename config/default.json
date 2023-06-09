@@ -16,9 +16,15 @@
         "autoWish": true,
         "logpath": "log.log"
     },
-    "printer3d" : {
-        "apibase": "http://anette.lan",
-        "camport": 8080
+    "printers" : {
+        "anette": {
+            "apibase": "http://printer-anette.lan",
+            "camport": 8080
+        },
+        "plumbus": {
+            "apibase": "http://printer-plumbus.lan",
+            "camport": 8080
+        }
     },
     "embassy-api":{
         "timeout": 15000,

@@ -27,10 +27,14 @@ runs:
       name: Deploy
       shell: bash
       run: |
-        ssh_exec() {
-          ssh -T ansible@${{ inputs.ssh_host }} -p ${{ inputs.ssh_port }} "$*"
-        }
-        ssh_exec 'hostname'
+        ssh -T ansible@${{ inputs.ssh_host }} -p ${{ inputs.ssh_port }} '
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v /home/ansible/.docker/config.json:/config.json \
+            containrrr/watchtower \
+            --run-once \
+            hackem-bot
+        '
     -
       name: Destroy server's SSH key
       uses: ./.github/actions/ssh-keys

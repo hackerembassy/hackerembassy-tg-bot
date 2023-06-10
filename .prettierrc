@@ -1,3 +1,5 @@
 {
-    "printWidth": 130
+    "printWidth": 130,
+    "tabWidth": 4,
+    "arrowParens": "avoid"
 }

@@ -10,5 +10,5 @@
           image: containrrr/watchtower
           volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-            - /etc/docker/daemon.json:/config.json
+            - "/home/{{ default_ansible_user }}/.docker/config.json:/config.json"
           restart: unless-stopped

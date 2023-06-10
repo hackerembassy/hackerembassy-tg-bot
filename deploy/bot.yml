@@ -1,6 +1,6 @@
 - hosts: cloud
   roles:
-    - role: hackem-bot
+    - role: hackem_bot
       vars:
 
         hackem_bot_token: !vault |

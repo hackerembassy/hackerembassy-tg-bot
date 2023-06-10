@@ -5,6 +5,7 @@
         groups: '{{ default_user_groups }}'
         ssh_keys: |
           ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHZEGTS/7CdQtGPduRCz0Ie0FMJgfIVvSWkxz1pzmst himura-personal@work-nb
+          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJmm8FpdiLSHgVqHDDg46gYVg7rUh30nsVx0KtjYm4Tb gh-actions@hackerembassy-tg-bot
 
       - name: himura
         groups: '{{ default_user_groups }}'

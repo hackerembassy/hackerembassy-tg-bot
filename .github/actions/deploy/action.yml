@@ -1,0 +1,38 @@
+name: Deploy containers via docker-compose
+inputs:
+  ssh_identity:
+    description: string for known_hosts file
+    required: true
+  ssh_key:
+    description: string for id_ed25519 file
+    required: true
+  ssh_host:
+    description: deploy target host
+    required: true
+  ssh_port:
+    description: deploy target port
+    required: true
+
+runs:
+  using: composite
+  steps:
+    -
+      name: Put server's SSH key
+      uses: ./.github/actions/ssh-keys
+      with:
+        action: put
+        identity: ${{ inputs.ssh_identity }}
+        key: ${{ inputs.ssh_key }}
+    -
+      name: Deploy
+      shell: bash
+      run: |
+        ssh_exec() {
+          ssh -T ansible@${{ inputs.ssh_host }} -p ${{ inputs.ssh_port }} "$*"
+        }
+        ssh_exec 'hostname'
+    -
+      name: Destroy server's SSH key
+      uses: ./.github/actions/ssh-keys
+      with:
+        action: destroy

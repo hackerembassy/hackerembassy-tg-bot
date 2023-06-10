@@ -35,3 +35,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      -
+        uses: ./.github/actions/deploy
+        with:
+          ssh_identity: ${{ secrets.deploy_target_identity }}
+          ssh_key: ${{ secrets.deploy_target_key }}
+          ssh_host: ${{ secrets.deploy_target_host }}
+          ssh_port: ${{ secrets.deploy_target_port }}

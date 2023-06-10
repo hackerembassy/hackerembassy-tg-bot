@@ -1,11 +1,1 @@
-service_name: example_service
-docker_volumes:
-  - example-config
-config_volume: example-config
 config_owner: "1000"
-docker_compose_definition:
-  version: '3.8'
-  services:
-    app:
-      container_name: "{{ service_name }}"
-      image: nginx

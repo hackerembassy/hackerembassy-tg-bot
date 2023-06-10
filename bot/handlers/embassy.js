@@ -95,7 +95,7 @@ class EmbassyHanlers extends BaseHandlers {
       this.bot.sendMessage(msg.chat.id, message);
     }
     catch (error) {
-      let message = `⚠️ Не удалось получить статус, может что-то с инетом, электричеством или le-fail?`;
+      let message = `⚠️ Не удалось получить статус, может, что-то с инетом, электричеством или le-fail?`;
       this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
     }
@@ -176,7 +176,7 @@ class EmbassyHanlers extends BaseHandlers {
       if (status && !status.error) var message = "🔔 Звоним в дверной звонок";
       else throw Error();
     } catch (error) {
-      message = `🔕 Не вышло позвонить`;
+      message = `🔕 Не получилось позвонить`;
       logger.error(error);
     } finally {
       this.bot.sendMessage(msg.chat.id, message);
@@ -202,7 +202,7 @@ class EmbassyHanlers extends BaseHandlers {
       if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Сообщение отправлено на динамик");
       else throw Error("Failed to say in space");
     } catch (error) {
-      let message = `⚠️ Не вышло сказать`;
+      let message = `⚠️ Не получилось сказать`;
       await this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
     }
@@ -226,7 +226,7 @@ class EmbassyHanlers extends BaseHandlers {
       if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Звук отправлен на динамик");
       else throw Error("Failed to play in space");
     } catch (error) {
-      let message = `⚠️ Не вышло воспроизвести`;
+      let message = `⚠️ Не получилось воспроизвести`;
       await this.bot.sendMessage(msg.chat.id, message);
       logger.error(error);
     }

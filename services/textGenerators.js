@@ -321,7 +321,7 @@ async function getPrinterStatus(status) {
    Прошло ${minutesPast} минут
    Осталось примерно ${estimate} минут
 
-📏 Использовано ${print_stats.filament_used.toFixed(0)} мм филамента (${(print_stats.filament_used / 1000).toFixed(2)})
+📏 Использовано ${print_stats.filament_used.toFixed(0)} мм филамента (${(print_stats.filament_used / 1000).toFixed(2)} м)
 
 🔥 Температура экструдера ${extruder.temperature} C, целевая ${extruder.target} C
     Температура стола ${heater_bed.temperature} C, целевая ${heater_bed.target} C

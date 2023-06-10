@@ -55,6 +55,9 @@ bot.onText(/^\/(fartinspace|fart)(@.+?)?$/i, msg =>
 bot.onText(/^\/(moaninspace|moan)(@.+?)?$/i, msg =>
     EmbassyHandlers.playinspaceHandler(msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3")
 );
+bot.onText(/^\/(rickroll|nevergonnagiveyouup)(@.+?)?$/i, msg =>
+    EmbassyHandlers.playinspaceHandler(msg, "http://le-fail.lan:8001/rickroll.mp3")
+);
 
 bot.onText(/^\/funds(@.+?)?$/i, FundsHandlers.fundsHandler);
 bot.onText(/^\/fund(@.+?)? (.*\S)$/i, (msg, match) => FundsHandlers.fundHandler(msg, match[2]));

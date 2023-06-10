@@ -1,155 +1,145 @@
 const BaseRepository = require("./baseRepository");
 
 class UserRepository extends BaseRepository {
-  getUsers() {
-    let users = this.db.prepare("SELECT * FROM users").all();
+    getUsers() {
+        let users = this.db.prepare("SELECT * FROM users").all();
 
-    return users.map((user) => ({
-      roles: user.roles.split("|"),
-      ...user
-    })) ?? [];
-  }
-
-  addUser(username, roles = ["default"]) {
-    try {
-      if (this.getUser(username) !== null) return false;
-
-      roles = roles.join("|");
-
-      this.db
-        .prepare("INSERT INTO users (username, roles) VALUES (?, ?)")
-        .run(username, roles);
-
-      return true;
-    } catch (error) {
-      this.logger.error(error);
-      return false;
+        return (
+            users.map(user => ({
+                roles: user.roles.split("|"),
+                ...user,
+            })) ?? []
+        );
     }
-  }
 
-  updateRoles(username, roles = ["default"]) {
-    try {
-      if (this.getUser(username) === null) return false;
+    addUser(username, roles = ["default"]) {
+        try {
+            if (this.getUser(username) !== null) return false;
 
-      roles = roles.join("|");
+            roles = roles.join("|");
 
-      this.db
-        .prepare("UPDATE users SET roles = ? WHERE username = ?")
-        .run(roles, username);
+            this.db.prepare("INSERT INTO users (username, roles) VALUES (?, ?)").run(username, roles);
 
-      return true;
-    } catch (error) {
-      this.logger.error(error);
-      return false;
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
     }
-  }
 
-  testMACs(cmd) {
-    const macRegex = /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/;
-    return cmd.split(',').every(mac => macRegex.test(mac));
-  }
+    updateRoles(username, roles = ["default"]) {
+        try {
+            if (this.getUser(username) === null) return false;
 
-  setMACs(username, macs = null) {
-    try {
-      if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 
-      if (macs) macs = macs.split(',').map(mac => mac.toLowerCase().replaceAll("-", ":").trim()).join(',');
-      this.db
-        .prepare("UPDATE users SET mac = ? WHERE username = ?")
-        .run(macs, username);
+            roles = roles.join("|");
 
-      return true;
-    } catch (error) {
-      this.logger.error(error);
-      return false;
+            this.db.prepare("UPDATE users SET roles = ? WHERE username = ?").run(roles, username);
+
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
     }
-  }
 
-  setEmoji(username, emoji = null) {
-    try {
-      if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 
-
-      this.db
-        .prepare("UPDATE users SET emoji = ? WHERE username = ?")
-        .run(emoji, username);
-
-      return true;
-    } catch (error) {
-      this.logger.error(error);
-      return false;
+    testMACs(cmd) {
+        const macRegex = /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/;
+        return cmd.split(",").every(mac => macRegex.test(mac));
     }
-  }
 
-  setAutoinside(username, value) {
-    try {
-      let user = this.getUser(username);
-      if (user === null && !this.addUser(username, ["default"]) || (value && !user.mac)) return false; 
+    setMACs(username, macs = null) {
+        try {
+            if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false;
+            if (macs)
+                macs = macs
+                    .split(",")
+                    .map(mac => mac.toLowerCase().replaceAll("-", ":").trim())
+                    .join(",");
+            this.db.prepare("UPDATE users SET mac = ? WHERE username = ?").run(macs, username);
 
-      this.db
-        .prepare("UPDATE users SET autoinside = ? WHERE username = ?")
-        .run(Number(value), username);
-
-      return true;
-    } catch (error) {
-      this.logger.error(error);
-      return false;
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
     }
-  }
 
-  setBirthday(username, birthday = null) {
-    try {
-      if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false; 
+    setEmoji(username, emoji = null) {
+        try {
+            if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false;
 
-      this.db
-        .prepare("UPDATE users SET birthday = ? WHERE username = ?")
-        .run(birthday, username);
+            this.db.prepare("UPDATE users SET emoji = ? WHERE username = ?").run(emoji, username);
 
-      return true;
-    } catch (error) {
-      this.logger.error(error);
-      return false;
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
     }
-  }
 
-  removeUser(username) {
-    try {
-      this.db.prepare("DELETE FROM users WHERE username = ?").run(username);
+    setAutoinside(username, value) {
+        try {
+            let user = this.getUser(username);
+            if ((user === null && !this.addUser(username, ["default"])) || (value && !user.mac)) return false;
 
-      return true;
-    } catch (error) {
-      this.logger.error(error);
-      return false;
+            this.db.prepare("UPDATE users SET autoinside = ? WHERE username = ?").run(Number(value), username);
+
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
     }
-  }
 
-  getUser(username) {
-    try {
-      let user = this.db
-        .prepare("SELECT * FROM users WHERE username = ?")
-        .get(username);
+    setBirthday(username, birthday = null) {
+        try {
+            if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false;
 
-      if (!user) return null;
+            this.db.prepare("UPDATE users SET birthday = ? WHERE username = ?").run(birthday, username);
 
-      user.roles = user.roles.split("|");
-
-      return user;
-    } catch (error) {
-      this.logger.error(error);
-      return null;
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
     }
-  }
 
-  getUsersByRole(role) {
-    try {
-      let users = this.db
-        .prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')")
-        .all(role);
+    removeUser(username) {
+        try {
+            this.db.prepare("DELETE FROM users WHERE username = ?").run(username);
 
-      return users;
-    } catch (error) {
-      this.logger.error(error);
-      return null;
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
     }
-  }
+
+    getUser(username) {
+        try {
+            let user = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username);
+
+            if (!user) return null;
+
+            user.roles = user.roles.split("|");
+
+            return user;
+        } catch (error) {
+            this.logger.error(error);
+            return null;
+        }
+    }
+
+    getUsersByRole(role) {
+        try {
+            let users = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role);
+
+            return users;
+        } catch (error) {
+            this.logger.error(error);
+            return null;
+        }
+    }
 }
 
 module.exports = new UserRepository();

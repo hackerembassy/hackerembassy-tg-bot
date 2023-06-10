@@ -42,7 +42,7 @@ ${list}💸 Чтобы узнать, как нам помочь - жми /donate
         ? [
             [
               {
-                text: "🧾 Экспортнуть в CSV",
+                text: "🧾 Экспорт в CSV",
                 callback_data: JSON.stringify({
                   command: "/ef",
                   params: [fundName],

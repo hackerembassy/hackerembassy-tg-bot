@@ -35,6 +35,18 @@
 
 - name: host configuration
   block:
+    - name: users exist and added to required groups
+      user:
+        name: '{{ item.name }}'
+        groups: '{{ item.groups }}'
+        shell: /bin/bash
+      with_items: '{{ linux_users }}'
+      loop_control:
+        label: '{{ item.name }}'
+
+    - name: user groups change applied
+      meta: reset_connection
+
     - name: passwordless sudo enabled
       lineinfile:
         path: /etc/sudoers
@@ -73,13 +85,9 @@
         path: /etc/ssh/sshd_config
         regex: '^(#)?{{ item.key }}'
         line: '{{ item.key }} {{ item.value }}'
-      loop:
-        - { key: 'PermitRootLogin', value: 'no' }
-        - { key: 'PasswordAuthentication', value: 'no' }
-        - { key: 'ClientAliveInterval', value: '120' }
-        - { key: 'ClientAliveCountMax', value: '3' }
+      loop: '{{ sshd_config }}'
       notify:
         - restart sshd
+      when: sshd_config is defined
+
   become: yes
-  tags: host-config
-  when: not (skip_host_config is defined and skip_host_config)

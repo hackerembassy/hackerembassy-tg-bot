@@ -26,6 +26,7 @@ statusMonitor.startMonitoring();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(embassyApiConfig.static));
 
 const { NodeSSH } = require("node-ssh");
 

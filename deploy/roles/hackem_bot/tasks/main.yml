@@ -4,7 +4,7 @@
   vars:
     service_name: hackem-bot
     docker_volumes:
-      - "{{ service_name }}-data"
+      - "{{ service_name }}-db"
       - "{{ config_volume }}"
     config_volume: "{{ service_name }}-config"
     config_volume_templates:
@@ -23,7 +23,7 @@
           image: ghcr.io/hackerembassy/hackerembassy-tg-bot:ci-cd  # TODO
           volumes:
             - config:/app/config
-            - data:/app/data
+            - db:/app/data/db
           environment:
             - NODE_ENV=production
             - BOTDEBUG=false
@@ -34,6 +34,6 @@
         config:
           name: "{{ config_volume }}"
           external: true
-        data:
-          name: "{{ service_name }}-data"
+        db:
+          name: "{{ service_name }}-db"
           external: true

@@ -31,7 +31,7 @@
       changed_when: no
       check_mode: no
 
-    - name: update templates
+    - name: update configs
       template:
         src: "{{ item.src }}"
         dest: "{{ config_volume_mount.path }}/v/{{ item.dest }}"
@@ -53,6 +53,7 @@
         src: "{{ item.src }}"
         dest: "{{ config_volume_mount.path }}/v/{{ item.dest }}"
         mode: "644"
+      diff: no
       with_items: "{{ config_volume_files }}"
       when: config_volume_files is defined
       register: files_update

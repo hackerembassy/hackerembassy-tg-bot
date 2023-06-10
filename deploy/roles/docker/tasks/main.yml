@@ -7,6 +7,7 @@
     apt_repo_gpg_key_checksum: "sha256:1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570"  # wget -qO- https://download.docker.com/linux/ubuntu/gpg | sha256sum
     apt_repo_source: "deb [arch=amd64 signed-by={{ apt_repo_gpg_key_target_path }}] https://download.docker.com/{{ ansible_system | lower }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
     apt_packages: docker-ce
+  when: not skip_docker_install is defined or not skip_docker_install
 
 - block:
     - name: docker daemon config is up to date
@@ -24,12 +25,12 @@
       loop_control:
         label: '{{ item.name }}'
 
-    - name: docker-compose is up to date
+    - name: pip packages for docker
       pip:
-        name: docker-compose
+        name: 
+          - docker
+          - docker-compose
         state: latest
-      tags: compose
-      when: install_compose is defined and install_compose
   become: yes
 
 - name: logged into private registries

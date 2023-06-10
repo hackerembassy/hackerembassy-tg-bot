@@ -1,13 +1,22 @@
 all:
-
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
   hosts:
-
-    hackem-vm:
-      ansible_host: oc7   # defiend in ~/.ssh/config
-
-    hackem-onsite:
+    teresa:   # defiend in ~/.ssh/config
+    lefail:
       ansible_host: le-fail.lan
       ansible_user: root
+
+  children:
+
+    cloud:
+      hosts:
+        teresa:
+      vars:
+        pip_packages:
+          - certbot
+
+    onsite:
+      hosts:
+        lefail:

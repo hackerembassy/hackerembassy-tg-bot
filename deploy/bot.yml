@@ -1,4 +1,4 @@
-- hosts: hackem-vm
+- hosts: cloud
   roles:
     - role: hackem-bot
       vars:

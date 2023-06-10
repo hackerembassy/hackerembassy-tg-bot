@@ -16,9 +16,15 @@
         "autoWish": true,
         "logpath": "log.log"
     },
-    "printer3d": {
-        "apibase": "http://anette.lan",
-        "camport": 8080
+    "printers": {
+        "anette": {
+            "apibase": "http://printer-anette.lan",
+            "camport": 8080
+        },
+        "plumbus": {
+            "apibase": "http://printer-plumbus.lan",
+            "camport": 8080
+        }
     },
     "embassy-api": {
         "timeout": 15000,
@@ -35,6 +41,8 @@
         "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
         "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
         "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
+        "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
+        "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
         "hostsToMonitor": [
             "192.168.1.2",
             "jigglypuff.lan",

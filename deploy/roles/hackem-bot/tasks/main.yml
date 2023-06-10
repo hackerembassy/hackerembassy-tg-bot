@@ -2,14 +2,18 @@
   import_role:
     name: dockerized_service
   vars:
-    service_name: he-bot
+    service_name: hackem-bot
     docker_volumes:
-      - he-bot-data
+      - "{{ service_name }}-data"
       - "{{ config_volume }}"
-    config_volume: he-bot-config
+    config_volume: "{{ service_name }}-config"
     config_volume_templates:
       - src: production.json.j2
         dest: production.json
+    config_volume_files:
+      - src: pub.key
+        dest: sec/pub.key
+      # TODO: vaulted priv.key
     docker_compose_definition:
       version: '3.8'
       services:
@@ -21,12 +25,14 @@
             - data:/app/data
           environment:
             - NODE_ENV=production
-            - HACKERBOTTOKEN={{ hacker_bot_token }}
+            - BOTDEBUG=false
+            - HACKERBOTTOKEN={{ hackem_bot_token }}
+            - UNLOCKKEY={{ hackem_key }}
           restart: unless-stopped
       volumes:
         config:
-          name: he-bot-config
+          name: "{{ config_volume }}"
           external: true
         data:
-          name: he-bot-data
+          name: "{{ service_name }}-data"
           external: true

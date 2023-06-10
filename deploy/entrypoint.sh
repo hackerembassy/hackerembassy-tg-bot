@@ -1,8 +1,6 @@
 #!/bin/sh
 set -xe
-cd /app
-if [ -z "$(ls -A ./data)" ]; then
-    mv ./sample-data/* ./data/
-    mv ./data/sample.db ./data/data.db
+if [ ! -f "/app/data/db/data.db)" ]; then
+    cp /app/data/sample.db /app/data/db/data.db
 fi
 exec "$@"

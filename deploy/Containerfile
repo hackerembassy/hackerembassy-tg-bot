@@ -3,7 +3,6 @@ WORKDIR /app
 COPY . .
 RUN mv ./deploy/entrypoint.sh / &&\
     chmod +x /entrypoint.sh &&\
-    mv ./data ./sample-data &&\
     npm ci
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "run", "start"]

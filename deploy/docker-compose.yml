@@ -1,6 +1,6 @@
 services:
   bot:
-    image: hackerembassy-bot
+    image: 'ghcr.io/hackerembassy/hackerembassy-tg-bot:ci-cd'
     build:
       context: ../
       dockerfile: ./deploy/Containerfile

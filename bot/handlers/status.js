@@ -30,8 +30,7 @@ class StatusHandlers extends BaseHandlers {
       message = `🗑 MAC адреса удалены для юзера ${this.bot.formatUsername(username)}. Автовход теперь работать не будет.`;
     } else if (cmd === "status") {
       let usermac = UsersRepository.getUser(username)?.mac;
-      if (usermac)
-        message = `📲 Для юзера ${this.bot.formatUsername(username)} заданы MAC адреса ${usermac}`;
+      if (usermac) message = `📲 Для юзера ${this.bot.formatUsername(username)} заданы MAC адреса ${usermac}`;
       else message = `📲 MAC адрес не задан для юзера ${this.bot.formatUsername(username)}`;
     }
 
@@ -47,7 +46,8 @@ class StatusHandlers extends BaseHandlers {
 
     if (!cmd || cmd === "help") {
       message = `⏲ С помощью этой команды можно автоматически отмечаться в спейсе как только MAC адрес вашего устройства будет обнаружен в сети.
-📌 При отсутствии активности устройства в сети спейса в течение ${this.botConfig.timeouts.out / 60000
+📌 При отсутствии активности устройства в сети спейса в течение ${
+        this.botConfig.timeouts.out / 60000
       } минут произойдет автовыход юзера.
 📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
 ⚠️ Для работы обязательно задайте MAC адреса вашего устройства и отключите его рандомизацию для сети спейса.
@@ -58,8 +58,7 @@ class StatusHandlers extends BaseHandlers {
 #\`/autoinside disable#\` - Выключить автовход и автовыход  
 `;
     } else if (cmd === "enable") {
-      if (!usermac)
-        message = `⚠️ Твой MAC адрес не задан. Добавь его командой #\`/setmac mac_address#\``;
+      if (!usermac) message = `⚠️ Твой MAC адрес не задан. Добавь его командой #\`/setmac mac_address#\``;
       else if (UsersRepository.setAutoinside(username, true))
         message = `🕺 Автовход и автовыход активированы для юзера ${this.bot.formatUsername(username)} на MAC адрес ${usermac}`;
     } else if (cmd === "disable") {
@@ -89,42 +88,41 @@ class StatusHandlers extends BaseHandlers {
     if (isStatusError())
       statusMessage = `📵 Не удалось связаться со спейсом. Данные о посетителях могут быть неактуальными \n\n${statusMessage}`;
 
-
     let inlineKeyboard = state.open
       ? [
-        [
-          {
-            text: "🤝 Я пришёл",
-            callback_data: JSON.stringify({ command: "/in" })
-          },
-          {
-            text: "👋 Я ушёл",
-            callback_data: JSON.stringify({ command: "/out" })
-          }
+          [
+            {
+              text: "🤝 Я пришёл",
+              callback_data: JSON.stringify({ command: "/in" }),
+            },
+            {
+              text: "👋 Я ушёл",
+              callback_data: JSON.stringify({ command: "/out" }),
+            },
+          ],
         ]
-      ]
       : [];
 
     inlineKeyboard.push([
       {
         text: "🚕 Планирую зайти",
-        callback_data: JSON.stringify({ command: "/going" })
+        callback_data: JSON.stringify({ command: "/going" }),
       },
       {
         text: "🛌 Уже не планирую",
-        callback_data: JSON.stringify({ command: "/notgoing" })
-      }
+        callback_data: JSON.stringify({ command: "/notgoing" }),
+      },
     ]);
 
     inlineKeyboard.push([
       {
         text: "🔃 Обновить",
-        callback_data: JSON.stringify({ command: "/ustatus" })
+        callback_data: JSON.stringify({ command: "/ustatus" }),
       },
       {
         text: state.open ? "🔒 Закрыть спейс" : "🔓 Открыть спейс",
-        callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" })
-      }
+        callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
+      },
     ]);
 
     if (edit) {
@@ -133,8 +131,8 @@ class StatusHandlers extends BaseHandlers {
           chat_id: msg.chat.id,
           message_id: msg.message_id,
           reply_markup: {
-            inline_keyboard: inlineKeyboard
-          }
+            inline_keyboard: inlineKeyboard,
+          },
         });
       } catch {
         // Message was not modified
@@ -142,8 +140,8 @@ class StatusHandlers extends BaseHandlers {
     } else {
       await this.bot.sendMessage(msg.chat.id, statusMessage, {
         reply_markup: {
-          inline_keyboard: inlineKeyboard
-        }
+          inline_keyboard: inlineKeyboard,
+        },
       });
     }
   };
@@ -156,20 +154,20 @@ class StatusHandlers extends BaseHandlers {
     let inlineKeyboard = [
       [
         {
-          text: "🤝 Я тоже пришёл",
-          callback_data: JSON.stringify({ command: "/in" })
+          text: "🤝 Я пришёл",
+          callback_data: JSON.stringify({ command: "/in" }),
         },
         {
           text: "🔒 Закрыть снова",
-          callback_data: JSON.stringify({ command: "/close" })
-        }
+          callback_data: JSON.stringify({ command: "/close" }),
+        },
       ],
       [
         {
           text: "📹 Кто внутри",
-          callback_data: JSON.stringify({ command: "/status" })
-        }
-      ]
+          callback_data: JSON.stringify({ command: "/status" }),
+        },
+      ],
     ];
 
     this.bot.sendMessage(
@@ -177,8 +175,8 @@ class StatusHandlers extends BaseHandlers {
       `🔑 ${this.bot.formatUsername(msg.from.username)} #*открыл#* спейс для гостей. Отличный повод зайти`,
       {
         reply_markup: {
-          inline_keyboard: inlineKeyboard
-        }
+          inline_keyboard: inlineKeyboard,
+        },
       }
     );
   };
@@ -192,9 +190,9 @@ class StatusHandlers extends BaseHandlers {
       [
         {
           text: "🔓 Открыть снова",
-          callback_data: JSON.stringify({ command: "/open" })
-        }
-      ]
+          callback_data: JSON.stringify({ command: "/open" }),
+        },
+      ],
     ];
 
     this.bot.sendMessage(
@@ -202,8 +200,8 @@ class StatusHandlers extends BaseHandlers {
       `🔒 ${this.bot.formatUsername(msg.from.username)} #*закрыл#* спейс. Все отметившиеся отправлены домой`,
       {
         reply_markup: {
-          inline_keyboard: inlineKeyboard
-        }
+          inline_keyboard: inlineKeyboard,
+        },
       }
     );
   };
@@ -213,10 +211,7 @@ class StatusHandlers extends BaseHandlers {
 
     StatusRepository.evictPeople();
 
-    this.bot.sendMessage(
-      msg.chat.id,
-      `🔒 Список отметившихся очищен`
-    );
+    this.bot.sendMessage(msg.chat.id, `🔒 Список отметившихся очищен`);
   };
 
   inHandler = (msg) => {
@@ -232,40 +227,40 @@ class StatusHandlers extends BaseHandlers {
 
     let inlineKeyboard = gotIn
       ? [
-        [
-          {
-            text: "🤝 И я пришёл",
-            callback_data: JSON.stringify({ command: "/in" })
-          },
-          {
-            text: "👋 А я ушёл",
-            callback_data: JSON.stringify({ command: "/out" })
-          }
-        ],
-        [
-          {
-            text: "📹 Кто внутри",
-            callback_data: JSON.stringify({ command: "/status" })
-          }
+          [
+            {
+              text: "🤝 И я пришёл",
+              callback_data: JSON.stringify({ command: "/in" }),
+            },
+            {
+              text: "👋 А я ушёл",
+              callback_data: JSON.stringify({ command: "/out" }),
+            },
+          ],
+          [
+            {
+              text: "📹 Кто внутри",
+              callback_data: JSON.stringify({ command: "/status" }),
+            },
+          ],
         ]
-      ]
       : [
-        [
-          {
-            text: "🔃 Повторить команду",
-            callback_data: JSON.stringify({ command: "/in" })
-          },
-          {
-            text: "🚪 Открыть спейс",
-            callback_data: JSON.stringify({ command: "/open" })
-          }
-        ]
-      ];
+          [
+            {
+              text: "🔃 Повторить команду",
+              callback_data: JSON.stringify({ command: "/in" }),
+            },
+            {
+              text: "🚪 Открыть спейс",
+              callback_data: JSON.stringify({ command: "/open" }),
+            },
+          ],
+        ];
 
     this.bot.sendMessage(msg.chat.id, message, {
       reply_markup: {
-        inline_keyboard: inlineKeyboard
-      }
+        inline_keyboard: inlineKeyboard,
+      },
     });
   };
 
@@ -280,40 +275,40 @@ class StatusHandlers extends BaseHandlers {
 
     let inlineKeyboard = gotOut
       ? [
-        [
-          {
-            text: "👋 Я тоже ушёл",
-            callback_data: JSON.stringify({ command: "/out" })
-          },
-          {
-            text: "🤝 А я пришёл",
-            callback_data: JSON.stringify({ command: "/in" })
-          }
-        ],
-        [
-          {
-            text: "📹 Кто внутри",
-            callback_data: JSON.stringify({ command: "/status" })
-          }
+          [
+            {
+              text: "👋 Я тоже ушёл",
+              callback_data: JSON.stringify({ command: "/out" }),
+            },
+            {
+              text: "🤝 А я пришёл",
+              callback_data: JSON.stringify({ command: "/in" }),
+            },
+          ],
+          [
+            {
+              text: "📹 Кто внутри",
+              callback_data: JSON.stringify({ command: "/status" }),
+            },
+          ],
         ]
-      ]
       : [
-        [
-          {
-            text: "🔃 Повторить команду",
-            callback_data: JSON.stringify({ command: "/out" })
-          },
-          {
-            text: "🔓 Открыть спейс",
-            callback_data: JSON.stringify({ command: "/open" })
-          }
-        ]
-      ];
+          [
+            {
+              text: "🔃 Повторить команду",
+              callback_data: JSON.stringify({ command: "/out" }),
+            },
+            {
+              text: "🔓 Открыть спейс",
+              callback_data: JSON.stringify({ command: "/open" }),
+            },
+          ],
+        ];
 
     this.bot.sendMessage(msg.chat.id, message, {
       reply_markup: {
-        inline_keyboard: inlineKeyboard
-      }
+        inline_keyboard: inlineKeyboard,
+      },
     });
   };
 
@@ -357,7 +352,7 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Inside,
       date: date,
       username: username,
-      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -374,7 +369,7 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Outside,
       date: date,
       username: username,
-      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual
+      type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -390,28 +385,30 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Going,
       date: eventDate,
       username: username,
-      type: StatusRepository.ChangeType.Manual
+      type: StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
 
     let message = `🚕 ${this.bot.formatUsername(msg.from.username)} планирует сегодня зайти в спейс`;
 
-    let inlineKeyboard = [[
-      {
-        text: "🚕 И я планирую",
-        callback_data: JSON.stringify({ command: "/going" })
-      },
-      {
-        text: "❓А кто еще будет?",
-        callback_data: JSON.stringify({ command: "/status" })
-      }
-    ]];
+    let inlineKeyboard = [
+      [
+        {
+          text: "🚕 И я планирую",
+          callback_data: JSON.stringify({ command: "/going" }),
+        },
+        {
+          text: "❓А кто еще будет?",
+          callback_data: JSON.stringify({ command: "/status" }),
+        },
+      ],
+    ];
 
     this.bot.sendMessage(msg.chat.id, message, {
       reply_markup: {
-        inline_keyboard: inlineKeyboard
-      }
+        inline_keyboard: inlineKeyboard,
+      },
     });
   };
 
@@ -423,7 +420,7 @@ class StatusHandlers extends BaseHandlers {
       status: StatusRepository.UserStatusType.Outside,
       date: eventDate,
       username: username,
-      type: StatusRepository.ChangeType.Manual
+      type: StatusRepository.ChangeType.Manual,
     };
 
     StatusRepository.pushPeopleState(userstate);
@@ -454,8 +451,7 @@ class StatusHandlers extends BaseHandlers {
     } else if (emoji === "status") {
       let emoji = UsersRepository.getUser(username)?.emoji;
 
-      if (emoji)
-        message = `🐥 Для юзера ${this.bot.formatUsername(username)} задан эмодзи ${emoji}`;
+      if (emoji) message = `🐥 Для юзера ${this.bot.formatUsername(username)} задан эмодзи ${emoji}`;
       else message = `🐥 Эмодзи не задан для юзера ${this.bot.formatUsername(username)}`;
     }
 
@@ -464,7 +460,9 @@ class StatusHandlers extends BaseHandlers {
 }
 
 function isEmoji(message) {
-  return /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/u.test(message);
+  return /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/u.test(
+    message
+  );
 }
 
 module.exports = StatusHandlers;

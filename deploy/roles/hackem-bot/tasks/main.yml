@@ -13,7 +13,8 @@
     config_volume_files:
       - src: pub.key
         dest: sec/pub.key
-      # TODO: vaulted priv.key
+      - src: priv.key.vault
+        dest: sec/priv.key
     docker_compose_definition:
       version: '3.8'
       services:

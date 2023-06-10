@@ -19,11 +19,11 @@ bot.onText(/^\/donate(cash|card)(@.+?)?$/i, BasicHandlers.donateCardHandler);
 bot.onText(/^\/donate(btc|eth|usdc|usdt)(@.+?)?$/i, (msg, match) => BasicHandlers.donateCoinHandler(msg, match[1]));
 bot.onText(/^\/issue(@.+?)?(?: (.*))?$/i, (msg, match) => BasicHandlers.issueHandler(msg, match[2]));
 bot.onText(/^\/(getresidents|gr)(@.+?)?$/i, BasicHandlers.getResidentsHandler);
-bot.onText(/^\/(start|startpanel|sp)(@.+?)?$/i, (msg) => BasicHandlers.startPanelHandler(msg));
-bot.onText(/^\/(infopanel|ip)(@.+?)?$/i, (msg) => BasicHandlers.infoPanelHandler(msg));
-bot.onText(/^\/(controlpanel|cp)(@.+?)?$/i, (msg) => BasicHandlers.controlPanelHandler(msg));
+bot.onText(/^\/(start|startpanel|sp)(@.+?)?$/i, msg => BasicHandlers.startPanelHandler(msg));
+bot.onText(/^\/(infopanel|ip)(@.+?)?$/i, msg => BasicHandlers.infoPanelHandler(msg));
+bot.onText(/^\/(controlpanel|cp)(@.+?)?$/i, msg => BasicHandlers.controlPanelHandler(msg));
 
-bot.onText(/^\/(status|s)(@.+?)?$/i, (msg) => StatusHandlers.statusHandler(msg));
+bot.onText(/^\/(status|s)(@.+?)?$/i, msg => StatusHandlers.statusHandler(msg));
 bot.onText(/^\/in(@.+?)?$/i, StatusHandlers.inHandler);
 bot.onText(/^\/(open|o)(@.+?)?$/i, StatusHandlers.openHandler);
 bot.onText(/^\/(close|c)(@.+?)?$/i, StatusHandlers.closeHandler);
@@ -41,46 +41,66 @@ bot.onText(/^\/(webcam|firstfloor|ff)(@.+?)?$/i, EmbassyHandlers.webcamHandler);
 bot.onText(/^\/(webcam2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handler);
 bot.onText(/^\/(doorcam|dc)(@.+?)?$/i, EmbassyHandlers.doorcamHandler);
 bot.onText(/^\/(printers)(@.+?)?$/i, EmbassyHandlers.printersHandler);
-bot.onText(/^\/(anette|anettestatus)(@.+?)?$/i, (msg) => EmbassyHandlers.printerStatusHandler(msg, "anette"));
-bot.onText(/^\/(plumbus|plumbusstatus)(@.+?)?$/i, (msg) => EmbassyHandlers.printerStatusHandler(msg, "plumbus"));
+bot.onText(/^\/(anette|anettestatus)(@.+?)?$/i, msg => EmbassyHandlers.printerStatusHandler(msg, "anette"));
+bot.onText(/^\/(plumbus|plumbusstatus)(@.+?)?$/i, msg => EmbassyHandlers.printerStatusHandler(msg, "plumbus"));
 bot.onText(/^\/printerstatus(@.+?)? (.*\S)$/i, (msg, match) => EmbassyHandlers.printerStatusHandler(msg, match[2]));
 bot.onText(/^\/(unlock|u)(@.+?)?$/i, EmbassyHandlers.unlockHandler);
 bot.onText(/^\/(doorbell|db)(@.+?)?$/i, EmbassyHandlers.doorbellHandler);
 bot.onText(/^\/monitor(@.+?)?$/i, EmbassyHandlers.monitorHandler);
-bot.onText(/^\/(?:sayinspace|say)(@.+?)?(?: (.*))?$/mis, (msg, match) => EmbassyHandlers.sayinspaceHandler(msg, match[2]));
-bot.onText(/^\/(?:playinspace|play)(@.+?)?(?: (.*))?$/mis, (msg, match) => EmbassyHandlers.playinspaceHandler(msg, match[2]));
-bot.onText(/^\/(fartinspace|fart)(@.+?)?$/i, (msg, match) => EmbassyHandlers.playinspaceHandler(msg, "https://www.tones7.com/media/farts.mp3"));
-bot.onText(/^\/(moaninspace|moan)(@.+?)?$/i, (msg, match) => EmbassyHandlers.playinspaceHandler(msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3"));
+bot.onText(/^\/(?:sayinspace|say)(@.+?)?(?: (.*))?$/ims, (msg, match) => EmbassyHandlers.sayinspaceHandler(msg, match[2]));
+bot.onText(/^\/(?:playinspace|play)(@.+?)?(?: (.*))?$/ims, (msg, match) => EmbassyHandlers.playinspaceHandler(msg, match[2]));
+bot.onText(/^\/(fartinspace|fart)(@.+?)?$/i, msg =>
+    EmbassyHandlers.playinspaceHandler(msg, "https://www.tones7.com/media/farts.mp3")
+);
+bot.onText(/^\/(moaninspace|moan)(@.+?)?$/i, msg =>
+    EmbassyHandlers.playinspaceHandler(msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3")
+);
 
 bot.onText(/^\/funds(@.+?)?$/i, FundsHandlers.fundsHandler);
 bot.onText(/^\/fund(@.+?)? (.*\S)$/i, (msg, match) => FundsHandlers.fundHandler(msg, match[2]));
 bot.onText(/^\/fundsall(@.+?)?$/i, FundsHandlers.fundsallHandler);
-bot.onText(/^\/addfund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)$/i, (msg, match) => FundsHandlers.addFundHandler(msg, match[2], match[3], match[4]));
-bot.onText(/^\/updatefund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?$/i, (msg, match) => FundsHandlers.updateFundHandler(msg, match[2], match[3], match[4], match[5]));
+bot.onText(/^\/addfund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)$/i, (msg, match) =>
+    FundsHandlers.addFundHandler(msg, match[2], match[3], match[4])
+);
+bot.onText(/^\/updatefund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?$/i, (msg, match) =>
+    FundsHandlers.updateFundHandler(msg, match[2], match[3], match[4], match[5])
+);
 bot.onText(/^\/removefund(@.+?)? (.*\S)$/i, (msg, match) => FundsHandlers.removeFundHandler(msg, match[2]));
 bot.onText(/^\/exportfund(@.+?)? (.*\S)$/i, async (msg, match) => FundsHandlers.exportCSVHandler(msg, match[2]));
 bot.onText(/^\/exportdonut(@.+?)? (.*\S)$/i, async (msg, match) => FundsHandlers.exportDonutHandler(msg, match[2]));
 bot.onText(/^\/closefund(@.+?)? (.*\S)$/i, (msg, match) => FundsHandlers.closeFundHandler(msg, match[2]));
-bot.onText(/^\/changefundstatus(@.+?)? of (.*\S) to (.*\S)$/i, (msg, match) => FundsHandlers.changeFundStatusHandler(msg, match[2], match[3]));
-bot.onText(/^\/adddonation(@.+?)? (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)$/i, (msg, match) => FundsHandlers.addDonationHandler(msg, match[2], match[3], match[4], match[5]));
-bot.onText(/^\/costs(@.+?)? (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?$/i, (msg, match) => FundsHandlers.costsHandler(msg, match[2], match[3], match[4]));
-bot.onText(/^\/(showcosts|costs)(@.+?)?$/i, (msg) => FundsHandlers.showCostsHandler(msg));
-bot.onText(/^\/(showcostsdonut|costsdonut|donut)(@.+?)?$/i, (msg) => FundsHandlers.showCostsDonutHandler(msg));
+bot.onText(/^\/changefundstatus(@.+?)? of (.*\S) to (.*\S)$/i, (msg, match) =>
+    FundsHandlers.changeFundStatusHandler(msg, match[2], match[3])
+);
+bot.onText(/^\/adddonation(@.+?)? (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)$/i, (msg, match) =>
+    FundsHandlers.addDonationHandler(msg, match[2], match[3], match[4], match[5])
+);
+bot.onText(/^\/costs(@.+?)? (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?$/i, (msg, match) =>
+    FundsHandlers.costsHandler(msg, match[2], match[3], match[4])
+);
+bot.onText(/^\/(showcosts|costs)(@.+?)?$/i, msg => FundsHandlers.showCostsHandler(msg));
+bot.onText(/^\/(showcostsdonut|costsdonut|donut)(@.+?)?$/i, msg => FundsHandlers.showCostsDonutHandler(msg));
 bot.onText(/^\/removedonation(@.+?)? (\d+)$/i, (msg, match) => FundsHandlers.removeDonationHandler(msg, match[2]));
-bot.onText(/^\/transferdonation(@.+?)? (\d+) to (.*\S)$/i, (msg, match) => FundsHandlers.transferDonationHandler(msg, match[2], match[3]));
-bot.onText(/^\/changedonation(@.+?)? (\d+) to (\S+)\s?(\D*?)$/i, (msg, match) => FundsHandlers.changeDonationHandler(msg, match[2], match[3], match[4]));
+bot.onText(/^\/transferdonation(@.+?)? (\d+) to (.*\S)$/i, (msg, match) =>
+    FundsHandlers.transferDonationHandler(msg, match[2], match[3])
+);
+bot.onText(/^\/changedonation(@.+?)? (\d+) to (\S+)\s?(\D*?)$/i, (msg, match) =>
+    FundsHandlers.changeDonationHandler(msg, match[2], match[3], match[4])
+);
 
 bot.onText(/^\/needs(@.+?)?$/i, NeedsHandlers.needsHandler);
 bot.onText(/^\/(?:buy|need)(@.+?)? (.*)$/i, (msg, match) => NeedsHandlers.buyHandler(msg, match[2]));
 bot.onText(/^\/bought(@.+?)? (.*)$/i, (msg, match) => NeedsHandlers.boughtHandler(msg, match[2]));
 
-bot.onText(/^\/birthdays(@.+?)?$/i, async (msg) => BirthdayHandlers.birthdayHandler(msg));
-bot.onText(/^\/(forcebirthdaywishes|fbw)(@.+?)?$/i, async (msg) => BirthdayHandlers.forceBirthdayWishHandler(msg));
+bot.onText(/^\/birthdays(@.+?)?$/i, async msg => BirthdayHandlers.birthdayHandler(msg));
+bot.onText(/^\/(forcebirthdaywishes|fbw)(@.+?)?$/i, async msg => BirthdayHandlers.forceBirthdayWishHandler(msg));
 bot.onText(/^\/mybirthday(@.+?)?(?: (.*\S)?)?$/i, async (msg, match) => BirthdayHandlers.myBirthdayHandler(msg, match[2]));
 
 bot.onText(/^\/(getusers|gu)(@.+?)?$/i, AdminHandlers.getUsersHandler);
 bot.onText(/^\/adduser(@.+?)? (\S+?) as (\S+)$/i, (msg, match) => AdminHandlers.addUserHandler(msg, match[2], match[3]));
-bot.onText(/^\/updateroles(@.+?)? of (\S+?) to (\S+)$/i, (msg, match) => AdminHandlers.updateRolesHandler(msg, match[2], match[3]));
+bot.onText(/^\/updateroles(@.+?)? of (\S+?) to (\S+)$/i, (msg, match) =>
+    AdminHandlers.updateRolesHandler(msg, match[2], match[3])
+);
 bot.onText(/^\/removeuser(@.+?)? (\S+)$/i, (msg, match) => AdminHandlers.removeUserHandler(msg, match[2]));
 bot.onText(/^\/forward(@.+?)? (.*)$/i, (msg, match) => AdminHandlers.forwardHandler(msg, match[2]));
 bot.onText(/^\/(getlogs|logs)(@.+?)?$/i, AdminHandlers.getLogHandler);

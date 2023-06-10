@@ -1,5 +1,3 @@
-function anyItemIsInList(items, list) {
-    return items.some(item => list.includes(item))
-}
+const anyItemIsInList = (items, list) => items.some(item => list.includes(item));
 
 module.exports = { anyItemIsInList };

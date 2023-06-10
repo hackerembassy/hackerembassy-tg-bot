@@ -89,7 +89,7 @@ const GlobalModifiers = `
 #\`-silent#\` - Команда выполнится без вывода ответа
 #\`-mention#\` - Пользователь будет упомянут с уведомлением
 #\`-admin#\` - Вспомогательные команды выведутся для админа и бухгалтера и в публичном чате
-`
+`;
 
 const ApiCommandsList = `
 -status - Статус спейса и кто отметился внутри
@@ -98,4 +98,11 @@ const ApiCommandsList = `
 -funds - Наши открытые сборы
 `;
 
-module.exports = {GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList, ApiCommandsList, GlobalModifiers}
+module.exports = {
+    GeneralCommandsList,
+    MemberCommandsList,
+    AdminCommandsList,
+    AccountantCommandsList,
+    ApiCommandsList,
+    GlobalModifiers,
+};

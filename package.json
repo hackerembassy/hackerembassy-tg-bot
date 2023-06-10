@@ -5,20 +5,22 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "embassy-tunnel": "ssh -f -NR 8001:127.0.0.1:8001 ubuntu@gateway.hackerembassy.site -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -i /home/nick/.ssh/gateway 2>/dev/null",
-    "embassy-api": "nohup node embassyApi.js &",
+    "start-background": "nohup node app.js &",
+    "start-service": "node embassyApi.js",
+    "start-service-background": "nohup node embassyApi.js &",
     "embassy-api-service": "/usr/bin/node embassyApi.js",
+    "dev": "nodemon app.js",
+    "dev-service": "nodemon embassyApi.js",
+    "dev-both": "run-p dev-bot dev-service",
     "stop-embassy-api": "skill -c 'nohup node embassyApi.js &'",
     "git": "git add * && git commit && git push",
     "git-redo": "git add * && git commit --amend && git push --force",
-    "update-and-start": "npm run kill && git pull && npm i && npm run start-bot",
-    "start-bot": "nohup node app.js &",
+    "update-and-start": "npm run kill && git pull && npm i && npm run start-bot-background",
     "start-api-https": "sudo caddy start --config ./deploy/api/Caddyfile 2>/dev/null",
     "kill": "skill -c nohup node app.js &",
     "backup": "mkdir ./data/backup -p && cp ./data/db/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
     "reset": "mkdir ./data/backup -p && mv ./data/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db",
-    "init": "cp ./data/sample.db ./data/db/data.db && echo HACKERBOTTOKEN=\"replace_with_bot_father_token\" > .env",
+    "init": "./deploy/dev/init.sh",
     "prepare": "husky install",
     "lint": "eslint src/**/*.js",
     "lint-fix": "eslint --fix src/**/*.js",
@@ -55,10 +57,11 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.0",
-    "lint-staged": "^13.2.2"
+    "lint-staged": "^13.2.2",
+    "npm-run-all": "^4.1.5"
   },
-  "lint-staged":{
-    "**/*.{js,jsx,ts,tsx}":[
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx}": [
       "npx prettier --write",
       "npx eslint --fix"
     ]

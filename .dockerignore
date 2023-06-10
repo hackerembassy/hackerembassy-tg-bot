@@ -8,4 +8,5 @@ node_modules
 sec
 log
 
+!config/default.json
 !deploy/entrypoint.sh

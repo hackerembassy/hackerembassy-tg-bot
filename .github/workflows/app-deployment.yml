@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - ci-cd  # DEBUG
+      - ci-cd  # TODO
 
 jobs:
 

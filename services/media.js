@@ -1,4 +1,4 @@
-const fetch = require("node-fetch");
+const { default: fetch } = require("node-fetch");
 const { exec } = require("child_process");
 const fs = require("fs").promises;
 const config = require("config");
@@ -9,18 +9,32 @@ const webcam2Path = embassyApiConfig.webcam2;
 const ttspath = embassyApiConfig.ttspath;
 const playpath = embassyApiConfig.playpath;
 
+/**
+ * @returns {Promise<Buffer>}
+ */
 async function getDoorcamImage() {
     return await getImageFromHTTP(doorcamPath, process.env["HASSTOKEN"]);
 }
 
+/**
+ * @returns {Promise<Buffer>}
+ */
 async function getWebcamImage() {
     return await getImageFromHTTP(webcamPath, process.env["HASSTOKEN"]);
 }
 
+/**
+ * @returns {Promise<Buffer>}
+ */
 async function getWebcam2Image() {
     return await getImageFromHTTP(webcam2Path, process.env["HASSTOKEN"]);
 }
 
+/**
+ * @param {string} url
+ * @param {string} filename
+ * @returns {Promise<Buffer>}
+ */
 // eslint-disable-next-line no-unused-vars
 async function getImageFromRTSP(url, filename) {
     let child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
@@ -42,6 +56,11 @@ async function getImageFromRTSP(url, filename) {
     return await fs.readFile("./tmp.jpg");
 }
 
+/**
+ * @param {string} url
+ * @param {string} token
+ * @returns {Promise<Buffer>}
+ */
 async function getImageFromHTTP(url, token) {
     let response = await fetch(`${url}`, {
         headers: {
@@ -54,6 +73,10 @@ async function getImageFromHTTP(url, token) {
     return Buffer.from(imgbuffer);
 }
 
+/**
+ * @param {string} text
+ * @returns {Promise<number>}
+ */
 async function sayInSpace(text) {
     let response = await fetch(ttspath, {
         method: "POST",
@@ -71,6 +94,10 @@ async function sayInSpace(text) {
     return response.status;
 }
 
+/**
+ * @param {string} link
+ * @returns {Promise<number>}
+ */
 async function playInSpace(link) {
     let response = await fetch(playpath, {
         method: "POST",

@@ -1,21 +1,18 @@
-const TextGenerators = require("../../services/textGenerators");
-const UsersHelper = require("../../services/usersHelper");
-const config = require("config");
-const embassyApiConfig = config.get("embassy-api");
-const botConfig = config.get("bot");
 const { fetchWithTimeout } = require("../../utils/network");
-const BaseHandlers = require("./base");
 const logger = require("../../services/logger");
-const usersRepository = require("../../repositories/usersRepository");
 const { encrypt } = require("../../utils/security");
 const { isMacInside } = require("../../services/statusHelper");
 
-class EmbassyHanlers extends BaseHandlers {
-    constructor() {
-        super();
-    }
+const config = require("config");
+const embassyApiConfig = config.get("embassy-api");
+const botConfig = config.get("bot");
 
-    unlockHandler = async (msg) => {
+const TextGenerators = require("../../services/textGenerators");
+const UsersHelper = require("../../services/usersHelper");
+const usersRepository = require("../../repositories/usersRepository");
+
+class EmbassyHanlers {
+    static unlockHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
         try {
@@ -25,10 +22,10 @@ class EmbassyHanlers extends BaseHandlers {
                 )
             )?.json();
 
-            let currentUser = usersRepository.getUser(msg.from.username);
+            let currentUser = usersRepository.getUserByName(msg.from.username);
 
             if (!isMacInside(currentUser.mac, devices)) {
-                this.bot.sendMessage(
+                bot.sendMessage(
                     msg.chat.id,
                     "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"
                 );
@@ -49,28 +46,28 @@ class EmbassyHanlers extends BaseHandlers {
 
             if (response.status === 200) {
                 logger.info(`${msg.from.username} открыл дверь`);
-                await this.bot.sendMessage(msg.chat.id, "🔑 Дверь открыта");
+                await bot.sendMessage(msg.chat.id, "🔑 Дверь открыта");
             } else throw Error("Request error");
         } catch (error) {
             let message = `⚠️ Сервис недоступен`;
-            this.bot.sendMessage(msg.chat.id, message);
+            bot.sendMessage(msg.chat.id, message);
             logger.error(error);
         }
     };
 
-    webcamHandler = async (msg) => {
-        await this.webcamGenericHandler(msg, "webcam", "Первый этаж");
+    static webcamHandler = async (bot, msg) => {
+        await this.webcamGenericHandler(bot, msg, "webcam", "Первый этаж");
     };
 
-    webcam2Handler = async (msg) => {
-        await this.webcamGenericHandler(msg, "webcam2", "Второй этаж");
+    static webcam2Handler = async (bot, msg) => {
+        await this.webcamGenericHandler(bot, msg, "webcam2", "Второй этаж");
     };
 
-    doorcamHandler = async (msg) => {
-        await this.webcamGenericHandler(msg, "doorcam", "Входная дверь");
+    static doorcamHandler = async (bot, msg) => {
+        await this.webcamGenericHandler(bot, msg, "doorcam", "Входная дверь");
     };
 
-    webcamGenericHandler = async (msg, path, prefix) => {
+    static webcamGenericHandler = async (bot, msg, path, prefix) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
         try {
@@ -80,16 +77,16 @@ class EmbassyHanlers extends BaseHandlers {
 
             let webcamImage = Buffer.from(response);
 
-            if (webcamImage) await this.bot.sendPhoto(msg.chat.id, webcamImage);
+            if (webcamImage) await bot.sendPhoto(msg.chat.id, webcamImage);
             else throw Error("Empty webcam image");
         } catch (error) {
             let message = `⚠️ ${prefix}: Камера пока недоступна`;
-            await this.bot.sendMessage(msg.chat.id, message);
+            await bot.sendMessage(msg.chat.id, message);
             logger.error(error);
         }
     };
 
-    monitorHandler = async (msg, notifyEmpty = false) => {
+    static monitorHandler = async (bot, msg, notifyEmpty = false) => {
         try {
             let statusMessages = await this.queryStatusMonitor();
 
@@ -98,23 +95,26 @@ class EmbassyHanlers extends BaseHandlers {
             let message =
                 statusMessages.length > 0 ? TextGenerators.getMonitorMessagesList(statusMessages) : "Новых сообщений нет";
 
-            this.bot.sendMessage(msg.chat.id, message);
+            bot.sendMessage(msg.chat.id, message);
         } catch (error) {
             let message = `⚠️ Не удалось получить статус, может, что-то с инетом, электричеством или le-fail?`;
-            this.bot.sendMessage(msg.chat.id, message);
+            bot.sendMessage(msg.chat.id, message);
             logger.error(error);
         }
     };
 
-    queryStatusMonitor = async () => {
+    static queryStatusMonitor = async () => {
         return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();
     };
 
-    enableStatusMonitor() {
-        setInterval(() => this.monitorHandler({ chat: { id: botConfig.chats.test } }), embassyApiConfig.queryMonitorInterval);
+    static enableStatusMonitor(bot) {
+        setInterval(
+            () => this.monitorHandler(bot, { chat: { id: botConfig.chats.test } }),
+            embassyApiConfig.queryMonitorInterval
+        );
     }
 
-    printersHandler = async (msg) => {
+    static printersHandler = async (bot, msg) => {
         let message = TextGenerators.getPrintersInfo();
         let inlineKeyboard = [
             [
@@ -129,14 +129,14 @@ class EmbassyHanlers extends BaseHandlers {
             ],
         ];
 
-        this.bot.sendMessage(msg.chat.id, message, {
+        bot.sendMessage(msg.chat.id, message, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
     };
 
-    printerStatusHandler = async (msg, printername) => {
+    static printerStatusHandler = async (bot, msg, printername) => {
         try {
             var { status, thumbnailBuffer, cam } = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
@@ -148,7 +148,7 @@ class EmbassyHanlers extends BaseHandlers {
             logger.error(error);
             message = `⚠️ Принтер пока недоступен`;
         } finally {
-            if (cam) await this.bot.sendPhoto(msg.chat.id, Buffer.from(cam));
+            if (cam) await bot.sendPhoto(msg.chat.id, Buffer.from(cam));
 
             let inlineKeyboard = [
                 [
@@ -160,14 +160,14 @@ class EmbassyHanlers extends BaseHandlers {
             ];
 
             if (thumbnailBuffer)
-                await this.bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), {
+                await bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), {
                     caption: message,
                     reply_markup: {
                         inline_keyboard: inlineKeyboard,
                     },
                 });
             else
-                await this.bot.sendMessage(msg.chat.id, message, {
+                await bot.sendMessage(msg.chat.id, message, {
                     reply_markup: {
                         inline_keyboard: inlineKeyboard,
                     },
@@ -175,7 +175,7 @@ class EmbassyHanlers extends BaseHandlers {
         }
     };
 
-    doorbellHandler = async (msg) => {
+    static doorbellHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
         try {
@@ -187,14 +187,14 @@ class EmbassyHanlers extends BaseHandlers {
             message = `🔕 Не получилось позвонить`;
             logger.error(error);
         } finally {
-            this.bot.sendMessage(msg.chat.id, message);
+            bot.sendMessage(msg.chat.id, message);
         }
     };
 
-    sayinspaceHandler = async (msg, text) => {
+    static sayinspaceHandler = async (bot, msg, text) => {
         try {
             if (!text) {
-                this.bot.sendMessage(
+                bot.sendMessage(
                     msg.chat.id,
                     `🗣 С помощью этой команды можно сказать что-нибудь на динамике в спейсе, например #\`/say Привет, хакеры#\``
                 );
@@ -209,19 +209,19 @@ class EmbassyHanlers extends BaseHandlers {
                 body: JSON.stringify({ text }),
             });
 
-            if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Сообщение отправлено на динамик");
+            if (response.status === 200) await bot.sendMessage(msg.chat.id, "🗣 Сообщение отправлено на динамик");
             else throw Error("Failed to say in space");
         } catch (error) {
             let message = `⚠️ Не получилось сказать`;
-            await this.bot.sendMessage(msg.chat.id, message);
+            await bot.sendMessage(msg.chat.id, message);
             logger.error(error);
         }
     };
 
-    playinspaceHandler = async (msg, link) => {
+    static playinspaceHandler = async (bot, msg, link) => {
         try {
             if (!link) {
-                this.bot.sendMessage(msg.chat.id, `🗣 С помощью этой команды можно воспроизвести любой звук по ссылке`);
+                bot.sendMessage(msg.chat.id, `🗣 С помощью этой команды можно воспроизвести любой звук по ссылке`);
                 return;
             }
 
@@ -233,11 +233,11 @@ class EmbassyHanlers extends BaseHandlers {
                 body: JSON.stringify({ link }),
             });
 
-            if (response.status === 200) await this.bot.sendMessage(msg.chat.id, "🗣 Звук отправлен на динамик");
+            if (response.status === 200) await bot.sendMessage(msg.chat.id, "🗣 Звук отправлен на динамик");
             else throw Error("Failed to play in space");
         } catch (error) {
             let message = `⚠️ Не получилось воспроизвести`;
-            await this.bot.sendMessage(msg.chat.id, message);
+            await bot.sendMessage(msg.chat.id, message);
             logger.error(error);
         }
     };

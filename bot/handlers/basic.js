@@ -1,17 +1,14 @@
-const UsersRepository = require("../../repositories/usersRepository");
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const Commands = require("../../resources/commands");
 const CoinsHelper = require("../../resources/coins/coins");
-const BaseHandlers = require("./base");
 
-class BasicHandlers extends BaseHandlers {
-    constructor() {
-        super();
-    }
+const UsersRepository = require("../../repositories/usersRepository");
+const botConfig = require("config").get("bot");
 
-    helpHandler = (msg) => {
-        this.bot.sendMessage(
+class BasicHandlers {
+    static helpHandler = (bot, msg) => {
+        bot.sendMessage(
             msg.chat.id,
             `[Я нахожусь в разработке, ты можешь поучаствовать в моем развитии в репозитории на гитхабе спейса].\n
 Держи мой список команд:\n` +
@@ -20,8 +17,8 @@ class BasicHandlers extends BaseHandlers {
         );
     };
 
-    aboutHandler = (msg) => {
-        this.bot.sendMessage(
+    static aboutHandler = (bot, msg) => {
+        bot.sendMessage(
             msg.chat.id,
             `🏫 Hacker Embassy (Ереванский Хакерспейс) - это пространство, где собираются единомышленники, увлеченные технологиями и творчеством. Мы вместе работаем над проектами, делимся идеями и знаниями, просто общаемся.
       
@@ -35,12 +32,12 @@ class BasicHandlers extends BaseHandlers {
         );
     };
 
-    joinHandler = (msg) => {
+    static joinHandler = (bot, msg) => {
         let message = TextGenerators.getJoinText();
-        this.bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, message);
     };
 
-    issueHandler = async (msg, issueText) => {
+    static issueHandler = async (bot, msg, issueText) => {
         const helpMessage = `📮 С помощью этой команды можно анонимно сообщить о какой-либо проблеме в спейсе (чего-то не хватает, что-то не работает, кто-то делает что-то очень неправильное в спейсе).
 Резиденты обязательно её рассмотрят и постараются решить.
 Отправить боту проблему можно, например, вот так:
@@ -52,34 +49,34 @@ class BasicHandlers extends BaseHandlers {
         let report = `📩 У вас новая проблема!
 "${issueText}"`;
         if (issueText !== undefined) {
-            await this.bot.sendMessage(msg.chat.id, message);
-            await this.bot.sendMessage(this.botConfig.chats.key, report);
+            await bot.sendMessage(msg.chat.id, message);
+            await bot.sendMessage(botConfig.chats.key, report);
         } else {
-            await this.bot.sendMessage(msg.chat.id, helpMessage);
+            await bot.sendMessage(msg.chat.id, helpMessage);
         }
     };
 
-    donateHandler = (msg) => {
+    static donateHandler = (bot, msg) => {
         let accountants = UsersRepository.getUsersByRole("accountant");
         let message = TextGenerators.getDonateText(accountants);
-        this.bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, message);
     };
 
-    locationHandler = (msg) => {
+    static locationHandler = (bot, msg) => {
         let message = `🗺 Наш адрес: Армения, Ереван, Пушкина 38/18 (вход со двора)`;
-        this.bot.sendMessage(msg.chat.id, message);
-        this.bot.sendLocation(msg.chat.id, 40.18258, 44.51338);
-        this.bot.sendPhoto(msg.chat.id, "./resources/images/house.jpg", {
+        bot.sendMessage(msg.chat.id, message);
+        bot.sendLocation(msg.chat.id, 40.18258, 44.51338);
+        bot.sendPhoto(msg.chat.id, "./resources/images/house.jpg", {
             caption: `🏫 Вот этот домик, единственный в своем роде`,
         });
     };
 
-    donateCoinHandler = async (msg, coinname) => {
+    static donateCoinHandler = async (bot, msg, coinname) => {
         coinname = coinname.toLowerCase();
         let buffer = await CoinsHelper.getQR(coinname);
         let coin = CoinsHelper.getCoinDefinition(coinname);
 
-        this.bot.sendPhoto(msg.chat.id, buffer, {
+        bot.sendPhoto(msg.chat.id, buffer, {
             parse_mode: "Markdown",
             caption: `🪙 Используй этот QR код или адрес ниже, чтобы задонатить нам в ${coin.fullname}.
       
@@ -95,11 +92,11 @@ class BasicHandlers extends BaseHandlers {
         });
     };
 
-    donateCardHandler = async (msg) => {
+    static donateCardHandler = async (bot, msg) => {
         let accountants = UsersRepository.getUsersByRole("accountant");
-        let accountantsList = TextGenerators.getAccountsList(accountants);
+        let accountantsList = TextGenerators.getAccountsList(accountants, bot.mode);
 
-        this.bot.sendMessage(
+        bot.sendMessage(
             msg.chat.id,
             `💌 Для того, чтобы задонатить этим способом, напишите нашим бухгалтерам. Они подскажут вам текущие реквизиты или вы сможете договориться о времени и месте передачи. 
       
@@ -109,14 +106,14 @@ class BasicHandlers extends BaseHandlers {
         );
     };
 
-    getResidentsHandler = (msg) => {
-        let users = UsersRepository.getUsers().filter((u) => UsersHelper.hasRole(u.username, "member"));
-        let message = TextGenerators.getResidentsList(users);
+    static getResidentsHandler = (bot, msg) => {
+        let users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
+        let message = TextGenerators.getResidentsList(users, bot.mode);
 
-        this.bot.sendLongMessage(msg.chat.id, message);
+        bot.sendLongMessage(msg.chat.id, message);
     };
 
-    startPanelHandler = async (msg, edit = false) => {
+    static startPanelHandler = async (bot, msg, edit = false) => {
         let message = `🇬🇧 Привет хакерчанин. Я бот для менеджмента всяких процессов в спейсе. 
 [Я нахожусь в разработке, ты можешь поучаствовать в моем развитии в репозитории на гитхабе спейса, обращайся к #[korn9509#]#(t.me/korn9509#)].
 
@@ -169,7 +166,7 @@ class BasicHandlers extends BaseHandlers {
 
         if (edit) {
             try {
-                await this.bot.editMessageText(message, {
+                await bot.editMessageText(message, {
                     chat_id: msg.chat.id,
                     message_id: msg.message_id,
                     reply_markup: {
@@ -180,7 +177,7 @@ class BasicHandlers extends BaseHandlers {
                 // Message was not modified
             }
         } else {
-            await this.bot.sendMessage(msg.chat.id, message, {
+            await bot.sendMessage(msg.chat.id, message, {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
                 },
@@ -188,7 +185,7 @@ class BasicHandlers extends BaseHandlers {
         }
     };
 
-    controlPanelHandler = async (msg, edit = false) => {
+    static controlPanelHandler = async (bot, msg, edit = false) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
         let message = "🕹 Панель управления спейсом для резидентов";
@@ -234,7 +231,7 @@ class BasicHandlers extends BaseHandlers {
 
         if (edit) {
             try {
-                await this.bot.editMessageText(message, {
+                await bot.editMessageText(message, {
                     chat_id: msg.chat.id,
                     message_id: msg.message_id,
                     reply_markup: {
@@ -245,7 +242,7 @@ class BasicHandlers extends BaseHandlers {
                 // Message was not modified
             }
         } else {
-            await this.bot.sendMessage(msg.chat.id, message, {
+            await bot.sendMessage(msg.chat.id, message, {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
                 },
@@ -253,7 +250,7 @@ class BasicHandlers extends BaseHandlers {
         }
     };
 
-    infoPanelHandler = async (msg, edit = false) => {
+    static infoPanelHandler = async (bot, msg, edit = false) => {
         let message = `📚 Тут можно почитать о нас.
 Если хочешь узнать побольше, не стесняйся, заходи на наш сайт и вики https://hackerembassy.site/`;
 
@@ -292,7 +289,7 @@ class BasicHandlers extends BaseHandlers {
 
         if (edit) {
             try {
-                await this.bot.editMessageText(message, {
+                await bot.editMessageText(message, {
                     chat_id: msg.chat.id,
                     message_id: msg.message_id,
                     reply_markup: {
@@ -303,7 +300,7 @@ class BasicHandlers extends BaseHandlers {
                 // Message was not modified
             }
         } else {
-            await this.bot.sendMessage(msg.chat.id, message, {
+            await bot.sendMessage(msg.chat.id, message, {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
                 },

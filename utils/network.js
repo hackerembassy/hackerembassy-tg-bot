@@ -1,6 +1,6 @@
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
-const fetch = require("node-fetch");
+const { default: fetch } = require("node-fetch");
 
 class Cancellation {
     constructor(timeout = 15000) {
@@ -17,9 +17,15 @@ class Cancellation {
     }
 }
 
+/**
+ * @param {string} uri
+ * @param {object} options
+ * @param {any[]} rest
+ */
 function fetchWithTimeout(uri, options, ...rest) {
     let cancellation = new Cancellation(embassyApiConfig.timeout);
 
+    // @ts-ignore
     return fetch(uri, { signal: cancellation.signal, ...options }, ...rest);
 }
 

@@ -1,12 +1,26 @@
 const Currency = require("../utils/currency");
 const config = require("config");
 const printersConfig = config.get("printers");
-const BotExtensions = require("../bot/botExtensions");
 const StatusRepository = require("../repositories/statusRepository");
 const UsersHelper = require("./usersHelper");
 const usersRepository = require("../repositories/usersRepository");
 
-async function createFundList(funds, donations, options = {}) {
+// eslint-disable-next-line no-unused-vars
+const Fund = require("../models/Fund");
+// eslint-disable-next-line no-unused-vars
+const Donation = require("../models/Donation");
+// eslint-disable-next-line no-unused-vars
+const UserState = require("../models/UserState");
+// eslint-disable-next-line no-unused-vars
+const User = require("../models/User");
+// eslint-disable-next-line no-unused-vars
+const Need = require("../models/Need");
+
+/**
+ * @param {Fund[]} funds
+ * @param {Donation[]} donations
+ */
+async function createFundList(funds, donations, options = {}, mode) {
     const defaultOptions = { showAdmin: false, isApi: false, isHistory: false };
     options = { defaultOptions, ...options };
 
@@ -22,7 +36,7 @@ async function createFundList(funds, donations, options = {}) {
         let sum = await fundDonations.reduce(async (prev, current) => {
             let newValue = await Currency.convertCurrency(current.value, current.currency, fund.target_currency);
             return (await prev) + newValue;
-        }, 0);
+        }, Promise.resolve(0));
 
         let statusEmoji = `⚙️ \\[${fund.status}]`;
 
@@ -44,12 +58,13 @@ async function createFundList(funds, donations, options = {}) {
 
         if (!options.isHistory) {
             for (const donation of fundDonations) {
-                list += `      ${options.showAdmin ? `[id:${donation.id}] - ` : ""}${BotExtensions.formatUsername(
+                list += `      ${options.showAdmin ? `[id:${donation.id}] - ` : ""}${UsersHelper.formatUsername(
                     donation.username,
+                    mode,
                     options.isApi
                 )} - ${Currency.formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${
                     options.showAdmin && donation.accountant
-                        ? ` ➡️ ${BotExtensions.formatUsername(donation.accountant, options.isApi)}`
+                        ? ` ➡️ ${UsersHelper.formatUsername(donation.accountant, options.isApi)}`
                         : ""
                 }\n`;
             }
@@ -79,34 +94,48 @@ async function createFundList(funds, donations, options = {}) {
     return list;
 }
 
-let getStatusMessage = (state, inside, going, isApi = false) => {
+/**
+ * @param {{ open: boolean; changedby: string; }} state
+ * @param {UserState[]} inside
+ * @param {UserState[]} going
+ * @returns {string}
+ */
+function getStatusMessage(state, inside, going, mode, isApi = false) {
     let stateText = state.open ? "#*открыт#*" : "#*закрыт#*";
     let stateEmoji = state.open ? "🔓" : "🔒";
     let stateSubText = state.open
         ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
         : `Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит закрытое собрание резидентов, или они опять забыли сделать /open? Who knows... Лучше спроси у них в чате.\n`;
     let updateText = !isApi ? `⏱ Обновлено ${new Date().toLocaleString("RU-ru").replace(",", " в").substr(0, 21)}\n` : "";
-    let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${BotExtensions.formatUsername(state.changedby, isApi)}\n`;
+    let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${UsersHelper.formatUsername(
+        state.changedby,
+        mode,
+        isApi
+    )}\n`;
 
     let insideText = inside.length > 0 ? "👨‍💻 Внутри отметились:\n" : "🛌 Внутри никто не отметился\n";
 
     for (const userStatus of inside) {
-        insideText += `${BotExtensions.formatUsername(userStatus.username, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
+        insideText += `${UsersHelper.formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
 
     let goingText = going.length > 0 ? "\n🚕 Планируют сегодня зайти:\n" : "";
     for (const userStatus of going) {
-        goingText += `${BotExtensions.formatUsername(userStatus.username, isApi)} ${getUserBadges(userStatus.username)}\n`;
+        goingText += `${UsersHelper.formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)}\n`;
     }
 
     return `${stateFullText}
 ${stateSubText}
 ${insideText}${goingText}
 ${updateText}`;
-};
+}
 
+/**
+ * @param {string} username
+ * @returns {string}
+ */
 function getUserBadges(username) {
-    let user = usersRepository.getUser(username);
+    let user = usersRepository.getUserByName(username);
     if (!user) return "";
 
     let roles = UsersHelper.getRoles(user);
@@ -116,6 +145,10 @@ function getUserBadges(username) {
     return `${roleBadges}${customBadge}`;
 }
 
+/**
+ * @param {UserState} userStatus
+ * @returns {string}
+ */
 function getUserBadgesWithStatus(userStatus) {
     let userBadges = getUserBadges(userStatus.username);
     let autoBadge = userStatus.type === StatusRepository.ChangeType.Auto ? "📲" : "";
@@ -123,12 +156,16 @@ function getUserBadgesWithStatus(userStatus) {
     return `${autoBadge}${userBadges}`;
 }
 
-function getAccountsList(accountants, isApi = false) {
+/**
+ * @param {User[]} accountants
+ * @returns {string}
+ */
+function getAccountsList(accountants, mode, isApi = false) {
     let accountantsList = "";
 
     if (accountants !== null) {
         accountantsList = accountants.reduce(
-            (list, user) => `${list}${BotExtensions.formatUsername(user.username, isApi)} ${getUserBadges(user.username)}\n`,
+            (list, user) => `${list}${UsersHelper.formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
             ""
         );
     }
@@ -136,10 +173,14 @@ function getAccountsList(accountants, isApi = false) {
     return accountantsList;
 }
 
-function getResidentsList(residents) {
+/**
+ * @param {User[]} residents
+ * @returns {string}
+ */
+function getResidentsList(residents, mode) {
     let userList = "";
     for (const user of residents) {
-        userList += `${BotExtensions.formatUsername(user.username)} ${getUserBadges(user.username)}\n`;
+        userList += `${UsersHelper.formatUsername(user.username, mode)} ${getUserBadges(user.username)}\n`;
     }
 
     return (
@@ -147,6 +188,10 @@ function getResidentsList(residents) {
     );
 }
 
+/**
+ * @param {{level: string; message: string; timestamp: string;}[]} monitorMessages
+ * @returns {string}
+ */
 function getMonitorMessagesList(monitorMessages) {
     let messageList = "";
 
@@ -157,14 +202,18 @@ function getMonitorMessagesList(monitorMessages) {
     return messageList;
 }
 
-function getNeedsList(needs) {
+/**
+ * @param {Need[]} needs
+ * @returns {string}
+ */
+function getNeedsList(needs, mode) {
     let message = `👌 Пока никто ничего не просил\n`;
 
     if (needs.length > 0) {
         message = `🙏 Кто-нибудь, купите по дороге в спейс:\n`;
 
         for (const need of needs) {
-            message += `- #\`${need.text}#\` по просьбе ${BotExtensions.formatUsername(need.requester)}\n`;
+            message += `- #\`${need.text}#\` по просьбе ${UsersHelper.formatUsername(need.requester, mode)}\n`;
         }
     }
     message += `\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды #\`/buy item_name#\``;
@@ -176,6 +225,11 @@ function getNeedsList(needs) {
     return message;
 }
 
+/**
+ * @param {User[]} accountants
+ * @param {boolean} isApi
+ * @returns {string}
+ */
 function getDonateText(accountants, isApi = false) {
     let accountantsList = getAccountsList(accountants, isApi);
 
@@ -203,6 +257,10 @@ function getDonateText(accountants, isApi = false) {
     );
 }
 
+/**
+ * @param {boolean} isApi
+ * @returns {string}
+ */
 function getJoinText(isApi = false) {
     return `🧑🏻‍🏫 Если вы находитесь в Ереване, увлечены технологиями и ищете единомышленников, заходите к нам.
 - Мы проводим регулярный день открытых дверей каждую пятницу в 20.00.
@@ -224,6 +282,7 @@ ${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /lo
 `;
 }
 
+/** @type {string[]} */
 const shortMonthNames = [
     "января",
     "февраля",
@@ -239,7 +298,11 @@ const shortMonthNames = [
     "декабря",
 ];
 
-function getBirthdaysList(birthdayUsers) {
+/**
+ * @param {User[]} birthdayUsers
+ * @returns {string}
+ */
+function getBirthdaysList(birthdayUsers, mode) {
     let message = `🎂 В этом месяце празднуют свои днюхи:\n`;
 
     let usersList = `\nНикто? Странно...\n`;
@@ -262,7 +325,10 @@ function getBirthdaysList(birthdayUsers) {
         if (usersWithDays.length > 0) {
             usersList = ``;
             for (const user of usersWithDays) {
-                message += `${user.day} ${shortMonthNames[user.month - 1]} - ${BotExtensions.formatUsername(user.username)}\n`;
+                message += `${user.day} ${shortMonthNames[user.month - 1]} - ${UsersHelper.formatUsername(
+                    user.username,
+                    mode
+                )}\n`;
             }
         }
     }
@@ -277,6 +343,9 @@ function getBirthdaysList(birthdayUsers) {
     return message;
 }
 
+/**
+ * @returns {string}
+ */
 function getPrintersInfo() {
     return `🖨 У нас есть два 3D принтера:
 
@@ -294,6 +363,10 @@ https://wiki.hackerembassy.site/ru/equipment/plumbus
 `;
 }
 
+/**
+ * @param {number} num
+ * @returns {string}
+ */
 function toMinSec(num) {
     if (isNaN(num) || !isFinite(num)) return "Хз";
     let numstr = num.toFixed(2);
@@ -302,6 +375,10 @@ function toMinSec(num) {
     return `${integral}.${decimal.substring(0, 2).padStart(2, "0")}`;
 }
 
+/**
+ * @param {{ print_stats: any; heater_bed: any; extruder: any; display_status: { progress: number; }; }} status
+ * @returns {Promise<string>}
+ */
 async function getPrinterStatus(status) {
     let print_stats = status.print_stats;
     let state = print_stats.state;
@@ -313,7 +390,7 @@ async function getPrinterStatus(status) {
     if (state === "printing") {
         let minutesPast = toMinSec(print_stats.total_duration / 60);
         let progress = (status.display_status.progress * 100).toFixed(0);
-        let estimate = toMinSec((minutesPast / progress) * (100 - progress));
+        let estimate = toMinSec((Number(minutesPast) / Number(progress)) * (100 - Number(progress)));
 
         message = `⏲ Печатается файл ${print_stats.filename}
 

@@ -1,5 +1,5 @@
 require("dotenv").config();
+require("./bot/bot-instance");
 require("./botApi");
-require("./services/autoInOut");
-require("./bot/bot-routes");
-require("./bot/autobot");
+
+process.env.TZ = require("config").get("bot").timezone;

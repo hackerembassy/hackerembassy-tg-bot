@@ -15,7 +15,7 @@ all:
 
   hosts:
 
-    teresa:   # defiend in ~/.ssh/config
+    teresa:   # defined in ~/.ssh/config
       skip_docker_install: true
 #      ansible_user: root    # if default_ansible_user does not exist yet, specify an ssh user here
 

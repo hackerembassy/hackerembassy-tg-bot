@@ -16,6 +16,17 @@
         dest: /etc/docker/daemon.json
       notify: restart docker
 
+    - name: resolved configs dir 
+      file:
+        state: directory
+        path: "/etc/systemd/resolved.conf.d/"
+        mode: "755"
+
+    - name: resolved config for tailscale is up to date
+      template:
+        src: tailscale.conf.j2
+        dest: /etc/systemd/resolved.conf.d/tailscale.conf
+
     - name: users are added to docker group
       user:
         name: '{{ item.name }}'

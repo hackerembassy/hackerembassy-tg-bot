@@ -30,6 +30,7 @@
             - HACKERBOTTOKEN={{ hackem_bot_token }}
             - UNLOCKKEY={{ hackem_key }}
           restart: unless-stopped
+          dns: "{{ ansible_docker0.ipv4.address }}"
       volumes:
         config:
           name: "{{ config_volume }}"

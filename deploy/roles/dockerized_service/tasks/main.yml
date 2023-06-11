@@ -40,15 +40,15 @@
       when: config_volume_templates is defined
       register: templates_update
 
-    - name: ensure dirs
-      file:
-        state: directory
-        path: "{{ config_volume_mount.path }}/v/{{ item.dest | dirname }}"
-        mode: "755"
-      with_items: "{{ config_volume_files }}"
-      loop_control:
-        label: '{{ item.dest | dirname }}'
-      when: config_volume_files is defined
+    # - name: ensure dirs
+    #   file:
+    #     state: directory
+    #     path: "{{ config_volume_mount.path }}/v/{{ item.dest | dirname }}"
+    #     mode: "755"
+    #   with_items: "{{ config_volume_files }}"
+    #   loop_control:
+    #     label: '{{ item.dest | dirname }}'
+    #   when: config_volume_files is defined
 
     - name: update extra files
       copy:

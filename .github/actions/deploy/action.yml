@@ -1,5 +1,8 @@
 name: Deploy containers via docker-compose
 inputs:
+  ssh_user:
+    description: deploy target user
+    required: true
   ssh_identity:
     description: string for known_hosts file
     required: true
@@ -27,7 +30,7 @@ runs:
       name: Deploy
       shell: bash
       run: |
-        ssh -T ansible@${{ inputs.ssh_host }} -p ${{ inputs.ssh_port }} '
+        ssh -T ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} -p ${{ inputs.ssh_port }} '
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v /home/ansible/.docker/config.json:/config.json \

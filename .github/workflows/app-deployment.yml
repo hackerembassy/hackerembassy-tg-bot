@@ -38,7 +38,8 @@ jobs:
       -
         uses: ./.github/actions/deploy
         with:
-          ssh_identity: ${{ secrets.deploy_target_identity }}
-          ssh_key: ${{ secrets.deploy_target_key }}
+          ssh_user: ci
+          ssh_identity: '|1|RY2fnr8tltHJk97RXktcFWLP6CU=|Q+sQMkU4H3SYupP+XBlB8EVQFSY= ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFYdFvcbtPcmrRRJstpQuxE7TdPR2+yCbAcOfn5Aa1uq'
           ssh_host: ${{ secrets.deploy_target_host }}
           ssh_port: ${{ secrets.deploy_target_port }}
+          ssh_key: ${{ secrets.deploy_target_key }}

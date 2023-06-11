@@ -5,13 +5,25 @@ all:
     ansible_user: '{{ default_ansible_user }}'
     default_ansible_user: ansible
     default_user_groups: "{{ 'sudo,docker' if 'docker0' in ansible_facts['interfaces'] else 'sudo' }}"
+    apt_packages:
+      - sudo
+      - bash-completion
+      - ca-certificates
+      - python3-pip
+      - curl
+
 
   hosts:
+
     teresa:   # defiend in ~/.ssh/config
+      skip_docker_install: true
 #      ansible_user: root    # if default_ansible_user does not exist yet, specify an ssh user here
+
     lefail:
+      skip_docker_install: true
       ansible_host: le-fail.lan
 #      ansible_user: root    # if default_ansible_user does not exist yet, specify an ssh user here
+
 
   children:
 

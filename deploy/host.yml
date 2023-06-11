@@ -17,14 +17,6 @@
 
   roles:
     - role: common
-      vars:
-        skip_docker_install: true
-        apt_packages:
-          - sudo
-          - bash-completion
-          - ca-certificates
-          - python3-pip
-          - curl
 
     - role: docker
       vars:

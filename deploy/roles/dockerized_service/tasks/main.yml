@@ -4,7 +4,7 @@
   with_items: "{{ docker_volumes }}"
 
 
-- name: config updated
+- name: configs updated
   block:
     - name: config temporary dir
       tempfile:
@@ -46,6 +46,8 @@
         path: "{{ config_volume_mount.path }}/v/{{ item.dest | dirname }}"
         mode: "755"
       with_items: "{{ config_volume_files }}"
+      loop_control:
+        label: '{{ item.dest | dirname }}'
       when: config_volume_files is defined
 
     - name: update extra files
@@ -77,7 +79,7 @@
         state: absent
       changed_when: no
       check_mode: no
-
+  tags: configs
 
 - name: container updated
   block:
@@ -97,4 +99,3 @@
         project_name: "{{ service_name }}"
         pull: yes
         definition: "{{ docker_compose_definition }}"
-  tags: container

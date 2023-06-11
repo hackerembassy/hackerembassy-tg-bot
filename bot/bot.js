@@ -2,16 +2,15 @@ const TelegramBot = require("node-telegram-bot-api");
 const config = require("config");
 const botConfig = config.get("bot");
 const {
-  initGlobalModifiers,
-  addLongCommands,
-  addSavingLastMessages,
-  makeAllMessagesMarkdown,
-  enableAutoWishes,
-  extendWithFormatUserName,
-  extendWithIsAdminMode,
-  enablePaymentNotifications,
-  AddHelperFunctions,
-  AddSendDoorcamFunction,
+    initGlobalModifiers,
+    addLongCommands,
+    addSavingLastMessages,
+    makeAllMessagesMarkdown,
+    enableAutoWishes,
+    extendWithFormatUserName,
+    extendWithIsAdminMode,
+    enablePaymentNotifications,
+    AddHelperFunctions,
 } = require("./botExtensions");
 
 process.env.TZ = botConfig.timezone;
@@ -33,8 +32,8 @@ if (botConfig.autoWish) enableAutoWishes(bot);
 
 // Debug echoing of received messages
 IsDebug &&
-  bot.on("message", (msg) => {
-    bot.sendMessage(msg.chat.id, `Debug: Received from ${msg.chat.id} message ${msg.text}`);
-  });
+    bot.on("message", msg => {
+        bot.sendMessage(msg.chat.id, `Debug: Received from ${msg.chat.id} message ${msg.text}`);
+    });
 
 module.exports = bot;

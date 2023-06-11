@@ -23,7 +23,7 @@ function openSpace(opener, options = { checkOpener: false }) {
     StatusRepository.pushPeopleState(userstate);
 }
 
-function closeSpace(closer, options = { evict: false }){
+function closeSpace(closer, options = { evict: false }) {
     let state = {
         open: false,
         date: new Date(),
@@ -32,12 +32,11 @@ function closeSpace(closer, options = { evict: false }){
 
     StatusRepository.pushSpaceState(state);
 
-    if (options.evict)
-        StatusRepository.evictPeople();
+    if (options.evict) StatusRepository.evictPeople();
 }
 
-function isMacInside(mac, devices){
-    return anyItemIsInList(mac.split(','), devices);
+function isMacInside(mac, devices) {
+    return mac ? anyItemIsInList(mac.split(","), devices) : false;
 }
 
-module.exports = {openSpace, closeSpace, isMacInside}
+module.exports = { openSpace, closeSpace, isMacInside };

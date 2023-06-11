@@ -7,77 +7,78 @@ const path = require("path");
 const fs = require("fs");
 
 class AdminHandlers extends BaseHandlers {
-  constructor(){
-    super();
-  }
-
-  forwardHandler(msg, text){
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
-    this.bot.sendMessage(botConfig.chats.main, text);
-  }
-
-  getLogHandler = (msg) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-    
-    let logpath = path.join(__dirname, "../..", botConfig.logpath);
-
-    if (fs.existsSync(logpath))
-      this.bot.sendDocument(msg.chat.id, logpath);
-  }
-  
-  getUsersHandler = (msg) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
-    let users = UsersRepository.getUsers();
-    let userList = "";
-    for (const user of users) {
-      userList += `> ${this.bot.formatUsername(user.username)}
-Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
-Autoinside: ${user.autoinside ? "on" : "off"}\n`;
+    constructor() {
+        super();
     }
 
-    this.bot.sendLongMessage(msg.chat.id, `👩‍💻 Текущие пользователи:\n` + userList);
-  }
+    forwardHandler(msg, text) {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-  addUserHandler = (msg, username, roles) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+        this.bot.sendMessage(botConfig.chats.main, text);
+    }
 
-    username = username.replace("@", "");
-    roles = roles.split("|");
+    getLogHandler = (msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-    let success = UsersRepository.addUser(username, roles);
-    let message = success
-      ? `✅ Пользователь ${this.bot.formatUsername(username)} добавлен как ${roles}`
-      : `⚠️ Не удалось добавить пользователя (может он уже есть?)`;
+        let logpath = path.join(__dirname, "../..", botConfig.logpath);
 
-    this.bot.sendMessage(msg.chat.id, message);
-  }
+        if (fs.existsSync(logpath)) this.bot.sendDocument(msg.chat.id, logpath);
+    };
 
-  updateRolesHandler = (msg, username, roles) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+    getUsersHandler = (msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-    username = username.replace("@", "");
-    roles = roles.split("|");
+        let users = UsersRepository.getUsers();
+        let userList = "";
+        for (const user of users) {
+            userList += `> ${this.bot.formatUsername(user.username)}
+Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
+Autoinside: ${user.autoinside ? "on" : "off"}\n`;
+        }
 
-    let success = UsersRepository.updateRoles(username, roles);
-    let message = success ? `✳️ Роли ${this.bot.formatUsername(username)} установлены как ${roles}` : `⚠️ Не удалось обновить роли`;
+        this.bot.sendLongMessage(msg.chat.id, `👩‍💻 Текущие пользователи:\n` + userList);
+    };
 
-    this.bot.sendMessage(msg.chat.id, message);
-  }
+    addUserHandler = (msg, username, roles) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-  removeUserHandler = (msg, username) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+        username = username.replace("@", "");
+        roles = roles.split("|");
 
-    username = username.replace("@", "");
+        let success = UsersRepository.addUser(username, roles);
+        let message = success
+            ? `✅ Пользователь ${this.bot.formatUsername(username)} добавлен как ${roles}`
+            : `⚠️ Не удалось добавить пользователя (может он уже есть?)`;
 
-    let success = UsersRepository.removeUser(username);
-    let message = success
-      ? `🗑 Пользователь ${this.bot.formatUsername(username)} удален`
-      : `⚠️ Не удалось удалить пользователя (может его и не было?)`;
+        this.bot.sendMessage(msg.chat.id, message);
+    };
 
-    this.bot.sendMessage(msg.chat.id, message);
-  }
+    updateRolesHandler = (msg, username, roles) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
+        username = username.replace("@", "");
+        roles = roles.split("|");
+
+        let success = UsersRepository.updateRoles(username, roles);
+        let message = success
+            ? `✳️ Роли ${this.bot.formatUsername(username)} установлены как ${roles}`
+            : `⚠️ Не удалось обновить роли`;
+
+        this.bot.sendMessage(msg.chat.id, message);
+    };
+
+    removeUserHandler = (msg, username) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
+        username = username.replace("@", "");
+
+        let success = UsersRepository.removeUser(username);
+        let message = success
+            ? `🗑 Пользователь ${this.bot.formatUsername(username)} удален`
+            : `⚠️ Не удалось удалить пользователя (может его и не было?)`;
+
+        this.bot.sendMessage(msg.chat.id, message);
+    };
 }
 
 module.exports = AdminHandlers;

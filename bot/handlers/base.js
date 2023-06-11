@@ -3,10 +3,10 @@ const config = require("config");
 const botConfig = config.get("bot");
 
 class BaseHandlers {
-  constructor(){
-    this.bot = botlib;
-    this.botConfig = botConfig;
-  }
+    constructor() {
+        this.bot = botlib;
+        this.botConfig = botConfig;
+    }
 }
 
 module.exports = BaseHandlers;

@@ -1,24 +1,19 @@
-const BaseHandlers = require("./base");
 const imageService = require("../../services/image");
 
-class MemeHandlers extends BaseHandlers {
-    constructor() {
-        super();
-    }
-
-    randomDogHandler = async (msg) => {
+class MemeHandlers {
+    static randomDogHandler = async (bot, msg) => {
         let fileBuffer = await imageService.getRandomImageFromFolder("./resources/images/dogs");
-        this.bot.sendPhoto(msg.chat.id, fileBuffer);
+        bot.sendPhoto(msg.chat.id, fileBuffer);
     };
 
-    randomCatHandler = async (msg) => {
+    static randomCatHandler = async (bot, msg) => {
         let fileBuffer = await imageService.getRandomImageFromFolder("./resources/images/cats");
-        this.bot.sendPhoto(msg.chat.id, fileBuffer);
+        bot.sendPhoto(msg.chat.id, fileBuffer);
     };
 
-    randomCabHandler = async (msg) => {
+    static randomCabHandler = async (bot, msg) => {
         let fileBuffer = await imageService.getRandomImageFromFolder("./resources/images/cab");
-        this.bot.sendPhoto(msg.chat.id, fileBuffer);
+        bot.sendPhoto(msg.chat.id, fileBuffer);
     };
 }
 

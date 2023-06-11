@@ -1,159 +1,155 @@
 const UsersHelper = require("../../services/usersHelper");
-const { popLast } = require("../botExtensions");
-const BaseHandlers = require("./base");
-const StatusHandlers = new (require("./status"))();
-const FundsHandlers = new (require("./funds"))();
-const NeedsHandlers = new (require("./needs"))();
-const BirthdayHandlers = new (require("./birthday"))();
-const BasicHandlers = new (require("./basic"))();
-const EmbassyHandlers = new (require("./embassy"))();
 
-class ServiceHandlers extends BaseHandlers {
-    constructor() {
-        super();
-    }
+const StatusHandlers = require("./status");
+const FundsHandlers = require("./funds");
+const NeedsHandlers = require("./needs");
+const BirthdayHandlers = require("./birthday");
+const BasicHandlers = require("./basic");
+const EmbassyHandlers = require("./embassy");
 
-    clearHandler = (msg, count) => {
+class ServiceHandlers {
+    static clearHandler = (bot, msg, count) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
         let inputCount = Number(count);
         let countToClear = inputCount > 0 ? inputCount : 1;
-        let idsToRemove = popLast(msg.chat.id, countToClear);
+        let idsToRemove = bot.popLast(msg.chat.id, countToClear);
 
         for (const id of idsToRemove) {
-            this.bot.deleteMessage(msg.chat.id, id);
+            bot.deleteMessage(msg.chat.id, id);
         }
     };
 
-    superstatusHandler = async (msg) => {
+    static superstatusHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "member", "admin")) return;
 
-        await StatusHandlers.statusHandler(msg);
-        await EmbassyHandlers.webcamHandler(msg);
-        await EmbassyHandlers.webcam2Handler(msg);
-        await EmbassyHandlers.doorcamHandler(msg);
+        await StatusHandlers.statusHandler(bot, msg);
+        await EmbassyHandlers.webcamHandler(bot, msg);
+        await EmbassyHandlers.webcam2Handler(bot, msg);
+        await EmbassyHandlers.doorcamHandler(bot, msg);
     };
 
-    callbackHandler = (callbackQuery) => {
+    static callbackHandler = (bot, callbackQuery) => {
         const message = callbackQuery.message;
         const data = JSON.parse(callbackQuery.data);
         message.from = callbackQuery.from;
 
         switch (data.command) {
             case "/in":
-                StatusHandlers.inHandler(message);
+                StatusHandlers.inHandler(bot, message);
                 break;
             case "/out":
-                StatusHandlers.outHandler(message);
+                StatusHandlers.outHandler(bot, message);
                 break;
             case "/going":
-                StatusHandlers.goingHandler(message);
+                StatusHandlers.goingHandler(bot, message);
                 break;
             case "/notgoing":
-                StatusHandlers.notGoingHandler(message);
+                StatusHandlers.notGoingHandler(bot, message);
                 break;
             case "/open":
-                StatusHandlers.openHandler(message);
+                StatusHandlers.openHandler(bot, message);
                 break;
             case "/close":
-                StatusHandlers.closeHandler(message);
+                StatusHandlers.closeHandler(bot, message);
                 break;
             case "/status":
-                StatusHandlers.statusHandler(message);
+                StatusHandlers.statusHandler(bot, message);
                 break;
             case "/ustatus":
-                StatusHandlers.statusHandler(message, true);
+                StatusHandlers.statusHandler(bot, message, true);
                 break;
             case "/superstatus":
-                this.superstatusHandler(message);
+                this.superstatusHandler(bot, message);
                 break;
             case "/birthdays":
-                BirthdayHandlers.birthdayHandler(message);
+                BirthdayHandlers.birthdayHandler(bot, message);
                 break;
             case "/needs":
-                NeedsHandlers.needsHandler(message);
+                NeedsHandlers.needsHandler(bot, message);
                 break;
             case "/funds":
-                FundsHandlers.fundsHandler(message);
+                FundsHandlers.fundsHandler(bot, message);
                 break;
             case "/startpanel":
-                BasicHandlers.startPanelHandler(message, true);
+                BasicHandlers.startPanelHandler(bot, message, true);
                 break;
             case "/infopanel":
-                BasicHandlers.infoPanelHandler(message, true);
+                BasicHandlers.infoPanelHandler(bot, message, true);
                 break;
             case "/controlpanel":
-                BasicHandlers.controlPanelHandler(message, true);
+                BasicHandlers.controlPanelHandler(bot, message, true);
                 break;
             case "/about":
-                BasicHandlers.aboutHandler(message);
+                BasicHandlers.aboutHandler(bot, message);
                 break;
             case "/help":
-                BasicHandlers.helpHandler(message);
+                BasicHandlers.helpHandler(bot, message);
                 break;
             case "/donate":
-                BasicHandlers.donateHandler(message);
+                BasicHandlers.donateHandler(bot, message);
                 break;
             case "/join":
-                BasicHandlers.joinHandler(message);
+                BasicHandlers.joinHandler(bot, message);
                 break;
             case "/location":
-                BasicHandlers.locationHandler(message);
+                BasicHandlers.locationHandler(bot, message);
                 break;
             case "/getresidents":
-                BasicHandlers.getResidentsHandler(message);
+                BasicHandlers.getResidentsHandler(bot, message);
                 break;
             case "/ef":
-                FundsHandlers.exportCSVHandler(message, ...data.params);
+                FundsHandlers.exportCSVHandler(bot, message, ...data.params);
                 break;
             case "/ed":
-                FundsHandlers.exportDonutHandler(message, ...data.params);
+                FundsHandlers.exportDonutHandler(bot, message, ...data.params);
                 break;
             case "/unlock":
-                EmbassyHandlers.unlockHandler(message);
+                EmbassyHandlers.unlockHandler(bot, message);
                 break;
             case "/doorbell":
-                EmbassyHandlers.doorbellHandler(message);
+                EmbassyHandlers.doorbellHandler(bot, message);
                 break;
             case "/webcam":
-                EmbassyHandlers.webcamHandler(message);
+                EmbassyHandlers.webcamHandler(bot, message);
                 break;
             case "/webcam2":
-                EmbassyHandlers.webcam2Handler(message);
+                EmbassyHandlers.webcam2Handler(bot, message);
                 break;
             case "/doorcam":
-                EmbassyHandlers.doorcamHandler(message);
+                EmbassyHandlers.doorcamHandler(bot, message);
                 break;
             case "/printers":
-                EmbassyHandlers.printersHandler(message);
+                EmbassyHandlers.printersHandler(bot, message);
                 break;
             case "/printerstatus anette":
             case "/anettestatus":
-                EmbassyHandlers.printerStatusHandler(message, "anette");
+                EmbassyHandlers.printerStatusHandler(bot, message, "anette");
                 break;
             case "/printerstatus plumbus":
             case "/plumbusstatus":
-                EmbassyHandlers.printerStatusHandler(message, "plumbus");
+                EmbassyHandlers.printerStatusHandler(bot, message, "plumbus");
                 break;
             case "/bought":
-                this.boughtButtonHandler(message, data.id, callbackQuery);
+                this.boughtButtonHandler(bot, message, data.id, callbackQuery);
                 break;
             case "/bought_undo":
-                if (NeedsHandlers.boughtUndoHandler(message, data.id)) {
-                    this.bot.deleteMessage(message.chat.id, message.message_id);
+                if (NeedsHandlers.boughtUndoHandler(bot, message, data.id)) {
+                    bot.deleteMessage(message.chat.id, message.message_id);
                 }
                 break;
             default:
                 break;
         }
 
-        this.bot.answerCallbackQuery(callbackQuery.id);
+        bot.answerCallbackQuery(callbackQuery.id);
     };
 
-    newMemberHandler = async (msg) => {
-        let botName = (await this.bot.getMe()).username;
+    static newMemberHandler = async (bot, msg) => {
+        let botName = (await bot.getMe()).username;
         let newMembers = msg.new_chat_members.reduce(
-            (res, member) => res + `${member?.username ? this.bot.formatUsername(member.username) : member?.first_name} `,
+            (res, member) =>
+                res + `${member?.username ? UsersHelper.formatUsername(member.username, bot.mode) : member?.first_name} `,
             ""
         );
         let message = `🇬🇧 Добро пожаловать в наш уютный уголок, ${newMembers}
@@ -162,18 +158,18 @@ class ServiceHandlers extends BaseHandlers {
 Не забудь также зайти в наш второй чатик @hackem_foo! Там ты найдешь разные топики по основным проектам спейса, обсуждения будущих мероприятий, новостей, мемов и так далее.
 
 🎉🎉🎉 Хакерчане, приветствуем ${newMembers}`;
-        this.bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, message);
     };
 
-    boughtButtonHandler = (message, id, callbackQuery) => {
-        NeedsHandlers.boughtByIdHandler(message, id);
+    static boughtButtonHandler = (bot, message, id, callbackQuery) => {
+        NeedsHandlers.boughtByIdHandler(bot, message, id);
 
         const new_keyboard = message.reply_markup.inline_keyboard.filter(
-            (button) => button[0].callback_data !== callbackQuery.data
+            button => button[0].callback_data !== callbackQuery.data
         );
 
         if (new_keyboard.length != message.reply_markup.inline_keyboard.length) {
-            this.bot.editMessageReplyMarkup(
+            bot.editMessageReplyMarkup(
                 { inline_keyboard: new_keyboard },
                 {
                     chat_id: message.chat.id,

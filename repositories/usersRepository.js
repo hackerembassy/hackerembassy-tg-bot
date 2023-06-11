@@ -1,24 +1,28 @@
+// eslint-disable-next-line no-unused-vars
+const User = require("../models/User");
 const BaseRepository = require("./baseRepository");
 
 class UserRepository extends BaseRepository {
+    /**
+     *  @returns {User[]}
+     */
     getUsers() {
-        let users = this.db.prepare("SELECT * FROM users").all();
+        let users = /** @type {User[]} */ (this.db.prepare("SELECT * FROM users").all());
 
-        return (
-            users.map(user => ({
-                roles: user.roles.split("|"),
-                ...user,
-            })) ?? []
-        );
+        return users.map(user => new User(user));
     }
 
+    /**
+     *  @param {string} username
+     *  @param {string[]} roles
+     *  @returns {boolean}
+     */
     addUser(username, roles = ["default"]) {
         try {
-            if (this.getUser(username) !== null) return false;
+            if (this.getUserByName(username) !== null) return false;
+            let joinedRoles = roles.join("|");
 
-            roles = roles.join("|");
-
-            this.db.prepare("INSERT INTO users (username, roles) VALUES (?, ?)").run(username, roles);
+            this.db.prepare("INSERT INTO users (username, roles) VALUES (?, ?)").run(username, joinedRoles);
 
             return true;
         } catch (error) {
@@ -27,13 +31,17 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    /**
+     *  @param {string} username
+     *  @param {string[]} roles
+     *  @returns {boolean}
+     */
     updateRoles(username, roles = ["default"]) {
         try {
-            if (this.getUser(username) === null) return false;
+            if (this.getUserByName(username) === null) return false;
+            let joinedRoles = roles.join("|");
 
-            roles = roles.join("|");
-
-            this.db.prepare("UPDATE users SET roles = ? WHERE username = ?").run(roles, username);
+            this.db.prepare("UPDATE users SET roles = ? WHERE username = ?").run(joinedRoles, username);
 
             return true;
         } catch (error) {
@@ -42,14 +50,23 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    /**
+     *  @param {string} cmd
+     *  @returns {boolean}
+     */
     testMACs(cmd) {
         const macRegex = /([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})/;
         return cmd.split(",").every(mac => macRegex.test(mac));
     }
 
+    /**
+     *  @param {string} username
+     *  @param {string} macs
+     *  @returns {boolean}
+     */
     setMACs(username, macs = null) {
         try {
-            if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false;
+            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
             if (macs)
                 macs = macs
                     .split(",")
@@ -64,9 +81,14 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    /**
+     *  @param {string} username
+     *  @param {string} emoji
+     *  @returns {boolean}
+     */
     setEmoji(username, emoji = null) {
         try {
-            if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false;
+            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
             this.db.prepare("UPDATE users SET emoji = ? WHERE username = ?").run(emoji, username);
 
@@ -77,9 +99,14 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    /**
+     *  @param {string} username
+     *  @param {boolean} value
+     *  @returns {boolean}
+     */
     setAutoinside(username, value) {
         try {
-            let user = this.getUser(username);
+            let user = this.getUserByName(username);
             if ((user === null && !this.addUser(username, ["default"])) || (value && !user.mac)) return false;
 
             this.db.prepare("UPDATE users SET autoinside = ? WHERE username = ?").run(Number(value), username);
@@ -91,9 +118,14 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    /**
+     *  @param {string} username
+     *  @param {string} birthday
+     *  @returns {boolean}
+     */
     setBirthday(username, birthday = null) {
         try {
-            if (this.getUser(username) === null && !this.addUser(username, ["default"])) return false;
+            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
             this.db.prepare("UPDATE users SET birthday = ? WHERE username = ?").run(birthday, username);
 
@@ -104,6 +136,10 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    /**
+     *  @param {string} username
+     *  @returns {boolean}
+     */
     removeUser(username) {
         try {
             this.db.prepare("DELETE FROM users WHERE username = ?").run(username);
@@ -115,26 +151,34 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    getUser(username) {
+    /**
+     *  @param {string} username
+     *  @returns {User}
+     */
+    getUserByName(username) {
         try {
-            let user = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username);
+            /** @type {User} */
+            let user = /** @type {User} */ (this.db.prepare("SELECT * FROM users WHERE username = ?").get(username));
 
-            if (!user) return null;
-
-            user.roles = user.roles.split("|");
-
-            return user;
+            return new User(user);
         } catch (error) {
             this.logger.error(error);
             return null;
         }
     }
 
+    /**
+     *  @param {string} role
+     *  @returns {User[]}
+     */
     getUsersByRole(role) {
         try {
-            let users = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role);
+            /** @type {User[]} */
+            let users = /** @type {User[]} */ (
+                this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role)
+            );
 
-            return users;
+            return users.map(user => new User(user));
         } catch (error) {
             this.logger.error(error);
             return null;

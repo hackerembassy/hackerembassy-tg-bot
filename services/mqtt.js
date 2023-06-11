@@ -6,6 +6,9 @@ const embassyApiConfig = config.get("embassy-api");
 const mqtthost = embassyApiConfig.mqtthost;
 const process = require("process");
 
+/**
+ * @returns {void}
+ */
 function unlock() {
     let client = mqtt.connect(`mqtt://${mqtthost}`, {
         username: process.env["MQTTUSER"],
@@ -22,7 +25,5 @@ function unlock() {
         });
     });
 }
-
-// unlock();
 
 module.exports = { unlock };

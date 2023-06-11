@@ -16,6 +16,9 @@ const transport = new winston.transports.DailyRotateFile({
     maxFiles: "14d",
 });
 
+/**
+ * @type {string[]}
+ */
 const UnreadMessagesBuffer = [];
 
 // TODO: Implement rotate
@@ -49,6 +52,9 @@ function startMonitoring() {
     setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }
 
+/**
+ * @returns {string[]}
+ */
 function readNewMessages() {
     let unreadMessages = [];
 

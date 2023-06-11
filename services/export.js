@@ -3,6 +3,16 @@ const FundsRepository = require("../repositories/fundsRepository");
 const ChartJsImage = require("chartjs-to-image");
 const Currency = require("../utils/currency");
 
+/**
+ * @typedef {Object} SimplifiedDonation
+ * @property {string} username
+ * @property {number} donation
+ */
+
+/**
+ * @param {SimplifiedDonation[]} donations
+ * @returns {SimplifiedDonation[]}
+ */
 function combineDonations(donations) {
     let uniqueUsernames = [...new Set(donations.map(d => d.username))];
     let combinedDonations = [];
@@ -42,6 +52,10 @@ const colorScheme = [
 
 const remainedColor = "rgba(0,0,0,0.025)";
 
+/**
+ * @param {string} fundname
+ * @returns {Promise<Buffer>}
+ */
 async function exportFundToCSV(fundname) {
     let fund = FundsRepository.getFundByName(fundname);
     let donations = FundsRepository.getDonationsForName(fundname);
@@ -61,6 +75,10 @@ async function exportFundToCSV(fundname) {
     return await writeToBuffer(fundDonations, { headers: true });
 }
 
+/**
+ * @param {string} fundname
+ * @returns {Promise<Buffer>}
+ */
 async function exportFundToDonut(fundname) {
     let fund = FundsRepository.getFundByName(fundname);
     let alldonations = FundsRepository.getDonationsForName(fundname);

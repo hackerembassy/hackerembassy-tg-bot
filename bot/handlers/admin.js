@@ -1,45 +1,40 @@
-const UsersRepository = require("../../repositories/usersRepository");
-const UsersHelper = require("../../services/usersHelper");
-const BaseHandlers = require("./base");
-const config = require("config");
-const botConfig = config.get("bot");
 const path = require("path");
 const fs = require("fs");
 
-class AdminHandlers extends BaseHandlers {
-    constructor() {
-        super();
-    }
+const UsersRepository = require("../../repositories/usersRepository");
+const UsersHelper = require("../../services/usersHelper");
+const botConfig = require("config").get("bot");
 
-    forwardHandler(msg, text) {
+class AdminHandlers {
+    static forwardHandler(bot, msg, text) {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-        this.bot.sendMessage(botConfig.chats.main, text);
+        bot.sendMessage(botConfig.chats.main, text);
     }
 
-    getLogHandler = (msg) => {
+    static getLogHandler = (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
         let logpath = path.join(__dirname, "../..", botConfig.logpath);
 
-        if (fs.existsSync(logpath)) this.bot.sendDocument(msg.chat.id, logpath);
+        if (fs.existsSync(logpath)) bot.sendDocument(msg.chat.id, logpath);
     };
 
-    getUsersHandler = (msg) => {
+    static getUsersHandler = (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
         let users = UsersRepository.getUsers();
         let userList = "";
         for (const user of users) {
-            userList += `> ${this.bot.formatUsername(user.username)}
+            userList += `> ${UsersHelper.formatUsername(user.username, bot.mode)}
 Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
 Autoinside: ${user.autoinside ? "on" : "off"}\n`;
         }
 
-        this.bot.sendLongMessage(msg.chat.id, `👩‍💻 Текущие пользователи:\n` + userList);
+        bot.sendLongMessage(msg.chat.id, `👩‍💻 Текущие пользователи:\n` + userList);
     };
 
-    addUserHandler = (msg, username, roles) => {
+    static addUserHandler = (bot, msg, username, roles) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
         username = username.replace("@", "");
@@ -47,13 +42,13 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
 
         let success = UsersRepository.addUser(username, roles);
         let message = success
-            ? `✅ Пользователь ${this.bot.formatUsername(username)} добавлен как ${roles}`
+            ? `✅ Пользователь ${UsersHelper.formatUsername(username, bot.mode)} добавлен как ${roles}`
             : `⚠️ Не удалось добавить пользователя (может он уже есть?)`;
 
-        this.bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, message);
     };
 
-    updateRolesHandler = (msg, username, roles) => {
+    static updateRolesHandler = (bot, msg, username, roles) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
         username = username.replace("@", "");
@@ -61,23 +56,23 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
 
         let success = UsersRepository.updateRoles(username, roles);
         let message = success
-            ? `✳️ Роли ${this.bot.formatUsername(username)} установлены как ${roles}`
+            ? `✳️ Роли ${UsersHelper.formatUsername(username, bot.mode)} установлены как ${roles}`
             : `⚠️ Не удалось обновить роли`;
 
-        this.bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, message);
     };
 
-    removeUserHandler = (msg, username) => {
+    static removeUserHandler = (bot, msg, username) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
         username = username.replace("@", "");
 
         let success = UsersRepository.removeUser(username);
         let message = success
-            ? `🗑 Пользователь ${this.bot.formatUsername(username)} удален`
+            ? `🗑 Пользователь ${UsersHelper.formatUsername(username, bot.mode)} удален`
             : `⚠️ Не удалось удалить пользователя (может его и не было?)`;
 
-        this.bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, message);
     };
 }
 

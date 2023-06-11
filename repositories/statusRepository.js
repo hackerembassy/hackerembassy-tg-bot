@@ -1,5 +1,13 @@
+// eslint-disable-next-line no-unused-vars
+const State = require("../models/State");
+// eslint-disable-next-line no-unused-vars
+const UserState = require("../models/UserState");
 const BaseRepository = require("./baseRepository");
 
+/**
+ * @param {Date} someDate
+ * @returns {boolean}
+ */
 const isToday = someDate => {
     const today = new Date();
     return (
@@ -24,8 +32,11 @@ class StatusRepository extends BaseRepository {
         Going: 2,
     };
 
+    /**
+     *  @returns {State}
+     */
     getSpaceLastState() {
-        let lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get();
+        let lastState = /** @type {State} */ (this.db.prepare("SELECT * FROM states ORDER BY date DESC").get());
 
         if (!lastState) return null;
 
@@ -34,8 +45,11 @@ class StatusRepository extends BaseRepository {
         return lastState;
     }
 
+    /**
+     *  @returns {UserState[]}
+     */
     getLastStatuses() {
-        let userstates = this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all();
+        let userstates = /** @type {UserState[]} */ (this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all());
         let usersLastStatuses = [];
 
         for (const userstate of userstates) {
@@ -48,6 +62,9 @@ class StatusRepository extends BaseRepository {
         return usersLastStatuses;
     }
 
+    /**
+     *  @returns {UserState[]}
+     */
     getPeopleInside() {
         let usersLastStatuses = this.getLastStatuses();
         let usersInside = usersLastStatuses.filter(us => us.status === this.UserStatusType.Inside);
@@ -55,19 +72,26 @@ class StatusRepository extends BaseRepository {
         return usersInside;
     }
 
+    /**
+     *  @returns {Object[]}
+     */
     getPeopleGoing() {
         let usersLastStatuses = this.getLastStatuses();
-        let usersGoing = usersLastStatuses.filter(us => us.status === this.UserStatusType.Going && isToday(us.date));
+        let usersGoing = usersLastStatuses.filter(us => us.status === this.UserStatusType.Going && isToday(new Date(us.date)));
 
         return usersGoing;
     }
 
+    /**
+     *  @returns {void}
+     */
     evictPeople() {
         let inside = this.getPeopleInside();
         let date = Date.now();
 
         for (const userstate of inside) {
             this.pushPeopleState({
+                id: 0,
                 status: this.UserStatusType.Outside,
                 date: date,
                 username: userstate.username,
@@ -76,12 +100,20 @@ class StatusRepository extends BaseRepository {
         }
     }
 
+    /**
+     * @param {State} state
+     * @returns {void}
+     */
     pushSpaceState(state) {
         this.db
             .prepare("INSERT INTO states (open, changedby, date) VALUES (?, ?, ?)")
             .run(state.open ? 1 : 0, state.changedby, state.date.valueOf());
     }
 
+    /**
+     * @param {UserState} state
+     * @returns {void}
+     */
     pushPeopleState(state) {
         this.db
             .prepare("INSERT INTO userstates (status, username, date, type) VALUES (?, ?, ?, ?)")

@@ -1,1 +1,0 @@
-apt_repo_gpg_key_target_path: "/usr/share/keyrings/{{ apt_repo_gpg_key_name }}"

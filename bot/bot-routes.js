@@ -143,7 +143,7 @@ function setRoutes(bot) {
     bot.onTextExt(/^\/clear(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/(superstatus|ss)(@.+?)?$/i, ServiceHandlers.superstatusHandler);
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);
-    bot.on("new_chat_members", ServiceHandlers.newMemberHandler);
+    bot.onExt("new_chat_members", ServiceHandlers.newMemberHandler);
 }
 
 module.exports = { setRoutes };

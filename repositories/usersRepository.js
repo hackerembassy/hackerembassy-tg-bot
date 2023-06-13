@@ -9,7 +9,7 @@ class UserRepository extends BaseRepository {
     getUsers() {
         let users = /** @type {User[]} */ (this.db.prepare("SELECT * FROM users").all());
 
-        return users.map(user => new User(user));
+        return users ? users.map(user => new User(user)) : null;
     }
 
     /**
@@ -160,7 +160,7 @@ class UserRepository extends BaseRepository {
             /** @type {User} */
             let user = /** @type {User} */ (this.db.prepare("SELECT * FROM users WHERE username = ?").get(username));
 
-            return new User(user);
+            return user ? new User(user) : null;
         } catch (error) {
             this.logger.error(error);
             return null;
@@ -178,7 +178,7 @@ class UserRepository extends BaseRepository {
                 this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role)
             );
 
-            return users.map(user => new User(user));
+            return users ? users.map(user => new User(user)) : null;
         } catch (error) {
             this.logger.error(error);
             return null;

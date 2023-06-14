@@ -100,13 +100,13 @@ app.get("/api/insidecount", (_, res) => {
 });
 
 app.post("/api/open", tokenSecured, (_, res) => {
-    openSpace("api");
+    openSpace("hass");
 
     return res.send({ message: "Success" });
 });
 
 app.post("/api/close", tokenSecured, (_, res) => {
-    closeSpace("api", { evict: true });
+    closeSpace("hass", { evict: true });
 
     return res.send({ message: "Success" });
 });

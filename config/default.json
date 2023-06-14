@@ -1,22 +1,22 @@
 {
     "bot": {
-        "timezone" : "Asia/Yerevan",
+        "timezone": "Asia/Yerevan",
         "chats": {
-            "main" : -1001605898533,
-            "horny" : -1687064759,
-            "offtopic" : -1555805688,
-            "test" : -830038395,
-            "key" : "-1001807382938",
-            "status" : -830038395
+            "main": -1001605898533,
+            "horny": -1687064759,
+            "offtopic": -1555805688,
+            "test": -830038395,
+            "key": -1001807382938,
+            "status": -830038395
         },
-        "timeouts":{
+        "timeouts": {
             "in": 60000,
             "out": 300000
         },
         "autoWish": true,
         "logpath": "log.log"
     },
-    "printers" : {
+    "printers": {
         "anette": {
             "apibase": "http://printer-anette.lan",
             "camport": 8080
@@ -26,7 +26,7 @@
             "camport": 8080
         }
     },
-    "embassy-api":{
+    "embassy-api": {
         "timeout": 15000,
         "port": 8001,
         "queryMonitorInterval": 60000,
@@ -44,14 +44,18 @@
         "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
         "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
         "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
-        "hostsToMonitor": ["192.168.1.2", "jigglypuff.lan", "minimi.lan"]
+        "hostsToMonitor": [
+            "192.168.1.2",
+            "jigglypuff.lan",
+            "minimi.lan"
+        ]
     },
-    "currency":{
+    "currency": {
         "default": "AMD",
         "cryptoUpdateInterval": 50000,
         "fiatUpdateInterval": 3600000
     },
-    "api":{
-        "port":3000
+    "api": {
+        "port": 3000
     }
-  }
+}

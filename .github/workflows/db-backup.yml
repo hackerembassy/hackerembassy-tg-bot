@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '20 4 * * *'
 
+  push:
+    branches:
+      - backup
+
 jobs:
   backup:
     runs-on: ubuntu-latest

@@ -10,9 +10,12 @@ on:
       - backup
 
 jobs:
+
   backup:
     runs-on: ubuntu-latest
     steps:
+      -
+        uses: actions/checkout@v3
       -
         uses: ./.github/actions/extract-docker-volume
         with:

@@ -282,6 +282,33 @@ ${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /lo
 `;
 }
 
+/**
+ * @param {boolean} isApi
+ * @returns {string}
+ */
+function getEventsText(isApi = false) {
+    const calendarLink = isApi
+        ? "<a href='https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan'>Hacker Embassy Public Events</a>"
+        : "#[Hacker Embassy Public Events#]#(https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan#)";
+    const iCalLink = isApi
+        ? "<a href='https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics'>iCal</a>"
+        : "#[iCal#]#(https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics#)";
+
+    return `🗓 За нашими мероприятиями можно следить в календарике
+${calendarLink}
+Подпишись плюсиком ➕ внизу страницы или возьми ${iCalLink}
+
+🎭 Что у нас происходит: 
+- Мастерклассы и презентации на различные темы от 3D печати, моделирования и пайки до нейросетей, алгоритмов доказательства теорем и шибари. Дату анонсируем заранее в чатике.
+- Часто по вторникам в 21.00 мы проводим музыкальные встречи: приносим гитары, играем в Rocksmith и джемим.
+- Каждую пятницу в 20.00 у нас традиционный день открытых дверей, общаемся, знакомимся и тусим.
+- В любой другой день спейс тоже может принять гостей, смотри status спейса, чтобы узнать больше.
+
+💸 Посещения свободные (бесплатные), но любые донаты на помощь нашим проектам и аренду очень приветствуются.
+Подробнее можно узнать по команде ${!isApi ? "/" : ""}donate
+`;
+}
+
 /** @type {string[]} */
 const shortMonthNames = [
     "января",
@@ -415,6 +442,7 @@ module.exports = {
     getStatusMessage,
     getDonateText,
     getJoinText,
+    getEventsText,
     getNeedsList,
     getPrintersInfo,
     getPrinterStatus,

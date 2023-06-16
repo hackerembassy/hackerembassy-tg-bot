@@ -10,6 +10,7 @@ const FundsRepository = require("./repositories/fundsRepository");
 const UsersRepository = require("./repositories/usersRepository");
 const Commands = require("./resources/commands");
 const { openSpace, closeSpace } = require("./services/statusHelper");
+const { stripCustomMarkup } = require("./utils/common");
 
 const apiConfig = config.get("api");
 const app = express();
@@ -47,10 +48,10 @@ app.get("/status", (_, res) => {
     if (state) {
         let inside = StatusRepository.getPeopleInside();
         let going = StatusRepository.getPeopleGoing();
-        content = TextGenerators.getStatusMessage(state, inside, going, true);
+        content = TextGenerators.getStatusMessage(state, inside, going, { mention: true }, true);
     }
 
-    res.send(content);
+    res.send(stripCustomMarkup(content));
 });
 
 app.get("/api/status", (_, res) => {

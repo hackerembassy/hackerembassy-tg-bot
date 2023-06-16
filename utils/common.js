@@ -33,4 +33,12 @@ function chunkSubstr(str, size) {
     return chunks;
 }
 
-module.exports = { anyItemIsInList, sleep, chunkSubstr };
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function stripCustomMarkup(text) {
+    return text.replaceAll(/#./g, "");
+}
+
+module.exports = { anyItemIsInList, sleep, chunkSubstr, stripCustomMarkup };

@@ -132,6 +132,12 @@ class BasicHandlers {
                     text: "📯 Статус",
                     callback_data: JSON.stringify({ command: "/status" }),
                 },
+            ],
+            [
+                {
+                    text: "🗓 Мероприятия",
+                    callback_data: JSON.stringify({ command: "/events" }),
+                },
                 {
                     text: "💸 Сборы",
                     callback_data: JSON.stringify({ command: "/funds" }),

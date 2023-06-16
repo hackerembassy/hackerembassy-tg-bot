@@ -1,0 +1,25 @@
+name: Database Backup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 4 * * *'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: ./.github/actions/extract-docker-volume
+        with:
+          ssh_user: ci
+          ssh_identity: ${{ vars.deploy_target_identity }}
+          ssh_host: ${{ secrets.deploy_target_host }}
+          ssh_port: ${{ secrets.deploy_target_port }}
+          ssh_key: ${{ secrets.deploy_target_key }}
+          docker_volume: hackem-bot-db
+      -
+        uses: actions/upload-artifact@v3
+        with:
+          name: "hackem-bot-db_backup"
+          path: hackem-bot-db.tgz

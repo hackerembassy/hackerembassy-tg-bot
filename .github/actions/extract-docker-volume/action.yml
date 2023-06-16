@@ -41,7 +41,7 @@ runs:
         ' >> ~/.ssh/config
         ssh -T prod '
           set -xe
-          docker_volume={{ inputs.docker_volume }}
+          docker_volume=${{ inputs.docker_volume }}
           proxy=$(docker run --detach --rm -v $docker_volume:/v  busybox  sleep 900)
           tmp=$(mktemp --directory)
           docker cp  $proxy:/v  $tmp/$docker_volume
@@ -50,7 +50,7 @@ runs:
           tar -czf ~/$docker_volume.tgz  -C $tmp  $docker_volume
           rm -r "$tmp"
         '
-        scp prod:'~/{{ inputs.docker_volume }}.tgz' ./{{ inputs.docker_volume }}.tgz
+        scp prod:'~/${{ inputs.docker_volume }}.tgz' ./${{ inputs.docker_volume }}.tgz
     -
       name: Destroy server's SSH key
       uses: ./.github/actions/ssh-keys

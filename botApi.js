@@ -117,6 +117,11 @@ app.get("/join", (_, res) => {
     res.send(message);
 });
 
+app.get("/events", (_, res) => {
+    let message = TextGenerators.getEventsText(true);
+    res.send(message);
+});
+
 app.get("/funds", async (_, res) => {
     let funds = FundsRepository.getFunds().filter(p => p.status === "open");
     let donations = FundsRepository.getDonations();

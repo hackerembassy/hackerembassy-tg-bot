@@ -114,6 +114,7 @@ const ApiCommandsList = `
 -join - Как присоединиться к нам
 -donate - Как задонатить
 -funds - Наши открытые сборы
+-events - Мероприятия у нас
 `;
 
 module.exports = {

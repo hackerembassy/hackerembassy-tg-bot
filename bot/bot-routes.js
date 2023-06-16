@@ -18,6 +18,7 @@ function setRoutes(bot) {
     bot.onTextExt(/^\/(help)(@.+?)?$/i, BasicHandlers.helpHandler);
     bot.onTextExt(/^\/(about)(@.+?)?$/i, BasicHandlers.aboutHandler);
     bot.onTextExt(/^\/(join)(@.+?)?$/i, BasicHandlers.joinHandler);
+    bot.onTextExt(/^\/(events)(@.+?)?$/i, BasicHandlers.eventsHandler);
     bot.onTextExt(/^\/(donate)(@.+?)?$/i, BasicHandlers.donateHandler);
     bot.onTextExt(/^\/(location|where)(@.+?)?$/i, BasicHandlers.locationHandler);
     bot.onTextExt(/^\/donate(cash|card)(@.+?)?$/i, BasicHandlers.donateCardHandler);

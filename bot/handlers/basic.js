@@ -37,6 +37,11 @@ class BasicHandlers {
         bot.sendMessage(msg.chat.id, message);
     };
 
+    static eventsHandler = (bot, msg) => {
+        let message = TextGenerators.getEventsText();
+        bot.sendMessage(msg.chat.id, message);
+    };
+
     static issueHandler = async (bot, msg, issueText) => {
         const helpMessage = `📮 С помощью этой команды можно анонимно сообщить о какой-либо проблеме в спейсе (чего-то не хватает, что-то не работает, кто-то делает что-то очень неправильное в спейсе).
 Резиденты обязательно её рассмотрят и постараются решить.

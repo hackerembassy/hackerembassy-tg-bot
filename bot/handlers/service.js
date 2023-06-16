@@ -92,6 +92,9 @@ class ServiceHandlers {
             case "/join":
                 BasicHandlers.joinHandler(bot, message);
                 break;
+            case "/events":
+                BasicHandlers.eventsHandler(bot, message);
+                break;
             case "/location":
                 BasicHandlers.locationHandler(bot, message);
                 break;

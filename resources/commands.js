@@ -7,6 +7,7 @@ const GeneralCommandsList = `
 /help - Помощь
 /about - О спейсе и боте
 /join - Как присоединиться к нам
+/events - Наши мероприятия
 /donate - Как задонатить
 /location - Как нас найти
 /status (s) - Статус спейса и кто отметился внутри

@@ -28,5 +28,5 @@ jobs:
       -
         uses: actions/upload-artifact@v3
         with:
-          name: "hackem-bot-db_backup"
-          path: hackem-bot-db.tgz
+          name: hackem-bot-db_backup
+          path: hackem-bot-db.tar

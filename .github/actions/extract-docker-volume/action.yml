@@ -46,11 +46,11 @@ runs:
           tmp=$(mktemp --directory)
           docker cp  $proxy:/v  $tmp/$docker_volume
           docker rm --force $proxy
-          rm -f "~/$docker_volume.tgz"
-          tar -czf ~/$docker_volume.tgz  -C $tmp  $docker_volume
+          rm -f "~/$docker_volume.tar"
+          tar -cf ~/$docker_volume.tar  -C $tmp  $docker_volume
           rm -r "$tmp"
         '
-        scp prod:'~/${{ inputs.docker_volume }}.tgz' ./${{ inputs.docker_volume }}.tgz
+        scp prod:'~/${{ inputs.docker_volume }}.tar' ./${{ inputs.docker_volume }}.tar
     -
       name: Destroy server's SSH key
       uses: ./.github/actions/ssh-keys

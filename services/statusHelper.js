@@ -1,5 +1,9 @@
-const StatusRepository = require("../repositories/statusRepository");
+const statusRepository = require("../repositories/statusRepository");
+const usersRepository = require("../repositories/usersRepository");
 const { anyItemIsInList } = require("../utils/common");
+const { fetchWithTimeout } = require("../utils/network");
+
+const embassyApiConfig = require("config").get("embassy-api");
 
 /**
  * @param {string} opener
@@ -15,19 +19,19 @@ function openSpace(opener, options = { checkOpener: false }) {
         changedby: opener,
     };
 
-    StatusRepository.pushSpaceState(state);
+    statusRepository.pushSpaceState(state);
 
     if (!options.checkOpener) return;
 
     let userstate = {
         id: 0,
-        status: StatusRepository.UserStatusType.Inside,
+        status: statusRepository.UserStatusType.Inside,
         date: opendate,
         username: opener,
-        type: StatusRepository.ChangeType.Opened,
+        type: statusRepository.ChangeType.Opened,
     };
 
-    StatusRepository.pushPeopleState(userstate);
+    statusRepository.pushPeopleState(userstate);
 }
 
 /**
@@ -43,9 +47,26 @@ function closeSpace(closer, options = { evict: false }) {
         changedby: closer,
     };
 
-    StatusRepository.pushSpaceState(state);
+    statusRepository.pushSpaceState(state);
 
-    if (options.evict) StatusRepository.evictPeople();
+    if (options.evict) statusRepository.evictPeople();
+}
+
+/**
+ * @param {string} username
+ * @returns {Promise<boolean>}
+ */
+async function hasDeviceInside(username) {
+    try {
+        const response = await fetchWithTimeout(
+            `${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`
+        );
+        const devices = await response?.json();
+
+        return isMacInside(usersRepository.getUserByName(username).mac, devices);
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -57,4 +78,4 @@ function isMacInside(mac, devices) {
     return mac ? anyItemIsInList(mac.split(","), devices) : false;
 }
 
-module.exports = { openSpace, closeSpace, isMacInside };
+module.exports = { openSpace, closeSpace, isMacInside, hasDeviceInside };

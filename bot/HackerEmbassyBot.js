@@ -154,6 +154,25 @@ ${chunks[index]}
         await super.onText(regexp, newCallback);
     }
 
+    /**
+     * @param {number} chatId
+     * @param {string} text
+     * @param {Object} options
+     * @param {boolean} edit
+     * @param {number} messageId
+     */
+    async sendOrEditMessage(chatId, text, options, edit, messageId) {
+        if (edit) {
+            try {
+                await this.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
+            } catch {
+                // Message was not modified
+            }
+        } else {
+            await this.sendMessage(chatId, text, options);
+        }
+    }
+
     isAdminMode() {
         return this.mode.admin;
     }

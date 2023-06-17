@@ -1,7 +1,7 @@
 const { fetchWithTimeout } = require("../../utils/network");
 const logger = require("../../services/logger");
 const { encrypt } = require("../../utils/security");
-const { isMacInside } = require("../../services/statusHelper");
+const { hasDeviceInside } = require("../../services/statusHelper");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -9,33 +9,23 @@ const botConfig = config.get("bot");
 
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
-const usersRepository = require("../../repositories/usersRepository");
+
+const t = require("../../services/localization");
 
 class EmbassyHanlers {
     static unlockHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
+        if (!hasDeviceInside(msg.from.username)) {
+            bot.sendMessage(msg.chat.id, t("embassy.unlock.nomac"));
+
+            return;
+        }
+
         try {
-            let devices = await (
-                await fetchWithTimeout(
-                    `${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`
-                )
-            )?.json();
+            const token = await encrypt(process.env["UNLOCKKEY"]);
 
-            let currentUser = usersRepository.getUserByName(msg.from.username);
-
-            if (!isMacInside(currentUser.mac, devices)) {
-                bot.sendMessage(
-                    msg.chat.id,
-                    "❌ Твой MAC адрес не обнаружен роутером. Надо быть рядом со спейсом, чтобы его открыть"
-                );
-
-                return;
-            }
-
-            let token = await encrypt(process.env["UNLOCKKEY"]);
-
-            let response = await await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/unlock`, {
+            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/unlock`, {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json",
@@ -45,61 +35,62 @@ class EmbassyHanlers {
             });
 
             if (response.status === 200) {
-                logger.info(`${msg.from.username} открыл дверь`);
-                await bot.sendMessage(msg.chat.id, "🔑 Дверь открыта");
+                logger.info(`${msg.from.username} opened the door`);
+                await bot.sendMessage(msg.chat.id, t("embassy.unlock.success"));
             } else throw Error("Request error");
         } catch (error) {
-            let message = `⚠️ Сервис недоступен`;
-            bot.sendMessage(msg.chat.id, message);
             logger.error(error);
+            bot.sendMessage(msg.chat.id, t("embassy.common.fail"));
         }
     };
 
     static webcamHandler = async (bot, msg) => {
-        await this.webcamGenericHandler(bot, msg, "webcam", "Первый этаж");
+        await this.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
     };
 
     static webcam2Handler = async (bot, msg) => {
-        await this.webcamGenericHandler(bot, msg, "webcam2", "Второй этаж");
+        await this.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
     };
 
     static doorcamHandler = async (bot, msg) => {
-        await this.webcamGenericHandler(bot, msg, "doorcam", "Входная дверь");
+        await this.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
     };
 
     static webcamGenericHandler = async (bot, msg, path, prefix) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
         try {
-            let response = await (
+            const response = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
             )?.arrayBuffer();
 
-            let webcamImage = Buffer.from(response);
+            const webcamImage = Buffer.from(response);
 
             if (webcamImage) await bot.sendPhoto(msg.chat.id, webcamImage);
             else throw Error("Empty webcam image");
         } catch (error) {
-            let message = `⚠️ ${prefix}: Камера пока недоступна`;
-            await bot.sendMessage(msg.chat.id, message);
             logger.error(error);
+
+            await bot.sendMessage(msg.chat.id, t("embassy.webcam.fail", { prefix }));
         }
     };
 
     static monitorHandler = async (bot, msg, notifyEmpty = false) => {
         try {
-            let statusMessages = await this.queryStatusMonitor();
+            const statusMessages = await this.queryStatusMonitor();
 
             if (!notifyEmpty && statusMessages.length === 0) return;
 
-            let message =
-                statusMessages.length > 0 ? TextGenerators.getMonitorMessagesList(statusMessages) : "Новых сообщений нет";
+            const message =
+                statusMessages.length > 0
+                    ? TextGenerators.getMonitorMessagesList(statusMessages)
+                    : t("embassy.monitor.nonewmessages");
 
             bot.sendMessage(msg.chat.id, message);
         } catch (error) {
-            let message = `⚠️ Не удалось получить статус, может, что-то с инетом, электричеством или le-fail?`;
-            bot.sendMessage(msg.chat.id, message);
             logger.error(error);
+
+            bot.sendMessage(msg.chat.id, t("embassy.monitor.fail"));
         }
     };
 
@@ -115,21 +106,21 @@ class EmbassyHanlers {
     }
 
     static printersHandler = async (bot, msg) => {
-        let message = TextGenerators.getPrintersInfo();
-        let inlineKeyboard = [
+        const text = TextGenerators.getPrintersInfo();
+        const inlineKeyboard = [
             [
                 {
-                    text: "Статус Anette",
+                    text: t("embassy.printers.anettestatus"),
                     callback_data: JSON.stringify({ command: "/printerstatus anette" }),
                 },
                 {
-                    text: "Статус Plumbus",
+                    text: t("embassy.printers.plumbusstatus"),
                     callback_data: JSON.stringify({ command: "/printerstatus plumbus" }),
                 },
             ],
         ];
 
-        bot.sendMessage(msg.chat.id, message, {
+        bot.sendMessage(msg.chat.id, text, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
@@ -137,23 +128,24 @@ class EmbassyHanlers {
     };
 
     static printerStatusHandler = async (bot, msg, printername) => {
+        let text = t("embassy.printerstatus.fail");
+
         try {
             var { status, thumbnailBuffer, cam } = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
             ).json();
 
-            if (status && !status.error) var message = await TextGenerators.getPrinterStatus(status);
+            if (status && !status.error) text = await TextGenerators.getPrinterStatus(status);
             else throw Error();
         } catch (error) {
             logger.error(error);
-            message = `⚠️ Принтер пока недоступен`;
         } finally {
             if (cam) await bot.sendPhoto(msg.chat.id, Buffer.from(cam));
 
             let inlineKeyboard = [
                 [
                     {
-                        text: `Обновить статус ${printername}`,
+                        text: t("embassy.printerstatus.update", { printername }),
                         callback_data: JSON.stringify({ command: `/printerstatus ${printername}` }),
                     },
                 ],
@@ -161,13 +153,13 @@ class EmbassyHanlers {
 
             if (thumbnailBuffer)
                 await bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), {
-                    caption: message,
+                    caption: text,
                     reply_markup: {
                         inline_keyboard: inlineKeyboard,
                     },
                 });
             else
-                await bot.sendMessage(msg.chat.id, message, {
+                await bot.sendMessage(msg.chat.id, text, {
                     reply_markup: {
                         inline_keyboard: inlineKeyboard,
                     },
@@ -178,30 +170,27 @@ class EmbassyHanlers {
     static doorbellHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
-        try {
-            let status = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`))?.json();
+        let text = t("embassy.doorbell.success");
 
-            if (status && !status.error) var message = "🔔 Звоним в дверной звонок";
-            else throw Error();
+        try {
+            const status = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`))?.json();
+            if (!status || status.error) throw Error();
         } catch (error) {
-            message = `🔕 Не получилось позвонить`;
             logger.error(error);
+            text = t("embassy.doorbell.fail");
         } finally {
-            bot.sendMessage(msg.chat.id, message);
+            bot.sendMessage(msg.chat.id, text);
         }
     };
 
     static sayinspaceHandler = async (bot, msg, text) => {
         try {
             if (!text) {
-                bot.sendMessage(
-                    msg.chat.id,
-                    `🗣 С помощью этой команды можно сказать что-нибудь на динамике в спейсе, например #\`/say Привет, хакеры#\``
-                );
+                bot.sendMessage(msg.chat.id, t("embassy.say.help"));
                 return;
             }
 
-            let response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/sayinspace`, {
+            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/sayinspace`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -209,23 +198,22 @@ class EmbassyHanlers {
                 body: JSON.stringify({ text }),
             });
 
-            if (response.status === 200) await bot.sendMessage(msg.chat.id, "🗣 Сообщение отправлено на динамик");
+            if (response.status === 200) await bot.sendMessage(msg.chat.id, t("embassy.say.success"));
             else throw Error("Failed to say in space");
         } catch (error) {
-            let message = `⚠️ Не получилось сказать`;
-            await bot.sendMessage(msg.chat.id, message);
             logger.error(error);
+            await bot.sendMessage(msg.chat.id, t("embassy.say.fail"));
         }
     };
 
     static playinspaceHandler = async (bot, msg, link) => {
         try {
             if (!link) {
-                bot.sendMessage(msg.chat.id, `🗣 С помощью этой команды можно воспроизвести любой звук по ссылке`);
+                bot.sendMessage(msg.chat.id, t("embassy.play.help"));
                 return;
             }
 
-            let response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/playinspace`, {
+            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/playinspace`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -233,12 +221,11 @@ class EmbassyHanlers {
                 body: JSON.stringify({ link }),
             });
 
-            if (response.status === 200) await bot.sendMessage(msg.chat.id, "🗣 Звук отправлен на динамик");
+            if (response.status === 200) await bot.sendMessage(msg.chat.id, t("embassy.play.success"));
             else throw Error("Failed to play in space");
         } catch (error) {
-            let message = `⚠️ Не получилось воспроизвести`;
-            await bot.sendMessage(msg.chat.id, message);
             logger.error(error);
+            await bot.sendMessage(msg.chat.id, t("embassy.play.fail"));
         }
     };
 }

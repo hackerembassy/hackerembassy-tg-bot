@@ -27,8 +27,8 @@ jobs:
           ssh_key: ${{ secrets.deploy_target_key }}
           encryption_key: ${{ vars.backup_encryption_key }}
           encryption_key_fingerprint: 1081AE754A88DD44DFBF78392B0905649F1964AC
-      # -
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: hackem-bot-db_backup
-      #     path: hackem-bot-db.tar
+      -
+        uses: actions/upload-artifact@v3
+        with:
+          name: hackem-bot-db.tar.gpg
+          path: hackem-bot-db.tar.gpg

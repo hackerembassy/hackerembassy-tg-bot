@@ -1,5 +1,20 @@
 name: Manage SSH keys
 inputs:
+  alias:
+    description: name of the ssh connection
+    required: false
+    default: prod
+  host:
+    description: hostname or IP address
+    required: false
+  port:
+    description: ssh port
+    required: false
+    default: 22
+  user:
+    description: ssh user
+    required: false
+    default: root
   identity:
     description: string for known_hosts file
     required: false
@@ -7,9 +22,10 @@ inputs:
     description: string for id_ed25519 file
     required: false
   action:
-    required: true
     description: put or destroy
+    required: false
     default: put
+
 runs:
   using: composite
   steps:
@@ -18,10 +34,19 @@ runs:
       shell: bash
       run: |
         mkdir -v ~/.ssh
-        chmod -v 700 ~/.ssh
         echo "${{ inputs.identity }}" > ~/.ssh/known_hosts
         echo "${{ inputs.key }}" > ~/.ssh/id_ed25519
         chmod -v 600 ~/.ssh/*
+    -
+      if: ${{ inputs.action == 'put' && inputs.host }}
+      shell: bash
+      run: |
+        echo '
+          Host ${{ inputs.alias }}
+            HostName ${{ inputs.host }}
+            Port ${{ inputs.port }}
+            User ${{ inputs.user }}
+        ' >> ~/.ssh/config
     -
       if: ${{ inputs.action == 'destroy' }}
       shell: bash

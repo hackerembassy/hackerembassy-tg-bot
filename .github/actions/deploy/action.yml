@@ -23,14 +23,17 @@ runs:
       name: Put server's SSH key
       uses: ./.github/actions/ssh-keys
       with:
-        action: put
+        alias: prod
+        host: ${{ inputs.ssh_host }}
+        port: ${{ inputs.ssh_port }}
+        user: ${{ inputs.ssh_user }}
         identity: ${{ inputs.ssh_identity }}
         key: ${{ inputs.ssh_key }}
     -
       name: Deploy
       shell: bash
       run: |
-        ssh -T ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} -p ${{ inputs.ssh_port }} '
+        ssh -T prod '
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v /home/ansible/.docker/config.json:/config.json \

@@ -26,19 +26,16 @@ runs:
       name: Put server's SSH key
       uses: ./.github/actions/ssh-keys
       with:
-        action: put
+        alias: prod
+        host: ${{ inputs.ssh_host }}
+        port: ${{ inputs.ssh_port }}
+        user: ${{ inputs.ssh_user }}
         identity: ${{ inputs.ssh_identity }}
         key: ${{ inputs.ssh_key }}
     -
       name: Deploy
       shell: bash
       run: |
-        echo '
-          Host prod
-            HostName ${{ inputs.ssh_host }}
-            Port ${{ inputs.ssh_port }}
-            User ${{ inputs.ssh_user }}
-        ' >> ~/.ssh/config
         ssh -T prod '
           set -xe
           docker_volume=${{ inputs.docker_volume }}

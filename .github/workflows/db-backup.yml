@@ -25,8 +25,8 @@ jobs:
           ssh_port: ${{ secrets.deploy_target_port }}
           ssh_key: ${{ secrets.deploy_target_key }}
           docker_volume: hackem-bot-db
-      -
-        uses: actions/upload-artifact@v3
-        with:
-          name: hackem-bot-db_backup
-          path: hackem-bot-db.tar
+      # -
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: hackem-bot-db_backup
+      #     path: hackem-bot-db.tar

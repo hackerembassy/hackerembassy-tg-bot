@@ -18,6 +18,12 @@ inputs:
   docker_volume:
     description: docker volume to backup
     required: true
+  encryption_key:
+    description: gpg public key to encrypt the artifact
+    required: false
+  encryption_key_fingerprint:
+    description: fingerprint of the encryption_key
+    required: false
 
 runs:
   using: composite
@@ -33,7 +39,7 @@ runs:
         identity: ${{ inputs.ssh_identity }}
         key: ${{ inputs.ssh_key }}
     -
-      name: Deploy
+      name: Extract docker volume
       shell: bash
       run: |
         ssh -T prod '
@@ -48,6 +54,19 @@ runs:
           rm -r "$tmp"
         '
         scp prod:'~/${{ inputs.docker_volume }}.tar' ./${{ inputs.docker_volume }}.tar
+    -
+      name: Encrypt
+      if: ${{ inputs.encryption_key }}
+      shell: bash
+      run: |
+        set -xe
+        echo '${{ inputs.encryption_key }}' | gpg --import
+        gpg --encrypt \
+            --trust-model always \
+            --recipient ${{ inputs.encryption_key_fingerprint }} \
+            --output ./${{ inputs.docker_volume }}.tar.gpg \
+            ./${{ inputs.docker_volume }}.tar
+        shred -u ./${{ inputs.docker_volume }}.tar
     -
       name: Destroy server's SSH key
       uses: ./.github/actions/ssh-keys

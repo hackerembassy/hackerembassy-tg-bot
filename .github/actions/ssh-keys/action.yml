@@ -25,6 +25,7 @@ inputs:
     description: put or destroy
     required: false
     default: put
+
 runs:
   using: composite
   steps:

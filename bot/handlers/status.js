@@ -9,75 +9,51 @@ const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 const botConfig = config.get("bot");
 
+const t = require("../../services/localization");
+
 class StatusHandlers {
     static isStatusError = false;
 
     static setmacHandler(bot, msg, cmd) {
-        let message = `⚠️ Укажите валидный MAC адрес (или несколько, через запятую)`;
+        let message = t("status.mac.fail");
         let username = msg.from.username;
         if (!cmd || cmd === "help") {
-            message = `
-📡 С помощью этой команды можно задать MAC адреса для функций автовхода и управления замком 
-
-#\`/setmac mac_address#\` - Установить свой MAC адрес (или несколько, через запятую)
-#\`/setmac status#\` - Посмотреть свой установленный в боте MAC адрес
-#\`/setmac remove#\` - Удалить свои MAC адреса из бота  
- `;
+            message = t("status.mac.help");
         } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-            message = `📡 MAC адреса ${cmd} успешно установлены для юзера ${UsersHelper.formatUsername(username, bot.mode)}.`;
+            message = t("status.mac.set", { cmd, username: UsersHelper.formatUsername(username, bot.mode) });
         } else if (cmd === "remove") {
             UsersRepository.setMACs(username, null);
             UsersRepository.setAutoinside(username, false);
-            message = `🗑 MAC адреса удалены для юзера ${UsersHelper.formatUsername(
-                username,
-                bot.mode
-            )}. Автовход теперь работать не будет.`;
+            message = t("status.mac.removed", { username: UsersHelper.formatUsername(username, bot.mode) });
         } else if (cmd === "status") {
             let usermac = UsersRepository.getUserByName(username)?.mac;
-            if (usermac) message = `📲 Для юзера ${UsersHelper.formatUsername(username, bot.mode)} заданы MAC адреса ${usermac}`;
-            else message = `📲 MAC адрес не задан для юзера ${UsersHelper.formatUsername(username, bot.mode)}`;
+            if (usermac) message = t("status.mac.isset", { username: UsersHelper.formatUsername(username, bot.mode), usermac });
+            else message = t("status.mac.isnotset", { username: UsersHelper.formatUsername(username, bot.mode) });
         }
 
         bot.sendMessage(msg.chat.id, message);
     }
 
     static autoinsideHandler(bot, msg, cmd) {
-        let message = `⚠️ Не удалось включить автовход, хотя MAC задан. Кто-нибудь, накостыляйте моему разработчику`;
+        let message = t("status.autoinside.fail");
         let username = msg.from.username;
         let user = UsersRepository.getUserByName(username);
         let usermac = user?.mac;
         let userautoinside = user?.autoinside;
 
         if (!cmd || cmd === "help") {
-            message = `⏲ С помощью этой команды можно автоматически отмечаться в спейсе как только MAC адрес вашего устройства будет обнаружен в сети.
-📌 При отсутствии активности устройства в сети спейса в течение ${
-                botConfig.timeouts.out / 60000
-            } минут произойдет автовыход юзера.
-📌 При включенной фиче актуальный статус устройства в сети имеет приоритет над ручными командами входа/выхода.
-⚠️ Для работы обязательно задайте MAC адреса вашего устройства и отключите его рандомизацию для сети спейса.
-      
-#\`/setmac#\` - Управление своим MAC адресом  
-#\`/autoinside status#\` - Статус автовхода и автовыхода
-#\`/autoinside enable#\` - Включить автовход и автовыход  
-#\`/autoinside disable#\` - Выключить автовход и автовыход  
-`;
+            message = t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 });
         } else if (cmd === "enable") {
-            if (!usermac) message = `⚠️ Твой MAC адрес не задан. Добавь его командой #\`/setmac mac_address#\``;
+            if (!usermac) message = t("status.autoinside.nomac");
             else if (UsersRepository.setAutoinside(username, true))
-                message = `🕺 Автовход и автовыход активированы для юзера ${UsersHelper.formatUsername(
-                    username,
-                    bot.mode
-                )} на MAC адрес ${usermac}`;
+                message = t("status.autoinside.set", { usermac, username: UsersHelper.formatUsername(username, bot.mode) });
         } else if (cmd === "disable") {
             UsersRepository.setAutoinside(username, false);
-            message = `🚷 Автовход и автовыход выключены для юзера ${UsersHelper.formatUsername(username, bot.mode)}`;
+            message = t("status.autoinside.removed", { username: UsersHelper.formatUsername(username, bot.mode) });
         } else if (cmd === "status") {
             if (userautoinside)
-                message = `🕺 Автовход и автовыход включены для юзера ${UsersHelper.formatUsername(
-                    username,
-                    bot.mode
-                )} на MAC адрес ${usermac}`;
-            else message = `🚷 Автовход и автовыход выключены для юзера ${UsersHelper.formatUsername(username, bot.mode)}`;
+                message = t("status.autoinside.isset", { usermac, username: UsersHelper.formatUsername(username, bot.mode) });
+            else message = t("status.autoinside.isnotset", { username: UsersHelper.formatUsername(username, bot.mode) });
         }
 
         bot.sendMessage(msg.chat.id, message);
@@ -87,7 +63,7 @@ class StatusHandlers {
         let state = StatusRepository.getSpaceLastState();
 
         if (!state) {
-            bot.sendMessage(msg.chat.id, `🔐 Статус спейса неопределен`);
+            bot.sendMessage(msg.chat.id, t("status.status.undefined"));
             return;
         }
 
@@ -95,18 +71,17 @@ class StatusHandlers {
         let going = StatusRepository.getPeopleGoing();
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, bot.mode);
 
-        if (StatusHandlers.isStatusError)
-            statusMessage = `📵 Не удалось связаться со спейсом. Данные о посетителях могут быть неактуальными \n\n${statusMessage}`;
+        if (StatusHandlers.isStatusError) statusMessage = t("status.status.noconnection", { statusMessage });
 
         let inlineKeyboard = state.open
             ? [
                   [
                       {
-                          text: "🤝 Я пришёл",
+                          text: t("status.buttons.in"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                       {
-                          text: "👋 Я ушёл",
+                          text: t("status.buttons.out"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                   ],
@@ -115,22 +90,22 @@ class StatusHandlers {
 
         inlineKeyboard.push([
             {
-                text: "🚕 Планирую зайти",
+                text: t("status.buttons.going"),
                 callback_data: JSON.stringify({ command: "/going" }),
             },
             {
-                text: "🛌 Уже не планирую",
+                text: t("status.buttons.notgoing"),
                 callback_data: JSON.stringify({ command: "/notgoing" }),
             },
         ]);
 
         inlineKeyboard.push([
             {
-                text: "🔃 Обновить",
+                text: t("status.buttons.refresh"),
                 callback_data: JSON.stringify({ command: "/ustatus" }),
             },
             {
-                text: state.open ? "🔒 Закрыть спейс" : "🔓 Открыть спейс",
+                text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
                 callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
             },
         ]);
@@ -164,31 +139,27 @@ class StatusHandlers {
         let inlineKeyboard = [
             [
                 {
-                    text: "🤝 Я пришёл",
+                    text: t("status.buttons.in"),
                     callback_data: JSON.stringify({ command: "/in" }),
                 },
                 {
-                    text: "🔒 Закрыть снова",
+                    text: t("status.buttons.reclose"),
                     callback_data: JSON.stringify({ command: "/close" }),
                 },
             ],
             [
                 {
-                    text: "📹 Кто внутри",
+                    text: t("status.buttons.whoinside"),
                     callback_data: JSON.stringify({ command: "/status" }),
                 },
             ],
         ];
 
-        bot.sendMessage(
-            msg.chat.id,
-            `🔑 ${UsersHelper.formatUsername(msg.from.username, bot.mode)} #*открыл#* спейс для гостей. Отличный повод зайти`,
-            {
-                reply_markup: {
-                    inline_keyboard: inlineKeyboard,
-                },
-            }
-        );
+        bot.sendMessage(msg.chat.id, t("status.open", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) }), {
+            reply_markup: {
+                inline_keyboard: inlineKeyboard,
+            },
+        });
     };
 
     static closeHandler = (bot, msg) => {
@@ -199,21 +170,17 @@ class StatusHandlers {
         let inlineKeyboard = [
             [
                 {
-                    text: "🔓 Открыть снова",
+                    text: t("status.buttons.reopen"),
                     callback_data: JSON.stringify({ command: "/open" }),
                 },
             ],
         ];
 
-        bot.sendMessage(
-            msg.chat.id,
-            `🔒 ${UsersHelper.formatUsername(msg.from.username, bot.mode)} #*закрыл#* спейс. Все отметившиеся отправлены домой`,
-            {
-                reply_markup: {
-                    inline_keyboard: inlineKeyboard,
-                },
-            }
-        );
+        bot.sendMessage(msg.chat.id, t("status.close", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) }), {
+            reply_markup: {
+                inline_keyboard: inlineKeyboard,
+            },
+        });
     };
 
     static evictHandler = (bot, msg) => {
@@ -221,35 +188,34 @@ class StatusHandlers {
 
         StatusRepository.evictPeople();
 
-        bot.sendMessage(msg.chat.id, `🔒 Список отметившихся очищен`);
+        bot.sendMessage(msg.chat.id, t("status.evict"));
     };
 
     static inHandler = (bot, msg) => {
         let eventDate = new Date();
-        let user = msg.from.username ?? msg.from.first_name;
-        let gotIn = this.LetIn(user, eventDate);
-        let autoinsideText = `📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически`;
-        let message = `🤝 ${UsersHelper.formatUsername(user, bot.mode)} пришел в спейс\n\n${autoinsideText}`;
+        let username = msg.from.username ?? msg.from.first_name;
+        let gotIn = this.LetIn(username, eventDate);
+        let message = t("status.in.gotin", { username: UsersHelper.formatUsername(username, bot.mode) });
 
         if (!gotIn) {
-            message = "🔐 Сейчас спейс не готов принять гостей";
+            message = t("status.in.notready");
         }
 
         let inlineKeyboard = gotIn
             ? [
                   [
                       {
-                          text: "🤝 И я пришёл",
+                          text: t("status.buttons.andin"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                       {
-                          text: "👋 А я ушёл",
+                          text: t("status.buttons.andout"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                   ],
                   [
                       {
-                          text: "📹 Кто внутри",
+                          text: t("status.buttons.whoinside"),
                           callback_data: JSON.stringify({ command: "/status" }),
                       },
                   ],
@@ -257,11 +223,11 @@ class StatusHandlers {
             : [
                   [
                       {
-                          text: "🔃 Повторить команду",
+                          text: t("status.buttons.repeat"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                       {
-                          text: "🚪 Открыть спейс",
+                          text: t("status.buttons.open"),
                           callback_data: JSON.stringify({ command: "/open" }),
                       },
                   ],
@@ -277,27 +243,27 @@ class StatusHandlers {
     static outHandler = (bot, msg) => {
         let eventDate = new Date();
         let gotOut = this.LetOut(msg.from.username, eventDate);
-        let message = `👋 ${UsersHelper.formatUsername(msg.from.username, bot.mode)} ушел из спейса`;
+        let message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) });
 
         if (!gotOut) {
-            message = "🔐 Странно, ты же не должен был быть внутри...";
+            message = t("status.out.shouldnot");
         }
 
         let inlineKeyboard = gotOut
             ? [
                   [
                       {
-                          text: "👋 Я тоже ушёл",
+                          text: t("status.buttons.andout"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                       {
-                          text: "🤝 А я пришёл",
+                          text: t("status.buttons.andin"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                   ],
                   [
                       {
-                          text: "📹 Кто внутри",
+                          text: t("status.buttons.whoinside"),
                           callback_data: JSON.stringify({ command: "/status" }),
                       },
                   ],
@@ -305,11 +271,11 @@ class StatusHandlers {
             : [
                   [
                       {
-                          text: "🔃 Повторить команду",
+                          text: t("status.buttons.repeat"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                       {
-                          text: "🔓 Открыть спейс",
+                          text: t("status.buttons.open"),
                           callback_data: JSON.stringify({ command: "/open" }),
                       },
                   ],
@@ -329,13 +295,13 @@ class StatusHandlers {
 
         let gotIn = this.LetIn(username, eventDate, true);
 
-        let message = `🟢 ${UsersHelper.formatUsername(msg.from.username, bot.mode)} привёл ${UsersHelper.formatUsername(
-            username,
-            bot.mode
-        )} в спейс`;
+        let message = t("status.inforce.gotin", {
+            memberusername: UsersHelper.formatUsername(msg.from.username, bot.mode),
+            username: UsersHelper.formatUsername(username, bot.mode),
+        });
 
         if (!gotIn) {
-            message = "🔐 Сорян, ты не можешь сейчас его привести";
+            message = t("status.inforce.notready");
         }
         bot.sendMessage(msg.chat.id, message);
     };
@@ -346,13 +312,13 @@ class StatusHandlers {
         username = username.replace("@", "");
         let gotOut = this.LetOut(username, eventDate, true);
 
-        let message = `🔴 ${UsersHelper.formatUsername(msg.from.username, bot.mode)} отправил домой ${UsersHelper.formatUsername(
-            username,
-            bot.mode
-        )}`;
+        let message = t("status.outforce.gotout", {
+            memberusername: UsersHelper.formatUsername(msg.from.username, bot.mode),
+            username: UsersHelper.formatUsername(username, bot.mode),
+        });
 
         if (!gotOut) {
-            message = "🔐 Ээ нее, ты не можешь его отправить домой";
+            message = t("status.outforce.shouldnot");
         }
 
         bot.sendMessage(msg.chat.id, message);
@@ -409,16 +375,16 @@ class StatusHandlers {
 
         StatusRepository.pushPeopleState(userstate);
 
-        let message = `🚕 ${UsersHelper.formatUsername(msg.from.username, bot.mode)} планирует сегодня зайти в спейс`;
+        let message = t("status.going", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) });
 
         let inlineKeyboard = [
             [
                 {
-                    text: "🚕 И я планирую",
+                    text: t("status.buttons.andgoing"),
                     callback_data: JSON.stringify({ command: "/going" }),
                 },
                 {
-                    text: "❓А кто еще будет?",
+                    text: t("status.buttons.whoelse"),
                     callback_data: JSON.stringify({ command: "/status" }),
                 },
             ],
@@ -445,7 +411,7 @@ class StatusHandlers {
 
         StatusRepository.pushPeopleState(userstate);
 
-        let message = `🛌 ${UsersHelper.formatUsername(msg.from.username, bot.mode)} больше не планирует сегодня в спейс`;
+        let message = t("status.notgoing", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) });
 
         bot.sendMessage(msg.chat.id, message);
     };
@@ -453,26 +419,20 @@ class StatusHandlers {
     static setemojiHandler(bot, msg, emoji) {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
-        let message = `⚠️ Укажите валидный эмодзи адрес`;
+        let message = t("status.emoji.fail");
         let username = msg.from.username;
         if (!emoji || emoji === "help") {
-            message = `
-🐥 С помощью этой команды можно задать эмодзи 
-
-#\`/setemoji 🍗#\` - Установить свой эмодзи 
-#\`/setemoji status#\` - Посмотреть свой установленный в боте эмодзи
-#\`/setemoji remove#\` - Удалить свой эмодзи из бота  
- `;
+            message = t("status.emoji.help");
         } else if (emoji && isEmoji(emoji) && UsersRepository.setEmoji(username, emoji)) {
-            message = `🐥 Эмодзи ${emoji} успешно установлен для юзера ${UsersHelper.formatUsername(username, bot.mode)}.`;
+            message = t("status.emoji.set", { emoji, username: UsersHelper.formatUsername(username, bot.mode) });
         } else if (emoji === "remove") {
             UsersRepository.setEmoji(username, null);
-            message = `🗑 Эмодзи удален для юзера ${UsersHelper.formatUsername(username, bot.mode)}.`;
+            message = t("status.emoji.removed", { username: UsersHelper.formatUsername(username, bot.mode) });
         } else if (emoji === "status") {
             let emoji = UsersRepository.getUserByName(username)?.emoji;
 
-            if (emoji) message = `🐥 Для юзера ${UsersHelper.formatUsername(username, bot.mode)} задан эмодзи ${emoji}`;
-            else message = `🐥 Эмодзи не задан для юзера ${UsersHelper.formatUsername(username, bot.mode)}`;
+            if (emoji) message = t("status.emoji.isset", { emoji, username: UsersHelper.formatUsername(username, bot.mode) });
+            else message = t("status.emoji.isnotset", { username: UsersHelper.formatUsername(username, bot.mode) });
         }
 
         bot.sendMessage(msg.chat.id, message);
@@ -512,7 +472,7 @@ class StatusHandlers {
                         type: StatusRepository.ChangeType.Auto,
                     });
 
-                    logger.info(`Юзер ${user.username} автоматически ${isIn ? "пришел" : "ушел"}`);
+                    logger.info(`User ${user.username} automatically ${isIn ? "got in" : "got out"}`);
                 }
             }
         } catch (error) {

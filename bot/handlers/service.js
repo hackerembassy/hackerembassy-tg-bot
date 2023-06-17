@@ -7,6 +7,10 @@ const BirthdayHandlers = require("./birthday");
 const BasicHandlers = require("./basic");
 const EmbassyHandlers = require("./embassy");
 
+const botConfig = require("config").get("bot");
+
+const t = require("../../services/localization");
+
 class ServiceHandlers {
     static clearHandler = (bot, msg, count) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
@@ -149,19 +153,31 @@ class ServiceHandlers {
     };
 
     static newMemberHandler = async (bot, msg) => {
-        let botName = (await bot.getMe()).username;
-        let newMembers = msg.new_chat_members.reduce(
+        const botName = (await bot.getMe()).username;
+        const newMembers = msg.new_chat_members.reduce(
             (res, member) =>
                 res + `${member?.username ? UsersHelper.formatUsername(member.username, bot.mode) : member?.first_name} `,
             ""
         );
-        let message = `🇬🇧 Добро пожаловать в наш уютный уголок, ${newMembers}
-      
-Я @${botName}, бот-менеджер хакерспейса. Ко мне в личку можно зайти пообщаться, чтобы я вкратце о нас рассказал.
-Не забудь также зайти в наш второй чатик @hackem_foo! Там ты найдешь разные топики по основным проектам спейса, обсуждения будущих мероприятий, новостей, мемов и так далее.
 
-🎉🎉🎉 Хакерчане, приветствуем ${newMembers}`;
-        bot.sendMessage(msg.chat.id, message);
+        let welcomeText;
+
+        switch (msg.chat.id) {
+            case botConfig.chats.offtopic:
+                welcomeText = t("service.welcome.offtopic", { botName, newMembers });
+                break;
+            case botConfig.chats.key:
+                welcomeText = t("service.welcome.key", { botName, newMembers });
+                break;
+            case botConfig.chats.horny:
+                welcomeText = t("service.welcome.horny", { botName, newMembers });
+                break;
+            case botConfig.chats.main:
+            default:
+                welcomeText = t("service.welcome.main", { botName, newMembers });
+        }
+
+        bot.sendMessage(msg.chat.id, welcomeText);
     };
 
     static boughtButtonHandler = (bot, message, id, callbackQuery) => {

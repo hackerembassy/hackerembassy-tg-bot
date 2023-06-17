@@ -8,8 +8,9 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const botConfig = require("config").get("bot");
 
-const baseWishesDir = "./resources/wishes";
 const wishedTodayPath = "./data/wished-today.json";
+const baseWishesDir = "./resources/wishes";
+const t = require("../../services/localization");
 
 class BirthdayHandlers {
     static forceBirthdayWishHandler = (bot, msg) => {
@@ -19,26 +20,26 @@ class BirthdayHandlers {
     };
 
     static birthdayHandler = (bot, msg) => {
-        let birthdayUsers = UsersRepository.getUsers().filter(u => u.birthday);
-        let message = TextGenerators.getBirthdaysList(birthdayUsers, bot.mode);
+        const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
+        const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.mode);
 
-        bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, text);
     };
 
     static myBirthdayHandler = (bot, msg, date) => {
-        let message = `🛂 Укажите дату в формате #\`YYYY-MM-DD#\`, #\`MM-DD#\` или укажите #\`remove#\``;
-        let username = msg.from.username;
+        const username = msg.from.username;
+        const formattedUsername = UsersHelper.formatUsername(username, bot.mode);
+        const fulldate = date?.length === 5 ? "0000-" + date : date;
 
-        if (/^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date)) {
-            let fulldate = date.length === 5 ? "0000-" + date : date;
-            if (UsersRepository.setBirthday(username, fulldate))
-                message = `🎂 День рождения ${UsersHelper.formatUsername(username, bot.mode)} установлен как ${date}`;
-        } else if (date === "remove") {
-            if (UsersRepository.setBirthday(username, null))
-                message = `🎂 День рождения ${UsersHelper.formatUsername(username, bot.mode)} сброшен`;
+        let text = t("birthday.help");
+
+        if (this.isProperFormatDateString(date) && UsersRepository.setBirthday(username, fulldate)) {
+            text = t("birthday.set", { username: formattedUsername, date });
+        } else if (date === "remove" && UsersRepository.setBirthday(username, null)) {
+            text = t("birthday.remove", { username: formattedUsername });
         }
 
-        bot.sendMessage(msg.chat.id, message);
+        bot.sendMessage(msg.chat.id, text);
     };
 
     static async sendBirthdayWishes(bot, force = false) {
@@ -70,6 +71,13 @@ class BirthdayHandlers {
         }
 
         if (wishedAmount !== wishedToday.length) fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
+    }
+
+    /**
+     * @param {string} date
+     */
+    static isProperFormatDateString(date) {
+        return /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date);
     }
 }
 

@@ -30,7 +30,7 @@ main() {
     rm -r $tmp/vol
 }
 END_OF_SCRIPT
-echo "Fetching the backup..."
+echo "Fetching the compressed volume..."
 
 set -x
 mkdir "$tmp"

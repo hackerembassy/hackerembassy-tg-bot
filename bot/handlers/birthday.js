@@ -31,7 +31,7 @@ class BirthdayHandlers {
         const formattedUsername = UsersHelper.formatUsername(username, bot.mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
 
-        let text = t("birthday.help");
+        let text = t("birthday.fail");
 
         if (this.isProperFormatDateString(date) && UsersRepository.setBirthday(username, fulldate)) {
             text = t("birthday.set", { username: formattedUsername, date });

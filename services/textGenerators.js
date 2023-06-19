@@ -16,6 +16,8 @@ const User = require("../models/User");
 // eslint-disable-next-line no-unused-vars
 const Need = require("../models/Need");
 
+const t = require("./localization");
+
 /**
  * @param {Fund[]} funds
  * @param {Donation[]} donations
@@ -33,7 +35,7 @@ async function createFundList(funds, donations, options = {}, mode) {
             return donation.fund_id === fund.id;
         });
 
-        let sum = await fundDonations.reduce(async (prev, current) => {
+        let sumOfAllDonations = await fundDonations.reduce(async (prev, current) => {
             let newValue = await Currency.convertCurrency(current.value, current.currency, fund.target_currency);
             return (await prev) + newValue;
         }, Promise.resolve(0));
@@ -41,20 +43,21 @@ async function createFundList(funds, donations, options = {}, mode) {
         let statusEmoji = `⚙️ \\[${fund.status}]`;
 
         if (fund.status === "closed") {
-            statusEmoji = "☑️ \\[закрыт]";
+            statusEmoji = `☑️ \\[${t("funds.fund.closed")}]`;
         } else if (fund.status === "postponed") {
-            statusEmoji = "⏱ \\[отложен]";
+            statusEmoji = `⏱ \\[${t("funds.fund.postponed")}]`;
         } else if (fund.status === "open") {
-            statusEmoji = sum < fund.target_value ? "🟠" : "🟢";
-            statusEmoji += options.isHistory ? " \\[открыт]" : "";
+            statusEmoji = sumOfAllDonations < fund.target_value ? "🟠" : "🟢";
+            statusEmoji += options.isHistory ? ` \\[${t("funds.fund.open")}]` : "";
         }
 
         let tgCopyDelimiter = options.isApi ? "" : "#`";
 
-        list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - Собрано ${Currency.formatValueForCurrency(
-            sum,
-            fund.target_currency
-        )} из ${fund.target_value} ${fund.target_currency}\n`;
+        list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - ${t(
+            "funds.fund.collected"
+        )} ${Currency.formatValueForCurrency(sumOfAllDonations, fund.target_currency)} ${t("funds.fund.from")} ${
+            fund.target_value
+        } ${fund.target_currency}\n`;
 
         if (!options.isHistory) {
             for (const donation of fundDonations) {
@@ -101,31 +104,28 @@ async function createFundList(funds, donations, options = {}, mode) {
  * @returns {string}
  */
 function getStatusMessage(state, inside, going, mode, isApi = false) {
-    let stateText = state.open ? "#*открыт#*" : "#*закрыт#*";
-    let stateEmoji = state.open ? "🔓" : "🔒";
-    let stateSubText = state.open
-        ? "Отличный повод зайти, так что звоните в звонок или пишите находящимся внутри - вам откроют\n"
-        : `Ждем, пока кто-то из резидентов его откроет. Может внутри никого нет, или происходит закрытое собрание резидентов, или они опять забыли сделать /open? Who knows... Лучше спроси у них в чате.\n`;
-    let updateText = !isApi ? `⏱ Обновлено ${new Date().toLocaleString("RU-ru").replace(",", " в").substr(0, 21)}\n` : "";
-    let stateFullText = `${stateEmoji} Спейс ${stateText} для гостей ${UsersHelper.formatUsername(
-        state.changedby,
-        mode,
-        isApi
-    )}\n`;
+    const stateFullText = t("status.status.state", {
+        stateEmoji: state.open ? "🔓" : "🔒",
+        state: state.open ? t("status.status.opened") : t("status.status.closed"),
+        stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
+        changedBy: UsersHelper.formatUsername(state.changedby, mode, isApi),
+    });
 
-    let insideText = inside.length > 0 ? "👨‍💻 Внутри отметились:\n" : "🛌 Внутри никто не отметился\n";
-
+    let insideText = inside.length > 0 ? t("status.status.insidechecked") : t("status.status.nooneinside");
     for (const userStatus of inside) {
         insideText += `${UsersHelper.formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
 
-    let goingText = going.length > 0 ? "\n🚕 Планируют сегодня зайти:\n" : "";
+    let goingText = going.length > 0 ? `\n${t("status.status.going")}` : "";
     for (const userStatus of going) {
         goingText += `${UsersHelper.formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)}\n`;
     }
 
+    const updateText = !isApi
+        ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substr(0, 21)}\n`
+        : "";
+
     return `${stateFullText}
-${stateSubText}
 ${insideText}${goingText}
 ${updateText}`;
 }
@@ -135,12 +135,12 @@ ${updateText}`;
  * @returns {string}
  */
 function getUserBadges(username) {
-    let user = usersRepository.getUserByName(username);
+    const user = usersRepository.getUserByName(username);
     if (!user) return "";
 
-    let roles = UsersHelper.getRoles(user);
-    let roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}`;
-    let customBadge = user.emoji ?? "";
+    const roles = UsersHelper.getRoles(user);
+    const roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}`;
+    const customBadge = user.emoji ?? "";
 
     return `${roleBadges}${customBadge}`;
 }
@@ -150,8 +150,8 @@ function getUserBadges(username) {
  * @returns {string}
  */
 function getUserBadgesWithStatus(userStatus) {
-    let userBadges = getUserBadges(userStatus.username);
-    let autoBadge = userStatus.type === StatusRepository.ChangeType.Auto ? "📲" : "";
+    const userBadges = getUserBadges(userStatus.username);
+    const autoBadge = userStatus.type === StatusRepository.ChangeType.Auto ? "📲" : "";
 
     return `${autoBadge}${userBadges}`;
 }
@@ -161,16 +161,13 @@ function getUserBadgesWithStatus(userStatus) {
  * @returns {string}
  */
 function getAccountsList(accountants, mode, isApi = false) {
-    let accountantsList = "";
-
-    if (accountants !== null) {
-        accountantsList = accountants.reduce(
-            (list, user) => `${list}${UsersHelper.formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
-            ""
-        );
-    }
-
-    return accountantsList;
+    return accountants
+        ? accountants.reduce(
+              (list, user) =>
+                  `${list}${UsersHelper.formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
+              ""
+          )
+        : "";
 }
 
 /**
@@ -183,9 +180,7 @@ function getResidentsList(residents, mode) {
         userList += `${UsersHelper.formatUsername(user.username, mode)} ${getUserBadges(user.username)}\n`;
     }
 
-    return (
-        `👥 Вот они, наши великолепные резиденты:\n` + userList + `\n🧠 Вы можете обратиться к ним по любому спейсовскому вопросу`
-    );
+    return t("basic.residents", { userList });
 }
 
 /**
@@ -193,13 +188,11 @@ function getResidentsList(residents, mode) {
  * @returns {string}
  */
 function getMonitorMessagesList(monitorMessages) {
-    let messageList = "";
-
-    for (const message of monitorMessages) {
-        messageList += `${message.level === "error" ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}\n`;
-    }
-
-    return messageList;
+    return monitorMessages
+        ? monitorMessages
+              .map(message => `${message.level === "error" ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}`)
+              .join("\n")
+        : "";
 }
 
 /**
@@ -207,19 +200,20 @@ function getMonitorMessagesList(monitorMessages) {
  * @returns {string}
  */
 function getNeedsList(needs, mode) {
-    let message = `👌 Пока никто ничего не просил\n`;
+    let message = `${t("needs.buy.nothing")}\n`;
 
     if (needs.length > 0) {
-        message = `🙏 Кто-нибудь, купите по дороге в спейс:\n`;
+        message = `${t("needs.buy.pleasebuy")}\n`;
 
         for (const need of needs) {
-            message += `- #\`${need.text}#\` по просьбе ${UsersHelper.formatUsername(need.requester, mode)}\n`;
+            message += `- #\`${need.text}#\` ${t("needs.buy.byrequest")} ${UsersHelper.formatUsername(need.requester, mode)}\n`;
         }
     }
-    message += `\nℹ️ Можно попросить купить что-нибудь по дороге в спейс с помощью команды #\`/buy item_name#\``;
+
+    message += `\n${t("needs.buy.helpbuy")}`;
 
     if (needs.length > 0) {
-        message += `\n✅ Отметить покупку сделанной можно нажав на кнопку ниже: `;
+        message += t("needs.buy.helpbought");
     }
 
     return message;
@@ -231,30 +225,20 @@ function getNeedsList(needs, mode) {
  * @returns {string}
  */
 function getDonateText(accountants, isApi = false) {
-    let accountantsList = getAccountsList(accountants, isApi);
+    const cryptoCommands = !isApi
+        ? `/donatebtc
+  /donateeth
+  /donateusdc
+  /donateusdt`
+        : "";
 
-    return (
-        `💸 Хакспейс не является коммерческим проектом и существует исключительно на пожертвования участников.
- Мы вносим свой вклад в развитие спейса: оплата аренды и коммуналки, забота о пространстве, помощь в приобретении оборудования.
- Мы будем рады любой поддержке. 
- 
- Задонатить нам можно следующими способами:
- 💳 Банковская карта Visa/Mastercard Армении.${!isApi ? "\n       /donateCard" : ""}
- 💰 Криптовалюта ${
-     !isApi
-         ? `(по следующим командам)
-       /donatebtc
-       /donateeth
-       /donateusdc
-       /donateusdt`
-         : ""
- }
- 💵 Наличкой при встрече (самый лучший вариант).
-       ${!isApi ? "/donatecash\n" : ""}
- 📊 Увидеть наши текущие сборы и ваш вклад можно по команде ${!isApi ? "/" : ""}funds
- 
- 💌 По вопросам доната обращайтесь к нашим бухгалтерам, они помогут.\n` + accountantsList
-    );
+    return t("basic.donate", {
+        donateCashCommand: !isApi ? "/donatecash" : "",
+        donateCardCommand: !isApi ? "/donatecard" : "",
+        fundsCommand: !isApi ? "/funds" : "funds",
+        cryptoCommands,
+        accountantsList: getAccountsList(accountants, isApi),
+    });
 }
 
 /**
@@ -262,24 +246,11 @@ function getDonateText(accountants, isApi = false) {
  * @returns {string}
  */
 function getJoinText(isApi = false) {
-    return `🧑🏻‍🏫 Если вы находитесь в Ереване, увлечены технологиями и ищете единомышленников, заходите к нам.
-- Мы проводим регулярный день открытых дверей каждую пятницу в 20.00.
-- Часто по понедельникам в 20.00 мы проводим музыкальные встречи: приносим гитары, играем в Rocksmith и джемим.
-- В любой другой день спейс тоже может принять гостей, вводи команду ${
-        !isApi ? "/" : ""
-    }status чтобы узнать открыт ли спейс и есть ли там кто-нибудь.
-
-💸 Посещения свободные (бесплатные), но любые донаты на помощь нашим проектам и аренду очень приветствуются.
-Подробнее можно узнать по команде ${!isApi ? "/" : ""}donate
-${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /location\n" : ""}
-🔑 Если вы хотите стать постоянным участником - полноценным резидентом сообщества, т.е. иметь свой ключ, своё место для хранения вещей (инструменты, сервера и.т.п.), участвовать в принятии решений о развитии спейса,\
- то наши требования просты:
-- Дружелюбность и неконфликтность.
-- Готовность участвовать в жизни сообщества.
-- Регулярные пожертвования (естественно в рамках ваших возможностей).
-
-🧙🏻‍♂️ Обратитесь к любому резиденту спейса, он представит вашу кандидатуру Совету Спейса.
-`;
+    return t("basic.join", {
+        statusCommand: `${!isApi ? "/" : ""}status`,
+        donateCommand: `${!isApi ? "/" : ""}donate`,
+        locationCommand: `${!isApi ? "/" : ""}location`,
+    });
 }
 
 /**
@@ -287,42 +258,32 @@ ${!isApi ? "\n🗺 Чтобы узнать, как нас найти, жми /lo
  * @returns {string}
  */
 function getEventsText(isApi = false) {
-    const calendarLink = isApi
-        ? "<a href='https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan'>Hacker Embassy Public Events</a>"
-        : "#[Hacker Embassy Public Events#]#(https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan#)";
-    const iCalLink = isApi
-        ? "<a href='https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics'>iCal</a>"
-        : "#[iCal#]#(https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics#)";
-
-    return `🗓 За нашими мероприятиями можно следить в календарике
-${calendarLink}
-Подпишись плюсиком ➕ внизу страницы или возьми ${iCalLink}
-
-🎭 Что у нас происходит: 
-- Мастерклассы и презентации на различные темы от 3D печати, моделирования и пайки до нейросетей, алгоритмов доказательства теорем и шибари. Дату анонсируем заранее в чатике.
-- Часто по вторникам в 21.00 мы проводим музыкальные встречи: приносим гитары, играем в Rocksmith и джемим.
-- Каждую пятницу в 20.00 у нас традиционный день открытых дверей, общаемся, знакомимся и тусим.
-- В любой другой день спейс тоже может принять гостей, смотри status спейса, чтобы узнать больше.
-
-💸 Посещения свободные (бесплатные), но любые донаты на помощь нашим проектам и аренду очень приветствуются.
-Подробнее можно узнать по команде ${!isApi ? "/" : ""}donate
-`;
+    return t("basic.events", {
+        calendarLink: isApi
+            ? "<a href='https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan'>Hacker Embassy Public Events</a>"
+            : "#[Hacker Embassy Public Events#]#(https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan#)",
+        iCalLink: isApi
+            ? "<a href='https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics'>iCal</a>"
+            : "#[iCal#]#(https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics#)",
+        donateCommand: `${!isApi ? "/" : ""}donate`,
+    });
 }
 
 /** @type {string[]} */
 const shortMonthNames = [
-    "января",
-    "февраля",
-    "марта",
-    "апреля",
-    "мая",
-    "июня",
-    "июля",
-    "августа",
-    "сентября",
-    "октября",
-    "ноября",
-    "декабря",
+    "birthday.months.january",
+    "birthday.months.february",
+    "birthday.months.march",
+    "birthday.months.april",
+    "birthday.months.may",
+    "birthday.months.june",
+    "birthday.months.july",
+    "birthday.months.august",
+    "birthday.months.september",
+    "birthday.months.october",
+    "birthday.months.october",
+    "birthday.months.november",
+    "birthday.months.december",
 ];
 
 /**
@@ -330,12 +291,11 @@ const shortMonthNames = [
  * @returns {string}
  */
 function getBirthdaysList(birthdayUsers, mode) {
-    let message = `🎂 В этом месяце празднуют свои днюхи:\n`;
-
-    let usersList = `\nНикто? Странно...\n`;
+    let message = t("birthday.nextbirthdays");
+    let usersList = `\n${t("birthday.noone")}\n`;
 
     if (birthdayUsers) {
-        let usersWithDays = birthdayUsers
+        let usersWithBirthdayThisMonth = birthdayUsers
             .map(u => {
                 let parts = u.birthday.split("-");
                 return {
@@ -349,10 +309,10 @@ function getBirthdaysList(birthdayUsers, mode) {
             })
             .sort((u1, u2) => u1.day - u2.day);
 
-        if (usersWithDays.length > 0) {
-            usersList = ``;
-            for (const user of usersWithDays) {
-                message += `${user.day} ${shortMonthNames[user.month - 1]} - ${UsersHelper.formatUsername(
+        if (usersWithBirthdayThisMonth.length > 0) {
+            usersList = "";
+            for (const user of usersWithBirthdayThisMonth) {
+                message += `${user.day} ${t(shortMonthNames[user.month - 1])} - ${UsersHelper.formatUsername(
                     user.username,
                     mode
                 )}\n`;
@@ -360,34 +320,14 @@ function getBirthdaysList(birthdayUsers, mode) {
         }
     }
 
-    message += `${usersList}
-Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в форматах:
-#\`/mybirthday YYYY-MM-DD#\`
-#\`/mybirthday MM-DD#\`
-Надоели поздравления себя? Вводи команду:
-#\`/mybirthday remove#\``;
-
-    return message;
+    return message + t("birthday.help", { usersList });
 }
 
 /**
  * @returns {string}
  */
 function getPrintersInfo() {
-    return `🖨 У нас есть два 3D принтера:
-
-🚺 Anette от ubershy и cake64
-Документация по нему доступна тут:
-https://wiki.hackerembassy.site/ru/equipment/anette
-Веб интерфейс доступен внутри сети спейса по адресу ${printersConfig.anette.apibase}
-Статус принтера можно узнать по команде /anette
-
-🚹 Plumbus от the_mihalich
-Документация по нему доступна тут:
-https://wiki.hackerembassy.site/ru/equipment/plumbus
-Веб интерфейс доступен внутри сети спейса по адресу ${printersConfig.plumbus.apibase}
-Статус принтера можно узнать по команде /plumbus
-`;
+    return t("embassy.printers.help", { anetteApi: printersConfig.anette.apibase, plumbusApi: printersConfig.plumbus.apibase });
 }
 
 /**
@@ -395,7 +335,7 @@ https://wiki.hackerembassy.site/ru/equipment/plumbus
  * @returns {string}
  */
 function toMinSec(num) {
-    if (isNaN(num) || !isFinite(num)) return "Хз";
+    if (isNaN(num) || !isFinite(num)) return t("embassy.printerstatus.undefinedtime");
     let numstr = num.toFixed(2);
     let [integral, decimal] = numstr.split(".");
     decimal = Math.floor((Number(decimal) * 60) / 100).toString();
@@ -407,29 +347,26 @@ function toMinSec(num) {
  * @returns {Promise<string>}
  */
 async function getPrinterStatus(status) {
-    let print_stats = status.print_stats;
-    let state = print_stats.state;
-    let heater_bed = status.heater_bed;
-    let extruder = status.extruder;
+    const print_stats = status.print_stats;
+    const state = print_stats.state;
+    const heater_bed = status.heater_bed;
+    const extruder = status.extruder;
 
-    let message = `💤 Статус принтера: ${state}`;
+    let message = t("embassy.printerstatus.statusheader", { state });
 
     if (state === "printing") {
-        let minutesPast = toMinSec(print_stats.total_duration / 60);
-        let progress = (status.display_status.progress * 100).toFixed(0);
-        let estimate = toMinSec((Number(minutesPast) / Number(progress)) * (100 - Number(progress)));
+        const minutesPast = toMinSec(print_stats.total_duration / 60);
+        const progress = (status.display_status.progress * 100).toFixed(0);
 
-        message = `⏲ Печатается файл ${print_stats.filename}
-
-🕔 Процент завершения ${progress}%
-   Прошло ${minutesPast} минут
-   Осталось примерно ${estimate} минут
-
-📏 Использовано ${print_stats.filament_used.toFixed(0)} мм филамента (${(print_stats.filament_used / 1000).toFixed(2)} м)
-
-🔥 Температура экструдера ${extruder.temperature} C, целевая ${extruder.target} C
-    Температура стола ${heater_bed.temperature} C, целевая ${heater_bed.target} C
-`;
+        message = t("embassy.printerstatus.status", {
+            extruder,
+            heater_bed,
+            minutesPast,
+            progress,
+            estimate: toMinSec((Number(minutesPast) / Number(progress)) * (100 - Number(progress))),
+            usedFilament: print_stats.filament_used.toFixed(0),
+            usedFilementInMeters: (print_stats.filament_used / 1000).toFixed(2),
+        });
     }
 
     return message;

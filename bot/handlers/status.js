@@ -205,11 +205,11 @@ class StatusHandlers {
             ? [
                   [
                       {
-                          text: t("status.buttons.andin"),
+                          text: t("status.buttons.inandin"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                       {
-                          text: t("status.buttons.andout"),
+                          text: t("status.buttons.inandout"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                   ],
@@ -253,11 +253,11 @@ class StatusHandlers {
             ? [
                   [
                       {
-                          text: t("status.buttons.andout"),
+                          text: t("status.buttons.outandout"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                       {
-                          text: t("status.buttons.andin"),
+                          text: t("status.buttons.outandin"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                   ],

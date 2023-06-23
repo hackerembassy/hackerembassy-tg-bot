@@ -14,21 +14,22 @@ target_path="${3:-$default_target_path}"
 
 container_uri="${container_uri%%/}/"
 target_path="${target_path%%/}/"
-tmp="/tmp/$(cat /proc/sys/kernel/random/uuid)"
+tmp="/tmp/$(uuidgen)"
 
 echo "Connecting to '$ssh_address' via ssh..."
-( sed "\$a main $container_uri $tmp" | ssh -T "$ssh_address" ) << 'END_OF_SCRIPT'
+ssh -T "$ssh_address" << END_OF_SCRIPT
 echo 'Running on the remote host...'
 set -e
 main() {
     set -xe
-    local container_uri=$1
-    local tmp=$2
-    mkdir "$tmp"
-    docker cp $container_uri $tmp/vol
-    tar -czf $tmp/vol.tgz -C $tmp/vol .
-    rm -r $tmp/vol
+    local container_uri=\$1
+    local tmp=\$2
+    mkdir "\$tmp"
+    docker cp \$container_uri \$tmp/vol
+    tar -czf \$tmp/vol.tgz -C \$tmp/vol .
+    rm -r \$tmp/vol
 }
+main $container_uri $tmp
 END_OF_SCRIPT
 echo "Fetching the compressed volume..."
 

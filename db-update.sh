@@ -1,31 +1,35 @@
 #!/bin/bash
 set -e
-default_remote_path="hackem-bot:/app/data/db/"
+default_container_name="hackem-bot"
+default_container_path="/app/data/db/"
 default_local_path="$(readlink -f "$(dirname "$0")")/data/db/"
+
 usage_msg="Usage:
-    $0 [-s remote_path] [-o local_path] {-h | -d | -u} ssh_address"
+    $0 [-c container_name] [-p container_path] [-o local_path] {-h | -d | -u} ssh_address"
 help_msg="
 Parameters:
-    ssh_address     like in ssh (specify port in ~/.ssh/config if required)
-    -d              download remote_path to local_path
-    -u              upload local_path to remote_path
-    -s remote_path  container:path (optional, default: $default_remote_path)
-    -o local_path   path on your host (optional, default: $default_local_path)
-    -h              you are reading this fine man"
-while getopts "s:o:p:duh" opt
+    ssh_address        like in ssh (specify port in ~/.ssh/config if required)
+    -d                 download container_path to local_path
+    -u                 upload local_path to container_path
+    -c container_name  (optional) default: $default_container_name
+    -p container_path  (optional) default: $default_container_path
+    -o local_path      (optional) default: $default_local_path
+    -h                 you are reading this fine man"
+while getopts "duc:p:o:h" opt
 do
     case "$opt" in
-        s) remote_path=$OPTARG ;;
-        o) local_path=$OPTARG ;;
         d) action=download ;;
         u) action=upload ;;
+        c) container_name=$OPTARG ;;
+        p) container_path=$OPTARG ;;
+        o) local_path=$OPTARG ;;
         h) echo "$usage_msg$help_msg" 1>&2 ; exit 1 ;;
         *) ;;
     esac
 done
 shift "$((OPTIND-1))"
-remote_path="${remote_path:-$default_remote_path}"
-remote_path="${remote_path%%/}/"
+container_path="${container_path:-$default_container_path}"
+container_path="${container_path%%/}/"
 local_path="${local_path:-$default_local_path}"
 local_path="${local_path%%/}/"
 ssh_address=${1:?$usage_msg}
@@ -39,7 +43,7 @@ main() {
     set -x
     local tmp="$tmp"
     mkdir "\$tmp"
-    docker cp '$remote_path' "\$tmp/vol"
+    docker cp '$container_name:$container_path' "\$tmp/vol"
     tar -czf "\$tmp/vol.tgz" -C "\$tmp/vol" .
     rm -r "\$tmp/vol"
 }
@@ -68,8 +72,9 @@ main() {
     set -x
     local tmp="$tmp"
     tar -xf "$tmp/vol.tgz" -C "\$tmp/vol"
-    docker cp  "\$tmp/vol/."  '$remote_path'
+    docker cp  "\$tmp/vol/."  '$container_name:$container_path'
     rm -r "\$tmp"
+    docker restart $container_name
 }
 main
 END_OF_SCRIPT

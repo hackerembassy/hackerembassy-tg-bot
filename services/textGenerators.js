@@ -331,15 +331,16 @@ function getPrintersInfo() {
 }
 
 /**
- * @param {number} num
+ * @param {number} minutes
  * @returns {string}
  */
-function toMinSec(num) {
-    if (isNaN(num) || !isFinite(num)) return t("embassy.printerstatus.undefinedtime");
-    let numstr = num.toFixed(2);
-    let [integral, decimal] = numstr.split(".");
-    decimal = Math.floor((Number(decimal) * 60) / 100).toString();
-    return `${integral}.${decimal.substring(0, 2).padStart(2, "0")}`;
+function convertMinutesToHours(minutes) {
+    if (isNaN(minutes) || !isFinite(minutes)) return t("embassy.printerstatus.undefinedtime");
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    return hours + "h " + remainingMinutes.toFixed(0) + "m";
 }
 
 /**
@@ -355,17 +356,18 @@ async function getPrinterStatus(status) {
     let message = t("embassy.printerstatus.statusheader", { state });
 
     if (state === "printing") {
-        const minutesPast = toMinSec(print_stats.total_duration / 60);
-        const progress = (status.display_status.progress * 100).toFixed(0);
+        const progress = status.display_status.progress * 100;
+        const minutesPast = print_stats.total_duration / 60;
+        const minutesEstimate = (minutesPast / progress) * (100 - progress);
 
         message = t("embassy.printerstatus.status", {
+            print_stats,
             extruder,
             heater_bed,
-            minutesPast,
-            progress,
-            estimate: toMinSec((Number(minutesPast) / Number(progress)) * (100 - Number(progress))),
-            usedFilament: print_stats.filament_used.toFixed(0),
-            usedFilementInMeters: (print_stats.filament_used / 1000).toFixed(2),
+            past: convertMinutesToHours(minutesPast),
+            estimate: convertMinutesToHours(minutesEstimate),
+            progress: progress.toFixed(0),
+            usedFilament: (print_stats.filament_used / 1000).toFixed(3),
         });
     }
 

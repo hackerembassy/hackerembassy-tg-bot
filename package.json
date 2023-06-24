@@ -11,7 +11,7 @@
     "embassy-api-service": "/usr/bin/node embassyApi.js",
     "dev": "nodemon app.js",
     "dev-service": "nodemon embassyApi.js",
-    "dev-both": "run-p dev-bot dev-service",
+    "dev-both": "run-p dev dev-service",
     "stop-embassy-api": "skill -c 'nohup node embassyApi.js &'",
     "git": "git add * && git commit && git push",
     "git-redo": "git add * && git commit --amend && git push --force",

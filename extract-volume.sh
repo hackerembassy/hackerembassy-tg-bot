@@ -1,41 +1,43 @@
 #!/bin/bash
 set -e 
 
-usage_msg="Usage: $0 ssh_address [container_uri] [target_path]"
+usage_msg="Usage: $0 [-s remote_path] [-o local_path] ssh_address"
+default_remote_path="hackem-bot:/app/data/db/"
+default_local_path="$(readlink -f "$(dirname "$0")")/data/db/"
+while getopts "s:o:p:" opt
+do
+    case "$opt" in
+        s) remote_path=$OPTARG;;
+        o) local_path=$OPTARG;;
+        *) ;;
+    esac
+done
+shift "$((OPTIND-1))"
+remote_path="${remote_path:-$default_remote_path}"
+remote_path="${remote_path%%/}/"
+local_path="${local_path:-$default_local_path}"
+local_path="${local_path%%/}/"
+ssh_address=${1:?$usage_msg}
+tmp="/tmp/hackem-$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 32)"
 
-script_dir="$(readlink -f "$(dirname "$0")")"
-
-default_container_uri="hackem-bot:/app/data/db/"
-default_target_path="$script_dir/data/db/"
-
-ssh_address=${1?$usage_msg}
-container_uri="${2:-$default_container_uri}"
-target_path="${3:-$default_target_path}"
-
-container_uri="${container_uri%%/}/"
-target_path="${target_path%%/}/"
-tmp="/tmp/$(uuidgen)"
-
-echo "Connecting to '$ssh_address' via ssh..."
 ssh -T "$ssh_address" << END_OF_SCRIPT
-echo 'Running on the remote host...'
+echo '--- ssh connected'
 set -e
 main() {
-    set -xe
-    local container_uri=\$1
-    local tmp=\$2
+    set -x
+    local tmp="$tmp"
     mkdir "\$tmp"
-    docker cp \$container_uri \$tmp/vol
-    tar -czf \$tmp/vol.tgz -C \$tmp/vol .
-    rm -r \$tmp/vol
+    docker cp '$remote_path' "\$tmp/vol"
+    tar -czf "\$tmp/vol.tgz" -C "\$tmp/vol" .
+    rm -r "\$tmp/vol"
 }
-main $container_uri $tmp
+main
 END_OF_SCRIPT
-echo "Fetching the compressed volume..."
+echo "--- ssh disconnected"
 
 set -x
 mkdir "$tmp"
 scp "$ssh_address":"$tmp/vol.tgz" "$tmp/"
 ssh -T "$ssh_address" rm -r "$tmp"
-tar -xf "$tmp/vol.tgz" -C "$target_path"
+tar -xf "$tmp/vol.tgz" -C "$local_path"
 rm -r "$tmp"

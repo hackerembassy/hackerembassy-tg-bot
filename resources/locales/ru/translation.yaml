@@ -215,7 +215,7 @@ embassy:
   printerstatus:
     statusheader: "💤 Статус принтера: {{state}}"
     status: |
-      ⏲ Печатается файл {{print_stats.filename}}
+      🖨 Печатается файл {{print_stats.filename}}
 
       🕔 Процент завершения {{progress}}%
       🕔 Прошло {{past}}

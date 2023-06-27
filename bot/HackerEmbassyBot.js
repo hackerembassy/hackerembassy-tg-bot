@@ -34,18 +34,25 @@ class HackerEmbassyBot extends TelegramBot {
         super(token, options);
     }
 
-    mode = {
-        silent: false,
-        mention: false,
-        admin: false,
+    context = {
+        mode: {
+            silent: false,
+            mention: false,
+            admin: false,
+        },
+        /**
+         * @type {number | undefined}
+         */
+        messageThreadId: undefined,
+        clear() {
+            this.messageThreadId = undefined;
+            this.mode.silent = false;
+            this.mode.mention = false;
+            this.mode.admin = false;
+        },
     };
 
     history = [];
-
-    /**
-     * @type {number | undefined}
-     */
-    messageThreadId;
 
     onExt(event, listener) {
         let botthis = this;
@@ -57,7 +64,7 @@ class HackerEmbassyBot extends TelegramBot {
     }
 
     get addedModifiersString() {
-        return Object.keys(this.mode)
+        return Object.keys(this.context.mode)
             .reduce((acc, key) => {
                 return `${acc} -${key}|`;
             }, "(")
@@ -73,13 +80,18 @@ class HackerEmbassyBot extends TelegramBot {
 
     async editMessageText(text, options) {
         text = prepareMessageForMarkdown(text);
-        options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.messageThreadId });
+        options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context.messageThreadId });
 
         return super.editMessageText(text, options);
     }
 
     async sendPhoto(chatId, photo, options, fileOptions) {
-        let message = await super.sendPhoto(chatId, photo, { ...options, message_thread_id: this.messageThreadId }, fileOptions);
+        let message = await super.sendPhoto(
+            chatId,
+            photo,
+            { ...options, message_thread_id: this.context.messageThreadId },
+            fileOptions
+        );
         let messageId = message.message_id;
 
         if (!this.history[chatId]) this.history[chatId] = [];
@@ -88,12 +100,16 @@ class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(message);
     }
 
+    async sendLocation(chatId, latitude, longitude, options = {}) {
+        await super.sendLocation(chatId, latitude, longitude, { ...options, message_thread_id: this.context.messageThreadId });
+    }
+
     async sendMessage(chatId, text, options) {
         text = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
-        if (!this.mode.silent) {
-            let message = await super.sendMessage(chatId, text, { ...options, message_thread_id: this.messageThreadId });
+        if (!this.context.mode.silent) {
+            let message = await super.sendMessage(chatId, text, { ...options, message_thread_id: this.context.messageThreadId });
             if (!message) return;
             let messageId = message.message_id;
             if (!this.history[chatId]) this.history[chatId] = [];
@@ -142,21 +158,19 @@ ${chunks[index]}
 
         let newCallback = async function (msg, match) {
             let newCommand = match[0];
-            let oldmode = { ...botthis.mode };
 
-            for (const key of Object.keys(botthis.mode)) {
+            for (const key of Object.keys(botthis.context.mode)) {
                 newCommand = newCommand.replace(` -${key}`, "");
-                if (match[0].includes(`-${key}`)) botthis.mode[key] = true;
+                if (match[0].includes(`-${key}`)) botthis.context.mode[key] = true;
             }
 
             if (match !== undefined) match = originalRegex.exec(newCommand);
 
-            botthis.messageThreadId = msg.message_thread_id;
+            botthis.context.messageThreadId = msg.message_thread_id;
 
             await callback.call(this, botthis, msg, match);
 
-            botthis.messageThreadId = undefined;
-            botthis.mode = oldmode;
+            botthis.context.clear();
         };
 
         await super.onText(regexp, newCallback);
@@ -182,7 +196,7 @@ ${chunks[index]}
     }
 
     isAdminMode() {
-        return this.mode.admin;
+        return this.context.mode.admin;
     }
 
     async sendNotification(message, date, chat) {

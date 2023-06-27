@@ -5,9 +5,9 @@ const UsersHelper = require("../../services/usersHelper");
 const t = require("../../services/localization");
 
 class NeedsHandlers {
-    static needsHandler = (bot, msg) => {
+    static needsHandler = async (bot, msg) => {
         const needs = NeedsRepository.getOpenNeeds();
-        const text = TextGenerators.getNeedsList(needs, bot.mode);
+        const text = TextGenerators.getNeedsList(needs, bot.context.mode);
         const inline_keyboard = needs.map(need => [
             {
                 text: need.text,
@@ -15,25 +15,25 @@ class NeedsHandlers {
             },
         ]);
 
-        bot.sendMessage(msg.chat.id, text, {
+        await bot.sendMessage(msg.chat.id, text, {
             reply_markup: { inline_keyboard },
         });
     };
 
-    static buyHandler = (bot, msg, item) => {
+    static buyHandler = async (bot, msg, item) => {
         const requester = msg.from.username;
         const success = NeedsRepository.addBuy(item, requester, new Date());
 
-        bot.sendMessage(
+        await bot.sendMessage(
             msg.chat.id,
             success
-                ? t("needs.buy.success", { username: UsersHelper.formatUsername(requester, bot.mode), item })
+                ? t("needs.buy.success", { username: UsersHelper.formatUsername(requester, bot.context.mode), item })
                 : t("needs.buy.fail")
         );
     };
 
-    static boughtByIdHandler = (bot, msg, id) => {
-        this.boughtHandler(bot, msg, NeedsRepository.getNeedById(id).text || "");
+    static boughtByIdHandler = async (bot, msg, id) => {
+        await this.boughtHandler(bot, msg, NeedsRepository.getNeedById(id).text || "");
     };
 
     static boughtUndoHandler = (_, msg, id) => {
@@ -47,7 +47,7 @@ class NeedsHandlers {
         return false;
     };
 
-    static boughtHandler = (bot, msg, item) => {
+    static boughtHandler = async (bot, msg, item) => {
         const buyer = msg.from.username;
         const need = NeedsRepository.getOpenNeedByText(item);
 
@@ -58,7 +58,7 @@ class NeedsHandlers {
 
         NeedsRepository.closeNeed(item, buyer, new Date());
 
-        const successText = t("needs.bought.success", { username: UsersHelper.formatUsername(buyer, bot.mode), item });
+        const successText = t("needs.bought.success", { username: UsersHelper.formatUsername(buyer, bot.context.mode), item });
         const inline_keyboard = [
             [
                 {
@@ -68,7 +68,7 @@ class NeedsHandlers {
             ],
         ];
 
-        bot.sendMessage(msg.chat.id, successText, {
+        await bot.sendMessage(msg.chat.id, successText, {
             reply_markup: { inline_keyboard },
         });
     };

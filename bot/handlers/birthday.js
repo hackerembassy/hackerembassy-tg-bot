@@ -21,14 +21,14 @@ class BirthdayHandlers {
 
     static birthdayHandler = (bot, msg) => {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
-        const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.mode);
+        const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context.mode);
 
         bot.sendMessage(msg.chat.id, text);
     };
 
     static myBirthdayHandler = (bot, msg, date) => {
         const username = msg.from.username;
-        const formattedUsername = UsersHelper.formatUsername(username, bot.mode);
+        const formattedUsername = UsersHelper.formatUsername(username, bot.context.mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
 
         let text = t("birthday.fail");
@@ -62,7 +62,7 @@ class BirthdayHandlers {
             let message = "🎂 ";
             message += await getWish(user.username);
 
-            bot.sendMessage(botConfig.chats.main, message);
+            await bot.sendMessage(botConfig.chats.main, message);
             logger.info(`Wished ${user.username} a happy birthday`);
 
             if (!wishedUser) wishedToday.push({ username: user.username, date: currentDate });

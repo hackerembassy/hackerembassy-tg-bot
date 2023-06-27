@@ -42,6 +42,11 @@ class HackerEmbassyBot extends TelegramBot {
 
     history = [];
 
+    /**
+     * @type {number | undefined}
+     */
+    messageThreadId;
+
     onExt(event, listener) {
         let botthis = this;
         let newListener = async query => {
@@ -68,13 +73,13 @@ class HackerEmbassyBot extends TelegramBot {
 
     async editMessageText(text, options) {
         text = prepareMessageForMarkdown(text);
-        options = prepareOptionsForMarkdown({ ...options });
+        options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.messageThreadId });
 
         return super.editMessageText(text, options);
     }
 
     async sendPhoto(chatId, photo, options, fileOptions) {
-        let message = await super.sendPhoto(chatId, photo, options, fileOptions);
+        let message = await super.sendPhoto(chatId, photo, { ...options, message_thread_id: this.messageThreadId }, fileOptions);
         let messageId = message.message_id;
 
         if (!this.history[chatId]) this.history[chatId] = [];
@@ -88,7 +93,7 @@ class HackerEmbassyBot extends TelegramBot {
         options = prepareOptionsForMarkdown({ ...options });
 
         if (!this.mode.silent) {
-            let message = await super.sendMessage(chatId, text, options);
+            let message = await super.sendMessage(chatId, text, { ...options, message_thread_id: this.messageThreadId });
             if (!message) return;
             let messageId = message.message_id;
             if (!this.history[chatId]) this.history[chatId] = [];
@@ -146,8 +151,11 @@ ${chunks[index]}
 
             if (match !== undefined) match = originalRegex.exec(newCommand);
 
+            botthis.messageThreadId = msg.message_thread_id;
+
             await callback.call(this, botthis, msg, match);
 
+            botthis.messageThreadId = undefined;
             botthis.mode = oldmode;
         };
 

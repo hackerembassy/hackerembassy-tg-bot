@@ -223,8 +223,8 @@ embassy:
 
       📏 Использовано {{usedFilament}} метров филамента
 
-      🔥 Температура экструдера {{extruder.temperature}} C, целевая {{extruder.target}} C
-      🔥 Температура стола {{heater_bed.temperature}} C, целевая {{heater_bed.target}} C
+      🔥 Температура экструдера {{extruder.temperature}}ºC, целевая {{extruder.target}}ºC
+      🔥 Температура стола {{heater_bed.temperature}}ºC, целевая {{heater_bed.target}}ºC
     update: Обновить статус {{printername}}
     fail: ⚠️ Принтер пока недоступен
   doorbell:

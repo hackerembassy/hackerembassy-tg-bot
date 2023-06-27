@@ -24,6 +24,11 @@ class ServiceHandlers {
         }
     };
 
+    static chatidHandler = (bot, msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+        bot.sendMessage(msg.chat.id, `${msg.chat.id} ${msg.message_thread_id}`);
+    };
+
     static superstatusHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "member", "admin")) return;
 

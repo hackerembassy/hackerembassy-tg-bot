@@ -156,7 +156,7 @@ class ServiceHandlers {
         }
 
         await bot.answerCallbackQuery(callbackQuery.id);
-        bot.context.messageThreadId = undefined;
+        bot.context.clear();
     };
 
     static newMemberHandler = async (bot, msg) => {

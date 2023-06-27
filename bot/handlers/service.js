@@ -38,130 +38,132 @@ class ServiceHandlers {
         await EmbassyHandlers.doorcamHandler(bot, msg);
     };
 
-    static callbackHandler = (bot, callbackQuery) => {
+    static callbackHandler = async (bot, callbackQuery) => {
         const message = callbackQuery.message;
         const data = JSON.parse(callbackQuery.data);
         message.from = callbackQuery.from;
+        bot.context.messageThreadId = message.message_thread_id;
 
         switch (data.command) {
             case "/in":
-                StatusHandlers.inHandler(bot, message);
+                await StatusHandlers.inHandler(bot, message);
                 break;
             case "/out":
-                StatusHandlers.outHandler(bot, message);
+                await StatusHandlers.outHandler(bot, message);
                 break;
             case "/going":
-                StatusHandlers.goingHandler(bot, message);
+                await StatusHandlers.goingHandler(bot, message);
                 break;
             case "/notgoing":
-                StatusHandlers.notGoingHandler(bot, message);
+                await StatusHandlers.notGoingHandler(bot, message);
                 break;
             case "/open":
-                StatusHandlers.openHandler(bot, message);
+                await StatusHandlers.openHandler(bot, message);
                 break;
             case "/close":
-                StatusHandlers.closeHandler(bot, message);
+                await StatusHandlers.closeHandler(bot, message);
                 break;
             case "/status":
-                StatusHandlers.statusHandler(bot, message);
+                await StatusHandlers.statusHandler(bot, message);
                 break;
             case "/ustatus":
-                StatusHandlers.statusHandler(bot, message, true);
+                await StatusHandlers.statusHandler(bot, message, true);
                 break;
             case "/superstatus":
-                this.superstatusHandler(bot, message);
+                await this.superstatusHandler(bot, message);
                 break;
             case "/birthdays":
-                BirthdayHandlers.birthdayHandler(bot, message);
+                await BirthdayHandlers.birthdayHandler(bot, message);
                 break;
             case "/needs":
-                NeedsHandlers.needsHandler(bot, message);
+                await NeedsHandlers.needsHandler(bot, message);
                 break;
             case "/funds":
-                FundsHandlers.fundsHandler(bot, message);
+                await FundsHandlers.fundsHandler(bot, message);
                 break;
             case "/startpanel":
-                BasicHandlers.startPanelHandler(bot, message, true);
+                await BasicHandlers.startPanelHandler(bot, message, true);
                 break;
             case "/infopanel":
-                BasicHandlers.infoPanelHandler(bot, message, true);
+                await BasicHandlers.infoPanelHandler(bot, message, true);
                 break;
             case "/controlpanel":
-                BasicHandlers.controlPanelHandler(bot, message, true);
+                await BasicHandlers.controlPanelHandler(bot, message, true);
                 break;
             case "/about":
-                BasicHandlers.aboutHandler(bot, message);
+                await BasicHandlers.aboutHandler(bot, message);
                 break;
             case "/help":
-                BasicHandlers.helpHandler(bot, message);
+                await BasicHandlers.helpHandler(bot, message);
                 break;
             case "/donate":
-                BasicHandlers.donateHandler(bot, message);
+                await BasicHandlers.donateHandler(bot, message);
                 break;
             case "/join":
-                BasicHandlers.joinHandler(bot, message);
+                await BasicHandlers.joinHandler(bot, message);
                 break;
             case "/events":
-                BasicHandlers.eventsHandler(bot, message);
+                await BasicHandlers.eventsHandler(bot, message);
                 break;
             case "/location":
-                BasicHandlers.locationHandler(bot, message);
+                await BasicHandlers.locationHandler(bot, message);
                 break;
             case "/getresidents":
-                BasicHandlers.getResidentsHandler(bot, message);
+                await BasicHandlers.getResidentsHandler(bot, message);
                 break;
             case "/ef":
-                FundsHandlers.exportCSVHandler(bot, message, ...data.params);
+                await FundsHandlers.exportCSVHandler(bot, message, ...data.params);
                 break;
             case "/ed":
-                FundsHandlers.exportDonutHandler(bot, message, ...data.params);
+                await FundsHandlers.exportDonutHandler(bot, message, ...data.params);
                 break;
             case "/unlock":
-                EmbassyHandlers.unlockHandler(bot, message);
+                await EmbassyHandlers.unlockHandler(bot, message);
                 break;
             case "/doorbell":
-                EmbassyHandlers.doorbellHandler(bot, message);
+                await EmbassyHandlers.doorbellHandler(bot, message);
                 break;
             case "/webcam":
-                EmbassyHandlers.webcamHandler(bot, message);
+                await EmbassyHandlers.webcamHandler(bot, message);
                 break;
             case "/webcam2":
-                EmbassyHandlers.webcam2Handler(bot, message);
+                await EmbassyHandlers.webcam2Handler(bot, message);
                 break;
             case "/doorcam":
-                EmbassyHandlers.doorcamHandler(bot, message);
+                await EmbassyHandlers.doorcamHandler(bot, message);
                 break;
             case "/printers":
-                EmbassyHandlers.printersHandler(bot, message);
+                await EmbassyHandlers.printersHandler(bot, message);
                 break;
             case "/printerstatus anette":
             case "/anettestatus":
-                EmbassyHandlers.printerStatusHandler(bot, message, "anette");
+                await EmbassyHandlers.printerStatusHandler(bot, message, "anette");
                 break;
             case "/printerstatus plumbus":
             case "/plumbusstatus":
-                EmbassyHandlers.printerStatusHandler(bot, message, "plumbus");
+                await EmbassyHandlers.printerStatusHandler(bot, message, "plumbus");
                 break;
             case "/bought":
-                this.boughtButtonHandler(bot, message, data.id, callbackQuery);
+                await this.boughtButtonHandler(bot, message, data.id, callbackQuery);
                 break;
             case "/bought_undo":
-                if (NeedsHandlers.boughtUndoHandler(bot, message, data.id)) {
-                    bot.deleteMessage(message.chat.id, message.message_id);
+                if (await NeedsHandlers.boughtUndoHandler(bot, message, data.id)) {
+                    await bot.deleteMessage(message.chat.id, message.message_id);
                 }
                 break;
             default:
                 break;
         }
 
-        bot.answerCallbackQuery(callbackQuery.id);
+        await bot.answerCallbackQuery(callbackQuery.id);
+        bot.context.messageThreadId = undefined;
     };
 
     static newMemberHandler = async (bot, msg) => {
         const botName = (await bot.getMe()).username;
         const newMembers = msg.new_chat_members.reduce(
             (res, member) =>
-                res + `${member?.username ? UsersHelper.formatUsername(member.username, bot.mode) : member?.first_name} `,
+                res + `${member?.username ? UsersHelper.formatUsername(member.username, bot.context.mode) : member?.first_name} `,
             ""
         );
 

@@ -8,27 +8,27 @@ const botConfig = require("config").get("bot");
 const t = require("../../services/localization");
 
 class BasicHandlers {
-    static helpHandler = (bot, msg) => {
+    static helpHandler = async (bot, msg) => {
         const text = t("basic.help", {
             availableCommands: UsersHelper.getAvailableCommands(msg.from.username),
             globalModifiers: Commands.GlobalModifiers,
         });
 
-        bot.sendMessage(msg.chat.id, text);
+        await bot.sendMessage(msg.chat.id, text);
     };
 
-    static aboutHandler = (bot, msg) => {
-        bot.sendMessage(msg.chat.id, t("basic.about"));
+    static aboutHandler = async (bot, msg) => {
+        await bot.sendMessage(msg.chat.id, t("basic.about"));
     };
 
-    static joinHandler = (bot, msg) => {
+    static joinHandler = async (bot, msg) => {
         let message = TextGenerators.getJoinText();
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessage(msg.chat.id, message);
     };
 
-    static eventsHandler = (bot, msg) => {
+    static eventsHandler = async (bot, msg) => {
         let message = TextGenerators.getEventsText();
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessage(msg.chat.id, message);
     };
 
     static issueHandler = async (bot, msg, issueText) => {
@@ -43,16 +43,16 @@ class BasicHandlers {
         }
     };
 
-    static donateHandler = (bot, msg) => {
+    static donateHandler = async (bot, msg) => {
         const accountants = UsersRepository.getUsersByRole("accountant");
         const message = TextGenerators.getDonateText(accountants);
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessage(msg.chat.id, message);
     };
 
-    static locationHandler = (bot, msg) => {
-        bot.sendMessage(msg.chat.id, t("basic.location.address"));
-        bot.sendLocation(msg.chat.id, 40.18258, 44.51338);
-        bot.sendPhoto(msg.chat.id, "./resources/images/house.jpg", { caption: t("basic.location.caption") });
+    static locationHandler = async (bot, msg) => {
+        await bot.sendMessage(msg.chat.id, t("basic.location.address"));
+        await bot.sendLocation(msg.chat.id, 40.18258, 44.51338);
+        await bot.sendPhoto(msg.chat.id, "./resources/images/house.jpg", { caption: t("basic.location.caption") });
     };
 
     static donateCoinHandler = async (bot, msg, coinname) => {
@@ -60,23 +60,23 @@ class BasicHandlers {
         const qrImage = await CoinsHelper.getQR(coinname);
         const coin = CoinsHelper.getCoinDefinition(coinname);
 
-        bot.sendPhoto(msg.chat.id, qrImage, {
+        await bot.sendPhoto(msg.chat.id, qrImage, {
             parse_mode: "Markdown",
             caption: t("basic.donateCoin", { coin }),
         });
     };
 
     static donateCardHandler = async (bot, msg) => {
-        const accountantsList = TextGenerators.getAccountsList(UsersRepository.getUsersByRole("accountant"), bot.mode);
+        const accountantsList = TextGenerators.getAccountsList(UsersRepository.getUsersByRole("accountant"), bot.context.mode);
 
-        bot.sendMessage(msg.chat.id, t("basic.donateCard", { accountantsList }));
+        await bot.sendMessage(msg.chat.id, t("basic.donateCard", { accountantsList }));
     };
 
-    static getResidentsHandler = (bot, msg) => {
+    static getResidentsHandler = async (bot, msg) => {
         const users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
-        const message = TextGenerators.getResidentsList(users, bot.mode);
+        const message = TextGenerators.getResidentsList(users, bot.context.mode);
 
-        bot.sendLongMessage(msg.chat.id, message);
+        await bot.sendLongMessage(msg.chat.id, message);
     };
 
     static startPanelHandler = async (bot, msg, edit = false) => {
@@ -129,7 +129,7 @@ class BasicHandlers {
             ],
         ];
 
-        bot.sendOrEditMessage(
+        await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.start.text"),
             {
@@ -184,7 +184,7 @@ class BasicHandlers {
             ],
         ];
 
-        bot.sendOrEditMessage(
+        await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.control.text"),
             {
@@ -231,7 +231,7 @@ class BasicHandlers {
             ],
         ];
 
-        bot.sendOrEditMessage(
+        await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.info.text"),
             {

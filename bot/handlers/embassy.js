@@ -179,7 +179,7 @@ class EmbassyHanlers {
             logger.error(error);
             text = t("embassy.doorbell.fail");
         } finally {
-            bot.sendMessage(msg.chat.id, text);
+            await bot.sendMessage(msg.chat.id, text);
         }
     };
 

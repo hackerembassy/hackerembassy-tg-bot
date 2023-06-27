@@ -20,15 +20,16 @@ class StatusHandlers {
         if (!cmd || cmd === "help") {
             message = t("status.mac.help");
         } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-            message = t("status.mac.set", { cmd, username: UsersHelper.formatUsername(username, bot.mode) });
+            message = t("status.mac.set", { cmd, username: UsersHelper.formatUsername(username, bot.context.mode) });
         } else if (cmd === "remove") {
             UsersRepository.setMACs(username, null);
             UsersRepository.setAutoinside(username, false);
-            message = t("status.mac.removed", { username: UsersHelper.formatUsername(username, bot.mode) });
+            message = t("status.mac.removed", { username: UsersHelper.formatUsername(username, bot.context.mode) });
         } else if (cmd === "status") {
             let usermac = UsersRepository.getUserByName(username)?.mac;
-            if (usermac) message = t("status.mac.isset", { username: UsersHelper.formatUsername(username, bot.mode), usermac });
-            else message = t("status.mac.isnotset", { username: UsersHelper.formatUsername(username, bot.mode) });
+            if (usermac)
+                message = t("status.mac.isset", { username: UsersHelper.formatUsername(username, bot.context.mode), usermac });
+            else message = t("status.mac.isnotset", { username: UsersHelper.formatUsername(username, bot.context.mode) });
         }
 
         bot.sendMessage(msg.chat.id, message);
@@ -46,14 +47,20 @@ class StatusHandlers {
         } else if (cmd === "enable") {
             if (!usermac) message = t("status.autoinside.nomac");
             else if (UsersRepository.setAutoinside(username, true))
-                message = t("status.autoinside.set", { usermac, username: UsersHelper.formatUsername(username, bot.mode) });
+                message = t("status.autoinside.set", {
+                    usermac,
+                    username: UsersHelper.formatUsername(username, bot.context.mode),
+                });
         } else if (cmd === "disable") {
             UsersRepository.setAutoinside(username, false);
-            message = t("status.autoinside.removed", { username: UsersHelper.formatUsername(username, bot.mode) });
+            message = t("status.autoinside.removed", { username: UsersHelper.formatUsername(username, bot.context.mode) });
         } else if (cmd === "status") {
             if (userautoinside)
-                message = t("status.autoinside.isset", { usermac, username: UsersHelper.formatUsername(username, bot.mode) });
-            else message = t("status.autoinside.isnotset", { username: UsersHelper.formatUsername(username, bot.mode) });
+                message = t("status.autoinside.isset", {
+                    usermac,
+                    username: UsersHelper.formatUsername(username, bot.context.mode),
+                });
+            else message = t("status.autoinside.isnotset", { username: UsersHelper.formatUsername(username, bot.context.mode) });
         }
 
         bot.sendMessage(msg.chat.id, message);
@@ -69,7 +76,7 @@ class StatusHandlers {
 
         let inside = StatusRepository.getPeopleInside();
         let going = StatusRepository.getPeopleGoing();
-        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, bot.mode);
+        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, bot.context.mode);
 
         if (StatusHandlers.isStatusError) statusMessage = t("status.status.noconnection", { statusMessage });
 
@@ -155,11 +162,15 @@ class StatusHandlers {
             ],
         ];
 
-        bot.sendMessage(msg.chat.id, t("status.open", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) }), {
-            reply_markup: {
-                inline_keyboard: inlineKeyboard,
-            },
-        });
+        bot.sendMessage(
+            msg.chat.id,
+            t("status.open", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) }),
+            {
+                reply_markup: {
+                    inline_keyboard: inlineKeyboard,
+                },
+            }
+        );
     };
 
     static closeHandler = (bot, msg) => {
@@ -176,11 +187,15 @@ class StatusHandlers {
             ],
         ];
 
-        bot.sendMessage(msg.chat.id, t("status.close", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) }), {
-            reply_markup: {
-                inline_keyboard: inlineKeyboard,
-            },
-        });
+        bot.sendMessage(
+            msg.chat.id,
+            t("status.close", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) }),
+            {
+                reply_markup: {
+                    inline_keyboard: inlineKeyboard,
+                },
+            }
+        );
     };
 
     static evictHandler = (bot, msg) => {
@@ -191,11 +206,11 @@ class StatusHandlers {
         bot.sendMessage(msg.chat.id, t("status.evict"));
     };
 
-    static inHandler = (bot, msg) => {
+    static inHandler = async (bot, msg) => {
         let eventDate = new Date();
         let username = msg.from.username ?? msg.from.first_name;
         let gotIn = this.LetIn(username, eventDate);
-        let message = t("status.in.gotin", { username: UsersHelper.formatUsername(username, bot.mode) });
+        let message = t("status.in.gotin", { username: UsersHelper.formatUsername(username, bot.context.mode) });
 
         if (!gotIn) {
             message = t("status.in.notready");
@@ -233,17 +248,17 @@ class StatusHandlers {
                   ],
               ];
 
-        bot.sendMessage(msg.chat.id, message, {
+        await bot.sendMessage(msg.chat.id, message, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
     };
 
-    static outHandler = (bot, msg) => {
+    static outHandler = async (bot, msg) => {
         let eventDate = new Date();
         let gotOut = this.LetOut(msg.from.username, eventDate);
-        let message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) });
+        let message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) });
 
         if (!gotOut) {
             message = t("status.out.shouldnot");
@@ -281,14 +296,14 @@ class StatusHandlers {
                   ],
               ];
 
-        bot.sendMessage(msg.chat.id, message, {
+        await bot.sendMessage(msg.chat.id, message, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
     };
 
-    static inForceHandler = (bot, msg, username) => {
+    static inForceHandler = async (bot, msg, username) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
         username = username.replace("@", "");
         let eventDate = new Date();
@@ -296,32 +311,33 @@ class StatusHandlers {
         let gotIn = this.LetIn(username, eventDate, true);
 
         let message = t("status.inforce.gotin", {
-            memberusername: UsersHelper.formatUsername(msg.from.username, bot.mode),
-            username: UsersHelper.formatUsername(username, bot.mode),
+            memberusername: UsersHelper.formatUsername(msg.from.username, bot.context.mode),
+            username: UsersHelper.formatUsername(username, bot.context.mode),
         });
 
         if (!gotIn) {
             message = t("status.inforce.notready");
         }
-        bot.sendMessage(msg.chat.id, message);
+
+        await bot.sendMessage(msg.chat.id, message);
     };
 
-    static outForceHandler = (bot, msg, username) => {
+    static outForceHandler = async (bot, msg, username) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
         let eventDate = new Date();
         username = username.replace("@", "");
         let gotOut = this.LetOut(username, eventDate, true);
 
         let message = t("status.outforce.gotout", {
-            memberusername: UsersHelper.formatUsername(msg.from.username, bot.mode),
-            username: UsersHelper.formatUsername(username, bot.mode),
+            memberusername: UsersHelper.formatUsername(msg.from.username, bot.context.mode),
+            username: UsersHelper.formatUsername(username, bot.context.mode),
         });
 
         if (!gotOut) {
             message = t("status.outforce.shouldnot");
         }
 
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessage(msg.chat.id, message);
     };
 
     static LetIn(username, date, force = false) {
@@ -361,7 +377,7 @@ class StatusHandlers {
         return true;
     }
 
-    static goingHandler = (bot, msg) => {
+    static goingHandler = async (bot, msg) => {
         let username = msg.from.username.replace("@", "");
         let eventDate = new Date();
 
@@ -375,7 +391,7 @@ class StatusHandlers {
 
         StatusRepository.pushPeopleState(userstate);
 
-        let message = t("status.going", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) });
+        let message = t("status.going", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) });
 
         let inlineKeyboard = [
             [
@@ -390,14 +406,14 @@ class StatusHandlers {
             ],
         ];
 
-        bot.sendMessage(msg.chat.id, message, {
+        await bot.sendMessage(msg.chat.id, message, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
     };
 
-    static notGoingHandler = (bot, msg) => {
+    static notGoingHandler = async (bot, msg) => {
         let username = msg.from.username.replace("@", "");
         let eventDate = new Date();
 
@@ -411,12 +427,12 @@ class StatusHandlers {
 
         StatusRepository.pushPeopleState(userstate);
 
-        let message = t("status.notgoing", { username: UsersHelper.formatUsername(msg.from.username, bot.mode) });
+        let message = t("status.notgoing", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) });
 
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessage(msg.chat.id, message);
     };
 
-    static setemojiHandler(bot, msg, emoji) {
+    static async setemojiHandler(bot, msg, emoji) {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
         let message = t("status.emoji.fail");
@@ -424,18 +440,19 @@ class StatusHandlers {
         if (!emoji || emoji === "help") {
             message = t("status.emoji.help");
         } else if (emoji && isEmoji(emoji) && UsersRepository.setEmoji(username, emoji)) {
-            message = t("status.emoji.set", { emoji, username: UsersHelper.formatUsername(username, bot.mode) });
+            message = t("status.emoji.set", { emoji, username: UsersHelper.formatUsername(username, bot.context.mode) });
         } else if (emoji === "remove") {
             UsersRepository.setEmoji(username, null);
-            message = t("status.emoji.removed", { username: UsersHelper.formatUsername(username, bot.mode) });
+            message = t("status.emoji.removed", { username: UsersHelper.formatUsername(username, bot.context.mode) });
         } else if (emoji === "status") {
             let emoji = UsersRepository.getUserByName(username)?.emoji;
 
-            if (emoji) message = t("status.emoji.isset", { emoji, username: UsersHelper.formatUsername(username, bot.mode) });
-            else message = t("status.emoji.isnotset", { username: UsersHelper.formatUsername(username, bot.mode) });
+            if (emoji)
+                message = t("status.emoji.isset", { emoji, username: UsersHelper.formatUsername(username, bot.context.mode) });
+            else message = t("status.emoji.isnotset", { username: UsersHelper.formatUsername(username, bot.context.mode) });
         }
 
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessage(msg.chat.id, message);
     }
 
     /**

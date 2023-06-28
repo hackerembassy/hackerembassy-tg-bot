@@ -111,7 +111,7 @@ function getStatusMessage(state, inside, going, mode, isApi = false) {
         changedBy: UsersHelper.formatUsername(state.changedby, mode, isApi),
     });
 
-    let insideText = inside.length > 0 ? t("status.status.insidechecked") : t("status.status.nooneinside");
+    let insideText = inside.length > 0 ? t("status.status.insidechecked") : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {
         insideText += `${UsersHelper.formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
     }

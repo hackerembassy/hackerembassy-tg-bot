@@ -166,7 +166,7 @@ ${chunks[index]}
 
             if (match !== undefined) match = originalRegex.exec(newCommand);
 
-            botthis.context.messageThreadId = msg.message_thread_id;
+            botthis.context.messageThreadId = msg.is_topic_message ? msg.message_thread_id : undefined;
 
             await callback.call(this, botthis, msg, match);
 

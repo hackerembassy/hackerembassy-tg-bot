@@ -28,12 +28,13 @@ do
     esac
 done
 shift "$((OPTIND-1))"
+container_name="${container_name:-$default_container_name}"
 container_path="${container_path:-$default_container_path}"
 container_path="${container_path%%/}/"
 local_path="${local_path:-$default_local_path}"
 local_path="${local_path%%/}/"
 ssh_address=${1:?$usage_msg}
-tmp="/tmp/hackem-$(tr -dc A-Za-z0-9 < /dev/urandom | head -c 32)"
+tmp="/tmp/hackem-$(cat /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c 32)"
 
 volume_download() {
     ssh -T "$ssh_address" << END_OF_SCRIPT

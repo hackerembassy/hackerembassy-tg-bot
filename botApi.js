@@ -78,7 +78,7 @@ app.get("/api/status", (_, res) => {
     });
 
     res.json({
-        open: status.open == true,
+        open: status.open,
         dateChanged: status.date,
         changedBy: status.changedby,
         inside,

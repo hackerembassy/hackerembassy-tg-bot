@@ -22,7 +22,7 @@ const t = require("./localization");
  * @param {Fund[]} funds
  * @param {Donation[]} donations
  */
-async function createFundList(funds, donations, options = {}, mode) {
+async function createFundList(funds, donations, options = {}, mode = { mention: false }) {
     const defaultOptions = { showAdmin: false, isApi: false, isHistory: false };
     options = { defaultOptions, ...options };
 
@@ -31,70 +31,91 @@ async function createFundList(funds, donations, options = {}, mode) {
     for (const fund of funds) {
         if (!fund) continue;
 
-        let fundDonations = donations.filter(donation => {
+        const fundDonations = donations.filter(donation => {
             return donation.fund_id === fund.id;
         });
-
-        let sumOfAllDonations = await fundDonations.reduce(async (prev, current) => {
+        const sumOfAllDonations = await fundDonations.reduce(async (prev, current) => {
             let newValue = await Currency.convertCurrency(current.value, current.currency, fund.target_currency);
             return (await prev) + newValue;
         }, Promise.resolve(0));
+        const fundStatus = generateFundStatus(fund, sumOfAllDonations, options.isHistory);
 
-        let statusEmoji = `⚙️ \\[${fund.status}]`;
+        list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${Currency.formatValueForCurrency(
+            sumOfAllDonations,
+            fund.target_currency
+        )} ${t("funds.fund.from")} ${fund.target_value} ${fund.target_currency}\n`;
 
-        if (fund.status === "closed") {
-            statusEmoji = `☑️ \\[${t("funds.fund.closed")}]`;
-        } else if (fund.status === "postponed") {
-            statusEmoji = `⏱ \\[${t("funds.fund.postponed")}]`;
-        } else if (fund.status === "open") {
-            statusEmoji = sumOfAllDonations < fund.target_value ? "🟠" : "🟢";
-            statusEmoji += options.isHistory ? ` \\[${t("funds.fund.open")}]` : "";
-        }
-
-        let tgCopyDelimiter = options.isApi ? "" : "#`";
-
-        list += `${statusEmoji} ${tgCopyDelimiter}${fund.name}${tgCopyDelimiter} - ${t(
-            "funds.fund.collected"
-        )} ${Currency.formatValueForCurrency(sumOfAllDonations, fund.target_currency)} ${t("funds.fund.from")} ${
-            fund.target_value
-        } ${fund.target_currency}\n`;
-
-        if (!options.isHistory) {
-            for (const donation of fundDonations) {
-                list += `      ${options.showAdmin ? `[id:${donation.id}] - ` : ""}${UsersHelper.formatUsername(
-                    donation.username,
-                    mode,
-                    options.isApi
-                )} - ${Currency.formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${
-                    options.showAdmin && donation.accountant
-                        ? ` ➡️ ${UsersHelper.formatUsername(donation.accountant, options.isApi)}`
-                        : ""
-                }\n`;
-            }
-        }
-
-        if (options.showAdmin) {
-            if (!options.isHistory) {
-                list += "\n";
-                list += `#\`/fund ${fund.name}#\`\n`;
-                list += `#\`/exportfund ${fund.name}#\`\n`;
-                list += `#\`/exportdonut ${fund.name}#\`\n`;
-                list += `#\`/updatefund ${fund.name} with target 10000 AMD as ${fund.name}#\`\n`;
-                list += `#\`/changefundstatus of ${fund.name} to status_name#\`\n`;
-                list += `#\`/closefund ${fund.name}#\`\n`;
-                list += `#\`/transferdonation donation_id to username#\`\n`;
-                list += `#\`/adddonation 5000 AMD from @username to ${fund.name}#\`\n`;
-                list += `#\`/changedonation donation_id to 5000 AMD#\`\n`;
-                list += `#\`/removedonation donation_id#\`\n`;
-            } else {
-                list += `#\`/fund ${fund.name}#\`\n`;
-            }
-        }
+        if (!options.isHistory) list += generateDonationsList(fundDonations, options, mode);
+        if (options.showAdmin) list += generateAdminFundHelp(fund, options.isHistory);
 
         list += "\n";
     }
 
     return list;
+}
+
+/**
+ * @param {Fund} fund
+ * @param {number} sumOfAllDonations
+ * @param {boolean} isHistory
+ */
+function generateFundStatus(fund, sumOfAllDonations, isHistory) {
+    switch (fund.status) {
+        case "closed":
+            return `☑️ \\[${t("funds.fund.closed")}]`;
+        case "postponed":
+            return `⏱ \\[${t("funds.fund.postponed")}]`;
+        case "open":
+            return `${sumOfAllDonations < fund.target_value ? "🟠" : "🟢"}${isHistory ? ` \\[${t("funds.fund.open")}]` : ""}`;
+        default:
+            return `⚙️ \\[${fund.status}]`;
+    }
+}
+
+/**
+ * @param {Fund} fund
+ * @param {boolean} isHistory
+ */
+function generateAdminFundHelp(fund, isHistory) {
+    let helpList = `${isHistory ? "" : "\n"}#\`/fund ${fund.name}#\`\n`;
+
+    if (!isHistory) {
+        helpList += `#\`/exportfund ${fund.name}#\`
+#\`/exportdonut ${fund.name}#\`
+#\`/updatefund ${fund.name} with target 10000 AMD as ${fund.name}#\`
+#\`/changefundstatus of ${fund.name} to status_name#\`
+#\`/closefund ${fund.name}#\`
+#\`/transferdonation donation_id to username#\`
+#\`/adddonation 5000 AMD from @username to ${fund.name}#\`
+#\`/changedonation donation_id to 5000 AMD#\`
+#\`/removedonation donation_id#\`
+`;
+    }
+
+    return helpList;
+}
+
+/**
+ * @param {Donation[]} fundDonations
+ * @param {{ showAdmin?: any; isApi?: any; }} options
+ * @param {{ mention: boolean; }} mode
+ */
+function generateDonationsList(fundDonations, options, mode) {
+    let donationList = "";
+
+    for (const donation of fundDonations) {
+        donationList += `      ${options.showAdmin ? `[id:${donation.id}] - ` : ""}${UsersHelper.formatUsername(
+            donation.username,
+            mode,
+            options.isApi
+        )} - ${Currency.formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${
+            options.showAdmin && donation.accountant
+                ? ` ➡️ ${UsersHelper.formatUsername(donation.accountant, options.isApi)}`
+                : ""
+        }\n`;
+    }
+
+    return donationList;
 }
 
 /**
@@ -122,7 +143,7 @@ function getStatusMessage(state, inside, going, mode, isApi = false) {
     }
 
     const updateText = !isApi
-        ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substr(0, 21)}\n`
+        ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21)}\n`
         : "";
 
     return `${stateFullText}

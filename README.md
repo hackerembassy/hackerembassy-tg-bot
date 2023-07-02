@@ -1,4 +1,9 @@
 # Hacker embassy бот
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=bugs)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)  
 ## About
 Бот для решения различных спейсовских задач. Пока реализованы:
 - Информация о спейсе, резиденстве, местоположении и приеме донатов

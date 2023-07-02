@@ -16,7 +16,7 @@ class EmbassyHanlers {
     static unlockHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
-        if (!hasDeviceInside(msg.from.username)) {
+        if (!(await hasDeviceInside(msg.from.username))) {
             bot.sendMessage(msg.chat.id, t("embassy.unlock.nomac"));
 
             return;
@@ -128,21 +128,17 @@ class EmbassyHanlers {
     };
 
     static printerStatusHandler = async (bot, msg, printername) => {
-        let text = t("embassy.printerstatus.fail");
-
         try {
-            var { status, thumbnailBuffer, cam } = await (
+            const { status, thumbnailBuffer, cam } = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
             ).json();
 
-            if (status && !status.error) text = await TextGenerators.getPrinterStatus(status);
-            else throw Error();
-        } catch (error) {
-            logger.error(error);
-        } finally {
+            if (!status || status.error) throw Error();
+
             if (cam) await bot.sendPhoto(msg.chat.id, Buffer.from(cam));
 
-            let inlineKeyboard = [
+            const caption = await TextGenerators.getPrinterStatus(status);
+            const inline_keyboard = [
                 [
                     {
                         text: t("embassy.printerstatus.update", { printername }),
@@ -153,17 +149,13 @@ class EmbassyHanlers {
 
             if (thumbnailBuffer)
                 await bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), {
-                    caption: text,
-                    reply_markup: {
-                        inline_keyboard: inlineKeyboard,
-                    },
+                    caption: caption,
+                    reply_markup: { inline_keyboard },
                 });
-            else
-                await bot.sendMessage(msg.chat.id, text, {
-                    reply_markup: {
-                        inline_keyboard: inlineKeyboard,
-                    },
-                });
+            else await bot.sendMessage(msg.chat.id, caption, { reply_markup: { inline_keyboard } });
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessage(msg.chat.id, t("embassy.printerstatus.fail"));
         }
     };
 

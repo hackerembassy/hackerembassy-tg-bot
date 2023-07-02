@@ -199,13 +199,10 @@ app.get("/printer", async (req, res) => {
         let thumbnailBuffer;
         let cam;
         let statusResponse = await printer3d.getPrinterStatus(printername);
-        let status = statusResponse && statusResponse.result.status;
+        let status = statusResponse?.result?.status;
 
         if (status) {
-            let fileMetadataResponse = await printer3d.getFileMetadata(
-                printername,
-                status.print_stats && status.print_stats.filename
-            );
+            let fileMetadataResponse = await printer3d.getFileMetadata(printername, status?.print_stats?.filename);
             try {
                 cam = await printer3d.getCam(printername);
             } catch {
@@ -214,10 +211,7 @@ app.get("/printer", async (req, res) => {
 
             if (fileMetadataResponse) {
                 fileMetadata = fileMetadataResponse.result;
-                let thumbnailPath =
-                    fileMetadata &&
-                    fileMetadata.thumbnails &&
-                    fileMetadata.thumbnails[fileMetadata.thumbnails.length - 1].relative_path;
+                let thumbnailPath = fileMetadata?.thumbnails[fileMetadata.thumbnails.length - 1]?.relative_path;
                 thumbnailBuffer = await printer3d.getThumbnail(printername, thumbnailPath);
             }
         }

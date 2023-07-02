@@ -146,10 +146,10 @@ class ServiceHandlers {
                     await EmbassyHandlers.printerStatusHandler(bot, message, "plumbus");
                     break;
                 case "/bought":
-                    await this.boughtButtonHandler(bot, message, data.id, callbackQuery);
+                    this.boughtButtonHandler(bot, message, data.id, callbackQuery);
                     break;
                 case "/bought_undo":
-                    if (await NeedsHandlers.boughtUndoHandler(bot, message, data.id)) {
+                    if (NeedsHandlers.boughtUndoHandler(bot, message, data.id)) {
                         await bot.deleteMessage(message.chat.id, message.message_id);
                     }
                     break;

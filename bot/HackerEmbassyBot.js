@@ -10,8 +10,8 @@ const messagedelay = 1500;
 // Helpers
 function prepareMessageForMarkdown(message) {
     return message
-        .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!]{1})/g, "\\$1")
-        .replaceAll(/#([_*[\]()~`>+\-=|{}.!]{1})/g, "$1")
+        .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
+        .replaceAll(/#([_*[\]()~`>+\-=|{}.!])/g, "$1")
         .replaceAll(/#/g, "");
 }
 

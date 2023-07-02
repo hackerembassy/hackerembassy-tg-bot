@@ -138,7 +138,7 @@ class StatusHandlers {
         }
     };
 
-    static openHandler = (bot, msg) => {
+    static openHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
         openSpace(msg.from.username, { checkOpener: true });
@@ -162,7 +162,7 @@ class StatusHandlers {
             ],
         ];
 
-        bot.sendMessage(
+        await bot.sendMessage(
             msg.chat.id,
             t("status.open", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) }),
             {
@@ -173,7 +173,7 @@ class StatusHandlers {
         );
     };
 
-    static closeHandler = (bot, msg) => {
+    static closeHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
         closeSpace(msg.from.username, { evict: true });
@@ -187,7 +187,7 @@ class StatusHandlers {
             ],
         ];
 
-        bot.sendMessage(
+        await bot.sendMessage(
             msg.chat.id,
             t("status.close", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) }),
             {
@@ -198,12 +198,12 @@ class StatusHandlers {
         );
     };
 
-    static evictHandler = (bot, msg) => {
+    static evictHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
         StatusRepository.evictPeople();
 
-        bot.sendMessage(msg.chat.id, t("status.evict"));
+        await bot.sendMessage(msg.chat.id, t("status.evict"));
     };
 
     static inHandler = async (bot, msg) => {

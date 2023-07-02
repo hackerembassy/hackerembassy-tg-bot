@@ -23,11 +23,11 @@ function chunkSubstr(str, size) {
     if (str.length < size) return [str];
 
     while (str.length > 0) {
-        let tmp = str.substr(0, size);
+        let tmp = str.substring(0, size);
         let indexOfLastNewLine = tmp.lastIndexOf("\n");
         let chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine : size;
-        chunks.push(tmp.substr(0, chunkLength));
-        str = str.substr(chunkLength);
+        chunks.push(tmp.substring(0, chunkLength));
+        str = str.substring(chunkLength);
     }
 
     return chunks;

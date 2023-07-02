@@ -19,11 +19,11 @@ class BirthdayHandlers {
         this.sendBirthdayWishes(bot, true);
     };
 
-    static birthdayHandler = (bot, msg) => {
+    static birthdayHandler = async (bot, msg) => {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context.mode);
 
-        bot.sendMessage(msg.chat.id, text);
+        await bot.sendMessage(msg.chat.id, text);
     };
 
     static myBirthdayHandler = (bot, msg, date) => {

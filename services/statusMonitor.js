@@ -1,5 +1,4 @@
-var winston = require("winston");
-const { format } = require("winston");
+const winston = require("winston");
 require("winston-daily-rotate-file");
 
 const ping = require("ping");
@@ -21,19 +20,16 @@ const transport = new winston.transports.DailyRotateFile({
  */
 const UnreadMessagesBuffer = [];
 
-// TODO: Implement rotate
-transport.on("rotate", function () {});
-
 transport.on("logged", function (data) {
     UnreadMessagesBuffer.push(data);
 });
 
 const statusLogger = winston.createLogger({
-    format: format.combine(
-        format.timestamp({
+    format: winston.format.combine(
+        winston.format.timestamp({
             format: "YYYY-MM-DD HH:mm:ss",
         }),
-        format.json()
+        winston.format.json()
     ),
     transports: [transport],
 });

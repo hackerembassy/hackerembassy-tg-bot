@@ -21,7 +21,7 @@ class ServiceHandlers {
         let messagesToRemove = bot.messageHistory.pop(msg.chat.id, countToClear);
 
         for await (const message of messagesToRemove) {
-            bot.deleteMessage(msg.chat.id, message.messageId);
+            await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
         }
     };
 
@@ -34,9 +34,12 @@ class ServiceHandlers {
         const messages = [];
 
         for await (const message of messagesToCombine) {
-            bot.deleteMessage(msg.chat.id, message.messageId);
+            let success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
             // TODO combining images into one message
-            messages.push(`[${new Date(message.datetime).toLocaleString("RU-ru").substring(0, 17)}]: ${message.text ?? "photo"}`);
+            if (success)
+                messages.push(
+                    `[${new Date(message.datetime).toLocaleString("RU-ru").substring(0, 17)}]: ${message.text ?? "photo"}`
+                );
         }
 
         messages.reverse();

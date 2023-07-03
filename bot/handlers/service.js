@@ -18,7 +18,7 @@ class ServiceHandlers {
 
         let inputCount = Number(count);
         let countToClear = inputCount > 0 ? inputCount : 1;
-        let messagesToRemove = bot.messageHistory.pop(msg.chat.id, countToClear);
+        let messagesToRemove = bot.messageHistory.pop(msg.chat.id, countToClear, msg.reply_to_message?.message_id);
 
         for await (const message of messagesToRemove) {
             await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
@@ -30,7 +30,7 @@ class ServiceHandlers {
 
         const inputCount = Number(count);
         const countToCombine = inputCount > 2 ? inputCount : 2;
-        const messagesToCombine = bot.messageHistory.pop(msg.chat.id, countToCombine);
+        const messagesToCombine = bot.messageHistory.pop(msg.chat.id, countToCombine, msg.reply_to_message?.message_id);
         const messages = [];
 
         for await (const message of messagesToCombine) {

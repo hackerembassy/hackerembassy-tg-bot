@@ -5,6 +5,7 @@ const UsersRepository = require("../../repositories/usersRepository");
 const UsersHelper = require("../../services/usersHelper");
 const botConfig = require("config").get("bot");
 const t = require("../../services/localization");
+const { lastModifiedFilePath } = require("../../utils/filesystem");
 
 class AdminHandlers {
     static async forwardHandler(bot, msg, text) {
@@ -16,9 +17,10 @@ class AdminHandlers {
     static getLogHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-        const logpath = path.join(__dirname, "../..", botConfig.logpath);
+        const logFolderPath = path.join(__dirname, "../..", botConfig.logpath);
+        const lastLogFilePath = path.join(__dirname, "../..", botConfig.logpath, lastModifiedFilePath(logFolderPath));
 
-        if (fs.existsSync(logpath)) await bot.sendDocument(msg.chat.id, logpath);
+        if (lastLogFilePath && fs.existsSync(lastLogFilePath)) await bot.sendDocument(msg.chat.id, lastLogFilePath);
     };
 
     static getUsersHandler = async (bot, msg) => {

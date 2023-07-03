@@ -1,6 +1,16 @@
 const { createLogger, format, transports } = require("winston");
-const config = require("config");
-const botConfig = config.get("bot");
+const winston = require("winston");
+require("winston-daily-rotate-file");
+const botConfig = require("config").get("bot");
+
+const rotatedFile = new winston.transports.DailyRotateFile({
+    level: "info",
+    filename: `${botConfig.logpath}/%DATE%.log`,
+    datePattern: "YYYY-MM-DD",
+    zippedArchive: true,
+    maxSize: "20m",
+    maxFiles: "14d",
+});
 
 const logger = createLogger({
     level: "info",
@@ -12,7 +22,7 @@ const logger = createLogger({
         format.splat(),
         format.json()
     ),
-    transports: [new transports.File({ filename: botConfig.logpath }), new transports.Console({ format: format.simple() })],
+    transports: [rotatedFile, new transports.Console({ format: format.simple() })],
 });
 
 module.exports = logger;

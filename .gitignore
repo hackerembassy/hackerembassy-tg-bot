@@ -3,7 +3,7 @@
 config/local.json
 node_modules
 data.db
-data/wished-today.json
+data/db/*
 *.log
 sec
 tmp.jpg

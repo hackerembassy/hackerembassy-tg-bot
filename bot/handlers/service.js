@@ -13,16 +13,35 @@ const t = require("../../services/localization");
 const { logger } = require("../../repositories/statusRepository");
 
 class ServiceHandlers {
-    static clearHandler = (bot, msg, count) => {
+    static clearHandler = async (bot, msg, count) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
         let inputCount = Number(count);
         let countToClear = inputCount > 0 ? inputCount : 1;
-        let idsToRemove = bot.popLast(msg.chat.id, countToClear);
+        let messagesToRemove = bot.messageHistory.pop(msg.chat.id, countToClear);
 
-        for (const id of idsToRemove) {
-            bot.deleteMessage(msg.chat.id, id);
+        for await (const message of messagesToRemove) {
+            bot.deleteMessage(msg.chat.id, message.messageId);
         }
+    };
+
+    static combineHandler = async (bot, msg, count) => {
+        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+
+        const inputCount = Number(count);
+        const countToCombine = inputCount > 2 ? inputCount : 2;
+        const messagesToCombine = bot.messageHistory.pop(msg.chat.id, countToCombine);
+        const messages = [];
+
+        for await (const message of messagesToCombine) {
+            bot.deleteMessage(msg.chat.id, message.messageId);
+            // TODO combining images into one message
+            messages.push(`[${new Date(message.datetime).toLocaleString("RU-ru").substring(0, 17)}]: ${message.text ?? "photo"}`);
+        }
+
+        const combinedMessageText = messages.reverse().join("\n");
+
+        if (combinedMessageText.length > 0) await bot.sendMessage(msg.chat.id, combinedMessageText);
     };
 
     static chatidHandler = (bot, msg) => {

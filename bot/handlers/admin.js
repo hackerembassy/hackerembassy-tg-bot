@@ -17,10 +17,18 @@ class AdminHandlers {
     static getLogHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-        const logFolderPath = path.join(__dirname, "../..", botConfig.logpath);
-        const lastLogFilePath = path.join(__dirname, "../..", botConfig.logpath, lastModifiedFilePath(logFolderPath));
+        const logFolderPath = path.join(__dirname, "../..", botConfig.logfolderpath);
+        const lastLogFilePath = path.join(__dirname, "../..", botConfig.logfolderpath, lastModifiedFilePath(logFolderPath));
 
         if (lastLogFilePath && fs.existsSync(lastLogFilePath)) await bot.sendDocument(msg.chat.id, lastLogFilePath);
+    };
+
+    static getHistoryHandler = async (bot, msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
+        const historypath = bot.messageHistory.historypath;
+
+        if (historypath && fs.existsSync(historypath)) await bot.sendDocument(msg.chat.id, historypath);
     };
 
     static getUsersHandler = async (bot, msg) => {

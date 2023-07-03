@@ -10,7 +10,7 @@ const hosts = embassyServiceConfig.hostsToMonitor;
 
 const transport = new winston.transports.DailyRotateFile({
     level: "info",
-    filename: `${botConfig.logpath}/monitor/%DATE%.log`,
+    filename: `${botConfig.logfolderpath}/monitor/%DATE%.log`,
     datePattern: "YYYY-MM-DD",
     zippedArchive: true,
     maxSize: "20m",

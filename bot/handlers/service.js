@@ -39,7 +39,8 @@ class ServiceHandlers {
             messages.push(`[${new Date(message.datetime).toLocaleString("RU-ru").substring(0, 17)}]: ${message.text ?? "photo"}`);
         }
 
-        const combinedMessageText = messages.reverse().join("\n");
+        messages.reverse();
+        const combinedMessageText = messages.join("\n");
 
         if (combinedMessageText.length > 0) await bot.sendMessage(msg.chat.id, combinedMessageText);
     };

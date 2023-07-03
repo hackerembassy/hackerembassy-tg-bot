@@ -9,7 +9,7 @@ class MessageHistory {
          */
         this.historypath = path.join(botConfig.persistedfolderpath, "history.json");
 
-        if (fs.existsSync(botConfig.historypath)) {
+        if (fs.existsSync(this.historypath)) {
             this.#historyBuffer = JSON.parse(fs.readFileSync(this.historypath).toString());
         } else {
             this.#historyBuffer = {};

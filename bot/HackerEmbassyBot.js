@@ -98,6 +98,10 @@ class HackerEmbassyBot extends TelegramBot {
         await super.sendLocation(chatId, latitude, longitude, { ...options, message_thread_id: this.context.messageThreadId });
     }
 
+    async setMyCommands(commands, options) {
+        return super.setMyCommands(commands, { ...options, scope: JSON.stringify(options?.scope) });
+    }
+
     async sendMessage(chatId, text, options) {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });

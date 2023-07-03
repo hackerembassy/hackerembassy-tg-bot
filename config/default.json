@@ -14,7 +14,9 @@
             "out": 300000
         },
         "autoWish": true,
-        "logpath": "log/application"
+        "logfolderpath": "log/application",
+        "persistedfolderpath": "data/db",
+        "maxchathistory": 50
     },
     "printers": {
         "anette": {

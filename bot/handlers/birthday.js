@@ -8,7 +8,7 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const botConfig = require("config").get("bot");
 
-const wishedTodayPath = "./data/wished-today.json";
+const wishedTodayPath = path.join(__dirname, `../../${botConfig.persistedfolderpath}/wished-today.json`);
 const baseWishesDir = "./resources/wishes";
 const t = require("../../services/localization");
 
@@ -49,7 +49,7 @@ class BirthdayHandlers {
         });
 
         if (await fs.access(wishedTodayPath).catch(() => true)) {
-            fs.writeFile(wishedTodayPath, "[]");
+            await fs.writeFile(wishedTodayPath, "[]");
         }
 
         let wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));

@@ -2,6 +2,7 @@
 const TelegramBot = require("node-telegram-bot-api");
 const logger = require("../services/logger");
 const { sleep, chunkSubstr } = require("../utils/common");
+const MessageHistory = require("./MessageHistory");
 
 // Consts
 const maxChunkSize = 3000;
@@ -32,6 +33,7 @@ class HackerEmbassyBot extends TelegramBot {
      */
     constructor(token, options) {
         super(token, options);
+        this.messageHistory = new MessageHistory();
     }
 
     context = {
@@ -50,9 +52,10 @@ class HackerEmbassyBot extends TelegramBot {
             this.mode.mention = false;
             this.mode.admin = false;
         },
+        isAdminMode() {
+            return this.context.mode.admin;
+        },
     };
-
-    history = [];
 
     onExt(event, listener) {
         let botthis = this;
@@ -71,13 +74,6 @@ class HackerEmbassyBot extends TelegramBot {
             .replace(/\|$/, ")*");
     }
 
-    *popLast(chatId, count) {
-        for (let index = 0; index < count; index++) {
-            if (!this.history[chatId] || this.history[chatId].length === 0) return [];
-            yield this.history[chatId].pop();
-        }
-    }
-
     async editMessageText(text, options) {
         text = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context.messageThreadId });
@@ -92,10 +88,8 @@ class HackerEmbassyBot extends TelegramBot {
             { ...options, message_thread_id: this.context.messageThreadId },
             fileOptions
         );
-        let messageId = message.message_id;
 
-        if (!this.history[chatId]) this.history[chatId] = [];
-        this.history[chatId].push(messageId);
+        this.messageHistory.push(chatId, message.message_id);
 
         return Promise.resolve(message);
     }
@@ -105,15 +99,18 @@ class HackerEmbassyBot extends TelegramBot {
     }
 
     async sendMessage(chatId, text, options) {
-        text = prepareMessageForMarkdown(text);
+        const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
         if (!this.context.mode.silent) {
-            let message = await super.sendMessage(chatId, text, { ...options, message_thread_id: this.context.messageThreadId });
+            let message = await super.sendMessage(chatId, preparedText, {
+                ...options,
+                message_thread_id: this.context.messageThreadId,
+            });
+
             if (!message) return;
-            let messageId = message.message_id;
-            if (!this.history[chatId]) this.history[chatId] = [];
-            this.history[chatId].push(messageId);
+
+            this.messageHistory.push(chatId, message.message_id, text);
 
             return Promise.resolve(message);
         }
@@ -193,10 +190,6 @@ ${chunks[index]}
         } else {
             await this.sendMessage(chatId, text, options);
         }
-    }
-
-    isAdminMode() {
-        return this.context.mode.admin;
     }
 
     async sendNotification(message, date, chat) {

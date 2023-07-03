@@ -5,7 +5,7 @@ const botConfig = require("config").get("bot");
 
 const rotatedFile = new winston.transports.DailyRotateFile({
     level: "info",
-    filename: `${botConfig.logpath}/%DATE%.log`,
+    filename: `${botConfig.logfolderpath}/%DATE%.log`,
     datePattern: "YYYY-MM-DD",
     zippedArchive: true,
     maxSize: "20m",

@@ -31,12 +31,29 @@ class MessageHistory {
     }
 
     /**
-     * @param {string | number} chatId
+     * @param {number} chatId
+     * @param {number} count
+     * @param {number | undefined} startMessageId
      */
-    async *pop(chatId, count = 1) {
+    async *pop(chatId, count = 1, startMessageId = undefined) {
+        if (!this.#historyBuffer[chatId] || this.#historyBuffer[chatId].length === 0) return [];
+
+        // Going from the end by default
+        let from = -1;
+
+        if (startMessageId) {
+            from = this.#historyBuffer[chatId].findIndex(x => x.messageId === startMessageId);
+            // No such message in history? Do nothing!
+            if (from === -1) return [];
+        }
+
         for (let index = 0; index < count; index++) {
-            if (!this.#historyBuffer[chatId] || this.#historyBuffer[chatId].length === 0) return [];
-            yield this.#historyBuffer[chatId].pop();
+            const removedElement = this.#historyBuffer[chatId].splice(from, 1)[0];
+
+            yield removedElement;
+
+            if (from > 0) from--;
+            else if (from === 0) break;
         }
 
         await this.#persistChanges();

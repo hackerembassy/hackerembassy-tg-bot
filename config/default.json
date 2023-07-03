@@ -14,7 +14,7 @@
             "out": 300000
         },
         "autoWish": true,
-        "logpath": "log.log"
+        "logpath": "log/application"
     },
     "printers": {
         "anette": {

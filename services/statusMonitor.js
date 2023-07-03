@@ -1,6 +1,8 @@
 const winston = require("winston");
 require("winston-daily-rotate-file");
 
+const botConfig = require("config").get("bot");
+
 const ping = require("ping");
 const config = require("config");
 const embassyServiceConfig = config.get("embassy-api");
@@ -8,8 +10,8 @@ const hosts = embassyServiceConfig.hostsToMonitor;
 
 const transport = new winston.transports.DailyRotateFile({
     level: "info",
-    filename: "log/application-%DATE%.log",
-    datePattern: "YYYY-MM-DD-HH",
+    filename: `${botConfig.logpath}/monitor/%DATE%.log`,
+    datePattern: "YYYY-MM-DD",
     zippedArchive: true,
     maxSize: "20m",
     maxFiles: "14d",

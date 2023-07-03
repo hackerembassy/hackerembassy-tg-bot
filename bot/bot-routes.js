@@ -135,7 +135,7 @@ function setRoutes(bot) {
     );
     bot.onTextExt(/^\/removeuser(@.+?)? (\S+)$/i, (bot, msg, match) => AdminHandlers.removeUserHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/forward(@.+?)? (.*)$/i, (bot, msg, match) => AdminHandlers.forwardHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/(getlogs|logs)(@.+?)?$/i, AdminHandlers.getLogHandler);
+    bot.onTextExt(/^\/((get)?logs?)(@.+?)?$/i, AdminHandlers.getLogHandler);
 
     bot.onTextExt(/^\/randomdog(@.+?)?$/i, MemeHandlers.randomDogHandler);
     bot.onTextExt(/^\/randomcat(@.+?)?$/i, MemeHandlers.randomCatHandler);

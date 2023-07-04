@@ -158,20 +158,24 @@ ${chunks[index]}
         regexp = new RegExp(regexBody.replace("$", `${this.addedModifiersString}$`), regexParams);
 
         let newCallback = async function (msg, match) {
-            let newCommand = match[0];
+            try {
+                let newCommand = match[0];
 
-            for (const key of Object.keys(botthis.context.mode)) {
-                newCommand = newCommand.replace(` -${key}`, "");
-                if (match[0].includes(`-${key}`)) botthis.context.mode[key] = true;
+                for (const key of Object.keys(botthis.context.mode)) {
+                    newCommand = newCommand.replace(` -${key}`, "");
+                    if (match[0].includes(`-${key}`)) botthis.context.mode[key] = true;
+                }
+
+                if (match !== undefined) match = originalRegex.exec(newCommand);
+
+                botthis.context.messageThreadId = msg?.is_topic_message ? msg.message_thread_id : undefined;
+
+                await callback.call(this, botthis, msg, match);
+            } catch (error) {
+                logger.error(error);
+            } finally {
+                botthis.context.clear();
             }
-
-            if (match !== undefined) match = originalRegex.exec(newCommand);
-
-            botthis.context.messageThreadId = msg?.is_topic_message ? msg.message_thread_id : undefined;
-
-            await callback.call(this, botthis, msg, match);
-
-            botthis.context.clear();
         };
 
         await super.onText(regexp, newCallback);

@@ -53,7 +53,7 @@ class HackerEmbassyBot extends TelegramBot {
             this.mode.admin = false;
         },
         isAdminMode() {
-            return this.context.mode.admin;
+            return this.context?.mode?.admin ?? false;
         },
     };
 

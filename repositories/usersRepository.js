@@ -101,6 +101,24 @@ class UserRepository extends BaseRepository {
 
     /**
      *  @param {string} username
+     *  @param {number|null} userid
+     *  @returns {boolean}
+     */
+    setUserid(username, userid) {
+        try {
+            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
+
+            this.db.prepare("UPDATE users SET userid = ? WHERE username = ?").run(userid, username);
+
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
+    }
+
+    /**
+     *  @param {string} username
      *  @param {boolean} value
      *  @returns {boolean}
      */

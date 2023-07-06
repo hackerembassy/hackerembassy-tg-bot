@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 const { HackerEmbassyBot } = require("./HackerEmbassyBot");
+const UsersRepository = require("../repositories/usersRepository");
 
 const botConfig = require("config").get("bot");
 
@@ -69,8 +70,11 @@ let residentCommands = [
 async function setMenu(bot) {
     await bot.setMyCommands(defaultCommands);
     await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
-    // TODO set resident commands for all private chats with space residents (find a way to collect user_id)
-    // await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: 702536220 } });
+
+    const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
+    for (const member of membersWithUserid) {
+        await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid } });
+    }
 }
 
 module.exports = { setMenu };

@@ -145,6 +145,7 @@ function setRoutes(bot) {
     bot.onTextExt(/^\/clear(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/combine(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.combineHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/(superstatus|ss)(@.+?)?$/i, ServiceHandlers.superstatusHandler);
+    bot.onTextExt(/^\/(((enable)?residentmenu)|erm)(@.+?)?$/i, ServiceHandlers.residentMenuHandler);
     bot.onTextExt(/^\/(chatid)(@.+?)?$/i, ServiceHandlers.chatidHandler);
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);
     bot.onExt("new_chat_members", ServiceHandlers.newMemberHandler);

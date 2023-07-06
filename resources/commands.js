@@ -55,6 +55,7 @@ const MemberCommandsList = `
 /clear n - Удалить последние n ответов бота из чата (default n = 1)
 /combine n - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
 /setemoji - Поставить себе эмодзи в боте
+/enableresidentmenu - Включить меню резидента в приватном чате с ботом
 #\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
 /evict - Очистить список отметившихся внутри

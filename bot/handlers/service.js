@@ -1,4 +1,5 @@
 const UsersHelper = require("../../services/usersHelper");
+const UsersRepository = require("../../repositories/usersRepository");
 
 const StatusHandlers = require("./status");
 const FundsHandlers = require("./funds");
@@ -11,6 +12,7 @@ const botConfig = require("config").get("bot");
 
 const t = require("../../services/localization");
 const { logger } = require("../../repositories/statusRepository");
+const { setMenu } = require("../bot-menu");
 
 class ServiceHandlers {
     static clearHandler = async (bot, msg, count) => {
@@ -51,6 +53,19 @@ class ServiceHandlers {
     static chatidHandler = (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
         bot.sendMessage(msg.chat.id, `${msg.chat.id} ${msg.message_thread_id}`);
+    };
+
+    static residentMenuHandler = (bot, msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+
+        UsersRepository.setUserid(msg.from.username ?? msg.from.first_name, msg.from.id);
+
+        setMenu(bot);
+
+        bot.sendMessage(
+            msg.chat.id,
+            `Resident menu is enabled for ${msg.from.username}[userid:${msg.from.id}] in the private chat`
+        );
     };
 
     static superstatusHandler = async (bot, msg) => {

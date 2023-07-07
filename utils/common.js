@@ -41,4 +41,20 @@ function stripCustomMarkup(text) {
     return text.replaceAll(/#./g, "");
 }
 
-module.exports = { anyItemIsInList, sleep, chunkSubstr, stripCustomMarkup };
+/**
+ * @param {function} func
+ * @param {number} delay
+ */
+function debounce(func, delay) {
+    let timeoutId;
+
+    return function () {
+        clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(() => {
+            func.apply(this, arguments);
+        }, delay);
+    };
+}
+
+module.exports = { anyItemIsInList, sleep, chunkSubstr, stripCustomMarkup, debounce };

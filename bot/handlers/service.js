@@ -18,12 +18,19 @@ class ServiceHandlers {
     static clearHandler = async (bot, msg, count) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
-        let inputCount = Number(count);
-        let countToClear = inputCount > 0 ? inputCount : 1;
-        let messagesToRemove = bot.messageHistory.pop(msg.chat.id, countToClear, msg.reply_to_message?.message_id);
+        const inputCount = Number(count);
+        const countToClear = inputCount > 0 ? inputCount : 1;
+        let orderOfLastMessage = msg.reply_to_message?.message_id
+            ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
+            : 0;
 
-        for await (const message of messagesToRemove) {
-            await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
+        let messagesRemained = countToClear;
+        while (messagesRemained > 0) {
+            const message = await bot.messageHistory.pop(msg.chat.id, orderOfLastMessage);
+            if (!message) return;
+
+            const success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
+            if (success) messagesRemained--;
         }
     };
 
@@ -32,22 +39,61 @@ class ServiceHandlers {
 
         const inputCount = Number(count);
         const countToCombine = inputCount > 2 ? inputCount : 2;
-        const messagesToCombine = bot.messageHistory.pop(msg.chat.id, countToCombine, msg.reply_to_message?.message_id);
-        const messages = [];
 
-        for await (const message of messagesToCombine) {
-            let success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
+        const orderOfLastMessageToEdit = msg.reply_to_message?.message_id
+            ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
+            : 0;
+
+        if (orderOfLastMessageToEdit === -1) return;
+
+        let lastMessageToEdit;
+        let foundLast = false;
+
+        do {
+            lastMessageToEdit = await bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            if (!lastMessageToEdit) return;
+            foundLast = await bot
+                .editMessageText("combining...", {
+                    chat_id: msg.chat.id,
+                    message_id: lastMessageToEdit.messageId,
+                })
+                .then(() => true)
+                .catch(() => false);
+        } while (!foundLast);
+
+        const preparedMessages = [];
+        preparedMessages.push(lastMessageToEdit);
+
+        let messagesRemained = countToCombine - 1;
+
+        while (messagesRemained > 0) {
+            const message = await bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            if (!message) break;
+
+            const success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
             // TODO combining images into one message
-            if (success)
-                messages.push(
-                    `[${new Date(message.datetime).toLocaleString("RU-ru").substring(0, 17)}]: ${message.text ?? "photo"}`
-                );
+            if (success) {
+                preparedMessages.push(message);
+                messagesRemained--;
+            }
         }
 
-        messages.reverse();
-        const combinedMessageText = messages.join("\n");
+        preparedMessages.reverse();
+        const combinedMessageText = preparedMessages
+            .map(m => {
+                const datePrefix = `[${new Date(m.datetime).toLocaleString("RU-ru").substring(12, 17)}]: `;
+                return `${m.text?.match(/^\[\d{2}:\d{2}\]/) ? "" : datePrefix}${m.text ?? "photo"}`;
+            })
+            .join("\n");
 
-        if (combinedMessageText.length > 0) await bot.sendMessage(msg.chat.id, combinedMessageText);
+        bot.messageHistory.push(msg.chat.id, lastMessageToEdit.messageId, combinedMessageText, orderOfLastMessageToEdit);
+
+        if (combinedMessageText !== lastMessageToEdit.text) {
+            await bot.editMessageText(combinedMessageText, {
+                chat_id: msg.chat.id,
+                message_id: lastMessageToEdit.messageId,
+            });
+        }
     };
 
     static chatidHandler = (bot, msg) => {

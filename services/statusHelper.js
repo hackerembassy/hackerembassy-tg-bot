@@ -92,7 +92,11 @@ function getUserTime(username) {
     for (const userStatus of userStatuses) {
         if (startTime === -1 && userStatus.status === statusRepository.UserStatusType.Inside) {
             startTime = new Date(userStatus.date).getTime();
-        } else if (startTime !== -1 && userStatus.status === statusRepository.UserStatusType.Outside) {
+        } else if (
+            startTime !== -1 &&
+            (userStatus.status === statusRepository.UserStatusType.Outside ||
+                userStatus.status === statusRepository.UserStatusType.Going)
+        ) {
             time += new Date(userStatus.date).getTime() - startTime;
             startTime = -1;
         }

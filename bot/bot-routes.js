@@ -39,6 +39,9 @@ function setRoutes(bot) {
     bot.onTextExt(/^\/outforce(@.+?)? (\S+)$/i, (bot, msg, match) => StatusHandlers.outForceHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/out(@.+?)?$/i, StatusHandlers.outHandler);
     bot.onTextExt(/^\/(evict|outforceall)(@.+?)?$/i, StatusHandlers.evictHandler);
+    bot.onTextExt(/^\/(mystats)(@.+?)?$/i, (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));
+    bot.onTextExt(/^\/(statsof)(@.+?)? (\S+)$/i, (bot, msg, match) => StatusHandlers.statsOfHandler(bot, msg, match[3]));
+    bot.onTextExt(/^\/(stats)(@.+?)?$/i, (bot, msg) => StatusHandlers.statsHandler(bot, msg));
     bot.onTextExt(/^\/autoinside(@.+?)?(?: (.*\S))?$/i, async (bot, msg, match) =>
         StatusHandlers.autoinsideHandler(bot, msg, match[2])
     );

@@ -78,4 +78,39 @@ function isMacInside(mac, devices) {
     return mac ? anyItemIsInList(mac.split(","), devices) : false;
 }
 
-module.exports = { openSpace, closeSpace, isMacInside, hasDeviceInside };
+/**
+ * @param {string} username
+ */
+function getUserTime(username) {
+    // TODO Memoize and persist results of this function for each user
+    // to not compute all time from the start every time
+    const userStatuses = statusRepository.getUserStatuses(username);
+
+    let time = 0;
+    let startTime = -1;
+
+    for (const userStatus of userStatuses) {
+        if (startTime === -1 && userStatus.status === statusRepository.UserStatusType.Inside) {
+            startTime = new Date(userStatus.date).getTime();
+        } else if (startTime !== -1 && userStatus.status === statusRepository.UserStatusType.Outside) {
+            time += new Date(userStatus.date).getTime() - startTime;
+            startTime = -1;
+        }
+    }
+
+    return convertToElapsedObject(time / 1000);
+}
+
+/**
+ * @param {number} seconds
+ */
+function convertToElapsedObject(seconds) {
+    return {
+        days: Math.floor(seconds / (3600 * 24)),
+        hours: Math.floor((seconds % (3600 * 24)) / 3600),
+        minutes: Math.floor((seconds % 3600) / 60),
+        totalSeconds: seconds,
+    };
+}
+
+module.exports = { openSpace, closeSpace, isMacInside, hasDeviceInside, getUserTime };

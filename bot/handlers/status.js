@@ -3,7 +3,7 @@ const UsersRepository = require("../../repositories/usersRepository");
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const logger = require("../../services/logger");
-const { openSpace, closeSpace, isMacInside } = require("../../services/statusHelper");
+const { openSpace, closeSpace, isMacInside, getUserTime } = require("../../services/statusHelper");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -497,6 +497,46 @@ class StatusHandlers {
             logger.error(error);
         }
     }
+
+    static statsOfHandler = async (bot, msg, username) => {
+        const selectedUsername = username ?? msg.from.username;
+        const { days, hours, minutes } = getUserTime(selectedUsername);
+        await bot.sendMessage(
+            msg.chat.id,
+            `${t("status.statsof", {
+                username: UsersHelper.formatUsername(selectedUsername, bot.context.mode),
+            })}: ${days}d, ${hours}h, ${minutes}m\n\n${t("status.stats.tryautoinside")}`
+        );
+    };
+
+    static statsHandler = async (bot, msg) => {
+        const userNames = await StatusRepository.getLastStatuses()
+            .map(us => us.username)
+            .filter(onlyUniqueFilter);
+        let userTimes = [];
+
+        for (const username of userNames) {
+            userTimes.push({ username: username, usertime: getUserTime(username) });
+        }
+
+        userTimes = userTimes.filter(ut => ut.usertime.totalSeconds > 59);
+        userTimes.sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
+
+        let stats = `${t("status.stats.text")}:\n\n`;
+
+        for (const userTime of userTimes) {
+            const { days, hours, minutes } = userTime.usertime;
+            stats += `${UsersHelper.formatUsername(userTime.username, bot.context.mode)}: ${days}d, ${hours}h, ${minutes}m\n`;
+        }
+
+        stats += `\n${t("status.stats.tryautoinside")}`;
+
+        await bot.sendMessage(msg.chat.id, stats);
+    };
+}
+
+function onlyUniqueFilter(value, index, array) {
+    return array.indexOf(value) === index;
 }
 
 function isEmoji(message) {

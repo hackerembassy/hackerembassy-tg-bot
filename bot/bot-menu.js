@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 const { HackerEmbassyBot } = require("./HackerEmbassyBot");
 const UsersRepository = require("../repositories/usersRepository");
+const { logger } = require("../repositories/statusRepository");
 
 const botConfig = require("config").get("bot");
 
@@ -39,6 +40,7 @@ let defaultCommands = [
         command: "getresidents",
         description: "Наши резиденты, можно к ним обратиться по любым спейсовским вопросам",
     },
+    { command: "stats", description: "Статистика по времени в спейсе" },
 ];
 
 let residentCommands = [
@@ -62,18 +64,23 @@ let residentCommands = [
     },
     { command: "anette", description: "Статус Anette" },
     { command: "plumbus", description: "Статус Plumbus" },
+    { command: "stats", description: "Статистика по времени в спейсе" },
 ];
 
 /**
  * @param {HackerEmbassyBot} bot
  */
 async function setMenu(bot) {
-    await bot.setMyCommands(defaultCommands);
-    await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
+    try {
+        await bot.setMyCommands(defaultCommands);
+        await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
 
-    const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
-    for (const member of membersWithUserid) {
-        await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid } });
+        const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
+        for (const member of membersWithUserid) {
+            await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid } });
+        }
+    } catch (error) {
+        logger.error(error);
     }
 }
 

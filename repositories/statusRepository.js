@@ -65,6 +65,15 @@ class StatusRepository extends BaseRepository {
     /**
      *  @returns {UserState[]}
      */
+    getUserStatuses(username) {
+        return /** @type {UserState[]} */ (
+            this.db.prepare("SELECT * FROM userstates WHERE username = ? ORDER BY date").all(username)
+        );
+    }
+
+    /**
+     *  @returns {UserState[]}
+     */
     getPeopleInside() {
         let usersLastStatuses = this.getLastStatuses();
         let usersInside = usersLastStatuses.filter(us => us.status === this.UserStatusType.Inside);

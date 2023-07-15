@@ -14,6 +14,7 @@ const t = require("../../services/localization");
 const { toDateObject, getMonthBoundaries } = require("../../utils/date");
 const { onlyUniqueFilter } = require("../../utils/common");
 const { isEmoji } = require("../../utils/text");
+const { createDonut } = require("../../services/export");
 
 class StatusHandlers {
     static isStatusError = false;
@@ -550,14 +551,9 @@ class StatusHandlers {
         userTimes = userTimes.filter(ut => ut.usertime.totalSeconds > 59);
         userTimes.sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
 
-        let stats = `${
-            fromDateString || toDateString
-                ? t("status.stats.month", {
-                      from: toDateObject(fromDate),
-                      to: toDateObject(toDate),
-                  })
-                : t("status.stats.start")
-        }:\n\n`;
+        const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
+
+        let stats = `${fromDateString || toDateString ? t("status.stats.month", dateBoundaries) : t("status.stats.start")}:\n\n`;
 
         for (const userTime of userTimes) {
             const { days, hours, minutes } = userTime.usertime;
@@ -566,7 +562,15 @@ class StatusHandlers {
 
         stats += `\n${t("status.stats.tryautoinside")}`;
 
+        const statsDonut = await createDonut(
+            userTimes.map(ut => ut.username),
+            userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
+            `${t("status.stats.hoursinspace", dateBoundaries)}`,
+            { height: 1200, width: 1600 }
+        ).toBinary();
+
         await bot.sendMessage(msg.chat.id, stats);
+        await bot.sendPhoto(msg.chat.id, statsDonut);
     };
 }
 

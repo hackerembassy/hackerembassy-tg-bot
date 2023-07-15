@@ -8,8 +8,12 @@ const { openSpace, closeSpace, isMacInside, getUserTime } = require("../../servi
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 const botConfig = config.get("bot");
+const statsStartDateString = "2023-01-01";
 
 const t = require("../../services/localization");
+const { toDateObject, getMonthBoundaries } = require("../../utils/date");
+const { onlyUniqueFilter } = require("../../utils/common");
+const { isEmoji } = require("../../utils/text");
 
 class StatusHandlers {
     static isStatusError = false;
@@ -509,20 +513,51 @@ class StatusHandlers {
         );
     };
 
-    static statsHandler = async (bot, msg) => {
+    static statsMonthHandler = async (bot, msg, month) => {
+        const currentDate = new Date();
+        let resultDate = new Date();
+
+        if (month !== undefined) {
+            if (month > currentDate.getMonth()) {
+                resultDate.setFullYear(currentDate.getFullYear() - 1);
+            }
+            resultDate.setMonth(month);
+        }
+
+        const { startMonthDate, endMonthDate } = getMonthBoundaries(resultDate);
+
+        return await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
+    };
+
+    static statsHandler = async (bot, msg, fromDateString, toDateString) => {
+        const fromDate = new Date(fromDateString ?? statsStartDateString);
+        const toDate = toDateString ? new Date(toDateString) : new Date();
+
+        if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+            await bot.sendMessage(msg.chat.id, t("status.stats.invaliddates"));
+            return;
+        }
+
         const userNames = await StatusRepository.getLastStatuses()
             .map(us => us.username)
             .filter(onlyUniqueFilter);
         let userTimes = [];
 
         for (const username of userNames) {
-            userTimes.push({ username: username, usertime: getUserTime(username) });
+            userTimes.push({ username: username, usertime: getUserTime(username, fromDate.getTime(), toDate.getTime()) });
         }
 
         userTimes = userTimes.filter(ut => ut.usertime.totalSeconds > 59);
         userTimes.sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
 
-        let stats = `${t("status.stats.text")}:\n\n`;
+        let stats = `${
+            fromDateString || toDateString
+                ? t("status.stats.month", {
+                      from: toDateObject(fromDate),
+                      to: toDateObject(toDate),
+                  })
+                : t("status.stats.start")
+        }:\n\n`;
 
         for (const userTime of userTimes) {
             const { days, hours, minutes } = userTime.usertime;
@@ -533,16 +568,6 @@ class StatusHandlers {
 
         await bot.sendMessage(msg.chat.id, stats);
     };
-}
-
-function onlyUniqueFilter(value, index, array) {
-    return array.indexOf(value) === index;
-}
-
-function isEmoji(message) {
-    return /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/u.test(
-        message
-    );
 }
 
 module.exports = StatusHandlers;

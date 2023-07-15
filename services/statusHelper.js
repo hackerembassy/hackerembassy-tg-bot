@@ -80,11 +80,13 @@ function isMacInside(mac, devices) {
 
 /**
  * @param {string} username
+ * @param {number} fromDate
+ * @param {number} toDate
  */
-function getUserTime(username) {
+function getUserTime(username, fromDate = 0, toDate = Date.now()) {
     // TODO Memoize and persist results of this function for each user
     // to not compute all time from the start every time
-    const userStatuses = statusRepository.getUserStatuses(username);
+    const userStatuses = statusRepository.getUserStatuses(username, fromDate, toDate);
 
     let time = 0;
     let startTime = -1;

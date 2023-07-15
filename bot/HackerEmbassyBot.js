@@ -5,7 +5,7 @@ const { sleep, chunkSubstr } = require("../utils/common");
 const MessageHistory = require("./MessageHistory");
 
 // Consts
-const maxChunkSize = 3000;
+const maxChunkSize = 3500;
 const messagedelay = 1500;
 
 // Helpers
@@ -133,9 +133,10 @@ class HackerEmbassyBot extends TelegramBot {
         for (let index = 0; index < chunks.length; index++) {
             this.sendMessage(
                 chatid,
-                `{${index + 1} часть}
+                `📧 ${index + 1} часть 📧
+
 ${chunks[index]}
-{Конец части ${index + 1}}`,
+📧 Конец части ${index + 1} 📧`,
                 options
             );
             await sleep(messagedelay);

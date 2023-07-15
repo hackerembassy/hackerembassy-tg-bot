@@ -109,6 +109,11 @@ app.post("/unlock", async (req, res) => {
     }
 });
 
+/**
+ * Endpoint to get a list of devices by a full newtwork scan
+ *
+ * @deprecated Use Keenetic endpoint instead, this method is very unreliable (especialy for apple devices), only for temporary use.
+ */
 app.get("/devicesscan", async (_, res) => {
     let devices = await find({ address: embassyApiConfig.networkRange });
     res.send(devices.map(d => d.mac));
@@ -123,6 +128,11 @@ app.get("/doorbell", async (_, res) => {
     }
 });
 
+/**
+ * Endpoint to get a list of devices inside from OpenWRT
+ *
+ * @deprecated Use Keenetic endpoint instead
+ */
 app.get("/devices", async (_, res) => {
     try {
         const luci = new LUCI(`https://${routerip}`, "bot", process.env["LUCITOKEN"]);

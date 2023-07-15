@@ -17,6 +17,7 @@ const User = require("../models/User");
 const Need = require("../models/Need");
 
 const t = require("./localization");
+const { convertMinutesToHours } = require("../utils/date");
 
 /**
  * @param {Fund[]} funds
@@ -352,19 +353,6 @@ function getPrintersInfo() {
 }
 
 /**
- * @param {number} minutes
- * @returns {string}
- */
-function convertMinutesToHours(minutes) {
-    if (isNaN(minutes) || !isFinite(minutes)) return t("embassy.printerstatus.undefinedtime");
-
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-
-    return hours + "h " + remainingMinutes.toFixed(0) + "m";
-}
-
-/**
  * @param {{ print_stats: any; heater_bed: any; extruder: any; display_status: { progress: number; }; }} status
  * @returns {Promise<string>}
  */
@@ -385,8 +373,8 @@ async function getPrinterStatus(status) {
             print_stats,
             extruder,
             heater_bed,
-            past: convertMinutesToHours(minutesPast),
-            estimate: convertMinutesToHours(minutesEstimate),
+            past: convertMinutesToHours(minutesPast) ?? t("embassy.printerstatus.undefinedtime"),
+            estimate: convertMinutesToHours(minutesEstimate) ?? t("embassy.printerstatus.undefinedtime"),
             progress: progress.toFixed(0),
             usedFilament: (print_stats.filament_used / 1000).toFixed(3),
         });

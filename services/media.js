@@ -31,6 +31,7 @@ async function getWebcam2Image() {
 }
 
 /**
+ * @deprecated Use HASS
  * @param {string} url
  * @param {string} filename
  * @returns {Promise<Buffer>}

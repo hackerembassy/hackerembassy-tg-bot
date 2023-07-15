@@ -14,6 +14,16 @@ function sleep(ms) {
 }
 
 /**
+ * @template T
+ * @param {T} value
+ * @param {number} index
+ * @param {T[]} array
+ */
+function onlyUniqueFilter(value, index, array) {
+    return array.indexOf(value) === index;
+}
+
+/**
  * @param {string} str
  * @param {number} size
  */
@@ -23,9 +33,9 @@ function chunkSubstr(str, size) {
     if (str.length < size) return [str];
 
     while (str.length > 0) {
-        let tmp = str.substring(0, size);
-        let indexOfLastNewLine = tmp.lastIndexOf("\n");
-        let chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine : size;
+        const tmp = str.substring(0, size);
+        const indexOfLastNewLine = tmp.lastIndexOf("\n");
+        const chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine + 1 : size;
         chunks.push(tmp.substring(0, chunkLength));
         str = str.substring(chunkLength);
     }
@@ -57,4 +67,4 @@ function debounce(func, delay) {
     };
 }
 
-module.exports = { anyItemIsInList, sleep, chunkSubstr, stripCustomMarkup, debounce };
+module.exports = { anyItemIsInList, sleep, chunkSubstr, stripCustomMarkup, debounce, onlyUniqueFilter };

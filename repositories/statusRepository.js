@@ -63,11 +63,16 @@ class StatusRepository extends BaseRepository {
     }
 
     /**
-     *  @returns {UserState[]}
+     * @param {string} username
+     * @param {number} fromDate
+     * @param {number} toDate
+     * @returns {UserState[]}
      */
-    getUserStatuses(username) {
+    getUserStatuses(username, fromDate = 0, toDate = Date.now()) {
         return /** @type {UserState[]} */ (
-            this.db.prepare("SELECT * FROM userstates WHERE username = ? ORDER BY date").all(username)
+            this.db
+                .prepare("SELECT * FROM userstates WHERE username = ? AND date BETWEEN ? AND ? ORDER BY date")
+                .all(username, fromDate, toDate)
         );
     }
 

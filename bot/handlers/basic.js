@@ -14,7 +14,7 @@ class BasicHandlers {
             globalModifiers: Commands.GlobalModifiers,
         });
 
-        await bot.sendMessage(msg.chat.id, text);
+        await bot.sendLongMessage(msg.chat.id, text);
     };
 
     static aboutHandler = async (bot, msg) => {

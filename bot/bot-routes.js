@@ -41,7 +41,13 @@ function setRoutes(bot) {
     bot.onTextExt(/^\/(evict|outforceall)(@.+?)?$/i, StatusHandlers.evictHandler);
     bot.onTextExt(/^\/(mystats)(@.+?)?$/i, (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));
     bot.onTextExt(/^\/(statsof)(@.+?)? (\S+)$/i, (bot, msg, match) => StatusHandlers.statsOfHandler(bot, msg, match[3]));
-    bot.onTextExt(/^\/(stats)(@.+?)?$/i, (bot, msg) => StatusHandlers.statsHandler(bot, msg));
+    bot.onTextExt(/^\/(stats)(@.+?)?(?:(?: from (\S+))?(?: to (\S+))?)?$/i, (bot, msg, match) =>
+        StatusHandlers.statsHandler(bot, msg, match[3], match[4])
+    );
+    bot.onTextExt(/^\/(month|statsmonth|monthstats)(@.+?)?$/i, (bot, msg) => StatusHandlers.statsMonthHandler(bot, msg));
+    bot.onTextExt(/^\/(lastmonth|statslastmonth|lastmonthstats)(@.+?)?$/i, (bot, msg) =>
+        StatusHandlers.statsMonthHandler(bot, msg, new Date().getMonth() - 1)
+    );
     bot.onTextExt(/^\/autoinside(@.+?)?(?: (.*\S))?$/i, async (bot, msg, match) =>
         StatusHandlers.autoinsideHandler(bot, msg, match[2])
     );

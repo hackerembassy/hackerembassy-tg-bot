@@ -103,6 +103,10 @@ async function exportFundToDonut(fundname) {
     let remained = Currency.formatValueForCurrency(sum - target, fund.target_currency);
     let spread = colorScheme.length / labels.length;
     let customColorScheme = labels.map((_, index) => colorScheme[Math.floor(index * spread + spread / 2) % colorScheme.length]);
+    let donutLabels = [
+        { text: `${target} ${fund.target_currency}`, font: { size: 30 } },
+        { text: "min", font: { size: 20 } },
+    ];
 
     if (remained < 0) {
         labels.push("Remained");
@@ -110,6 +114,12 @@ async function exportFundToDonut(fundname) {
         customColorScheme.push(remainedColor);
     }
 
+    const chart = createDonut(labels, data, fundname, { height: 900, width: 1400 }, donutLabels, customColorScheme);
+
+    return await chart.toBinary();
+}
+
+function createDonut(labels, data, titleText, params = { width: 1400, height: 900 }, donutLabels, customColorScheme) {
     let chart = new ChartJsImage();
 
     chart.setConfig({
@@ -125,7 +135,7 @@ async function exportFundToDonut(fundname) {
             },
             title: {
                 display: true,
-                text: fundname,
+                text: titleText,
                 padding: 40,
                 align: "end",
                 fontSize: 30,
@@ -153,17 +163,14 @@ async function exportFundToDonut(fundname) {
                     },
                 },
                 doughnutlabel: {
-                    labels: [
-                        { text: `${target} ${fund.target_currency}`, font: { size: 30 } },
-                        { text: "min", font: { size: 20 } },
-                    ],
+                    labels: donutLabels,
                 },
             },
         },
     });
-    chart.setWidth(1200).setHeight(900).setBackgroundColor("transparent");
+    chart.setWidth(params.width).setHeight(params.height).setBackgroundColor("transparent");
 
-    return await chart.toBinary();
+    return chart;
 }
 
-module.exports = { exportFundToCSV, exportFundToDonut };
+module.exports = { exportFundToCSV, exportFundToDonut, createDonut };

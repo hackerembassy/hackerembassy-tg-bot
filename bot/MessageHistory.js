@@ -33,7 +33,7 @@ class MessageHistory {
      */
     async push(chatId, messageId, text = undefined, order = 0) {
         if (!this.#historyBuffer[chatId]) this.#historyBuffer[chatId] = [];
-        if (this.#historyBuffer[chatId].length >= botConfig.maxchathistory) this.#historyBuffer[chatId].shift();
+        if (this.#historyBuffer[chatId].length >= botConfig.maxchathistory) this.#historyBuffer[chatId].pop();
 
         this.#historyBuffer[chatId].splice(order, 0, { messageId, text, datetime: Date.now() });
 

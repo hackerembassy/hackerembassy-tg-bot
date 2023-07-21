@@ -11,7 +11,7 @@ const BirthdayHandlers = require("./handlers/birthday");
  */
 function setAutomaticFeatures(bot) {
     EmbassyHandlers.enableStatusMonitor(bot);
-    setInterval(() => BirthdayHandlers.sendBirthdayWishes(false), 3600000); // 1hr
+    setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, false), 3600000); // 1hr
     setInterval(
         () =>
             bot.sendNotification(

@@ -124,7 +124,8 @@ app.get("/doorbell", async (_, res) => {
         await fetch(`http://${embassyApiConfig.doorbell}/rpc/Switch.Set?id=0&on=true`);
         res.send({ message: "success" });
     } catch (error) {
-        res.send({ message: "error" });
+        logger.error(error);
+        res.send({ message: "error", error });
     }
 });
 

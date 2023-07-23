@@ -58,9 +58,9 @@ function setRoutes(bot) {
         StatusHandlers.setemojiHandler(bot, msg, match[2])
     );
 
-    bot.onTextExt(/^\/(webcam|firstfloor|ff)(@.+?)?$/i, EmbassyHandlers.webcamHandler);
-    bot.onTextExt(/^\/(webcam2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handler);
-    bot.onTextExt(/^\/(doorcam|dc)(@.+?)?$/i, EmbassyHandlers.doorcamHandler);
+    bot.onTextExt(/^\/((web)?c[au]m|firstfloor|ff)(@.+?)?$/i, EmbassyHandlers.webcamHandler);
+    bot.onTextExt(/^\/((web)?c[au]m2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handler);
+    bot.onTextExt(/^\/(doorc[au]m|dc)(@.+?)?$/i, EmbassyHandlers.doorcamHandler);
     bot.onTextExt(/^\/(printers)(@.+?)?$/i, EmbassyHandlers.printersHandler);
     bot.onTextExt(/^\/(anette|anettestatus)(@.+?)?$/i, (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "anette"));
     bot.onTextExt(/^\/(plumbus|plumbusstatus)(@.+?)?$/i, (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus"));

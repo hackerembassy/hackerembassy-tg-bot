@@ -52,7 +52,7 @@ function setRoutes(bot) {
         StatusHandlers.autoinsideHandler(bot, msg, match[2])
     );
     bot.onTextExt(/^\/setmac(@.+?)?(?: (.*\S))?$/i, async (bot, msg, match) => StatusHandlers.setmacHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/(going|g)(@.+?)?$/i, StatusHandlers.goingHandler);
+    bot.onTextExt(/^\/(going|g)(@.+?)?(?: (.*))?$/i, (bot, msg, match) => StatusHandlers.goingHandler(bot, msg, match[3]));
     bot.onTextExt(/^\/(notgoing|ng)(@.+?)?$/i, StatusHandlers.notGoingHandler);
     bot.onTextExt(/^\/(?:setemoji|emoji|myemoji)(@.+?)?(?: (.*))?$/i, (bot, msg, match) =>
         StatusHandlers.setemojiHandler(bot, msg, match[2])

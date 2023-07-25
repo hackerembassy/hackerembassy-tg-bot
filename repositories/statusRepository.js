@@ -110,6 +110,7 @@ class StatusRepository extends BaseRepository {
                 date: date,
                 username: userstate.username,
                 type: this.ChangeType.Evicted,
+                note: null,
             });
         }
     }
@@ -130,12 +131,13 @@ class StatusRepository extends BaseRepository {
      */
     pushPeopleState(state) {
         this.db
-            .prepare("INSERT INTO userstates (status, username, date, type) VALUES (?, ?, ?, ?)")
+            .prepare("INSERT INTO userstates (status, username, date, type, note) VALUES (?, ?, ?, ?, ?)")
             .run(
                 state.status ? state.status : this.UserStatusType.Outside,
                 state.username,
                 state.date.valueOf(),
-                state.type ?? 0
+                state.type ?? 0,
+                state.note
             );
     }
 }

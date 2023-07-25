@@ -357,6 +357,7 @@ class StatusHandlers {
             date: date,
             username: username,
             type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
+            note: null,
         };
 
         StatusRepository.pushPeopleState(userstate);
@@ -375,6 +376,7 @@ class StatusHandlers {
             date: date,
             username: username,
             type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
+            note: null,
         };
 
         StatusRepository.pushPeopleState(userstate);
@@ -382,7 +384,7 @@ class StatusHandlers {
         return true;
     }
 
-    static goingHandler = async (bot, msg) => {
+    static goingHandler = async (bot, msg, note) => {
         let username = msg.from.username.replace("@", "");
         let eventDate = new Date();
 
@@ -392,11 +394,12 @@ class StatusHandlers {
             date: eventDate,
             username: username,
             type: StatusRepository.ChangeType.Manual,
+            note,
         };
 
         StatusRepository.pushPeopleState(userstate);
 
-        let message = t("status.going", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) });
+        let message = t("status.going", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode), note });
 
         let inlineKeyboard = [
             [
@@ -428,6 +431,7 @@ class StatusHandlers {
             date: eventDate,
             username: username,
             type: StatusRepository.ChangeType.Manual,
+            note: null,
         };
 
         StatusRepository.pushPeopleState(userstate);
@@ -492,6 +496,7 @@ class StatusHandlers {
                         date: new Date(),
                         username: user.username,
                         type: StatusRepository.ChangeType.Auto,
+                        note: null,
                     });
 
                     logger.info(`User ${user.username} automatically ${isIn ? "got in" : "got out"}`);

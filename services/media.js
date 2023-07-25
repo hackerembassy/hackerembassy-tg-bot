@@ -8,6 +8,7 @@ const webcamPath = embassyApiConfig.webcam;
 const webcam2Path = embassyApiConfig.webcam2;
 const ttspath = embassyApiConfig.ttspath;
 const playpath = embassyApiConfig.playpath;
+const doorbellpath = embassyApiConfig.doorbellpath;
 
 /**
  * @returns {Promise<Buffer>}
@@ -116,4 +117,22 @@ async function playInSpace(link) {
     return response.status;
 }
 
-module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace };
+/**
+ * @returns {Promise<number>}
+ */
+async function ringDoorbell() {
+    let response = await fetch(doorbellpath, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            entity_id: "switch.doorbell",
+        }),
+    });
+
+    return response.status;
+}
+
+module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell };

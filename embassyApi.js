@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const printer3d = require("./services/printer3d");
-const { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace } = require("./services/media");
+const { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } = require("./services/media");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 const { default: fetch } = require("node-fetch");
@@ -119,13 +119,35 @@ app.get("/devicesscan", async (_, res) => {
     res.send(devices.map(d => d.mac));
 });
 
-app.get("/doorbell", async (_, res) => {
+/**
+ * Endpoint to ring a doorbell by calling Shelly
+ *
+ * @deprecated Use Keenetic endpoint instead, this method is very unreliable (especialy for apple devices), only for temporary use.
+ */
+app.get("/doorbellShelly", async (_, res) => {
     try {
         await fetch(`http://${embassyApiConfig.doorbell}/rpc/Switch.Set?id=0&on=true`);
         res.send({ message: "success" });
     } catch (error) {
         logger.error(error);
         res.send({ message: "error", error });
+    }
+});
+
+/**
+ * Endpoint to ring a doorbell by calling Hass
+ */
+app.get("/doorbell", async (_, res) => {
+    try {
+        let status = await ringDoorbell();
+        if (status === 200) {
+            res.send({ message: "Success" });
+        } else {
+            throw new Error(`Reqest failed with status ${status}`);
+        }
+    } catch (error) {
+        logger.error(error);
+        res.send({ message: "doorbell failed", error });
     }
 });
 

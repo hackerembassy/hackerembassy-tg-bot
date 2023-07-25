@@ -140,7 +140,9 @@ function getStatusMessage(state, inside, going, mode, isApi = false) {
 
     let goingText = going.length > 0 ? `\n${t("status.status.going")}` : "";
     for (const userStatus of going) {
-        goingText += `${UsersHelper.formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)}\n`;
+        goingText += `${UsersHelper.formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
+            userStatus.note ? `(${userStatus.note})` : ""
+        }\n`;
     }
 
     const updateText = !isApi

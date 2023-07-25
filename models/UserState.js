@@ -8,13 +8,15 @@ class UserState {
      * @param {number} params.status - The status of the user.
      * @param {Date|number} params.date - The date the state was last updated.
      * @param {number} [params.type=0] - The type of the state, if any.
+     * @param {string | null} [params.note=null] - The type of the state, if any.
      */
-    constructor({ id = 0, username, status, date, type = 0 }) {
+    constructor({ id = 0, username, status, date, type = 0, note = null }) {
         this.id = id;
         this.username = username;
         this.status = status;
         this.date = date;
         this.type = type;
+        this.note = note;
     }
 }
 

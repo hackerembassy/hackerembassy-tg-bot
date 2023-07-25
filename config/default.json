@@ -46,6 +46,7 @@
         "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
         "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
         "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
+        "doorbellpath": "http://hass:8123/api/services/switch/turn_on",
         "hostsToMonitor": [
             "192.168.1.2",
             "jigglypuff.lan",

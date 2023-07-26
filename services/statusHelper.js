@@ -99,7 +99,9 @@ function getUserTimeDescriptor(userStates) {
     let totalTime = 0;
     let startTime = -1;
 
-    for (const userState of userStates.sort((a, b) => (a.date > b.date ? 1 : -1))) {
+    userStates.sort((a, b) => (a.date > b.date ? 1 : -1));
+
+    for (const userState of userStates) {
         if (startTime === -1 && userState.status === statusRepository.UserStatusType.Inside) {
             startTime = Number(userState.date);
         } else if (

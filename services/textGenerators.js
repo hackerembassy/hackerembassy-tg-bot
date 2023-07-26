@@ -394,7 +394,7 @@ async function getPrinterStatus(status) {
  * @param {DateBoundary} dateBoundaries
  * @param {{ mention: boolean; }} mode
  */
-function getStatsText(userTimes, dateBoundaries, shouldMentionPeriod = false, mode) {
+function getStatsText(userTimes, dateBoundaries, shouldMentionPeriod = false, mode = { mention: false }) {
     let stats = `${shouldMentionPeriod ? t("status.stats.period", dateBoundaries) : t("status.stats.start")}:\n\n`;
 
     for (const userTime of userTimes) {

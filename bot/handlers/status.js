@@ -573,7 +573,7 @@ class StatusHandlers {
         }
 
         const allUserStates = StatusRepository.getAllUserStates();
-        const userTimes = await getAllUsersTimes(allUserStates, fromDate, toDate);
+        const userTimes = getAllUsersTimes(allUserStates, fromDate, toDate);
         const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
 

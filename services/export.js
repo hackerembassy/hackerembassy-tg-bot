@@ -138,7 +138,19 @@ async function createUserStatsDonut(userTimes, dateBoundaries) {
     ).toBinary();
 }
 
-function createDonut(labels, data, titleText, params = { width: 1400, height: 900 }, donutLabels, customColorScheme) {
+/**
+ * @param {string[]} labels
+ * @param {string[] | number[]} data
+ * @param {string} titleText
+ */
+function createDonut(
+    labels,
+    data,
+    titleText,
+    params = { width: 1400, height: 900 },
+    donutLabels = [],
+    customColorScheme = undefined
+) {
     let chart = new ChartJsImage();
 
     chart.setConfig({

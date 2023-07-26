@@ -1,10 +1,10 @@
 const FundsRepository = require("../../repositories/fundsRepository");
+const { isMessageFromPrivateChat } = require("../bot-helpers");
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const ExportHelper = require("../../services/export");
 const { prepareCurrency, parseMoneyValue } = require("../../utils/currency");
 const logger = require("../../services/logger");
-
 const t = require("../../services/localization");
 
 const CALLBACK_DATA_RESTRICTION = 20;
@@ -15,7 +15,7 @@ class FundsHandlers {
         const donations = FundsRepository.getDonations();
         const showAdmin =
             UsersHelper.hasRole(msg.from.username, "admin", "accountant") &&
-            (bot.IsMessageFromPrivateChat(msg) || bot.context.isAdminMode());
+            (isMessageFromPrivateChat(msg) || bot.context.isAdminMode());
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, bot.context.mode);
 
@@ -27,7 +27,7 @@ class FundsHandlers {
         const donations = FundsRepository.getDonationsForName(fundName);
         const showAdmin =
             UsersHelper.hasRole(msg.from.username, "admin", "accountant") &&
-            (bot.IsMessageFromPrivateChat(msg) || bot.context.isAdminMode());
+            (isMessageFromPrivateChat(msg) || bot.context.isAdminMode());
 
         // telegram callback_data is restricted to 64 bytes
         const inlineKeyboard =
@@ -66,7 +66,7 @@ class FundsHandlers {
         const donations = FundsRepository.getDonations();
         const showAdmin =
             UsersHelper.hasRole(msg.from.username, "admin", "accountant") &&
-            (bot.IsMessageFromPrivateChat(msg) || bot.context.isAdminMode());
+            (isMessageFromPrivateChat(msg) || bot.context.isAdminMode());
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true }, bot.context.mode);
 

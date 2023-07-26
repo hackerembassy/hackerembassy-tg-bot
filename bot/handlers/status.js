@@ -3,7 +3,17 @@ const UsersRepository = require("../../repositories/usersRepository");
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 const logger = require("../../services/logger");
-const { openSpace, closeSpace, isMacInside, getUserTime } = require("../../services/statusHelper");
+const {
+    openSpace,
+    closeSpace,
+    isMacInside,
+    getUserTimeDescriptor,
+    getAllUsersTimes,
+    filterPeopleInside,
+    filterPeopleGoing,
+    evictPeople,
+    findRecentStates,
+} = require("../../services/statusHelper");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -12,9 +22,15 @@ const statsStartDateString = "2023-01-01";
 
 const t = require("../../services/localization");
 const { toDateObject, getMonthBoundaries } = require("../../utils/date");
-const { onlyUniqueFilter } = require("../../utils/common");
+
 const { isEmoji } = require("../../utils/text");
-const { createDonut } = require("../../services/export");
+const { createUserStatsDonut } = require("../../services/export");
+const statusRepository = require("../../repositories/statusRepository");
+
+// eslint-disable-next-line no-unused-vars
+const { HackerEmbassyBot } = require("../HackerEmbassyBot");
+// eslint-disable-next-line no-unused-vars
+const TelegramBot = require("node-telegram-bot-api");
 
 class StatusHandlers {
     static isStatusError = false;
@@ -72,15 +88,17 @@ class StatusHandlers {
     }
 
     static statusHandler = async (bot, msg, edit = false) => {
-        let state = StatusRepository.getSpaceLastState();
+        const state = StatusRepository.getSpaceLastState();
 
         if (!state) {
             bot.sendMessage(msg.chat.id, t("status.status.undefined"));
             return;
         }
 
-        let inside = StatusRepository.getPeopleInside();
-        let going = StatusRepository.getPeopleGoing();
+        const recentUserStates = findRecentStates(StatusRepository.getAllUserStates());
+        const inside = recentUserStates.filter(filterPeopleInside);
+        const going = recentUserStates.filter(filterPeopleGoing);
+
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, bot.context.mode);
 
         if (StatusHandlers.isStatusError) statusMessage = t("status.status.noconnection", { statusMessage });
@@ -206,7 +224,7 @@ class StatusHandlers {
     static evictHandler = async (bot, msg) => {
         if (!UsersHelper.hasRole(msg.from.username, "member")) return;
 
-        StatusRepository.evictPeople();
+        evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
 
         await bot.sendMessage(msg.chat.id, t("status.evict"));
     };
@@ -479,7 +497,9 @@ class StatusHandlers {
             )?.json();
             clearTimeout(timeoutId);
 
-            let insideusernames = StatusRepository.getPeopleInside()?.map(us => us.username);
+            let insideusernames = StatusRepository.getAllUserStates()
+                .filter(filterPeopleInside)
+                ?.map(us => us.username);
             let autousers = UsersRepository.getUsers()?.filter(u => u.autoinside && u.mac);
             let selectedautousers = isIn
                 ? autousers.filter(u => !insideusernames.includes(u.username))
@@ -510,7 +530,9 @@ class StatusHandlers {
 
     static statsOfHandler = async (bot, msg, username) => {
         const selectedUsername = username ?? msg.from.username;
-        const { days, hours, minutes } = getUserTime(selectedUsername);
+        const userStates = statusRepository.getUserStates(selectedUsername);
+
+        const { days, hours, minutes } = getUserTimeDescriptor(userStates);
         await bot.sendMessage(
             msg.chat.id,
             `${t("status.statsof", {
@@ -535,7 +557,13 @@ class StatusHandlers {
         return await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     };
 
-    static statsHandler = async (bot, msg, fromDateString, toDateString) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {TelegramBot.Message} msg
+     * @param {string} fromDateString
+     * @param {string} toDateString
+     */
+    static async statsHandler(bot, msg, fromDateString, toDateString) {
         const fromDate = new Date(fromDateString ?? statsStartDateString);
         const toDate = toDateString ? new Date(toDateString) : new Date();
 
@@ -544,40 +572,17 @@ class StatusHandlers {
             return;
         }
 
-        const userNames = await StatusRepository.getLastStatuses()
-            .map(us => us.username)
-            .filter(onlyUniqueFilter);
-        let userTimes = [];
-
-        for (const username of userNames) {
-            userTimes.push({ username: username, usertime: getUserTime(username, fromDate.getTime(), toDate.getTime()) });
-        }
-
-        userTimes = userTimes.filter(ut => ut.usertime.totalSeconds > 59);
-        userTimes.sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
-
+        const allUserStates = StatusRepository.getAllUserStates();
+        const userTimes = await getAllUsersTimes(allUserStates, fromDate, toDate);
+        const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
 
-        let stats = `${fromDateString || toDateString ? t("status.stats.month", dateBoundaries) : t("status.stats.start")}:\n\n`;
+        const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod, bot.context.mode);
+        const statsDonut = await createUserStatsDonut(userTimes, dateBoundaries);
 
-        for (const userTime of userTimes) {
-            const { days, hours, minutes } = userTime.usertime;
-            stats += `${UsersHelper.formatUsername(userTime.username, bot.context.mode)}: ${days}d, ${hours}h, ${minutes}m\n`;
-        }
-
-        stats += `\n${t("status.stats.tryautoinside")}`;
-        stats += `\n${t("status.stats.help")}`;
-
-        const statsDonut = await createDonut(
-            userTimes.map(ut => ut.username),
-            userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
-            `${t("status.stats.hoursinspace", dateBoundaries)}`,
-            { height: 1200, width: 1600 }
-        ).toBinary();
-
-        await bot.sendMessage(msg.chat.id, stats);
+        await bot.sendMessage(msg.chat.id, statsText);
         await bot.sendPhoto(msg.chat.id, statsDonut);
-    };
+    }
 }
 
 module.exports = StatusHandlers;

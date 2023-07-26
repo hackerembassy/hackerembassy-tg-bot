@@ -1,7 +1,17 @@
+// eslint-disable-next-line no-unused-vars
+const UserState = require("../models/UserState");
+
+/**
+ * @typedef {import("../utils/date").ElapsedTimeObject} ElapsedTimeObject
+ */
+
 const statusRepository = require("../repositories/statusRepository");
 const usersRepository = require("../repositories/usersRepository");
 const { anyItemIsInList } = require("../utils/common");
 const { fetchWithTimeout } = require("../utils/network");
+const { onlyUniqueFilter } = require("../utils/common");
+const { isToday } = require("../utils/date");
+const { UserStatusType, ChangeType } = require("../repositories/statusRepository");
 
 const embassyApiConfig = require("config").get("embassy-api");
 
@@ -29,6 +39,7 @@ function openSpace(opener, options = { checkOpener: false }) {
         date: opendate,
         username: opener,
         type: statusRepository.ChangeType.Opened,
+        note: null,
     };
 
     statusRepository.pushPeopleState(userstate);
@@ -49,7 +60,7 @@ function closeSpace(closer, options = { evict: false }) {
 
     statusRepository.pushSpaceState(state);
 
-    if (options.evict) statusRepository.evictPeople();
+    if (options.evict) evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
 }
 
 /**
@@ -79,36 +90,34 @@ function isMacInside(mac, devices) {
 }
 
 /**
- * @param {string} username
- * @param {number} fromDate
- * @param {number} toDate
+ * @param {UserState[]} userStates
+ * @returns {ElapsedTimeObject}
  */
-function getUserTime(username, fromDate = 0, toDate = Date.now()) {
+function getUserTimeDescriptor(userStates) {
     // TODO Memoize and persist results of this function for each user
     // to not compute all time from the start every time
-    const userStatuses = statusRepository.getUserStatuses(username, fromDate, toDate);
-
-    let time = 0;
+    let totalTime = 0;
     let startTime = -1;
 
-    for (const userStatus of userStatuses) {
-        if (startTime === -1 && userStatus.status === statusRepository.UserStatusType.Inside) {
-            startTime = new Date(userStatus.date).getTime();
+    for (const userState of userStates.sort((a, b) => (a.date > b.date ? 1 : -1))) {
+        if (startTime === -1 && userState.status === statusRepository.UserStatusType.Inside) {
+            startTime = Number(userState.date);
         } else if (
             startTime !== -1 &&
-            (userStatus.status === statusRepository.UserStatusType.Outside ||
-                userStatus.status === statusRepository.UserStatusType.Going)
+            (userState.status === statusRepository.UserStatusType.Outside ||
+                userState.status === statusRepository.UserStatusType.Going)
         ) {
-            time += new Date(userStatus.date).getTime() - startTime;
+            totalTime += Number(userState.date) - startTime;
             startTime = -1;
         }
     }
 
-    return convertToElapsedObject(time / 1000);
+    return convertToElapsedObject(totalTime / 1000);
 }
 
 /**
  * @param {number} seconds
+ * @returns {ElapsedTimeObject}
  */
 function convertToElapsedObject(seconds) {
     return {
@@ -119,4 +128,88 @@ function convertToElapsedObject(seconds) {
     };
 }
 
-module.exports = { openSpace, closeSpace, isMacInside, hasDeviceInside, getUserTime };
+/**
+ * @param {UserState[]} allUserStates
+ */
+function findRecentStates(allUserStates) {
+    const usersLastStates = [];
+
+    for (const userstate of allUserStates) {
+        if (!usersLastStates.find(us => us.username === userstate.username)) {
+            userstate.date = new Date(userstate.date);
+            usersLastStates.push(userstate);
+        }
+    }
+
+    return usersLastStates;
+}
+
+/**
+ * @param {UserState[]} allUserStates
+ * @param {Date} fromDate
+ * @param {Date} toDate
+ */
+async function getAllUsersTimes(allUserStates, fromDate, toDate) {
+    const userNames = findRecentStates(allUserStates)
+        .map(us => us.username)
+        .filter(onlyUniqueFilter);
+    let usersTimes = [];
+
+    for (const username of userNames) {
+        const userStates = allUserStates.filter(us => us.username === username && us.date >= fromDate && us.date <= toDate);
+        usersTimes.push({ username: username, usertime: getUserTimeDescriptor(userStates) });
+    }
+
+    usersTimes = usersTimes.filter(ut => ut.usertime.totalSeconds > 59);
+    usersTimes.sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
+
+    return usersTimes;
+}
+
+/**
+ * @param {UserState} userState
+ * @returns {boolean}
+ */
+function filterPeopleInside(userState) {
+    return userState.status === UserStatusType.Inside;
+}
+
+/**
+ * @param {UserState} userState
+ * @returns {boolean}
+ */
+function filterPeopleGoing(userState) {
+    return userState.status === UserStatusType.Going && isToday(new Date(userState.date));
+}
+
+/**
+ * @param {UserState[]} insideStates
+ * @returns {void}
+ */
+function evictPeople(insideStates) {
+    let date = Date.now();
+
+    for (const userstate of insideStates) {
+        statusRepository.pushPeopleState({
+            id: 0,
+            status: UserStatusType.Outside,
+            date: date,
+            username: userstate.username,
+            type: ChangeType.Evicted,
+            note: null,
+        });
+    }
+}
+
+module.exports = {
+    openSpace,
+    closeSpace,
+    isMacInside,
+    hasDeviceInside,
+    getUserTimeDescriptor,
+    findRecentStates,
+    getAllUsersTimes,
+    evictPeople,
+    filterPeopleInside,
+    filterPeopleGoing,
+};

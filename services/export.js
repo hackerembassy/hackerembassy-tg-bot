@@ -2,11 +2,16 @@ const { writeToBuffer } = require("@fast-csv/format");
 const FundsRepository = require("../repositories/fundsRepository");
 const ChartJsImage = require("chartjs-to-image");
 const Currency = require("../utils/currency");
+const t = require("./localization");
 
 /**
  * @typedef {Object} SimplifiedDonation
  * @property {string} username
  * @property {number} donation
+ */
+
+/**
+ * @typedef {import("../utils/date").DateBoundary} DateBoundary
  */
 
 /**
@@ -119,6 +124,20 @@ async function exportFundToDonut(fundname) {
     return await chart.toBinary();
 }
 
+/**
+ * @param {{username:string, usertime: {totalSeconds:number}}[]} userTimes
+ * @param {DateBoundary} dateBoundaries
+ * @returns {Promise<Buffer>}
+ */
+async function createUserStatsDonut(userTimes, dateBoundaries) {
+    return await createDonut(
+        userTimes.map(ut => ut.username),
+        userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
+        `${t("status.stats.hoursinspace", dateBoundaries)}`,
+        { height: 1200, width: 1600 }
+    ).toBinary();
+}
+
 function createDonut(labels, data, titleText, params = { width: 1400, height: 900 }, donutLabels, customColorScheme) {
     let chart = new ChartJsImage();
 
@@ -173,4 +192,4 @@ function createDonut(labels, data, titleText, params = { width: 1400, height: 90
     return chart;
 }
 
-module.exports = { exportFundToCSV, exportFundToDonut, createDonut };
+module.exports = { exportFundToCSV, exportFundToDonut, createDonut, createUserStatsDonut };

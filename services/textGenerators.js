@@ -16,6 +16,10 @@ const User = require("../models/User");
 // eslint-disable-next-line no-unused-vars
 const Need = require("../models/Need");
 
+/**
+ * @typedef {import("../utils/date").DateBoundary} DateBoundary
+ */
+
 const t = require("./localization");
 const { convertMinutesToHours } = require("../utils/date");
 
@@ -385,6 +389,25 @@ async function getPrinterStatus(status) {
     return message;
 }
 
+/**
+ * @param {any} userTimes
+ * @param {DateBoundary} dateBoundaries
+ * @param {{ mention: boolean; }} mode
+ */
+function getStatsText(userTimes, dateBoundaries, shouldMentionPeriod = false, mode) {
+    let stats = `${shouldMentionPeriod ? t("status.stats.period", dateBoundaries) : t("status.stats.start")}:\n\n`;
+
+    for (const userTime of userTimes) {
+        const { days, hours, minutes } = userTime.usertime;
+        stats += `${UsersHelper.formatUsername(userTime.username, mode)}: ${days}d, ${hours}h, ${minutes}m\n`;
+    }
+
+    stats += `\n${t("status.stats.tryautoinside")}`;
+    stats += `\n${t("status.stats.help")}`;
+
+    return stats;
+}
+
 module.exports = {
     createFundList,
     getAccountsList,
@@ -398,4 +421,5 @@ module.exports = {
     getPrinterStatus,
     getBirthdaysList,
     getMonitorMessagesList,
+    getStatsText,
 };

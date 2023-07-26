@@ -28,7 +28,7 @@ class MessageHistory {
 
     /**
      * @param {string | number} chatId
-     * @param {string} messageId
+     * @param {number} messageId
      * @param {string | undefined} text
      */
     async push(chatId, messageId, text = undefined, order = 0) {
@@ -54,7 +54,7 @@ class MessageHistory {
     }
 
     /**
-     * @type {{ [chatId: string]: { messageId: any; text?: any; datetime: number }[]; }}
+     * @type {{ [chatId: string]: { messageId: number; text?: string; datetime: number }[]; }}
      */
     #historyBuffer;
 

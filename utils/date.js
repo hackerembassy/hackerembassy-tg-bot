@@ -1,5 +1,27 @@
 /**
+ * @typedef {Object} DateObject
+ * @property {number} day
+ * @property {number} month
+ * @property {number} year
+ */
+
+/**
+ * @typedef {object} DateBoundary
+ * @property {DateObject} from
+ * @property {DateObject} to
+ */
+
+/**
+ * @typedef {object} ElapsedTimeObject
+ * @property {number} days
+ * @property {number} hours
+ * @property {number} minutes
+ * @property {number} totalSeconds
+ */
+
+/**
  * @param {Date} date
+ * @returns DateObject
  */
 function toDateObject(date) {
     return { day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear() };
@@ -31,4 +53,17 @@ function getMonthBoundaries(date) {
     return { startMonthDate, endMonthDate };
 }
 
-module.exports = { toDateObject, convertMinutesToHours, getMonthBoundaries };
+/**
+ * @param {Date} someDate
+ * @returns {boolean}
+ */
+function isToday(someDate) {
+    const today = new Date();
+    return (
+        someDate.getDate() == today.getDate() &&
+        someDate.getMonth() == today.getMonth() &&
+        someDate.getFullYear() == today.getFullYear()
+    );
+}
+
+module.exports = { toDateObject, convertMinutesToHours, getMonthBoundaries, isToday };

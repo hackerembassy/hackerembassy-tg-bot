@@ -2,20 +2,8 @@
 const State = require("../models/State");
 // eslint-disable-next-line no-unused-vars
 const UserState = require("../models/UserState");
-const BaseRepository = require("./baseRepository");
 
-/**
- * @param {Date} someDate
- * @returns {boolean}
- */
-const isToday = someDate => {
-    const today = new Date();
-    return (
-        someDate.getDate() == today.getDate() &&
-        someDate.getMonth() == today.getMonth() &&
-        someDate.getFullYear() == today.getFullYear()
-    );
-};
+const BaseRepository = require("./baseRepository");
 
 class StatusRepository extends BaseRepository {
     ChangeType = {
@@ -48,18 +36,8 @@ class StatusRepository extends BaseRepository {
     /**
      *  @returns {UserState[]}
      */
-    getLastStatuses() {
-        let userstates = /** @type {UserState[]} */ (this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all());
-        let usersLastStatuses = [];
-
-        for (const userstate of userstates) {
-            if (!usersLastStatuses.find(us => us.username === userstate.username)) {
-                userstate.date = new Date(userstate.date);
-                usersLastStatuses.push(userstate);
-            }
-        }
-
-        return usersLastStatuses;
+    getAllUserStates() {
+        return /** @type {UserState[]} */ (this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all());
     }
 
     /**
@@ -68,51 +46,12 @@ class StatusRepository extends BaseRepository {
      * @param {number} toDate
      * @returns {UserState[]}
      */
-    getUserStatuses(username, fromDate = 0, toDate = Date.now()) {
+    getUserStates(username, fromDate = 0, toDate = Date.now()) {
         return /** @type {UserState[]} */ (
             this.db
                 .prepare("SELECT * FROM userstates WHERE username = ? AND date BETWEEN ? AND ? ORDER BY date")
                 .all(username, fromDate, toDate)
         );
-    }
-
-    /**
-     *  @returns {UserState[]}
-     */
-    getPeopleInside() {
-        let usersLastStatuses = this.getLastStatuses();
-        let usersInside = usersLastStatuses.filter(us => us.status === this.UserStatusType.Inside);
-
-        return usersInside;
-    }
-
-    /**
-     *  @returns {Object[]}
-     */
-    getPeopleGoing() {
-        let usersLastStatuses = this.getLastStatuses();
-        let usersGoing = usersLastStatuses.filter(us => us.status === this.UserStatusType.Going && isToday(new Date(us.date)));
-
-        return usersGoing;
-    }
-
-    /**
-     *  @returns {void}
-     */
-    evictPeople() {
-        let inside = this.getPeopleInside();
-        let date = Date.now();
-
-        for (const userstate of inside) {
-            this.pushPeopleState({
-                id: 0,
-                status: this.UserStatusType.Outside,
-                date: date,
-                username: userstate.username,
-                type: this.ChangeType.Evicted,
-                note: null,
-            });
-        }
     }
 
     /**

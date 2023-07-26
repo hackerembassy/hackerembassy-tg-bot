@@ -9,7 +9,7 @@ const StatusRepository = require("./repositories/statusRepository");
 const FundsRepository = require("./repositories/fundsRepository");
 const UsersRepository = require("./repositories/usersRepository");
 const Commands = require("./resources/commands");
-const { openSpace, closeSpace } = require("./services/statusHelper");
+const { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } = require("./services/statusHelper");
 const { stripCustomMarkup } = require("./utils/common");
 
 const apiConfig = config.get("api");
@@ -42,12 +42,13 @@ app.get("/commands", (_, res) => {
 });
 
 app.get("/status", (_, res) => {
-    let state = StatusRepository.getSpaceLastState();
+    const state = StatusRepository.getSpaceLastState();
     let content = `🔐 Статус спейса неопределен`;
 
     if (state) {
-        let inside = StatusRepository.getPeopleInside();
-        let going = StatusRepository.getPeopleGoing();
+        const allUserStates = findRecentStates(StatusRepository.getAllUserStates());
+        const inside = allUserStates.filter(filterPeopleInside);
+        const going = allUserStates.filter(filterPeopleGoing);
         content = TextGenerators.getStatusMessage(state, inside, going, { mention: true }, true);
     }
 
@@ -64,13 +65,15 @@ app.get("/api/status", (_, res) => {
         return;
     }
 
-    let inside = StatusRepository.getPeopleInside().map(p => {
+    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates());
+
+    const inside = recentUserStates.filter(filterPeopleInside).map(p => {
         return {
             username: p.username,
             dateChanged: p.date,
         };
     });
-    let planningToGo = StatusRepository.getPeopleGoing().map(p => {
+    const planningToGo = recentUserStates.filter(filterPeopleGoing).map(p => {
         return {
             username: p.username,
             dateChanged: p.date,
@@ -87,13 +90,13 @@ app.get("/api/status", (_, res) => {
 });
 
 app.get("/api/inside", (_, res) => {
-    let inside = StatusRepository.getPeopleInside();
+    let inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
     res.json(inside);
 });
 
 app.get("/api/insidecount", (_, res) => {
     try {
-        let inside = StatusRepository.getPeopleInside();
+        let inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
         res.status(200).send(inside.length.toString());
     } catch {
         res.status(500).send("-1");

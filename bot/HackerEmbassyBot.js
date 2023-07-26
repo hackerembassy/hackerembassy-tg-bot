@@ -1,3 +1,7 @@
+/**
+ * @typedef {import("node-telegram-bot-api").BotCommandScope} BotCommandScope
+ */
+
 // Imports
 const TelegramBot = require("node-telegram-bot-api");
 const logger = require("../services/logger");
@@ -57,12 +61,17 @@ class HackerEmbassyBot extends TelegramBot {
         },
     };
 
+    /**
+     * @param {TelegramBot.MessageType | 'callback_query'} event
+     * @param {{ (bot: any, callbackQuery: any): Promise<void>; (bot: any, msg: any): Promise<void>; call?: any; }} listener
+     */
     onExt(event, listener) {
         let botthis = this;
         let newListener = async query => {
             listener.call(this, botthis, query);
         };
 
+        // @ts-ignore
         super.on(event, newListener);
     }
 
@@ -74,6 +83,10 @@ class HackerEmbassyBot extends TelegramBot {
             .replace(/\|$/, ")*");
     }
 
+    /**
+     * @param {string} text
+     * @param {TelegramBot.EditMessageTextOptions} options
+     */
     async editMessageText(text, options) {
         text = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context.messageThreadId });
@@ -81,6 +94,12 @@ class HackerEmbassyBot extends TelegramBot {
         return super.editMessageText(text, options);
     }
 
+    /**
+     * @param {TelegramBot.ChatId} chatId
+     * @param {string | import("stream").Stream | Buffer} photo
+     * @param {TelegramBot.SendPhotoOptions} [options]
+     * @param {TelegramBot.FileOptions} [fileOptions]
+     */
     async sendPhoto(chatId, photo, options, fileOptions) {
         let message = await super.sendPhoto(
             chatId,
@@ -94,14 +113,35 @@ class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(message);
     }
 
+    /**
+     * @param {TelegramBot.ChatId} chatId
+     * @param {number} latitude
+     * @param {number} longitude
+     * @param {TelegramBot.SendLocationOptions} options
+     */
     async sendLocation(chatId, latitude, longitude, options = {}) {
-        await super.sendLocation(chatId, latitude, longitude, { ...options, message_thread_id: this.context.messageThreadId });
+        return await super.sendLocation(chatId, latitude, longitude, {
+            ...options,
+            message_thread_id: this.context.messageThreadId,
+        });
     }
 
+    /**
+     * @param {TelegramBot.BotCommand[]} commands
+     * @param {{ scope: BotCommandScope; language_code?: string; }} [options]
+     */
     async setMyCommands(commands, options) {
-        return super.setMyCommands(commands, { ...options, scope: JSON.stringify(options?.scope) });
+        return super.setMyCommands(commands, {
+            ...options,
+            scope: /**@type {BotCommandScope} */ (/**@type {unknown} */ (JSON.stringify(options?.scope))),
+        });
     }
 
+    /**
+     * @param {TelegramBot.ChatId} chatId
+     * @param {string} text
+     * @param {TelegramBot.SendMessageOptions} [options]
+     */
     async sendMessage(chatId, text, options) {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
@@ -122,17 +162,22 @@ class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(null);
     }
 
-    async sendLongMessage(chatid, text, options) {
+    /**
+     * @param {TelegramBot.ChatId} chatId
+     * @param {string} text
+     * @param {TelegramBot.SendMessageOptions} options
+     */
+    async sendLongMessage(chatId, text, options) {
         let chunks = chunkSubstr(text, maxChunkSize);
 
         if (chunks.length === 1) {
-            this.sendMessage(chatid, chunks[0], options);
+            this.sendMessage(chatId, chunks[0], options);
             return;
         }
 
         for (let index = 0; index < chunks.length; index++) {
             this.sendMessage(
-                chatid,
+                chatId,
                 `📧 ${index + 1} часть 📧
 
 ${chunks[index]}
@@ -145,7 +190,7 @@ ${chunks[index]}
 
     /**
      * @param {RegExp} regexp
-     * @param {(bot: TelegramBot, msg: TelegramBot.Message, match: RegExpExecArray | null) => void} callback
+     * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, match: RegExpExecArray | null) => void} callback
      * @returns {Promise<void>}
      */
     async onTextExt(regexp, callback) {
@@ -201,6 +246,11 @@ ${chunks[index]}
         }
     }
 
+    /**
+     * @param {string} message
+     * @param {string} date
+     * @param {TelegramBot.ChatId} chat
+     */
     async sendNotification(message, date, chat) {
         let currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
         if (date !== currentDate) return;
@@ -208,10 +258,6 @@ ${chunks[index]}
         this.sendMessage(chat, message);
         logger.info(`Sent a notification to ${chat}: ${message}`);
     }
-
-    IsMessageFromPrivateChat = msg => {
-        return msg?.chat.type === "private";
-    };
 }
 
 exports.HackerEmbassyBot = HackerEmbassyBot;

@@ -149,7 +149,7 @@ function findRecentStates(allUserStates) {
  * @param {Date} fromDate
  * @param {Date} toDate
  */
-async function getAllUsersTimes(allUserStates, fromDate, toDate) {
+function getAllUsersTimes(allUserStates, fromDate, toDate) {
     const userNames = findRecentStates(allUserStates)
         .map(us => us.username)
         .filter(onlyUniqueFilter);

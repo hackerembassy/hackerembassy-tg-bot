@@ -566,6 +566,7 @@ class StatusHandlers {
         }
 
         stats += `\n${t("status.stats.tryautoinside")}`;
+        stats += `\n${t("status.stats.help")}`;
 
         const statsDonut = await createDonut(
             userTimes.map(ut => ut.username),

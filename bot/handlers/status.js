@@ -497,7 +497,8 @@ class StatusHandlers {
             )?.json();
             clearTimeout(timeoutId);
 
-            let insideusernames = StatusRepository.getAllUserStates()
+            let insideusernames = findRecentStates(StatusRepository.getAllUserStates())
+                .filter(filterPeopleInside)
                 .filter(filterPeopleInside)
                 ?.map(us => us.username);
             let autousers = UsersRepository.getUsers()?.filter(u => u.autoinside && u.mac);

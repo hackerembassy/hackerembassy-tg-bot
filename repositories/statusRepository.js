@@ -55,6 +55,14 @@ class StatusRepository extends BaseRepository {
     }
 
     /**
+     * @param {number} stateId
+     * @returns {boolean}
+     */
+    removeUserState(stateId) {
+        return this.db.prepare("DELETE FROM userstates WHERE id = ?").run(stateId).changes > 0;
+    }
+
+    /**
      * @param {State} state
      * @returns {void}
      */

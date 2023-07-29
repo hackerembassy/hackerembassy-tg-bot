@@ -162,9 +162,12 @@ class FundsHandlers {
         userName = userName.replace("@", "");
         const accountant = msg.from.username;
 
+        const hasAlreadyDonated =
+            FundsRepository.getDonationsForName(fundName)?.filter(donation => donation.username === userName)?.length > 0;
+
         const success = !isNaN(value) && FundsRepository.addDonationTo(fundName, userName, value, currency, accountant);
         const text = success
-            ? t("funds.adddonation.success", {
+            ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
                   username: UsersHelper.formatUsername(userName, bot.context.mode),
                   value,
                   currency,

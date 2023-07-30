@@ -55,6 +55,19 @@ class StatusRepository extends BaseRepository {
     }
 
     /**
+     * @param {UserState} userState
+     * @returns {boolean}
+     */
+    updateUserState(userState) {
+        return (
+            this.db
+                .prepare("UPDATE userstates SET username = ?, status = ?, date = ?, type = ?, note = ? WHERE id = ?")
+                .run(userState.username, userState.status, userState.date, userState.type, userState.note, userState.id).changes >
+            0
+        );
+    }
+
+    /**
      * @param {number} stateId
      * @returns {boolean}
      */

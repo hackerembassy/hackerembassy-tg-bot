@@ -19,10 +19,9 @@ const logger = createLogger({
             format: "YYYY-MM-DD HH:mm:ss",
         }),
         format.errors({ stack: true }),
-        format.splat(),
-        format.json()
+        format.printf(info => `${info.timestamp}: [${info.level.toUpperCase()}]\t${info.stack ?? info.message}\n`)
     ),
-    transports: [rotatedFile, new transports.Console({ format: format.simple() })],
+    transports: [rotatedFile, new transports.Console()],
 });
 
 module.exports = logger;

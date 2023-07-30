@@ -64,23 +64,23 @@ async function getImageFromRTSP(url, filename) {
  * @returns {Promise<Buffer>}
  */
 async function getImageFromHTTP(url, token) {
-    let response = await fetch(`${url}`, {
+    const response = await fetch(`${url}`, {
         headers: {
             Authorization: token ? `Bearer ${token}` : "",
             "Content-Type": "application/json",
         },
     });
-    let imgbuffer = await response.arrayBuffer();
+    const imgbuffer = await response.arrayBuffer();
 
     return Buffer.from(imgbuffer);
 }
 
 /**
  * @param {string} text
- * @returns {Promise<number>}
+ * @returns {Promise<void>}
  */
 async function sayInSpace(text) {
-    let response = await fetch(ttspath, {
+    const response = await fetch(ttspath, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
@@ -93,15 +93,15 @@ async function sayInSpace(text) {
         }),
     });
 
-    return response.status;
+    if (response.status !== 200) throw Error("Speaker request failed");
 }
 
 /**
  * @param {string} link
- * @returns {Promise<number>}
+ * @returns {Promise<void>}
  */
 async function playInSpace(link) {
-    let response = await fetch(playpath, {
+    const response = await fetch(playpath, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
@@ -114,14 +114,14 @@ async function playInSpace(link) {
         }),
     });
 
-    return response.status;
+    if (response.status !== 200) throw Error("Speaker request failed");
 }
 
 /**
- * @returns {Promise<number>}
+ * @returns {Promise<void>}
  */
 async function ringDoorbell() {
-    let response = await fetch(doorbellpath, {
+    const response = await fetch(doorbellpath, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
@@ -132,7 +132,7 @@ async function ringDoorbell() {
         }),
     });
 
-    return response.status;
+    if (response.status !== 200) throw Error("Ringing request failed");
 }
 
 module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell };

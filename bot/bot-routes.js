@@ -11,6 +11,8 @@ const AdminHandlers = require("./handlers/admin");
 const ServiceHandlers = require("./handlers/service");
 const MemeHandlers = require("./handlers/meme");
 
+const logger = require("../services/logger");
+
 /**
  * @param {HackerEmbassyBot} bot
  */
@@ -158,6 +160,10 @@ function setRoutes(bot) {
     bot.onTextExt(/^\/(chatid)(@.+?)?$/i, ServiceHandlers.chatidHandler);
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);
     bot.onExt("new_chat_members", ServiceHandlers.newMemberHandler);
+
+    bot.on("error", error => {
+        logger.error(error);
+    });
 }
 
 module.exports = { setRoutes };

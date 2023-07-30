@@ -20,7 +20,7 @@ function unlock() {
                 client.publish("door", "1");
                 client.end();
             } else {
-                console.log(err);
+                throw err;
             }
         });
     });

@@ -11,16 +11,11 @@ const UsersRepository = require("./repositories/usersRepository");
 const Commands = require("./resources/commands");
 const { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } = require("./services/statusHelper");
 const { stripCustomMarkup } = require("./utils/common");
+const { createErrorMiddleware } = require("./utils/middleware");
 
 const apiConfig = config.get("api");
 const app = express();
 const port = apiConfig.port;
-
-// Middleware
-function logError(err, req, res, next) {
-    logger.error({ err, req, res });
-    next();
-}
 
 function tokenSecured(req, res, next) {
     if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
@@ -34,7 +29,7 @@ function tokenSecured(req, res, next) {
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(logError);
+app.use(createErrorMiddleware(logger));
 
 // Routes
 app.get("/commands", (_, res) => {

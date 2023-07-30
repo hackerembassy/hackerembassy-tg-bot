@@ -2,14 +2,17 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const printer3d = require("./services/printer3d");
-const { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } = require("./services/media");
+const { default: fetch } = require("node-fetch");
+const { NodeSSH } = require("node-ssh");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
-const { default: fetch } = require("node-fetch");
+
+const printer3d = require("./services/printer3d");
+const { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } = require("./services/media");
 const logger = require("./services/logger");
 const { unlock } = require("./services/mqtt");
 const { decrypt } = require("./utils/security");
+const { createErrorMiddleware } = require("./utils/middleware");
 
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
@@ -27,76 +30,61 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static(embassyApiConfig.static));
+app.use(createErrorMiddleware(logger));
 
-const { NodeSSH } = require("node-ssh");
-
-app.post("/sayinspace", async (req, res) => {
+app.post("/sayinspace", async (req, res, next) => {
     try {
-        let status = await sayInSpace(req.body.text);
-        if (status === 200) {
-            res.send({ message: "Success" });
-        } else {
-            throw new Error(`Reqest failed with status ${status}`);
-        }
+        await sayInSpace(req.body.text);
+        res.send({ message: "Success" });
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Saying in space failed", error });
+        next(error);
     }
 });
 
-app.post("/playinspace", async (req, res) => {
+app.post("/playinspace", async (req, res, next) => {
     try {
-        let status = await playInSpace(req.body.link);
-        if (status === 200) {
-            res.send({ message: "Success" });
-        } else {
-            throw new Error(`Reqest failed with status ${status}`);
-        }
+        await playInSpace(req.body.link);
+        res.send({ message: "Success" });
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "PLaying in space failed", error });
+        next(error);
     }
 });
 
-app.get("/statusmonitor", async (_, res) => {
+app.get("/statusmonitor", async (_, res, next) => {
     try {
         res.json(statusMonitor.readNewMessages());
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Reading monitor messages failed", error });
+        next(error);
     }
 });
 
-app.get("/doorcam", async (_, res) => {
+app.get("/doorcam", async (_, res, next) => {
     try {
         res.send(await getDoorcamImage());
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Device request failed", error });
+        next(error);
     }
 });
 
-app.get("/webcam", async (_, res) => {
+app.get("/webcam", async (_, res, next) => {
     try {
         res.send(await getWebcamImage());
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Device request failed", error });
+        next(error);
     }
 });
 
-app.get("/webcam2", async (_, res) => {
+app.get("/webcam2", async (_, res, next) => {
     try {
         res.send(await getWebcam2Image());
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Device request failed", error });
+        next(error);
     }
 });
 
-app.post("/unlock", async (req, res) => {
+app.post("/unlock", async (req, res, next) => {
     try {
-        let token = await decrypt(req.body.token);
+        const token = await decrypt(req.body.token);
 
         if (token === process.env["UNLOCKKEY"]) {
             unlock();
@@ -104,8 +92,7 @@ app.post("/unlock", async (req, res) => {
             res.send("Success");
         } else res.sendStatus(401);
     } catch (error) {
-        logger.error(error);
-        res.send(error);
+        next(error);
     }
 });
 
@@ -114,9 +101,13 @@ app.post("/unlock", async (req, res) => {
  *
  * @deprecated Use Keenetic endpoint instead, this method is very unreliable (especialy for apple devices), only for temporary use.
  */
-app.get("/devicesscan", async (_, res) => {
-    let devices = await find({ address: embassyApiConfig.networkRange });
-    res.send(devices.map(d => d.mac));
+app.get("/devicesscan", async (_, res, next) => {
+    try {
+        const devices = await find({ address: embassyApiConfig.networkRange });
+        res.send(devices.map(d => d.mac));
+    } catch (error) {
+        next(error);
+    }
 });
 
 /**
@@ -124,30 +115,24 @@ app.get("/devicesscan", async (_, res) => {
  *
  * @deprecated Use Keenetic endpoint instead, this method is very unreliable (especialy for apple devices), only for temporary use.
  */
-app.get("/doorbellShelly", async (_, res) => {
+app.get("/doorbellShelly", async (_, res, next) => {
     try {
         await fetch(`http://${embassyApiConfig.doorbell}/rpc/Switch.Set?id=0&on=true`);
         res.send({ message: "success" });
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "error", error });
+        next(error);
     }
 });
 
 /**
  * Endpoint to ring a doorbell by calling Hass
  */
-app.get("/doorbell", async (_, res) => {
+app.get("/doorbell", async (_, res, next) => {
     try {
-        let status = await ringDoorbell();
-        if (status === 200) {
-            res.send({ message: "Success" });
-        } else {
-            throw new Error(`Reqest failed with status ${status}`);
-        }
+        await ringDoorbell();
+        res.send({ message: "Success" });
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "doorbell failed", error });
+        next(error);
     }
 });
 
@@ -156,7 +141,7 @@ app.get("/doorbell", async (_, res) => {
  *
  * @deprecated Use Keenetic endpoint instead
  */
-app.get("/devices", async (_, res) => {
+app.get("/devices", async (_, res, next) => {
     try {
         const luci = new LUCI(`https://${routerip}`, "bot", process.env["LUCITOKEN"]);
         await luci.init();
@@ -195,12 +180,11 @@ app.get("/devices", async (_, res) => {
 
         res.send(macs);
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Device request failed", error });
+        next(error);
     }
 });
 
-app.get("/devicesFromKeenetic", async (_, res) => {
+app.get("/devicesFromKeenetic", async (_, res, next) => {
     try {
         const ssh = new NodeSSH();
 
@@ -214,12 +198,11 @@ app.get("/devicesFromKeenetic", async (_, res) => {
         let macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)].map(item => item[1]);
         res.json(macs);
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Device request failed", error });
+        next(error);
     }
 });
 
-app.get("/printer", async (req, res) => {
+app.get("/printer", async (req, res, next) => {
     try {
         let printername = req.query.printername;
 
@@ -251,8 +234,7 @@ app.get("/printer", async (req, res) => {
 
         res.send({ status, thumbnailBuffer, cam });
     } catch (error) {
-        logger.error(error);
-        res.send({ message: "Printer request error", error });
+        next(error);
     }
 });
 

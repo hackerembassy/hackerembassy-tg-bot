@@ -289,7 +289,7 @@ function getJoinText(isApi = false) {
  * @param {boolean} isApi
  * @returns {string}
  */
-function getEventsText(isApi = false) {
+function getEventsText(isApi = false, calendarAppLink) {
     return t("basic.events.text", {
         calendarLink: isApi
             ? "<a href='https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan'>Hacker Embassy Public Events</a>"
@@ -298,6 +298,7 @@ function getEventsText(isApi = false) {
             ? "<a href='https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics'>iCal</a>"
             : "#[iCal#]#(https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics#)",
         donateCommand: `${!isApi ? "/" : ""}donate`,
+        openCalendarInTelegram: !isApi && calendarAppLink ? `#[Open in Telegram#]#(${calendarAppLink}#)` : "",
     });
 }
 

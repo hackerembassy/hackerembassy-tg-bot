@@ -28,7 +28,7 @@ class BasicHandlers {
     };
 
     static eventsHandler = async (bot, msg) => {
-        const message = TextGenerators.getEventsText();
+        const message = TextGenerators.getEventsText(false, botConfig.calendarAppLink);
 
         await bot.sendMessage(msg.chat.id, message, {
             reply_markup: {

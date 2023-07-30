@@ -6,6 +6,7 @@ const CoinsHelper = require("../../resources/coins/coins");
 const UsersRepository = require("../../repositories/usersRepository");
 const botConfig = require("config").get("bot");
 const t = require("../../services/localization");
+const { isMessageFromPrivateChat } = require("../bot-helpers");
 
 class BasicHandlers {
     static helpHandler = async (bot, msg) => {
@@ -31,16 +32,18 @@ class BasicHandlers {
 
         await bot.sendMessage(msg.chat.id, message, {
             reply_markup: {
-                inline_keyboard: [
-                    [
-                        {
-                            text: t("basic.events.opencalendar"),
-                            web_app: {
-                                url: botConfig.calendarUrl,
-                            },
-                        },
-                    ],
-                ],
+                inline_keyboard: isMessageFromPrivateChat(msg)
+                    ? [
+                          [
+                              {
+                                  text: t("basic.events.opencalendar"),
+                                  web_app: {
+                                      url: botConfig.calendarUrl,
+                                  },
+                              },
+                          ],
+                      ]
+                    : undefined,
             },
         });
     };

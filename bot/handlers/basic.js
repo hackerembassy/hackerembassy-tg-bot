@@ -27,8 +27,22 @@ class BasicHandlers {
     };
 
     static eventsHandler = async (bot, msg) => {
-        let message = TextGenerators.getEventsText();
-        await bot.sendMessage(msg.chat.id, message);
+        const message = TextGenerators.getEventsText();
+
+        await bot.sendMessage(msg.chat.id, message, {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: t("basic.events.opencalendar"),
+                            web_app: {
+                                url: botConfig.calendarUrl,
+                            },
+                        },
+                    ],
+                ],
+            },
+        });
     };
 
     static issueHandler = async (bot, msg, issueText) => {

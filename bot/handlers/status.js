@@ -578,7 +578,11 @@ class StatusHandlers {
         const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
 
-        const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod, bot.context.mode);
+        if (userTimes.length === 0) {
+            return await bot.sendMessage(msg.chat.id, t("status.stats.nousertimes"));
+        }
+
+        const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod);
         const statsDonut = await createUserStatsDonut(userTimes, dateBoundaries);
 
         await bot.sendMessage(msg.chat.id, statsText);

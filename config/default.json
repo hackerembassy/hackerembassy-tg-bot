@@ -18,7 +18,7 @@
         "persistedfolderpath": "data/db",
         "maxchathistory": 50,
         "calendarUrl": "https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan&hl=en",
-        "calendarAppLink": "https://t.me/HackerEmbassyManagerBot/calendar"
+        "calendarAppLink": "https://t.me/HackerEmbassyBot/calendar"
     },
     "printers": {
         "anette": {

@@ -17,6 +17,10 @@ const User = require("../models/User");
 const Need = require("../models/Need");
 
 /**
+ * @typedef {import("../utils/date").ElapsedTimeObject} ElapsedTimeObject
+ */
+
+/**
  * @typedef {import("../utils/date").DateBoundary} DateBoundary
  */
 
@@ -390,22 +394,52 @@ async function getPrinterStatus(status) {
 }
 
 /**
- * @param {any} userTimes
+ * @param {{usertime: ElapsedTimeObject; username: string; }[]} userTimes
  * @param {DateBoundary} dateBoundaries
- * @param {{ mention: boolean; }} mode
  */
-function getStatsText(userTimes, dateBoundaries, shouldMentionPeriod = false, mode = { mention: false }) {
+function getStatsText(userTimes, dateBoundaries, shouldMentionPeriod = false) {
     let stats = `${shouldMentionPeriod ? t("status.stats.period", dateBoundaries) : t("status.stats.start")}:\n\n`;
 
-    for (const userTime of userTimes) {
-        const { days, hours, minutes } = userTime.usertime;
-        stats += `${UsersHelper.formatUsername(userTime.username, mode)}: ${days}d, ${hours}h, ${minutes}m\n`;
+    for (let i = 0; i < userTimes.length; i++) {
+        const userTime = userTimes[i];
+
+        let medal;
+
+        switch (i + 1) {
+            case 1:
+                medal = "🥇";
+                break;
+            case 2:
+                medal = "🥈";
+                break;
+            case 3:
+                medal = "🥉";
+                break;
+            default:
+                medal = i < 10 ? "🧁" : i === userTimes.length - 1 ? "🍆" : "🍪";
+                break;
+        }
+
+        const place = `${medal}${i + 1}`.padEnd(4, " ");
+        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)}#\`#\`#\`   ${userTime.username} ${getUserBadges(
+            userTime.username
+        )}\n`;
     }
 
     stats += `\n${t("status.stats.tryautoinside")}`;
     stats += `\n${t("status.stats.help")}`;
 
     return stats;
+}
+
+/**
+ * @param {ElapsedTimeObject} usertime
+ */
+function fixedWidthPeriod(usertime) {
+    const days = `${usertime.days}d`.padStart(4, " ");
+    const hours = `${usertime.hours}h`.padStart(3, " ");
+    const minutes = `${usertime.minutes}m`.padStart(3, " ");
+    return `${days} ${hours} ${minutes}`;
 }
 
 module.exports = {

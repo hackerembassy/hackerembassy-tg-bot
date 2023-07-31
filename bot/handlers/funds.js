@@ -203,6 +203,8 @@ class FundsHandlers {
     };
 
     static residentsDonatedHandler = async (bot, msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
+
         const fundName = FundsRepository.getLatestCosts()?.name;
 
         if (!fundName) {

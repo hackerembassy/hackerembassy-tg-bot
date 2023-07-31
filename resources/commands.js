@@ -76,6 +76,7 @@ const MemberCommandsList = `
 #\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
 /evict - Очистить список отметившихся внутри
+/residentsdonated - Кто из резидентов уже задонатил в этом месяце
 `;
 
 /**

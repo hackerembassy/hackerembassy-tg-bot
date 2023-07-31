@@ -115,6 +115,8 @@ function setRoutes(bot) {
     );
     bot.onTextExt(/^\/(showcosts|costs)(@.+?)?$/i, (bot, msg) => FundsHandlers.showCostsHandler(bot, msg));
     bot.onTextExt(/^\/(showcostsdonut|costsdonut|donut)(@.+?)?$/i, (bot, msg) => FundsHandlers.showCostsDonutHandler(bot, msg));
+    bot.onTextExt(/^\/(residents?(costs|donated))(@.+?)?$/i, (bot, msg) => FundsHandlers.residentsDonatedHandler(bot, msg));
+
     bot.onTextExt(/^\/removedonation(@.+?)? (\d+)$/i, (bot, msg, match) =>
         FundsHandlers.removeDonationHandler(bot, msg, match[2])
     );

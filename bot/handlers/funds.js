@@ -1,4 +1,5 @@
 const FundsRepository = require("../../repositories/fundsRepository");
+const UsersRepository = require("../../repositories/usersRepository");
 const { isMessageFromPrivateChat } = require("../bot-helpers");
 const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
@@ -199,6 +200,26 @@ class FundsHandlers {
         let fundName = FundsRepository.getLatestCosts().name;
 
         return this.exportDonutHandler(bot, msg, fundName);
+    };
+
+    static residentsDonatedHandler = async (bot, msg) => {
+        const fundName = FundsRepository.getLatestCosts()?.name;
+
+        if (!fundName) {
+            bot.sendMessage(msg.chat.id, t("funds.showcosts.fail"));
+            return;
+        }
+
+        const donations = FundsRepository.getDonationsForName(fundName);
+        const residents = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
+
+        let resdientsDonatedList = `${t("funds.residentsdonated")}\n`;
+        for (const resident of residents) {
+            const hasDonated = donations.filter(d => d.username === resident.username)?.length > 0;
+            resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${UsersHelper.formatUsername(resident.username)}\n`;
+        }
+
+        await bot.sendMessage(msg.chat.id, resdientsDonatedList);
     };
 
     static removeDonationHandler = async (bot, msg, donationId) => {

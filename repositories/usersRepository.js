@@ -56,7 +56,7 @@ class UserRepository extends BaseRepository {
      */
     testMACs(cmd) {
         const macRegex = /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/;
-        return cmd.split(",").every(mac => macRegex.test(mac).trim());
+        return cmd.split(",").every(mac => macRegex.test(mac.trim()));
     }
 
     /**

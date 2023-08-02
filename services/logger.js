@@ -19,7 +19,7 @@ const logger = createLogger({
             format: "YYYY-MM-DD HH:mm:ss",
         }),
         format.errors({ stack: true }),
-        format.printf(info => `${info.timestamp}: [${info.level.toUpperCase()}]\t${info.stack ?? info.message}\n`)
+        format.printf(info => `${info.timestamp}: [${info.level}]\t${info.stack ?? info.message}\n`)
     ),
     transports: [rotatedFile, new transports.Console()],
 });

@@ -31,6 +31,7 @@ const statusRepository = require("../../repositories/statusRepository");
 const { HackerEmbassyBot } = require("../HackerEmbassyBot");
 // eslint-disable-next-line no-unused-vars
 const TelegramBot = require("node-telegram-bot-api");
+const { getClimate } = require("../../services/home");
 
 class StatusHandlers {
     static isStatusError = false;
@@ -98,8 +99,9 @@ class StatusHandlers {
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates());
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
+        const climateInfo = await getClimate();
 
-        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, bot.context.mode);
+        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, bot.context.mode);
 
         if (StatusHandlers.isStatusError) statusMessage = t("status.status.noconnection", { statusMessage });
 

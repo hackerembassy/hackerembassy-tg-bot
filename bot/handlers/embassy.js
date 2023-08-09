@@ -11,6 +11,7 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 
 const t = require("../../services/localization");
+const { getClimate } = require("../../services/home");
 
 class EmbassyHanlers {
     static unlockHandler = async (bot, msg) => {
@@ -125,6 +126,15 @@ class EmbassyHanlers {
                 inline_keyboard: inlineKeyboard,
             },
         });
+    };
+
+    static climateHandler = async (bot, msg) => {
+        const climateInfo = await getClimate();
+
+        return await bot.sendMessage(
+            msg.chat.id,
+            climateInfo ? t("embassy.climate.data", { climateInfo }) : t("embassy.climate.nodata")
+        );
     };
 
     static printerStatusHandler = async (bot, msg, printername) => {

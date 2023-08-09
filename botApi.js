@@ -12,6 +12,7 @@ const Commands = require("./resources/commands");
 const { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } = require("./services/statusHelper");
 const { stripCustomMarkup } = require("./utils/common");
 const { createErrorMiddleware } = require("./utils/middleware");
+const { getClimate } = require("./services/home");
 
 const apiConfig = config.get("api");
 const app = express();
@@ -36,7 +37,7 @@ app.get("/commands", (_, res) => {
     res.send(Commands.ApiCommandsList);
 });
 
-app.get("/status", (_, res) => {
+app.get("/status", async (_, res) => {
     const state = StatusRepository.getSpaceLastState();
     let content = `🔐 Статус спейса неопределен`;
 
@@ -44,7 +45,9 @@ app.get("/status", (_, res) => {
         const allUserStates = findRecentStates(StatusRepository.getAllUserStates());
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
-        content = TextGenerators.getStatusMessage(state, inside, going, { mention: true }, true);
+        const climateInfo = await getClimate();
+
+        content = TextGenerators.getStatusMessage(state, inside, going, climateInfo, { mention: true }, true);
     }
 
     res.send(stripCustomMarkup(content));

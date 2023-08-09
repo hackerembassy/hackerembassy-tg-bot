@@ -31,7 +31,7 @@
         }
     },
     "embassy-api": {
-        "timeout": 15000,
+        "timeout": 7000,
         "port": 8001,
         "queryMonitorInterval": 60000,
         "statusCheckInterval": 15000,

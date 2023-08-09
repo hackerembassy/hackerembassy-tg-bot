@@ -55,6 +55,7 @@ const GeneralCommandsList = `
 /randomcat
 /randomdog
 /randomcab
+/randomcock
 `;
 
 /**

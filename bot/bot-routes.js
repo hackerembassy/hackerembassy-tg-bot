@@ -154,6 +154,7 @@ function setRoutes(bot) {
 
     bot.onTextExt(/^\/randomdog(@.+?)?$/i, MemeHandlers.randomDogHandler);
     bot.onTextExt(/^\/randomcat(@.+?)?$/i, MemeHandlers.randomCatHandler);
+    bot.onTextExt(/^\/randomcock(@.+?)?$/i, MemeHandlers.randomRoosterHandler);
     bot.onTextExt(/^\/(randomcab|givemecab|iwantcab|ineedcab|iwanttoseecab)(@.+?)?$/i, MemeHandlers.randomCabHandler);
 
     bot.onTextExt(/^\/clear(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[2]));

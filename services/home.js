@@ -21,10 +21,10 @@ const climateConfig = embassyApiConfig.climate;
 async function getClimate() {
     try {
         const climateValues = await Promise.allSettled([
-            getFromHass(climateConfig.first_floor.temperature, process.env["HASSTOKEN"]),
-            getFromHass(climateConfig.first_floor.humidity, process.env["HASSTOKEN"]),
-            getFromHass(climateConfig.second_floor.temperature, process.env["HASSTOKEN"]),
-            getFromHass(climateConfig.second_floor.humidity, process.env["HASSTOKEN"]),
+            (await getFromHass(climateConfig.first_floor.temperature)).json(),
+            (await getFromHass(climateConfig.first_floor.humidity)).json(),
+            (await getFromHass(climateConfig.second_floor.temperature)).json(),
+            (await getFromHass(climateConfig.second_floor.humidity)).json(),
         ]);
 
         return {

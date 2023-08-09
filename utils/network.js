@@ -31,18 +31,41 @@ function fetchWithTimeout(uri, options, ...rest) {
 
 /**
  * @param {string} url
- * @param {string} token
- * @returns {Promise<any>}
+ * @returns {Promise<Response>}
  */
-async function getFromHass(url, token) {
-    const response = await fetch(`${url}`, {
+async function getFromHass(url) {
+    // @ts-ignore
+    return await fetch(`${url}`, {
         headers: {
-            Authorization: token ? `Bearer ${token}` : "",
+            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
             "Content-Type": "application/json",
         },
     });
-
-    return await response.json();
 }
 
-module.exports = { fetchWithTimeout, getFromHass };
+/**
+ * @param {string} url
+ * @param {any} body
+ * @returns {Promise<Response>}
+ */
+async function postToHass(url, body) {
+    // @ts-ignore
+    return await fetch(url, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+}
+
+/**
+ * @param {Response} response
+ * @returns {Promise<Buffer>}
+ */
+async function getBufferFromResponse(response) {
+    return Buffer.from(await response.arrayBuffer());
+}
+
+module.exports = { fetchWithTimeout, getFromHass, postToHass, getBufferFromResponse };

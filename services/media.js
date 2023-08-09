@@ -1,7 +1,8 @@
-const { default: fetch } = require("node-fetch");
 const { exec } = require("child_process");
 const fs = require("fs").promises;
+const path = require("path");
 const config = require("config");
+const { postToHass, getFromHass, getBufferFromResponse } = require("../utils/network");
 const embassyApiConfig = config.get("embassy-api");
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;
@@ -14,21 +15,33 @@ const doorbellpath = embassyApiConfig.doorbellpath;
  * @returns {Promise<Buffer>}
  */
 async function getDoorcamImage() {
-    return await getImageFromHTTP(doorcamPath, process.env["HASSTOKEN"]);
+    return getBufferFromResponse(await getFromHass(doorcamPath));
 }
 
 /**
  * @returns {Promise<Buffer>}
  */
 async function getWebcamImage() {
-    return await getImageFromHTTP(webcamPath, process.env["HASSTOKEN"]);
+    return getBufferFromResponse(await getFromHass(webcamPath));
 }
 
 /**
  * @returns {Promise<Buffer>}
  */
 async function getWebcam2Image() {
-    return await getImageFromHTTP(webcam2Path, process.env["HASSTOKEN"]);
+    return getBufferFromResponse(await getFromHass(webcam2Path));
+}
+
+/**
+ * @param {string} folder
+ * @returns {Promise<Buffer>}
+ */
+async function getRandomImageFromFolder(folder) {
+    let files = await fs.readdir(folder);
+    if (!files || files.length === 0) return;
+
+    let fileindex = Math.floor(Math.random() * files.length);
+    return await fs.readFile(path.join(folder, files[fileindex]));
 }
 
 /**
@@ -59,38 +72,14 @@ async function getImageFromRTSP(url, filename) {
 }
 
 /**
- * @param {string} url
- * @param {string} token
- * @returns {Promise<Buffer>}
- */
-async function getImageFromHTTP(url, token) {
-    const response = await fetch(`${url}`, {
-        headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-            "Content-Type": "application/json",
-        },
-    });
-    const imgbuffer = await response.arrayBuffer();
-
-    return Buffer.from(imgbuffer);
-}
-
-/**
  * @param {string} text
  * @returns {Promise<void>}
  */
 async function sayInSpace(text) {
-    const response = await fetch(ttspath, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            entity_id: "media_player.hackem_speaker",
-            message: text,
-            language: "ru",
-        }),
+    const response = await postToHass(ttspath, {
+        entity_id: "media_player.hackem_speaker",
+        message: text,
+        language: "ru",
     });
 
     if (response.status !== 200) throw Error("Speaker request failed");
@@ -101,17 +90,10 @@ async function sayInSpace(text) {
  * @returns {Promise<void>}
  */
 async function playInSpace(link) {
-    const response = await fetch(playpath, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            entity_id: "media_player.hackem_speaker",
-            media_content_id: link,
-            media_content_type: "music",
-        }),
+    const response = await postToHass(playpath, {
+        entity_id: "media_player.hackem_speaker",
+        media_content_id: link,
+        media_content_type: "music",
     });
 
     if (response.status !== 200) throw Error("Speaker request failed");
@@ -121,18 +103,19 @@ async function playInSpace(link) {
  * @returns {Promise<void>}
  */
 async function ringDoorbell() {
-    const response = await fetch(doorbellpath, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            entity_id: "switch.doorbell",
-        }),
+    const response = await postToHass(doorbellpath, {
+        entity_id: "switch.doorbell",
     });
 
     if (response.status !== 200) throw Error("Ringing request failed");
 }
 
-module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell };
+module.exports = {
+    getDoorcamImage,
+    getWebcamImage,
+    getWebcam2Image,
+    sayInSpace,
+    playInSpace,
+    ringDoorbell,
+    getRandomImageFromFolder,
+};

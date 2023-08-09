@@ -64,6 +64,7 @@ function setRoutes(bot) {
     bot.onTextExt(/^\/((web)?c[au]m2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handler);
     bot.onTextExt(/^\/(doorc[au]m|dc)(@.+?)?$/i, EmbassyHandlers.doorcamHandler);
     bot.onTextExt(/^\/(printers)(@.+?)?$/i, EmbassyHandlers.printersHandler);
+    bot.onTextExt(/^\/(climate)(@.+?)?$/i, EmbassyHandlers.climateHandler);
     bot.onTextExt(/^\/(anette|anettestatus)(@.+?)?$/i, (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "anette"));
     bot.onTextExt(/^\/(plumbus|plumbusstatus)(@.+?)?$/i, (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus"));
     bot.onTextExt(/^\/printerstatus(@.+?)? (.*\S)$/i, (bot, msg, match) =>

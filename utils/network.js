@@ -29,4 +29,20 @@ function fetchWithTimeout(uri, options, ...rest) {
     return fetch(uri, { signal: cancellation.signal, ...options }, ...rest);
 }
 
-module.exports = { fetchWithTimeout };
+/**
+ * @param {string} url
+ * @param {string} token
+ * @returns {Promise<any>}
+ */
+async function getFromHass(url, token) {
+    const response = await fetch(`${url}`, {
+        headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+            "Content-Type": "application/json",
+        },
+    });
+
+    return await response.json();
+}
+
+module.exports = { fetchWithTimeout, getFromHass };

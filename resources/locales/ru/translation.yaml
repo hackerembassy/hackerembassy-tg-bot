@@ -199,7 +199,7 @@ embassy:
     fail: ⚠️ Не удалось получить статус, может, что-то с инетом, электричеством или le-fail?
   climate: 
     data: |
-      🌦 Климат в спейсе
+      🌦 Климат в спейсе:
       Первый этаж 🌡️ {{climateInfo.firstFloor.temperature}}ºC 💦 {{climateInfo.firstFloor.humidity}}%
       Второй этаж 🌡️ {{climateInfo.secondFloor.temperature}}ºC 💦 {{climateInfo.secondFloor.humidity}}%
     nodata: 🌚 Данные о климате недоступны 

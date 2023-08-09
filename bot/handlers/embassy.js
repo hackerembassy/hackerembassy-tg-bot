@@ -11,7 +11,6 @@ const TextGenerators = require("../../services/textGenerators");
 const UsersHelper = require("../../services/usersHelper");
 
 const t = require("../../services/localization");
-const { getClimate } = require("../../services/home");
 
 class EmbassyHanlers {
     static unlockHandler = async (bot, msg) => {
@@ -129,7 +128,7 @@ class EmbassyHanlers {
     };
 
     static climateHandler = async (bot, msg) => {
-        const climateInfo = await getClimate();
+        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
 
         return await bot.sendMessage(
             msg.chat.id,

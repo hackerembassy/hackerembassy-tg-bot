@@ -3,6 +3,7 @@ const cors = require("cors");
 const logger = require("./services/logger");
 const bodyParser = require("body-parser");
 const config = require("config");
+const embassyApiConfig = config.get("embassy-api");
 
 const TextGenerators = require("./services/textGenerators");
 const StatusRepository = require("./repositories/statusRepository");
@@ -12,7 +13,7 @@ const Commands = require("./resources/commands");
 const { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } = require("./services/statusHelper");
 const { stripCustomMarkup } = require("./utils/common");
 const { createErrorMiddleware } = require("./utils/middleware");
-const { getClimate } = require("./services/home");
+const { fetchWithTimeout } = require("./utils/network");
 
 const apiConfig = config.get("api");
 const app = express();
@@ -45,7 +46,7 @@ app.get("/status", async (_, res) => {
         const allUserStates = findRecentStates(StatusRepository.getAllUserStates());
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
-        const climateInfo = await getClimate();
+        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
 
         content = TextGenerators.getStatusMessage(state, inside, going, climateInfo, { mention: true }, true);
     }

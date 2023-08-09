@@ -24,6 +24,7 @@ const wifiip = embassyApiConfig.wifiip;
 process.env.TZ = botConfig.timezone;
 
 const statusMonitor = require("./services/statusMonitor");
+const { getClimate } = require("./services/home");
 statusMonitor.startMonitoring();
 
 const app = express();
@@ -61,6 +62,14 @@ app.get("/statusmonitor", async (_, res, next) => {
 app.get("/doorcam", async (_, res, next) => {
     try {
         res.send(await getDoorcamImage());
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/climate", async (_, res, next) => {
+    try {
+        res.send(await getClimate());
     } catch (error) {
         next(error);
     }

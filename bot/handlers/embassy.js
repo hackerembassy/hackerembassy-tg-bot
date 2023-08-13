@@ -128,12 +128,20 @@ class EmbassyHanlers {
     };
 
     static climateHandler = async (bot, msg) => {
-        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
+        const climateResponse = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
+        const climateInfo = climateResponse.status === 200 ? await climateResponse?.json() : null;
 
-        return await bot.sendMessage(
-            msg.chat.id,
-            climateInfo ? t("embassy.climate.data", { climateInfo }) : t("embassy.climate.nodata")
-        );
+        let message = t("embassy.climate.nodata");
+
+        if (climateInfo) {
+            message = t("embassy.climate.data", { climateInfo });
+
+            if (msg.chat.id === botConfig.chats.horny) {
+                message += t("embassy.climate.secretdata", { climateInfo });
+            }
+        }
+
+        return await bot.sendMessage(msg.chat.id, message);
     };
 
     static printerStatusHandler = async (bot, msg, printername) => {

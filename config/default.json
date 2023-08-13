@@ -57,6 +57,10 @@
             "second_floor":{
                 "temperature":  "http://hass:8123/api/states/sensor.second_floor_temperature",
                 "humidity": "http://hass:8123/api/states/sensor.atc_1664_humidity"
+            },
+            "bedroom":{
+                "temperature":  "http://hass:8123/api/states/sensor.atc_9ba1_temperature",
+                "humidity": "http://hass:8123/api/states/sensor.atc_9ba1_humidity"
             }
         },
         "hostsToMonitor": [

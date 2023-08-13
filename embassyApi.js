@@ -69,7 +69,7 @@ app.get("/doorcam", async (_, res, next) => {
 
 app.get("/climate", async (_, res, next) => {
     try {
-        res.send(await getClimate());
+        res.json(await getClimate());
     } catch (error) {
         next(error);
     }

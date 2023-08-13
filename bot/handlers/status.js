@@ -101,7 +101,9 @@ class StatusHandlers {
         const going = recentUserStates.filter(filterPeopleGoing);
         const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
 
-        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, bot.context.mode);
+        const withSecretData = msg.chat.id === botConfig.chats.horny;
+
+        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, bot.context.mode, withSecretData);
 
         if (StatusHandlers.isStatusError) statusMessage = t("status.status.noconnection", { statusMessage });
 

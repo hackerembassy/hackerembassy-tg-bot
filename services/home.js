@@ -13,6 +13,7 @@ const climateConfig = embassyApiConfig.climate;
  * @typedef {Object} SpaceClimate
  * @property {FloorClimate} firstFloor
  * @property {FloorClimate} secondFloor
+ * @property {FloorClimate} bedroom
  */
 
 /**
@@ -20,30 +21,41 @@ const climateConfig = embassyApiConfig.climate;
  */
 async function getClimate() {
     try {
-        const climateValues = await Promise.allSettled([
+        const queries = [
             (await getFromHass(climateConfig.first_floor.temperature)).json(),
             (await getFromHass(climateConfig.first_floor.humidity)).json(),
             (await getFromHass(climateConfig.second_floor.temperature)).json(),
             (await getFromHass(climateConfig.second_floor.humidity)).json(),
-        ]);
+            (await getFromHass(climateConfig.bedroom.temperature)).json(),
+            (await getFromHass(climateConfig.bedroom.humidity)).json(),
+        ];
+
+        const climateValues = await Promise.allSettled(queries);
 
         return {
             firstFloor: {
-                temperature:
-                    climateValues[0].status === "fulfilled" && climateValues[0].value.state ? climateValues[0].value.state : "?",
-                humidity:
-                    climateValues[1].status === "fulfilled" && climateValues[1].value.state ? climateValues[1].value.state : "?",
+                temperature: getValueOrDefault(climateValues[0]),
+                humidity: getValueOrDefault(climateValues[1]),
             },
             secondFloor: {
-                temperature:
-                    climateValues[2].status === "fulfilled" && climateValues[2].value.state ? climateValues[2].value.state : "?",
-                humidity:
-                    climateValues[3].status === "fulfilled" && climateValues[3].value.state ? climateValues[3].value.state : "?",
+                temperature: getValueOrDefault(climateValues[2]),
+                humidity: getValueOrDefault(climateValues[3]),
+            },
+            bedroom: {
+                temperature: getValueOrDefault(climateValues[4]),
+                humidity: getValueOrDefault(climateValues[5]),
             },
         };
     } catch {
         return null;
     }
+}
+
+/**
+ * @param {PromiseSettledResult<any>} climateValue
+ */
+function getValueOrDefault(climateValue, defaultValue = "?") {
+    return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }
 
 module.exports = { getClimate };

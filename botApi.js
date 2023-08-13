@@ -48,7 +48,7 @@ app.get("/status", async (_, res) => {
         const going = allUserStates.filter(filterPeopleGoing);
         const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
 
-        content = TextGenerators.getStatusMessage(state, inside, going, climateInfo, { mention: true }, true);
+        content = TextGenerators.getStatusMessage(state, inside, going, climateInfo, { mention: true }, false, true);
     }
 
     res.send(stripCustomMarkup(content));

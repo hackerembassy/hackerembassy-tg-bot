@@ -133,7 +133,7 @@ function generateDonationsList(fundDonations, options, mode) {
  * @param {UserState[]} going
  * @returns {string}
  */
-function getStatusMessage(state, inside, going, climateInfo, mode, isApi = false) {
+function getStatusMessage(state, inside, going, climateInfo, mode, withSecrets = false, isApi = false) {
     const stateFullText = t("status.status.state", {
         stateEmoji: state.open ? "🔓" : "🔒",
         state: state.open ? t("status.status.opened") : t("status.status.closed"),
@@ -153,15 +153,16 @@ function getStatusMessage(state, inside, going, climateInfo, mode, isApi = false
         }\n`;
     }
 
-    const climateText = climateInfo ? t("embassy.climate.data", { climateInfo }) : "";
+    const climateText = climateInfo
+        ? `\n${t("embassy.climate.data", { climateInfo })}${withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""}`
+        : "";
 
     const updateText = !isApi
         ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21)}\n`
         : "";
 
     return `${stateFullText}
-${insideText}${goingText}
-${climateText}
+${insideText}${goingText}${climateText}
 ${updateText}`;
 }
 

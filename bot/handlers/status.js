@@ -99,7 +99,13 @@ class StatusHandlers {
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates());
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
-        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
+
+        let climateInfo = null;
+        try {
+            climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
+        } catch (error) {
+            logger.error(error);
+        }
 
         const withSecretData = msg.chat.id === botConfig.chats.horny;
 

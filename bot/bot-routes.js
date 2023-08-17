@@ -144,44 +144,56 @@ async function setRoutes(bot) {
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3")
     );
 
-    // Funds and donations
-    bot.onTextExt(/^\/funds(@.+?)?$/i, FundsHandlers.fundsHandler);
-    bot.onTextExt(/^\/fund(@.+?)? (.*\S)$/i, (bot, msg, match) => FundsHandlers.fundHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/fundsall(@.+?)?$/i, FundsHandlers.fundsallHandler);
-    bot.onTextExt(/^\/addfund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)$/i, (bot, msg, match) =>
-        FundsHandlers.addFundHandler(bot, msg, match[2], match[3], match[4])
+    // Funds
+    bot.onTextExt(rc.command(["funds"]), FundsHandlers.fundsHandler);
+    bot.onTextExt(rc.command(["fund"], /(.*\S)/, false), (bot, msg, match) => FundsHandlers.fundHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["fundsall", "fundshistory"]), FundsHandlers.fundsallHandler);
+    bot.onTextExt(rc.command(["addfund"], /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)/, false), (bot, msg, match) =>
+        FundsHandlers.addFundHandler(bot, msg, match[1], match[2], match[3])
     );
     bot.onTextExt(
-        /^\/updatefund(@.+?)? (.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?$/i,
-        (bot, msg, match) => FundsHandlers.updateFundHandler(bot, msg, match[2], match[3], match[4], match[5])
+        rc.command(["updatefund"], /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/, false),
+        (bot, msg, match) => FundsHandlers.updateFundHandler(bot, msg, match[1], match[2], match[3], match[4])
     );
-    bot.onTextExt(/^\/removefund(@.+?)? (.*\S)$/i, (bot, msg, match) => FundsHandlers.removeFundHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/exportfund(@.+?)? (.*\S)$/i, async (bot, msg, match) => FundsHandlers.exportCSVHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/exportdonut(@.+?)? (.*\S)$/i, async (bot, msg, match) =>
-        FundsHandlers.exportDonutHandler(bot, msg, match[2])
+    bot.onTextExt(rc.command(["removefund"], /(.*\S)/, false), (bot, msg, match) =>
+        FundsHandlers.removeFundHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/closefund(@.+?)? (.*\S)$/i, (bot, msg, match) => FundsHandlers.closeFundHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/changefundstatus(@.+?)? of (.*\S) to (.*\S)$/i, (bot, msg, match) =>
-        FundsHandlers.changeFundStatusHandler(bot, msg, match[2], match[3])
+    bot.onTextExt(rc.command(["exportfund"], /(.*\S)/, false), async (bot, msg, match) =>
+        FundsHandlers.exportCSVHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/adddonation(@.+?)? (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)$/i, (bot, msg, match) =>
-        FundsHandlers.addDonationHandler(bot, msg, match[2], match[3], match[4], match[5])
+    bot.onTextExt(rc.command(["exportdonut"], /(.*\S)/, false), async (bot, msg, match) =>
+        FundsHandlers.exportDonutHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/costs(@.+?)? (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?$/i, (bot, msg, match) =>
-        FundsHandlers.costsHandler(bot, msg, match[2], match[3], match[4])
+    bot.onTextExt(rc.command(["closefund"], /(.*\S)/, false), (bot, msg, match) =>
+        FundsHandlers.closeFundHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/(showcosts|costs)(@.+?)?$/i, (bot, msg) => FundsHandlers.showCostsHandler(bot, msg));
-    bot.onTextExt(/^\/(showcostsdonut|costsdonut|donut)(@.+?)?$/i, (bot, msg) => FundsHandlers.showCostsDonutHandler(bot, msg));
-    bot.onTextExt(/^\/(residents?(costs|donated))(@.+?)?$/i, (bot, msg) => FundsHandlers.residentsDonatedHandler(bot, msg));
+    bot.onTextExt(rc.command(["changefundstatus"], /of (.*\S) to (.*\S)/, false), (bot, msg, match) =>
+        FundsHandlers.changeFundStatusHandler(bot, msg, match[1], match[2])
+    );
+    bot.onTextExt(rc.command(["showcostsdonut", "costsdonut", "donut"]), (bot, msg) =>
+        FundsHandlers.showCostsDonutHandler(bot, msg)
+    );
+    bot.onTextExt(rc.command(["residentscosts", "residentsdonated", "residentcosts"]), (bot, msg) =>
+        FundsHandlers.residentsDonatedHandler(bot, msg)
+    );
+    bot.onTextExt(rc.command(["costs", "showcosts"]), (bot, msg) => FundsHandlers.showCostsHandler(bot, msg));
 
-    bot.onTextExt(/^\/removedonation(@.+?)? (\d+)$/i, (bot, msg, match) =>
-        FundsHandlers.removeDonationHandler(bot, msg, match[2])
+    // Donations
+    bot.onTextExt(rc.command(["costs"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/, false), (bot, msg, match) =>
+        FundsHandlers.costsHandler(bot, msg, match[1], match[2], match[3])
     );
-    bot.onTextExt(/^\/transferdonation(@.+?)? (\d+) to (.*\S)$/i, (bot, msg, match) =>
-        FundsHandlers.transferDonationHandler(bot, msg, match[2], match[3])
+    bot.onTextExt(
+        rc.command(["adddonation"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/, false),
+        (bot, msg, match) => FundsHandlers.addDonationHandler(bot, msg, match[1], match[2], match[3], match[4])
     );
-    bot.onTextExt(/^\/changedonation(@.+?)? (\d+) to (\S+)\s?(\D*?)$/i, (bot, msg, match) =>
-        FundsHandlers.changeDonationHandler(bot, msg, match[2], match[3], match[4])
+    bot.onTextExt(rc.command(["removedonation"], /(\d+)/, false), (bot, msg, match) =>
+        FundsHandlers.removeDonationHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["transferdonation"], /(\d+) to (.*\S)/, false), (bot, msg, match) =>
+        FundsHandlers.transferDonationHandler(bot, msg, match[1], match[2])
+    );
+    bot.onTextExt(rc.command(["changedonation"], /(\d+) to (\S+)\s?(\D*?)/, false), (bot, msg, match) =>
+        FundsHandlers.changeDonationHandler(bot, msg, match[1], match[2], match[3])
     );
 
     // Needs

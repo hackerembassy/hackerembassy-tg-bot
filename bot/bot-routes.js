@@ -185,43 +185,50 @@ async function setRoutes(bot) {
     );
 
     // Needs
-    bot.onTextExt(/^\/needs(@.+?)?$/i, NeedsHandlers.needsHandler);
-    bot.onTextExt(/^\/(?:buy|need)(@.+?)? (.*)$/i, (bot, msg, match) => NeedsHandlers.buyHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/bought(@.+?)? (.*)$/i, (bot, msg, match) => NeedsHandlers.boughtHandler(bot, msg, match[2]));
+    bot.onTextExt(rc.command(["needs"]), NeedsHandlers.needsHandler);
+    bot.onTextExt(rc.command(["buy", "need"], /(.*)/, false), (bot, msg, match) => NeedsHandlers.buyHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["bought"], /(.*)/, false), (bot, msg, match) => NeedsHandlers.boughtHandler(bot, msg, match[1]));
 
     // Birthdays
-    bot.onTextExt(/^\/birthdays(@.+?)?$/i, async (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
-    bot.onTextExt(/^\/(forcebirthdaywishes|fbw)(@.+?)?$/i, async (bot, msg) =>
+    bot.onTextExt(rc.command(["birthdays"]), async (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
+    bot.onTextExt(rc.command(["forcebirthdaywishes", "fbw"]), async (bot, msg) =>
         BirthdayHandlers.forceBirthdayWishHandler(bot, msg)
     );
-    bot.onTextExt(/^\/mybirthday(@.+?)?(?: (.*\S)?)?$/i, async (bot, msg, match) =>
-        BirthdayHandlers.myBirthdayHandler(bot, msg, match[2])
+    bot.onTextExt(rc.command(["mybirthday"], /(.*\S)/), async (bot, msg, match) =>
+        BirthdayHandlers.myBirthdayHandler(bot, msg, match[1])
     );
 
     // Admin
-    bot.onTextExt(/^\/(getusers|gu)(@.+?)?$/i, AdminHandlers.getUsersHandler);
-    bot.onTextExt(/^\/adduser(@.+?)? (\S+?) as (\S+)$/i, (bot, msg, match) =>
-        AdminHandlers.addUserHandler(bot, msg, match[2], match[3])
+    bot.onTextExt(rc.command(["getusers", "users", "gu"]), AdminHandlers.getUsersHandler);
+    bot.onTextExt(rc.command(["adduser"], /(\S+?) as (\S+)/, false), (bot, msg, match) =>
+        AdminHandlers.addUserHandler(bot, msg, match[1], match[2])
     );
-    bot.onTextExt(/^\/updateroles(@.+?)? of (\S+?) to (\S+)$/i, (bot, msg, match) =>
-        AdminHandlers.updateRolesHandler(bot, msg, match[2], match[3])
+    bot.onTextExt(rc.command(["updateroles"], /of (\S+?) to (\S+)/, false), (bot, msg, match) =>
+        AdminHandlers.updateRolesHandler(bot, msg, match[1], match[2])
     );
-    bot.onTextExt(/^\/removeuser(@.+?)? (\S+)$/i, (bot, msg, match) => AdminHandlers.removeUserHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/forward(@.+?)? (.*)$/i, (bot, msg, match) => AdminHandlers.forwardHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/((get)?logs?)(@.+?)?$/i, AdminHandlers.getLogHandler);
-    bot.onTextExt(/^\/((get)?history)(@.+?)?$/i, AdminHandlers.getHistoryHandler);
+    bot.onTextExt(rc.command(["removeuser"], /(\S+)/, false), (bot, msg, match) =>
+        AdminHandlers.removeUserHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["forward"], /(.*)/, false), (bot, msg, match) => AdminHandlers.forwardHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["getlogs", "logs", "log"]), AdminHandlers.getLogHandler);
+    bot.onTextExt(rc.command(["gethistory", "history"]), AdminHandlers.getHistoryHandler);
 
     // Memes
-    bot.onTextExt(/^\/randomdog(@.+?)?$/i, MemeHandlers.randomDogHandler);
-    bot.onTextExt(/^\/randomcat(@.+?)?$/i, MemeHandlers.randomCatHandler);
-    bot.onTextExt(/^\/randomcock(@.+?)?$/i, MemeHandlers.randomRoosterHandler);
-    bot.onTextExt(/^\/(randomcab|givemecab|iwantcab|ineedcab|iwanttoseecab)(@.+?)?$/i, MemeHandlers.randomCabHandler);
+    bot.onTextExt(rc.command(["randomdog", "dog"]), MemeHandlers.randomDogHandler);
+    bot.onTextExt(rc.command(["randomcat", "cat"]), MemeHandlers.randomCatHandler);
+    bot.onTextExt(rc.command(["randomcock", "cock"]), MemeHandlers.randomRoosterHandler);
+    bot.onTextExt(
+        rc.command(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"]),
+        MemeHandlers.randomCabHandler
+    );
 
     // Chat control
-    bot.onTextExt(/^\/clear(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/combine(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.combineHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/(((enable)?residentmenu)|erm)(@.+?)?$/i, ServiceHandlers.residentMenuHandler);
-    bot.onTextExt(/^\/(chatid)(@.+?)?$/i, ServiceHandlers.chatidHandler);
+    bot.onTextExt(rc.command(["clear"], /(\d*)/, true), (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["combine"], /(\d*)/, true), (bot, msg, match) =>
+        ServiceHandlers.combineHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["enableresidentmenu", "residentmenu"]), ServiceHandlers.residentMenuHandler);
+    bot.onTextExt(rc.command(["chatid"]), ServiceHandlers.chatidHandler);
 
     // Callbacks and events
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);

@@ -26,10 +26,10 @@ class RegexCommander {
      * @param {RegExp} params
      * @param {boolean} optional
      */
-    command(aliases, params = undefined, optional = true) {
+    command(aliases, params = undefined, optional = true, flags = "i") {
         const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
         const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
-        return new RegExp(`^${commandPart}${paramsPart}$`, "i");
+        return new RegExp(`^${commandPart}${paramsPart}$`, flags);
     }
 }
 
@@ -40,6 +40,7 @@ async function setRoutes(bot) {
     const botname = (await bot.getMe()).username;
     const rc = new RegexCommander(botname);
 
+    // Info
     bot.onTextExt(rc.command(["help"]), BasicHandlers.helpHandler);
     bot.onTextExt(rc.command(["about"]), BasicHandlers.aboutHandler);
     bot.onTextExt(rc.command(["join"]), BasicHandlers.joinHandler);
@@ -50,17 +51,21 @@ async function setRoutes(bot) {
     bot.onTextExt(rc.command(["donatecrypto"], /(btc|eth|usdc|usdt)/, false), (bot, msg, match) =>
         BasicHandlers.donateCoinHandler(bot, msg, match[1])
     );
-    bot.onTextExt(rc.command(["issue"], /(.*)/), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));
     bot.onTextExt(rc.command(["getresidents", "gr"]), BasicHandlers.getResidentsHandler);
+
+    // Panels
     bot.onTextExt(rc.command(["start", "startpanel", "sp"]), (bot, msg) => BasicHandlers.startPanelHandler(bot, msg));
     bot.onTextExt(rc.command(["infopanel", "ip"]), (bot, msg) => BasicHandlers.infoPanelHandler(bot, msg));
     bot.onTextExt(rc.command(["controlpanel", "cp"]), (bot, msg) => BasicHandlers.controlPanelHandler(bot, msg));
 
+    // Issues
+    bot.onTextExt(rc.command(["issue"], /(.*)/), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));
+
+    // Status
     bot.onTextExt(rc.command(["status", "s"]), (bot, msg) => StatusHandlers.statusHandler(bot, msg));
     bot.onTextExt(rc.command(["in", "iaminside"]), StatusHandlers.inHandler);
     bot.onTextExt(rc.command(["open", "o"]), StatusHandlers.openHandler);
     bot.onTextExt(rc.command(["close", "c"]), StatusHandlers.closeHandler);
-
     bot.onTextExt(rc.command(["inforce", "goin"], /(\S+)/, false), (bot, msg, match) =>
         StatusHandlers.inForceHandler(bot, msg, match[1])
     );
@@ -69,7 +74,17 @@ async function setRoutes(bot) {
     );
     bot.onTextExt(rc.command(["out", "iamleaving"]), StatusHandlers.outHandler);
     bot.onTextExt(rc.command(["evict", "outforceall"]), StatusHandlers.evictHandler);
+    bot.onTextExt(rc.command(["going", "g"], /(.*)/), (bot, msg, match) => StatusHandlers.goingHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["notgoing", "ng"]), StatusHandlers.notGoingHandler);
+    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), async (bot, msg, match) =>
+        StatusHandlers.autoinsideHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), async (bot, msg, match) =>
+        StatusHandlers.setmacHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(/^\/(superstatus|ss)(@.+?)?$/i, ServiceHandlers.superstatusHandler);
 
+    // Stats
     bot.onTextExt(rc.command(["mystats"]), (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));
     bot.onTextExt(rc.command(["statsof"], /(\S+)/, false), (bot, msg, match) =>
         StatusHandlers.statsOfHandler(bot, msg, match[3])
@@ -82,47 +97,54 @@ async function setRoutes(bot) {
         StatusHandlers.statsMonthHandler(bot, msg, new Date().getMonth() - 1)
     );
 
-    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), async (bot, msg, match) =>
-        StatusHandlers.autoinsideHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), async (bot, msg, match) =>
-        StatusHandlers.setmacHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["going", "g"], /(.*)/), (bot, msg, match) => StatusHandlers.goingHandler(bot, msg, match[1]));
-    bot.onTextExt(rc.command(["notgoing", "ng"]), StatusHandlers.notGoingHandler);
+    // Emoji
     bot.onTextExt(rc.command(["setemoji", "emoji", "myemoji"], /(.*)/), (bot, msg, match) =>
         StatusHandlers.setemojiHandler(bot, msg, match[1])
     );
 
-    bot.onTextExt(/^\/((web)?c[au]m|firstfloor|ff)(@.+?)?$/i, EmbassyHandlers.webcamHandler);
-    bot.onTextExt(/^\/((web)?c[au]m2|secondfloor|sf)(@.+?)?$/i, EmbassyHandlers.webcam2Handler);
-    bot.onTextExt(/^\/(doorc[au]m|dc)(@.+?)?$/i, EmbassyHandlers.doorcamHandler);
-    bot.onTextExt(/^\/(printers)(@.+?)?$/i, EmbassyHandlers.printersHandler);
-    bot.onTextExt(/^\/(climate)(@.+?)?$/i, EmbassyHandlers.climateHandler);
-    bot.onTextExt(/^\/(anette|anettestatus)(@.+?)?$/i, (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "anette"));
-    bot.onTextExt(/^\/(plumbus|plumbusstatus)(@.+?)?$/i, (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus"));
-    bot.onTextExt(/^\/printerstatus(@.+?)? (.*\S)$/i, (bot, msg, match) =>
-        EmbassyHandlers.printerStatusHandler(bot, msg, match[2])
+    // Cams
+    bot.onTextExt(rc.command(["webcam", "webcum", "cam", "cum", "firstfloor", "ff"]), EmbassyHandlers.webcamHandler);
+    bot.onTextExt(rc.command(["webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"]), EmbassyHandlers.webcam2Handler);
+    bot.onTextExt(rc.command(["doorcam", "doorcum", "dc"]), EmbassyHandlers.doorcamHandler);
+
+    // Sensors
+    bot.onTextExt(rc.command(["climate"]), EmbassyHandlers.climateHandler);
+
+    // Printers
+    bot.onTextExt(rc.command(["printers"]), EmbassyHandlers.printersHandler);
+    bot.onTextExt(rc.command(["anette", "anettestatus"]), (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "anette"));
+    bot.onTextExt(rc.command(["plumbus", "plumbusstatus"]), (bot, msg) =>
+        EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus")
     );
-    bot.onTextExt(/^\/(unlock|u)(@.+?)?$/i, EmbassyHandlers.unlockHandler);
-    bot.onTextExt(/^\/(doorbell|db)(@.+?)?$/i, EmbassyHandlers.doorbellHandler);
-    bot.onTextExt(/^\/monitor(@.+?)?$/i, (bot, msg) => EmbassyHandlers.monitorHandler(bot, msg, false));
-    bot.onTextExt(/^\/(?:sayinspace|say)(@.+?)?(?: (.*))?$/ims, (bot, msg, match) =>
-        EmbassyHandlers.sayinspaceHandler(bot, msg, match[2])
+    bot.onTextExt(rc.command(["printerstatus"], /(.*\S)/, false), (bot, msg, match) =>
+        EmbassyHandlers.printerStatusHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/(?:playinspace|play)(@.+?)?(?: (.*))?$/ims, (bot, msg, match) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, match[2])
+
+    // Door
+    bot.onTextExt(rc.command(["unlock", "u"]), EmbassyHandlers.unlockHandler);
+    bot.onTextExt(rc.command(["doorbell", "db"]), EmbassyHandlers.doorbellHandler);
+
+    // Monitoring
+    bot.onTextExt(rc.command(["monitor"]), (bot, msg) => EmbassyHandlers.monitorHandler(bot, msg, false));
+
+    // Sounds
+    bot.onTextExt(rc.command(["sayinspace", "say"], /(.*)/, true, "ims"), (bot, msg, match) =>
+        EmbassyHandlers.sayinspaceHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/(fartinspace|fart)(@.+?)?$/i, (bot, msg) =>
+    bot.onTextExt(rc.command(["playinspace", "play"], /(.*)/, true, "ims"), (bot, msg, match) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["fartinspace", "fart"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, "https://www.tones7.com/media/farts.mp3")
     );
-    bot.onTextExt(/^\/(moaninspace|moan)(@.+?)?$/i, (bot, msg) =>
+    bot.onTextExt(rc.command(["moaninspace", "moan"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3")
     );
-    bot.onTextExt(/^\/(rickroll|nevergonnagiveyouup)(@.+?)?$/i, (bot, msg) =>
+    bot.onTextExt(rc.command(["rickroll", "nevergonnagiveyouup"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3")
     );
 
+    // Funds and donations
     bot.onTextExt(/^\/funds(@.+?)?$/i, FundsHandlers.fundsHandler);
     bot.onTextExt(/^\/fund(@.+?)? (.*\S)$/i, (bot, msg, match) => FundsHandlers.fundHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/fundsall(@.+?)?$/i, FundsHandlers.fundsallHandler);
@@ -162,10 +184,12 @@ async function setRoutes(bot) {
         FundsHandlers.changeDonationHandler(bot, msg, match[2], match[3], match[4])
     );
 
+    // Needs
     bot.onTextExt(/^\/needs(@.+?)?$/i, NeedsHandlers.needsHandler);
     bot.onTextExt(/^\/(?:buy|need)(@.+?)? (.*)$/i, (bot, msg, match) => NeedsHandlers.buyHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/bought(@.+?)? (.*)$/i, (bot, msg, match) => NeedsHandlers.boughtHandler(bot, msg, match[2]));
 
+    // Birthdays
     bot.onTextExt(/^\/birthdays(@.+?)?$/i, async (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
     bot.onTextExt(/^\/(forcebirthdaywishes|fbw)(@.+?)?$/i, async (bot, msg) =>
         BirthdayHandlers.forceBirthdayWishHandler(bot, msg)
@@ -174,6 +198,7 @@ async function setRoutes(bot) {
         BirthdayHandlers.myBirthdayHandler(bot, msg, match[2])
     );
 
+    // Admin
     bot.onTextExt(/^\/(getusers|gu)(@.+?)?$/i, AdminHandlers.getUsersHandler);
     bot.onTextExt(/^\/adduser(@.+?)? (\S+?) as (\S+)$/i, (bot, msg, match) =>
         AdminHandlers.addUserHandler(bot, msg, match[2], match[3])
@@ -186,19 +211,23 @@ async function setRoutes(bot) {
     bot.onTextExt(/^\/((get)?logs?)(@.+?)?$/i, AdminHandlers.getLogHandler);
     bot.onTextExt(/^\/((get)?history)(@.+?)?$/i, AdminHandlers.getHistoryHandler);
 
+    // Memes
     bot.onTextExt(/^\/randomdog(@.+?)?$/i, MemeHandlers.randomDogHandler);
     bot.onTextExt(/^\/randomcat(@.+?)?$/i, MemeHandlers.randomCatHandler);
     bot.onTextExt(/^\/randomcock(@.+?)?$/i, MemeHandlers.randomRoosterHandler);
     bot.onTextExt(/^\/(randomcab|givemecab|iwantcab|ineedcab|iwanttoseecab)(@.+?)?$/i, MemeHandlers.randomCabHandler);
 
+    // Chat control
     bot.onTextExt(/^\/clear(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[2]));
     bot.onTextExt(/^\/combine(@.+?)?(?: (\d*))?$/i, (bot, msg, match) => ServiceHandlers.combineHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/(superstatus|ss)(@.+?)?$/i, ServiceHandlers.superstatusHandler);
     bot.onTextExt(/^\/(((enable)?residentmenu)|erm)(@.+?)?$/i, ServiceHandlers.residentMenuHandler);
     bot.onTextExt(/^\/(chatid)(@.+?)?$/i, ServiceHandlers.chatidHandler);
+
+    // Callbacks and events
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);
     bot.onExt("new_chat_members", ServiceHandlers.newMemberHandler);
 
+    // Errors
     bot.on("error", error => {
         logger.error(error);
     });

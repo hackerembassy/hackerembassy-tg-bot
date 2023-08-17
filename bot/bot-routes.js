@@ -13,25 +13,40 @@ const MemeHandlers = require("./handlers/meme");
 
 const logger = require("../services/logger");
 
+class RegexCommander {
+    constructor(botname = "") {
+        this.botname = botname;
+    }
+
+    command(aliases, params = "", optional = true) {
+        const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
+        const paramsPart = params ? (optional ? `(?: ${params})?` : ` ${params}`) : "";
+        return new RegExp(`^${commandPart}${paramsPart}$`, "i");
+    }
+}
+
 /**
  * @param {HackerEmbassyBot} bot
  */
-function setRoutes(bot) {
-    bot.onTextExt(/^\/(help)(@.+?)?$/i, BasicHandlers.helpHandler);
-    bot.onTextExt(/^\/(about)(@.+?)?$/i, BasicHandlers.aboutHandler);
-    bot.onTextExt(/^\/(join)(@.+?)?$/i, BasicHandlers.joinHandler);
-    bot.onTextExt(/^\/(events)(@.+?)?$/i, BasicHandlers.eventsHandler);
-    bot.onTextExt(/^\/(donate)(@.+?)?$/i, BasicHandlers.donateHandler);
-    bot.onTextExt(/^\/(location|where)(@.+?)?$/i, BasicHandlers.locationHandler);
-    bot.onTextExt(/^\/donate(cash|card)(@.+?)?$/i, BasicHandlers.donateCardHandler);
-    bot.onTextExt(/^\/donate(btc|eth|usdc|usdt)(@.+?)?$/i, (bot, msg, match) =>
+async function setRoutes(bot) {
+    const botname = (await bot.getMe()).username;
+    const rc = new RegexCommander(botname);
+
+    bot.onTextExt(rc.command(["help"]), BasicHandlers.helpHandler);
+    bot.onTextExt(rc.command(["about"]), BasicHandlers.aboutHandler);
+    bot.onTextExt(rc.command(["join"]), BasicHandlers.joinHandler);
+    bot.onTextExt(rc.command(["events"]), BasicHandlers.eventsHandler);
+    bot.onTextExt(rc.command(["donate"]), BasicHandlers.donateHandler);
+    bot.onTextExt(rc.command(["location", "where"]), BasicHandlers.locationHandler);
+    bot.onTextExt(rc.command(["donatecash", "donatecard"]), BasicHandlers.donateCardHandler);
+    bot.onTextExt(rc.command(["donatecrypto"], "(btc|eth|usdc|usdt)", false), (bot, msg, match) =>
         BasicHandlers.donateCoinHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/issue(@.+?)?(?: (.*))?$/i, (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/(getresidents|gr)(@.+?)?$/i, BasicHandlers.getResidentsHandler);
-    bot.onTextExt(/^\/(start|startpanel|sp)(@.+?)?$/i, (bot, msg) => BasicHandlers.startPanelHandler(bot, msg));
-    bot.onTextExt(/^\/(infopanel|ip)(@.+?)?$/i, (bot, msg) => BasicHandlers.infoPanelHandler(bot, msg));
-    bot.onTextExt(/^\/(controlpanel|cp)(@.+?)?$/i, (bot, msg) => BasicHandlers.controlPanelHandler(bot, msg));
+    bot.onTextExt(rc.command(["issue"], "(.*)"), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["getresidents", "gr"]), BasicHandlers.getResidentsHandler);
+    bot.onTextExt(rc.command(["start", "startpanel", "sp"]), (bot, msg) => BasicHandlers.startPanelHandler(bot, msg));
+    bot.onTextExt(rc.command(["infopanel", "ip"]), (bot, msg) => BasicHandlers.infoPanelHandler(bot, msg));
+    bot.onTextExt(rc.command(["controlpanel", "cp"]), (bot, msg) => BasicHandlers.controlPanelHandler(bot, msg));
 
     bot.onTextExt(/^\/(status|s)(@.+?)?$/i, (bot, msg) => StatusHandlers.statusHandler(bot, msg));
     bot.onTextExt(/^\/in(@.+?)?$/i, StatusHandlers.inHandler);

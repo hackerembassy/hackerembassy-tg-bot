@@ -262,10 +262,10 @@ function getNeedsList(needs, mode) {
  */
 function getDonateText(accountants, isApi = false) {
     const cryptoCommands = !isApi
-        ? `/donatebtc
-  /donateeth
-  /donateusdc
-  /donateusdt`
+        ? `#\`/donatecrypto btc#\`
+  #\`/donatecrypto eth#\`
+  #\`/donatecrypto usdc#\`
+  #\`/donatecrypto usdt#\``
         : "";
 
     return t("basic.donate", {

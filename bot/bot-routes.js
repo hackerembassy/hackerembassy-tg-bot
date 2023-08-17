@@ -14,13 +14,21 @@ const MemeHandlers = require("./handlers/meme");
 const logger = require("../services/logger");
 
 class RegexCommander {
+    /**
+     * @param {string} botname
+     */
     constructor(botname = "") {
         this.botname = botname;
     }
 
-    command(aliases, params = "", optional = true) {
+    /**
+     * @param {string[]} aliases
+     * @param {RegExp} params
+     * @param {boolean} optional
+     */
+    command(aliases, params = undefined, optional = true) {
         const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
-        const paramsPart = params ? (optional ? `(?: ${params})?` : ` ${params}`) : "";
+        const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
         return new RegExp(`^${commandPart}${paramsPart}$`, "i");
     }
 }
@@ -39,40 +47,51 @@ async function setRoutes(bot) {
     bot.onTextExt(rc.command(["donate"]), BasicHandlers.donateHandler);
     bot.onTextExt(rc.command(["location", "where"]), BasicHandlers.locationHandler);
     bot.onTextExt(rc.command(["donatecash", "donatecard"]), BasicHandlers.donateCardHandler);
-    bot.onTextExt(rc.command(["donatecrypto"], "(btc|eth|usdc|usdt)", false), (bot, msg, match) =>
+    bot.onTextExt(rc.command(["donatecrypto"], /(btc|eth|usdc|usdt)/, false), (bot, msg, match) =>
         BasicHandlers.donateCoinHandler(bot, msg, match[1])
     );
-    bot.onTextExt(rc.command(["issue"], "(.*)"), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["issue"], /(.*)/), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));
     bot.onTextExt(rc.command(["getresidents", "gr"]), BasicHandlers.getResidentsHandler);
     bot.onTextExt(rc.command(["start", "startpanel", "sp"]), (bot, msg) => BasicHandlers.startPanelHandler(bot, msg));
     bot.onTextExt(rc.command(["infopanel", "ip"]), (bot, msg) => BasicHandlers.infoPanelHandler(bot, msg));
     bot.onTextExt(rc.command(["controlpanel", "cp"]), (bot, msg) => BasicHandlers.controlPanelHandler(bot, msg));
 
-    bot.onTextExt(/^\/(status|s)(@.+?)?$/i, (bot, msg) => StatusHandlers.statusHandler(bot, msg));
-    bot.onTextExt(/^\/in(@.+?)?$/i, StatusHandlers.inHandler);
-    bot.onTextExt(/^\/(open|o)(@.+?)?$/i, StatusHandlers.openHandler);
-    bot.onTextExt(/^\/(close|c)(@.+?)?$/i, StatusHandlers.closeHandler);
-    bot.onTextExt(/^\/inforce(@.+?)? (\S+)$/i, (bot, msg, match) => StatusHandlers.inForceHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/outforce(@.+?)? (\S+)$/i, (bot, msg, match) => StatusHandlers.outForceHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/out(@.+?)?$/i, StatusHandlers.outHandler);
-    bot.onTextExt(/^\/(evict|outforceall)(@.+?)?$/i, StatusHandlers.evictHandler);
-    bot.onTextExt(/^\/(mystats)(@.+?)?$/i, (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));
-    bot.onTextExt(/^\/(statsof)(@.+?)? (\S+)$/i, (bot, msg, match) => StatusHandlers.statsOfHandler(bot, msg, match[3]));
-    bot.onTextExt(/^\/(stats)(@.+?)?(?:(?: from (\S+))?(?: to (\S+))?)?$/i, (bot, msg, match) =>
-        StatusHandlers.statsHandler(bot, msg, match[3], match[4])
+    bot.onTextExt(rc.command(["status", "s"]), (bot, msg) => StatusHandlers.statusHandler(bot, msg));
+    bot.onTextExt(rc.command(["in", "iaminside"]), StatusHandlers.inHandler);
+    bot.onTextExt(rc.command(["open", "o"]), StatusHandlers.openHandler);
+    bot.onTextExt(rc.command(["close", "c"]), StatusHandlers.closeHandler);
+
+    bot.onTextExt(rc.command(["inforce", "goin"], /(\S+)/, false), (bot, msg, match) =>
+        StatusHandlers.inForceHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/(month|statsmonth|monthstats)(@.+?)?$/i, (bot, msg) => StatusHandlers.statsMonthHandler(bot, msg));
-    bot.onTextExt(/^\/(lastmonth|statslastmonth|lastmonthstats)(@.+?)?$/i, (bot, msg) =>
+    bot.onTextExt(rc.command(["outforce", "gohome"], /(\S+)/, false), (bot, msg, match) =>
+        StatusHandlers.outForceHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["out", "iamleaving"]), StatusHandlers.outHandler);
+    bot.onTextExt(rc.command(["evict", "outforceall"]), StatusHandlers.evictHandler);
+
+    bot.onTextExt(rc.command(["mystats"]), (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));
+    bot.onTextExt(rc.command(["statsof"], /(\S+)/, false), (bot, msg, match) =>
+        StatusHandlers.statsOfHandler(bot, msg, match[3])
+    );
+    bot.onTextExt(rc.command(["stats"], /(?:from (\S+))?(?: to (\S+))?/, false), (bot, msg, match) =>
+        StatusHandlers.statsHandler(bot, msg, match[1], match[2])
+    );
+    bot.onTextExt(rc.command(["month", "statsmonth", "monthstats"]), (bot, msg) => StatusHandlers.statsMonthHandler(bot, msg));
+    bot.onTextExt(rc.command(["lastmonth", "statslastmonth", "lastmonthstats"]), (bot, msg) =>
         StatusHandlers.statsMonthHandler(bot, msg, new Date().getMonth() - 1)
     );
-    bot.onTextExt(/^\/autoinside(@.+?)?(?: (.*\S))?$/i, async (bot, msg, match) =>
-        StatusHandlers.autoinsideHandler(bot, msg, match[2])
+
+    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), async (bot, msg, match) =>
+        StatusHandlers.autoinsideHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/setmac(@.+?)?(?: (.*\S))?$/i, async (bot, msg, match) => StatusHandlers.setmacHandler(bot, msg, match[2]));
-    bot.onTextExt(/^\/(going|g)(@.+?)?(?: (.*))?$/i, (bot, msg, match) => StatusHandlers.goingHandler(bot, msg, match[3]));
-    bot.onTextExt(/^\/(notgoing|ng)(@.+?)?$/i, StatusHandlers.notGoingHandler);
-    bot.onTextExt(/^\/(?:setemoji|emoji|myemoji)(@.+?)?(?: (.*))?$/i, (bot, msg, match) =>
-        StatusHandlers.setemojiHandler(bot, msg, match[2])
+    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), async (bot, msg, match) =>
+        StatusHandlers.setmacHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["going", "g"], /(.*)/), (bot, msg, match) => StatusHandlers.goingHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["notgoing", "ng"]), StatusHandlers.notGoingHandler);
+    bot.onTextExt(rc.command(["setemoji", "emoji", "myemoji"], /(.*)/), (bot, msg, match) =>
+        StatusHandlers.setemojiHandler(bot, msg, match[1])
     );
 
     bot.onTextExt(/^\/((web)?c[au]m|firstfloor|ff)(@.+?)?$/i, EmbassyHandlers.webcamHandler);

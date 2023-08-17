@@ -83,7 +83,7 @@ async function setRoutes(bot) {
     bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), async (bot, msg, match) =>
         StatusHandlers.setmacHandler(bot, msg, match[1])
     );
-    bot.onTextExt(/^\/(superstatus|ss)(@.+?)?$/i, ServiceHandlers.superstatusHandler);
+    bot.onTextExt(rc.command(["superstatus", "ss"]), ServiceHandlers.superstatusHandler);
 
     // Stats
     bot.onTextExt(rc.command(["mystats"]), (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));

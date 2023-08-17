@@ -12,6 +12,7 @@ class AdminHandlers {
         if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
         await bot.sendMessage(botConfig.chats.main, text);
+        await bot.sendMessage(msg.chat.id, "Message is forwarded");
     }
 
     static getLogHandler = async (bot, msg) => {

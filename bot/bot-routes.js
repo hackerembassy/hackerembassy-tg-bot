@@ -90,7 +90,7 @@ async function setRoutes(bot) {
     bot.onTextExt(rc.command(["statsof"], /(\S+)/, false), (bot, msg, match) =>
         StatusHandlers.statsOfHandler(bot, msg, match[3])
     );
-    bot.onTextExt(rc.command(["stats"], /(?:from (\S+))?(?: to (\S+))?/, false), (bot, msg, match) =>
+    bot.onTextExt(rc.command(["stats"], /(?:from (\S+))?(?: to (\S+))?/), (bot, msg, match) =>
         StatusHandlers.statsHandler(bot, msg, match[1], match[2])
     );
     bot.onTextExt(rc.command(["month", "statsmonth", "monthstats"]), (bot, msg) => StatusHandlers.statsMonthHandler(bot, msg));

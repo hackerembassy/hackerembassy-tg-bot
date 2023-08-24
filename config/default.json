@@ -13,6 +13,7 @@
             "in": 60000,
             "out": 300000
         },
+        "rateLimit": 1000,
         "autoWish": true,
         "logfolderpath": "log/application",
         "persistedfolderpath": "data/db",

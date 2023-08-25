@@ -89,7 +89,7 @@ class StatusHandlers {
     }
 
     static statusHandler = async (bot, msg, edit = false) => {
-        bot.sendChatAction(msg.chat.id, "typing");
+        if (!edit) bot.sendChatAction(msg.chat.id, "typing");
         const state = StatusRepository.getSpaceLastState();
 
         if (!state) {

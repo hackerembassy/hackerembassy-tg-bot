@@ -241,7 +241,7 @@ class ServiceHandlers {
                 await EmbassyHandlers.printerStatusHandler(bot, message, "plumbus");
                 break;
             case "/bought":
-                this.boughtButtonHandler(bot, message, data.id, data);
+                await this.boughtButtonHandler(bot, message, data.id, data);
                 break;
             case "/bought_undo":
                 if (NeedsHandlers.boughtUndoHandler(bot, message, data.id)) {
@@ -283,13 +283,13 @@ class ServiceHandlers {
         bot.sendMessage(msg.chat.id, welcomeText);
     };
 
-    static boughtButtonHandler = (bot, message, id, data) => {
-        NeedsHandlers.boughtByIdHandler(bot, message, id);
+    static boughtButtonHandler = async (bot, message, id, data) => {
+        await NeedsHandlers.boughtByIdHandler(bot, message, id);
 
         const new_keyboard = message.reply_markup.inline_keyboard.filter(button => button[0].callback_data !== data);
 
         if (new_keyboard.length != message.reply_markup.inline_keyboard.length) {
-            bot.editMessageReplyMarkup(
+            await bot.editMessageReplyMarkup(
                 { inline_keyboard: new_keyboard },
                 {
                     chat_id: message.chat.id,

@@ -1,6 +1,6 @@
 const botConfig = require("config").get("bot");
 
-const RATE_LIMIT = botConfig.rateLimit ?? 1000;
+const RATE_LIMIT = botConfig.rateLimit ?? 500;
 
 class RateLimiter {
     static #debounceTimerIds = new Map();
@@ -58,7 +58,7 @@ class RateLimiter {
             const timerId = setTimeout(() => {
                 clearTimeout(cooldown);
                 this.#cooldownTimerIds.delete(userId);
-            }, 5000);
+            }, RATE_LIMIT);
 
             this.#cooldownTimerIds.set(userId, timerId);
         }

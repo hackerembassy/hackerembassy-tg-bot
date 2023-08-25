@@ -1,83 +1,91 @@
-const UsersRepository = require("../../repositories/usersRepository");
-const UsersHelper = require("../../services/usersHelper");
-const BaseHandlers = require("./base");
-const config = require("config");
-const botConfig = config.get("bot");
 const path = require("path");
 const fs = require("fs");
 
-class AdminHandlers extends BaseHandlers {
-  constructor(){
-    super();
-  }
+const UsersRepository = require("../../repositories/usersRepository");
+const UsersHelper = require("../../services/usersHelper");
+const botConfig = require("config").get("bot");
+const t = require("../../services/localization");
+const { lastModifiedFilePath } = require("../../utils/filesystem");
 
-  forwardHandler(msg, text){
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+class AdminHandlers {
+    static async forwardHandler(bot, msg, text) {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-    this.bot.sendMessage(botConfig.chats.main, text);
-  }
-
-  getLogHandler = (msg) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-    
-    let logpath = path.join(__dirname, "../..", botConfig.logpath);
-
-    if (fs.existsSync(logpath))
-      this.bot.sendDocument(msg.chat.id, logpath);
-  }
-  
-  getUsersHandler = (msg) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
-    let users = UsersRepository.getUsers();
-    let userList = "";
-    for (const user of users) {
-      userList += `> ${this.bot.formatUsername(user.username)}
-Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
-Autoinside: ${user.autoinside ? "on" : "off"}\n`;
+        await bot.sendMessage(botConfig.chats.main, text);
+        await bot.sendMessage(msg.chat.id, "Message is forwarded");
     }
 
-    this.bot.sendLongMessage(msg.chat.id, `👩‍💻 Текущие пользователи:\n` + userList);
-  }
+    static getLogHandler = async (bot, msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-  addUserHandler = (msg, username, roles) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+        const logFolderPath = path.join(__dirname, "../..", botConfig.logfolderpath);
+        const lastLogFilePath = path.join(__dirname, "../..", botConfig.logfolderpath, lastModifiedFilePath(logFolderPath));
 
-    username = username.replace("@", "");
-    roles = roles.split("|");
+        if (lastLogFilePath && fs.existsSync(lastLogFilePath)) await bot.sendDocument(msg.chat.id, lastLogFilePath);
+    };
 
-    let success = UsersRepository.addUser(username, roles);
-    let message = success
-      ? `✅ Пользователь ${this.bot.formatUsername(username)} добавлен как ${roles}`
-      : `⚠️ Не удалось добавить пользователя (может он уже есть?)`;
+    static getHistoryHandler = async (bot, msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-    this.bot.sendMessage(msg.chat.id, message);
-  }
+        const historypath = bot.messageHistory.historypath;
 
-  updateRolesHandler = (msg, username, roles) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+        if (historypath && fs.existsSync(historypath)) await bot.sendDocument(msg.chat.id, historypath);
+    };
 
-    username = username.replace("@", "");
-    roles = roles.split("|");
+    static getUsersHandler = async (bot, msg) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-    let success = UsersRepository.updateRoles(username, roles);
-    let message = success ? `✳️ Роли ${this.bot.formatUsername(username)} установлены как ${roles}` : `⚠️ Не удалось обновить роли`;
+        const users = UsersRepository.getUsers();
+        let userList = "";
+        for (const user of users) {
+            userList += `> ${UsersHelper.formatUsername(user.username, bot.context.mode)}
+Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
+Autoinside: ${user.autoinside ? "on" : "off"}\n`;
+        }
 
-    this.bot.sendMessage(msg.chat.id, message);
-  }
+        await bot.sendLongMessage(msg.chat.id, t("admin.getUsers.text") + userList);
+    };
 
-  removeUserHandler = (msg, username) => {
-    if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+    static addUserHandler = async (bot, msg, username, roles) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
 
-    username = username.replace("@", "");
+        username = username.replace("@", "");
+        roles = roles.split("|");
 
-    let success = UsersRepository.removeUser(username);
-    let message = success
-      ? `🗑 Пользователь ${this.bot.formatUsername(username)} удален`
-      : `⚠️ Не удалось удалить пользователя (может его и не было?)`;
+        const success = UsersRepository.addUser(username, roles);
+        const text = success
+            ? t("admin.addUser.success", { username: UsersHelper.formatUsername(username, bot.context.mode), roles })
+            : t("admin.addUser.fail");
 
-    this.bot.sendMessage(msg.chat.id, message);
-  }
+        await bot.sendMessage(msg.chat.id, text);
+    };
+
+    static updateRolesHandler = async (bot, msg, username, roles) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
+        username = username.replace("@", "");
+        roles = roles.split("|");
+
+        const success = UsersRepository.updateRoles(username, roles);
+        const text = success
+            ? t("admin.updateRoles.success", { username: UsersHelper.formatUsername(username, bot.context.mode), roles })
+            : t("admin.updateRoles.fail");
+
+        await bot.sendMessage(msg.chat.id, text);
+    };
+
+    static removeUserHandler = async (bot, msg, username) => {
+        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
+
+        username = username.replace("@", "");
+
+        const success = UsersRepository.removeUser(username);
+        const text = success
+            ? t("admin.removeUser.success", { username: UsersHelper.formatUsername(username, bot.context.mode) })
+            : t("admin.removeUser.fail");
+
+        await bot.sendMessage(msg.chat.id, text);
+    };
 }
 
 module.exports = AdminHandlers;

@@ -1,27 +1,56 @@
-
-const fetch = require('node-fetch');
 const { exec } = require("child_process");
 const fs = require("fs").promises;
+const path = require("path");
 const config = require("config");
+const { postToHass, getFromHass, getBufferFromResponse } = require("../utils/network");
 const embassyApiConfig = config.get("embassy-api");
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;
 const webcam2Path = embassyApiConfig.webcam2;
 const ttspath = embassyApiConfig.ttspath;
 const playpath = embassyApiConfig.playpath;
+const doorbellpath = embassyApiConfig.doorbellpath;
 
-async function getDoorcamImage(){
-    return await getImageFromHTTP(doorcamPath, process.env["HASSTOKEN"]);
+/**
+ * @returns {Promise<Buffer>}
+ */
+async function getDoorcamImage() {
+    return getBufferFromResponse(await getFromHass(doorcamPath));
 }
 
-async function getWebcamImage(){
-    return await getImageFromHTTP(webcamPath, process.env["HASSTOKEN"]);
+/**
+ * @returns {Promise<Buffer>}
+ */
+async function getWebcamImage() {
+    return getBufferFromResponse(await getFromHass(webcamPath));
 }
 
-async function getWebcam2Image(){
-    return await getImageFromHTTP(webcam2Path, process.env["HASSTOKEN"]);
+/**
+ * @returns {Promise<Buffer>}
+ */
+async function getWebcam2Image() {
+    return getBufferFromResponse(await getFromHass(webcam2Path));
 }
 
+/**
+ * @param {string} folder
+ * @returns {Promise<Buffer>}
+ */
+async function getRandomImageFromFolder(folder) {
+    let files = await fs.readdir(folder);
+    if (!files || files.length === 0) return;
+
+    let fileindex = Math.floor(Math.random() * files.length);
+    return await fs.readFile(path.join(folder, files[fileindex]));
+}
+
+/**
+ * @deprecated Use HASS
+ * @param {string} url
+ * @param {string} filename
+ * @returns {Promise<Buffer>}
+ */
+// eslint-disable-next-line no-unused-vars
 async function getImageFromRTSP(url, filename) {
     let child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
         if (error) {
@@ -35,57 +64,58 @@ async function getImageFromRTSP(url, filename) {
         console.log(`stdout: ${stdout}`);
     });
 
-    await new Promise( (resolve) => {
-        child.on('close', resolve)
-    })
+    await new Promise(resolve => {
+        child.on("close", resolve);
+    });
 
     return await fs.readFile("./tmp.jpg");
 }
 
-async function getImageFromHTTP(url, token) {
-    let response = await fetch(`${url}`, {
-        headers:{
-           "Authorization": token ? `Bearer ${token}`: "",
-           "Content-Type": "application/json"
-        }
-    });
-    let imgbuffer = await response.arrayBuffer();
-
-    return Buffer.from(imgbuffer);
-}
-
+/**
+ * @param {string} text
+ * @returns {Promise<void>}
+ */
 async function sayInSpace(text) {
-    let response = await fetch(ttspath, {
-        method: "POST",
-        headers:{
-           "Authorization": `Bearer ${process.env["HASSTOKEN"]}`,
-           "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            entity_id: "media_player.hackem_speaker",
-            message: text,
-            language: "ru"
-        }),
+    const response = await postToHass(ttspath, {
+        entity_id: "media_player.hackem_speaker",
+        message: text,
+        language: "ru",
     });
 
-    return response.status;
+    if (response.status !== 200) throw Error("Speaker request failed");
 }
 
+/**
+ * @param {string} link
+ * @returns {Promise<void>}
+ */
 async function playInSpace(link) {
-    let response = await fetch(playpath, {
-        method: "POST",
-        headers:{
-           "Authorization": `Bearer ${process.env["HASSTOKEN"]}`,
-           "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            entity_id: "media_player.hackem_speaker",
-            media_content_id: link,
-            media_content_type: "music"
-        }),
+    const response = await postToHass(playpath, {
+        entity_id: "media_player.hackem_speaker",
+        media_content_id: link,
+        media_content_type: "music",
     });
 
-    return response.status;
+    if (response.status !== 200) throw Error("Speaker request failed");
 }
 
-module.exports = { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace }
+/**
+ * @returns {Promise<void>}
+ */
+async function ringDoorbell() {
+    const response = await postToHass(doorbellpath, {
+        entity_id: "switch.doorbell",
+    });
+
+    if (response.status !== 200) throw Error("Ringing request failed");
+}
+
+module.exports = {
+    getDoorcamImage,
+    getWebcamImage,
+    getWebcam2Image,
+    sayInSpace,
+    playInSpace,
+    ringDoorbell,
+    getRandomImageFromFolder,
+};

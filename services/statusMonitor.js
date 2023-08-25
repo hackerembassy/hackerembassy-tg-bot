@@ -1,65 +1,66 @@
-var winston = require('winston');
-const { createLogger, format, transports } = require('winston');
-require('winston-daily-rotate-file');
+const winston = require("winston");
+require("winston-daily-rotate-file");
 
-const ping = require('ping');
-const config = require('config');
+const botConfig = require("config").get("bot");
+
+const ping = require("ping");
+const config = require("config");
 const embassyServiceConfig = config.get("embassy-api");
 const hosts = embassyServiceConfig.hostsToMonitor;
 
 const transport = new winston.transports.DailyRotateFile({
-  level: 'info',
-  filename: 'log/application-%DATE%.log',
-  datePattern: 'YYYY-MM-DD-HH',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '14d'
+    level: "info",
+    filename: `${botConfig.logfolderpath}/monitor/%DATE%.log`,
+    datePattern: "YYYY-MM-DD",
+    zippedArchive: true,
+    maxSize: "20m",
+    maxFiles: "14d",
 });
 
+/**
+ * @type {string[]}
+ */
 const UnreadMessagesBuffer = [];
 
-transport.on('rotate', function(oldFilename, newFilename) {
-
-});
-
-transport.on('logged', function(data) {
-  UnreadMessagesBuffer.push(data);
+transport.on("logged", function (data) {
+    UnreadMessagesBuffer.push(data);
 });
 
 const statusLogger = winston.createLogger({
-  format: format.combine(
-    format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
-    }),
-    format.json()
-  ),
-  transports: [
-    transport,
-  ]
+    format: winston.format.combine(
+        winston.format.timestamp({
+            format: "YYYY-MM-DD HH:mm:ss",
+        }),
+        winston.format.json()
+    ),
+    transports: [transport],
 });
 
-async function pingInternalDevices(){
-    for(let host of hosts){
+async function pingInternalDevices() {
+    for (let host of hosts) {
         let res = await ping.promise.probe(host);
-        if (!res.alive){
+        if (!res.alive) {
             statusLogger.error("Host " + host + " is not responding");
         }
     }
 }
 
-function startMonitoring(){
-  console.log("Device monitoring started");
-  setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
+function startMonitoring() {
+    console.log("Device monitoring started");
+    setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }
 
-function readNewMessages(){
-  let unreadMessages = [];
+/**
+ * @returns {string[]}
+ */
+function readNewMessages() {
+    let unreadMessages = [];
 
-  while(UnreadMessagesBuffer.length > 0){
-    unreadMessages.push(UnreadMessagesBuffer.shift());
-  }
+    while (UnreadMessagesBuffer.length > 0) {
+        unreadMessages.push(UnreadMessagesBuffer.shift());
+    }
 
-  return unreadMessages;
+    return unreadMessages;
 }
 
-module.exports = {readNewMessages, startMonitoring};
+module.exports = { readNewMessages, startMonitoring };

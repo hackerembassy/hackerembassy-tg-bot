@@ -1,0 +1,34 @@
+name: Database Backup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 4 * * *'
+
+  push:
+    branches:
+      - backup
+
+jobs:
+
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@v3
+      -
+        uses: ./.github/actions/extract-docker-volume
+        with:
+          ssh_user: ci
+          docker_volume: hackem-bot-db
+          ssh_identity: ${{ vars.deploy_target_identity }}
+          ssh_host: ${{ secrets.deploy_target_host }}
+          ssh_port: ${{ secrets.deploy_target_port }}
+          ssh_key: ${{ secrets.deploy_target_key }}
+          encryption_key: ${{ vars.backup_encryption_key }}
+          encryption_key_fingerprint: 1081AE754A88DD44DFBF78392B0905649F1964AC
+      -
+        uses: actions/upload-artifact@v3
+        with:
+          name: hackem-bot-db.tar.gpg
+          path: hackem-bot-db.tar.gpg

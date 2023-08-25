@@ -1,5 +1,70 @@
+/**
+ * @param {any[]} items
+ * @param {any[]} list
+ */
 function anyItemIsInList(items, list) {
-    return items.some(item => list.includes(item))
+    return items.some(item => list.includes(item));
 }
 
-module.exports = { anyItemIsInList };
+/**
+ * @param {number} ms
+ */
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * @template T
+ * @param {T} value
+ * @param {number} index
+ * @param {T[]} array
+ */
+function onlyUniqueFilter(value, index, array) {
+    return array.indexOf(value) === index;
+}
+
+/**
+ * @param {string} str
+ * @param {number} size
+ */
+function chunkSubstr(str, size) {
+    const chunks = [];
+
+    if (str.length < size) return [str];
+
+    while (str.length > 0) {
+        const tmp = str.substring(0, size);
+        const indexOfLastNewLine = tmp.lastIndexOf("\n");
+        const chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine + 1 : size;
+        chunks.push(tmp.substring(0, chunkLength));
+        str = str.substring(chunkLength);
+    }
+
+    return chunks;
+}
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function stripCustomMarkup(text) {
+    return text.replaceAll(/#./g, "");
+}
+
+/**
+ * @param {function} func
+ * @param {number} delay
+ */
+function debounce(func, delay) {
+    let timeoutId;
+
+    return function () {
+        clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(() => {
+            func.apply(this, arguments);
+        }, delay);
+    };
+}
+
+module.exports = { anyItemIsInList, sleep, chunkSubstr, stripCustomMarkup, debounce, onlyUniqueFilter };

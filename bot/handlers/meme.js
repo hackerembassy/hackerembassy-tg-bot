@@ -1,25 +1,17 @@
-const BaseHandlers = require("./base");
-const imageService = require("../../services/image");
+const { getRandomImageFromFolder } = require("../../services/media");
 
-class MemeHandlers extends BaseHandlers {
-  constructor() {
-    super();
-  }
+class MemeHandlers {
+    static randomDogHandler = async (bot, msg) =>
+        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/dogs"));
 
-  randomDogHandler = async (msg) => {
-    let fileBuffer = await imageService.getRandomImageFromFolder("./resources/images/dogs");
-    this.bot.sendPhoto(msg.chat.id, fileBuffer);
-  };
+    static randomCatHandler = async (bot, msg) =>
+        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/cats"));
 
-  randomCatHandler = async (msg) => {
-    let fileBuffer = await imageService.getRandomImageFromFolder("./resources/images/cats");
-    this.bot.sendPhoto(msg.chat.id, fileBuffer);
-  };
+    static randomCabHandler = async (bot, msg) =>
+        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/cab"));
 
-  randomCabHandler = async (msg) => {
-    let fileBuffer = await imageService.getRandomImageFromFolder("./resources/images/cab");
-    this.bot.sendPhoto(msg.chat.id, fileBuffer);
-  };
+    static randomRoosterHandler = async (bot, msg) =>
+        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/roosters"));
 }
 
 module.exports = MemeHandlers;

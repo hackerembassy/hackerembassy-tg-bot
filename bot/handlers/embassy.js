@@ -59,6 +59,8 @@ class EmbassyHanlers {
     static webcamGenericHandler = async (bot, msg, path, prefix) => {
         if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
 
+        bot.sendChatAction(msg.chat.id, "upload_photo");
+
         try {
             const response = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
@@ -128,6 +130,8 @@ class EmbassyHanlers {
     };
 
     static climateHandler = async (bot, msg) => {
+        bot.sendChatAction(msg.chat.id, "typing");
+
         let message = t("embassy.climate.nodata");
 
         try {
@@ -148,6 +152,8 @@ class EmbassyHanlers {
     };
 
     static printerStatusHandler = async (bot, msg, printername) => {
+        bot.sendChatAction(msg.chat.id, "typing");
+
         try {
             const { status, thumbnailBuffer, cam } = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
@@ -196,6 +202,8 @@ class EmbassyHanlers {
     };
 
     static sayinspaceHandler = async (bot, msg, text) => {
+        bot.sendChatAction(msg.chat.id, "upload_voice");
+
         try {
             if (!text) {
                 bot.sendMessage(msg.chat.id, t("embassy.say.help"));
@@ -208,6 +216,7 @@ class EmbassyHanlers {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ text }),
+                timeout: 15000,
             });
 
             if (response.status === 200) await bot.sendMessage(msg.chat.id, t("embassy.say.success"));
@@ -219,6 +228,8 @@ class EmbassyHanlers {
     };
 
     static playinspaceHandler = async (bot, msg, link) => {
+        bot.sendChatAction(msg.chat.id, "upload_document");
+
         try {
             if (!link) {
                 bot.sendMessage(msg.chat.id, t("embassy.play.help"));
@@ -231,6 +242,7 @@ class EmbassyHanlers {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ link }),
+                timeout: 15000,
             });
 
             if (response.status === 200) await bot.sendMessage(msg.chat.id, t("embassy.play.success"));

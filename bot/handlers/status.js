@@ -89,6 +89,7 @@ class StatusHandlers {
     }
 
     static statusHandler = async (bot, msg, edit = false) => {
+        bot.sendChatAction(msg.chat.id, "typing");
         const state = StatusRepository.getSpaceLastState();
 
         if (!state) {
@@ -540,6 +541,8 @@ class StatusHandlers {
     }
 
     static statsOfHandler = async (bot, msg, username) => {
+        bot.sendChatAction(msg.chat.id, "typing");
+
         const selectedUsername = username ?? msg.from.username;
         const userStates = statusRepository.getUserStates(selectedUsername);
 
@@ -553,6 +556,8 @@ class StatusHandlers {
     };
 
     static statsMonthHandler = async (bot, msg, month) => {
+        bot.sendChatAction(msg.chat.id, "typing");
+
         const currentDate = new Date();
         let resultDate = new Date();
 
@@ -575,6 +580,8 @@ class StatusHandlers {
      * @param {string} toDateString
      */
     static async statsHandler(bot, msg, fromDateString, toDateString) {
+        bot.sendChatAction(msg.chat.id, "typing");
+
         const fromDate = new Date(fromDateString ?? statsStartDateString);
         const toDate = toDateString ? new Date(toDateString) : new Date();
 

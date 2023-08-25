@@ -23,7 +23,7 @@ class Cancellation {
  * @param {any[]} rest
  */
 function fetchWithTimeout(uri, options, ...rest) {
-    let cancellation = new Cancellation(embassyApiConfig.timeout);
+    let cancellation = new Cancellation(options?.timeout ?? embassyApiConfig.timeout);
 
     // @ts-ignore
     return fetch(uri, { signal: cancellation.signal, ...options }, ...rest);

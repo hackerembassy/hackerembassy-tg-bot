@@ -101,6 +101,8 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.FileOptions} [fileOptions]
      */
     async sendPhoto(chatId, photo, options, fileOptions) {
+        this.sendChatAction(chatId, "upload_photo");
+
         let message = await super.sendPhoto(
             chatId,
             photo,
@@ -160,6 +162,18 @@ class HackerEmbassyBot extends TelegramBot {
         }
 
         return Promise.resolve(null);
+    }
+
+    /**
+     * @param {TelegramBot.ChatId} chatId
+     * @param {TelegramBot.ChatAction} action
+     * @param {TelegramBot.SendChatActionOptions} options
+     */
+    async sendChatAction(chatId, action, options = {}) {
+        return super.sendChatAction(chatId, action, {
+            ...options,
+            message_thread_id: this.context.messageThreadId,
+        });
     }
 
     /**

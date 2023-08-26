@@ -5,15 +5,15 @@ const StatusRepository = require("../repositories/statusRepository");
 const UsersHelper = require("./usersHelper");
 const usersRepository = require("../repositories/usersRepository");
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Fund = require("../models/Fund");
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Donation = require("../models/Donation");
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const UserState = require("../models/UserState");
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const User = require("../models/User");
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Need = require("../models/Need");
 
 /**

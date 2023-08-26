@@ -17,8 +17,6 @@ const RateLimiter = require("../../services/RateLimiter");
 
 class ServiceHandlers {
     static clearHandler = async (bot, msg, count) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
         let orderOfLastMessage = msg.reply_to_message?.message_id
@@ -36,8 +34,6 @@ class ServiceHandlers {
     };
 
     static combineHandler = async (bot, msg, count) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         const inputCount = Number(count);
         const countToCombine = inputCount > 2 ? inputCount : 2;
 
@@ -98,13 +94,10 @@ class ServiceHandlers {
     };
 
     static chatidHandler = (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
         bot.sendMessage(msg.chat.id, `chatId: ${msg.chat.id}, topicId: ${msg.message_thread_id}`);
     };
 
     static residentMenuHandler = (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         UsersRepository.setUserid(msg.from.username ?? msg.from.first_name, msg.from.id);
 
         setMenu(bot);
@@ -116,8 +109,6 @@ class ServiceHandlers {
     };
 
     static superstatusHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member", "admin")) return;
-
         await StatusHandlers.statusHandler(bot, msg);
         await EmbassyHandlers.webcamHandler(bot, msg);
         await EmbassyHandlers.webcam2Handler(bot, msg);
@@ -141,6 +132,8 @@ class ServiceHandlers {
 
         message.from = callbackQuery.from;
 
+        const isAllowed = bot.canUserCall.bind(bot, message.from.username);
+
         switch (data.command) {
             case "/in":
                 await StatusHandlers.inHandler(bot, message);
@@ -155,19 +148,20 @@ class ServiceHandlers {
                 await StatusHandlers.notGoingHandler(bot, message);
                 break;
             case "/open":
-                await StatusHandlers.openHandler(bot, message);
+                if (isAllowed(StatusHandlers.openHandler)) await StatusHandlers.openHandler(bot, message);
                 break;
             case "/close":
-                await StatusHandlers.closeHandler(bot, message);
+                if (isAllowed(StatusHandlers.closeHandler)) await StatusHandlers.closeHandler(bot, message);
                 break;
             case "/status":
                 await StatusHandlers.statusHandler(bot, message);
                 break;
             case "/ustatus":
-                await StatusHandlers.statusHandler(bot, message, true);
+                bot.context.isEditing = true;
+                await StatusHandlers.statusHandler(bot, message);
                 break;
             case "/superstatus":
-                await this.superstatusHandler(bot, message);
+                if (isAllowed(this.superstatusHandler)) await this.superstatusHandler(bot, message);
                 break;
             case "/birthdays":
                 await BirthdayHandlers.birthdayHandler(bot, message);
@@ -179,13 +173,18 @@ class ServiceHandlers {
                 await FundsHandlers.fundsHandler(bot, message);
                 break;
             case "/startpanel":
-                await BasicHandlers.startPanelHandler(bot, message, true);
+                bot.context.isEditing = true;
+                await BasicHandlers.startPanelHandler(bot, message);
                 break;
             case "/infopanel":
-                await BasicHandlers.infoPanelHandler(bot, message, true);
+                bot.context.isEditing = true;
+                await BasicHandlers.infoPanelHandler(bot, message);
                 break;
             case "/controlpanel":
-                await BasicHandlers.controlPanelHandler(bot, message, true);
+                if (isAllowed(BasicHandlers.controlPanelHandler)) {
+                    bot.context.isEditing = true;
+                    await BasicHandlers.controlPanelHandler(bot, message);
+                }
                 break;
             case "/about":
                 await BasicHandlers.aboutHandler(bot, message);
@@ -215,19 +214,19 @@ class ServiceHandlers {
                 await FundsHandlers.exportDonutHandler(bot, message, ...data.params);
                 break;
             case "/unlock":
-                await EmbassyHandlers.unlockHandler(bot, message);
+                if (isAllowed(EmbassyHandlers.unlockHandler)) await EmbassyHandlers.unlockHandler(bot, message);
                 break;
             case "/doorbell":
-                await EmbassyHandlers.doorbellHandler(bot, message);
+                if (isAllowed(EmbassyHandlers.doorbellHandler)) await EmbassyHandlers.doorbellHandler(bot, message);
                 break;
             case "/webcam":
-                await EmbassyHandlers.webcamHandler(bot, message);
+                if (isAllowed(EmbassyHandlers.webcamHandler)) await EmbassyHandlers.webcamHandler(bot, message);
                 break;
             case "/webcam2":
-                await EmbassyHandlers.webcam2Handler(bot, message);
+                if (isAllowed(EmbassyHandlers.webcam2Handler)) await EmbassyHandlers.webcam2Handler(bot, message);
                 break;
             case "/doorcam":
-                await EmbassyHandlers.doorcamHandler(bot, message);
+                if (isAllowed(EmbassyHandlers.doorcamHandler)) await EmbassyHandlers.doorcamHandler(bot, message);
                 break;
             case "/printers":
                 await EmbassyHandlers.printersHandler(bot, message);

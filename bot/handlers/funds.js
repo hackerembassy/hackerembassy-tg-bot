@@ -75,8 +75,6 @@ class FundsHandlers {
     };
 
     static addFundHandler = async (bot, msg, fundName, target, currency) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
         const targetValue = parseMoneyValue(target);
         currency = await prepareCurrency(currency);
 
@@ -89,8 +87,6 @@ class FundsHandlers {
     };
 
     static updateFundHandler = async (bot, msg, fundName, target, currency, newFund) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
         const targetValue = parseMoneyValue(target);
         currency = await prepareCurrency(currency);
         const newFundName = newFund?.length > 0 ? newFund : fundName;
@@ -104,24 +100,18 @@ class FundsHandlers {
     };
 
     static removeFundHandler = async (bot, msg, fundName) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
         const success = FundsRepository.removeFund(fundName);
 
         await bot.sendMessage(msg.chat.id, success ? t("funds.removefund.success", { fundName }) : t("funds.removefund.fail"));
     };
 
     static closeFundHandler = async (bot, msg, fundName) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
         const success = FundsRepository.closeFund(fundName);
 
         await bot.sendMessage(msg.chat.id, success ? t("funds.closefund.success", { fundName }) : t("funds.closefund.fail"));
     };
 
     static changeFundStatusHandler = (bot, msg, fundName, fundStatus) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
         fundStatus = fundStatus.toLowerCase();
 
         const success = FundsRepository.changeFundStatus(fundName, fundStatus);
@@ -133,8 +123,6 @@ class FundsHandlers {
     };
 
     static transferDonationHandler = async (bot, msg, id, accountant) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "accountant")) return;
-
         accountant = accountant.replace("@", "");
 
         const success = FundsRepository.transferDonation(id, accountant);
@@ -156,8 +144,6 @@ class FundsHandlers {
     };
 
     static addDonationHandler = async (bot, msg, value, currency, userName, fundName) => {
-        if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
-
         value = parseMoneyValue(value);
         currency = await prepareCurrency(currency);
         userName = userName.replace("@", "");
@@ -180,8 +166,6 @@ class FundsHandlers {
     };
 
     static costsHandler = async (bot, msg, value, currency, userName) => {
-        if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
-
         return this.addDonationHandler(bot, msg, value, currency, userName, FundsRepository.getLatestCosts().name);
     };
 
@@ -203,8 +187,6 @@ class FundsHandlers {
     };
 
     static residentsDonatedHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         const fundName = FundsRepository.getLatestCosts()?.name;
 
         if (!fundName) {
@@ -225,8 +207,6 @@ class FundsHandlers {
     };
 
     static removeDonationHandler = async (bot, msg, donationId) => {
-        if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
-
         const success = FundsRepository.removeDonationById(donationId);
 
         await bot.sendMessage(
@@ -236,8 +216,6 @@ class FundsHandlers {
     };
 
     static changeDonationHandler = async (bot, msg, donationId, value, currency) => {
-        if (!UsersHelper.hasRole(msg.from.username, "accountant")) return;
-
         value = parseMoneyValue(value);
         currency = await prepareCurrency(currency);
 

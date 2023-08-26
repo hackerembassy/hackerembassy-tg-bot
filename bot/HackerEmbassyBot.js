@@ -1,5 +1,6 @@
 /**
  * @typedef {import("node-telegram-bot-api").BotCommandScope} BotCommandScope
+ * @typedef {import("./bot").BotRole} BotRole
  */
 
 // Imports
@@ -7,6 +8,8 @@ const TelegramBot = require("node-telegram-bot-api");
 const logger = require("../services/logger");
 const { sleep, chunkSubstr } = require("../utils/common");
 const MessageHistory = require("./MessageHistory");
+const UsersHelper = require("../services/usersHelper");
+const { t } = require("i18next");
 
 // Consts
 const maxChunkSize = 3500;
@@ -38,6 +41,23 @@ class HackerEmbassyBot extends TelegramBot {
     constructor(token, options) {
         super(token, options);
         this.messageHistory = new MessageHistory();
+        this.Name = undefined;
+    }
+
+    accessTable = new Map();
+
+    /**
+     * @param {string} username
+     * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any: any[]) => void} callback
+     */
+    canUserCall(username, callback) {
+        const savedRestrictions = this.accessTable.get(callback);
+
+        if (savedRestrictions !== undefined && !UsersHelper.hasRole(username, "admin", ...savedRestrictions)) {
+            return false;
+        }
+
+        return true;
     }
 
     context = {
@@ -59,6 +79,7 @@ class HackerEmbassyBot extends TelegramBot {
         isAdminMode() {
             return this.context?.mode?.admin ?? false;
         },
+        isEditing: false,
     };
 
     /**
@@ -204,10 +225,13 @@ ${chunks[index]}
 
     /**
      * @param {RegExp} regexp
-     * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, match: RegExpExecArray | null) => void} callback
+     * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any) => void} callback
+     * @param {BotRole[]} restrictions
      * @returns {Promise<void>}
      */
-    async onTextExt(regexp, callback) {
+    async onTextExt(regexp, callback, restrictions = []) {
+        if (restrictions.length > 0) this.accessTable.set(callback, restrictions);
+
         let originalRegex = regexp;
         let regexString = originalRegex.toString();
         let endOfBodyIndex = regexString.lastIndexOf("/");
@@ -219,6 +243,12 @@ ${chunks[index]}
 
         let newCallback = async function (msg, match) {
             try {
+                if (!botthis.canUserCall(msg.from.username, callback)) {
+                    await botthis.sendMessage(msg.chat.id, t("admin.messages.restricted"));
+
+                    return;
+                }
+
                 let newCommand = match[0];
 
                 for (const key of Object.keys(botthis.context.mode)) {
@@ -245,15 +275,16 @@ ${chunks[index]}
      * @param {number} chatId
      * @param {string} text
      * @param {Object} options
-     * @param {boolean} edit
      * @param {number} messageId
      */
-    async sendOrEditMessage(chatId, text, options, edit, messageId) {
-        if (edit) {
+    async sendOrEditMessage(chatId, text, options, messageId) {
+        if (this.context.isEditing) {
             try {
                 await this.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
             } catch {
                 // Message was not modified
+            } finally {
+                this.context.isEditing = false;
             }
         } else {
             await this.sendMessage(chatId, text, options);

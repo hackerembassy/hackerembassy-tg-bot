@@ -60,6 +60,8 @@
     "@types/node-fetch": "^2.6.4",
     "@types/node-rsa": "^1.1.1",
     "@types/node-telegram-bot-api": "^0.61.6",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",

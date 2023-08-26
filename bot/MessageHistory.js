@@ -3,11 +3,12 @@ const path = require("path");
 const { debounce } = require("../utils/common");
 const botConfig = require("config").get("bot");
 
+/**
+ * @class MessageHistory
+ */
 class MessageHistory {
     constructor() {
-        /**
-         * @type {string}
-         */
+        /** @type {string}*/
         this.historypath = path.join(botConfig.persistedfolderpath, "history.json");
 
         if (fs.existsSync(this.historypath)) {

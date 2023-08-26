@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 const User = require("../models/User");
+const { anyItemIsInList } = require("../utils/common");
 const BaseRepository = require("./baseRepository");
 
 class UserRepository extends BaseRepository {
@@ -60,19 +61,37 @@ class UserRepository extends BaseRepository {
     }
 
     /**
+     *  @returns {string[]}
+     */
+    getAllRegisteredMACs() {
+        let registeredMacEntries = /** @type {{mac:string}[]} */ (
+            this.db.prepare("SELECT mac FROM users where mac IS NOT NULL").all()
+        );
+
+        return registeredMacEntries.flatMap(macEntry => macEntry.mac.split("|"));
+    }
+
+    /**
      *  @param {string} username
      *  @param {string} macs
      *  @returns {boolean}
      */
     setMACs(username, macs = null) {
         try {
-            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
-            if (macs)
-                macs = macs
-                    .split(",")
-                    .map(mac => mac.toLowerCase().replaceAll("-", ":").trim())
-                    .join(",");
-            this.db.prepare("UPDATE users SET mac = ? WHERE username = ?").run(macs, username);
+            const currentUser = this.getUserByName(username);
+            if (currentUser === null && !this.addUser(username, ["default"])) return false;
+
+            const newMacs = macs ? macs.split(",").map(mac => mac.toLowerCase().replaceAll("-", ":").trim()) : [];
+            const existingRegisteredMacs = this.getAllRegisteredMACs();
+            const existingOtherUsersMacs = currentUser
+                ? existingRegisteredMacs.filter(mac => !currentUser.mac.split(",").includes(mac))
+                : existingRegisteredMacs;
+            const newMacsString = newMacs?.join(",") ?? null;
+
+            if (anyItemIsInList(newMacs, existingOtherUsersMacs))
+                throw Error(`Mac's [${newMacsString}] already exist in database`);
+
+            this.db.prepare("UPDATE users SET mac = ? WHERE username = ?").run(newMacsString, username);
 
             return true;
         } catch (error) {

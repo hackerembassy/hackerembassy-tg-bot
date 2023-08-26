@@ -27,9 +27,9 @@ const { isEmoji } = require("../../utils/text");
 const { createUserStatsDonut } = require("../../services/export");
 const statusRepository = require("../../repositories/statusRepository");
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { HackerEmbassyBot } = require("../HackerEmbassyBot");
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const TelegramBot = require("node-telegram-bot-api");
 const { fetchWithTimeout } = require("../../utils/network");
 
@@ -88,8 +88,8 @@ class StatusHandlers {
         bot.sendMessage(msg.chat.id, message);
     }
 
-    static statusHandler = async (bot, msg, edit = false) => {
-        if (!edit) bot.sendChatAction(msg.chat.id, "typing");
+    static statusHandler = async (bot, msg) => {
+        if (!bot.context.isEditing) bot.sendChatAction(msg.chat.id, "typing");
         const state = StatusRepository.getSpaceLastState();
 
         if (!state) {
@@ -151,30 +151,19 @@ class StatusHandlers {
             },
         ]);
 
-        if (edit) {
-            try {
-                await bot.editMessageText(statusMessage, {
-                    chat_id: msg.chat.id,
-                    message_id: msg.message_id,
-                    reply_markup: {
-                        inline_keyboard: inlineKeyboard,
-                    },
-                });
-            } catch {
-                // Message was not modified
-            }
-        } else {
-            await bot.sendMessage(msg.chat.id, statusMessage, {
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            statusMessage,
+            {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
                 },
-            });
-        }
+            },
+            msg.message_id
+        );
     };
 
     static openHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         openSpace(msg.from.username, { checkOpener: true });
 
         let inlineKeyboard = [
@@ -208,8 +197,6 @@ class StatusHandlers {
     };
 
     static closeHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         closeSpace(msg.from.username, { evict: true });
 
         let inlineKeyboard = [
@@ -233,8 +220,6 @@ class StatusHandlers {
     };
 
     static evictHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
 
         await bot.sendMessage(msg.chat.id, t("status.evict"));
@@ -338,7 +323,6 @@ class StatusHandlers {
     };
 
     static inForceHandler = async (bot, msg, username) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
         username = username.replace("@", "");
         let eventDate = new Date();
 
@@ -357,7 +341,6 @@ class StatusHandlers {
     };
 
     static outForceHandler = async (bot, msg, username) => {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
         let eventDate = new Date();
         username = username.replace("@", "");
         let gotOut = this.LetOut(username, eventDate, true);
@@ -471,8 +454,6 @@ class StatusHandlers {
     };
 
     static async setemojiHandler(bot, msg, emoji) {
-        if (!UsersHelper.hasRole(msg.from.username, "member")) return;
-
         let message = t("status.emoji.fail");
         let username = msg.from.username;
         if (!emoji || emoji === "help") {

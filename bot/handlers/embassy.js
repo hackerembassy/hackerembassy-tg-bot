@@ -8,14 +8,11 @@ const embassyApiConfig = config.get("embassy-api");
 const botConfig = config.get("bot");
 
 const TextGenerators = require("../../services/textGenerators");
-const UsersHelper = require("../../services/usersHelper");
 
 const t = require("../../services/localization");
 
 class EmbassyHanlers {
     static unlockHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
-
         if (!(await hasDeviceInside(msg.from.username))) {
             bot.sendMessage(msg.chat.id, t("embassy.unlock.nomac"));
 
@@ -57,8 +54,6 @@ class EmbassyHanlers {
     };
 
     static webcamGenericHandler = async (bot, msg, path, prefix) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
-
         bot.sendChatAction(msg.chat.id, "upload_photo");
 
         try {
@@ -186,8 +181,6 @@ class EmbassyHanlers {
     };
 
     static doorbellHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
-
         let text = t("embassy.doorbell.success");
 
         try {

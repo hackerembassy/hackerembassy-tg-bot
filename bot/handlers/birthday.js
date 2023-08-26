@@ -13,9 +13,7 @@ const baseWishesDir = "./resources/wishes";
 const t = require("../../services/localization");
 
 class BirthdayHandlers {
-    static forceBirthdayWishHandler = (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
+    static forceBirthdayWishHandler = bot => {
         this.sendBirthdayWishes(bot, true);
     };
 

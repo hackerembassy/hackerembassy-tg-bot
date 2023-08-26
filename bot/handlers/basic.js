@@ -96,7 +96,7 @@ class BasicHandlers {
         await bot.sendLongMessage(msg.chat.id, message);
     };
 
-    static startPanelHandler = async (bot, msg, edit = false) => {
+    static startPanelHandler = async (bot, msg) => {
         const inlineKeyboard = [
             [
                 {
@@ -154,14 +154,11 @@ class BasicHandlers {
                     inline_keyboard: inlineKeyboard,
                 },
             },
-            edit,
             msg.message_id
         );
     };
 
-    static controlPanelHandler = async (bot, msg, edit = false) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin", "member")) return;
-
+    static async controlPanelHandler(bot, msg) {
         const inlineKeyboard = [
             [
                 {
@@ -209,12 +206,11 @@ class BasicHandlers {
                     inline_keyboard: inlineKeyboard,
                 },
             },
-            edit,
             msg.message_id
         );
-    };
+    }
 
-    static infoPanelHandler = async (bot, msg, edit = false) => {
+    static infoPanelHandler = async (bot, msg) => {
         const inlineKeyboard = [
             [
                 {
@@ -256,7 +252,6 @@ class BasicHandlers {
                     inline_keyboard: inlineKeyboard,
                 },
             },
-            edit,
             msg.message_id
         );
     };

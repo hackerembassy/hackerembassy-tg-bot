@@ -1,11 +1,11 @@
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const { HackerEmbassyBot } = require("./HackerEmbassyBot");
 const UsersRepository = require("../repositories/usersRepository");
 const { logger } = require("../repositories/statusRepository");
 
 const botConfig = require("config").get("bot");
 
-let defaultCommands = [
+const defaultCommands = [
     { command: "start", description: "Панель управления" },
     { command: "help", description: "Помощь" },
     {
@@ -43,7 +43,7 @@ let defaultCommands = [
     { command: "stats", description: "Статистика по времени в спейсе" },
 ];
 
-let residentCommands = [
+const residentCommands = [
     { command: "start", description: "Панель управления" },
     { command: "controlpanel", description: "Панель для резидентов" },
     {
@@ -67,9 +67,7 @@ let residentCommands = [
     { command: "stats", description: "Статистика по времени в спейсе" },
 ];
 
-/**
- * @param {HackerEmbassyBot} bot
- */
+/** @param {HackerEmbassyBot} bot*/
 async function setMenu(bot) {
     try {
         await bot.setMyCommands(defaultCommands);

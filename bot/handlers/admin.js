@@ -9,15 +9,11 @@ const { lastModifiedFilePath } = require("../../utils/filesystem");
 
 class AdminHandlers {
     static async forwardHandler(bot, msg, text) {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
         await bot.sendMessage(botConfig.chats.main, text);
         await bot.sendMessage(msg.chat.id, "Message is forwarded");
     }
 
     static getLogHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
         const logFolderPath = path.join(__dirname, "../..", botConfig.logfolderpath);
         const lastLogFilePath = path.join(__dirname, "../..", botConfig.logfolderpath, lastModifiedFilePath(logFolderPath));
 
@@ -25,16 +21,12 @@ class AdminHandlers {
     };
 
     static getHistoryHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
         const historypath = bot.messageHistory.historypath;
 
         if (historypath && fs.existsSync(historypath)) await bot.sendDocument(msg.chat.id, historypath);
     };
 
     static getUsersHandler = async (bot, msg) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
         const users = UsersRepository.getUsers();
         let userList = "";
         for (const user of users) {
@@ -47,8 +39,6 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
     };
 
     static addUserHandler = async (bot, msg, username, roles) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
         username = username.replace("@", "");
         roles = roles.split("|");
 
@@ -61,8 +51,6 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
     };
 
     static updateRolesHandler = async (bot, msg, username, roles) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
         username = username.replace("@", "");
         roles = roles.split("|");
 
@@ -75,8 +63,6 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
     };
 
     static removeUserHandler = async (bot, msg, username) => {
-        if (!UsersHelper.hasRole(msg.from.username, "admin")) return;
-
         username = username.replace("@", "");
 
         const success = UsersRepository.removeUser(username);

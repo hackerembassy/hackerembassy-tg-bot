@@ -1,3 +1,7 @@
+/**
+ * @typedef {import("../bot/bot").BotRole} BotRole
+ */
+
 class User {
     /**
      * Represents a telegram user in the bot.
@@ -25,10 +29,10 @@ class User {
 
     /**
      * Get the user's roles as an array.
-     * @returns {string[]}
+     * @returns {BotRole[]}
      */
     get rolesList() {
-        return this.roles.split("|");
+        return /** @type {BotRole[]} */ (this.roles.split("|"));
     }
 }
 

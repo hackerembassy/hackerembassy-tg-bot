@@ -4,8 +4,12 @@ const UsersRepository = require("../repositories/usersRepository");
 const User = require("../models/User");
 
 /**
+ * @typedef {import("../bot/bot").BotRole} BotRole
+ */
+
+/**
  * @param {string} username
- * @param {string[]} roles
+ * @param {BotRole[]} roles
  * @returns {boolean}
  */
 function hasRole(username, ...roles) {

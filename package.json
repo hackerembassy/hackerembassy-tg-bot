@@ -20,7 +20,7 @@
     "kill": "skill -c nohup node app.js &",
     "backup": "mkdir ./data/backup -p && cp ./data/db/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
     "reset": "mkdir ./data/backup -p && mv ./data/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db",
-    "init": "./deploy/dev/init.sh",
+    "init-dev": "node ./scripts/initDev.js",
     "prepare": "husky install",
     "lint": "eslint src/**/*.js",
     "lint-fix": "eslint --fix src/**/*.js",
@@ -57,6 +57,7 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.4",
     "@types/config": "^3.3.0",
+    "@types/node": "^14.18.36",
     "@types/node-fetch": "^2.6.4",
     "@types/node-rsa": "^1.1.1",
     "@types/node-telegram-bot-api": "^0.61.6",

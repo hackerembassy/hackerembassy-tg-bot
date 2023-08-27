@@ -33,7 +33,7 @@ import HackerEmbassyBot from "../HackerEmbassyBot";
 export default class StatusHandlers {
     static isStatusError = false;
 
-    static async setmacHandler(bot: HackerEmbassyBot, msg: Message, cmd) {
+    static async setmacHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
         let message = t("status.mac.fail");
         const username = msg.from.username;
         if (!cmd || cmd === "help") {
@@ -57,7 +57,7 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd) {
+    static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
         let message = t("status.autoinside.fail");
         const username = msg.from.username;
         const user = UsersRepository.getUserByName(username);
@@ -336,7 +336,7 @@ export default class StatusHandlers {
         });
     }
 
-    static async inForceHandler(bot: HackerEmbassyBot, msg: Message, username) {
+    static async inForceHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         username = username.replace("@", "");
         const eventDate = new Date();
 
@@ -354,7 +354,7 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async outForceHandler(bot: HackerEmbassyBot, msg: Message, username) {
+    static async outForceHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         const eventDate = new Date();
         username = username.replace("@", "");
         const gotOut = this.LetOut(username, eventDate, true);
@@ -371,7 +371,7 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async LetIn(username, date, force = false) {
+    static async LetIn(username: string, date: Date, force = false) {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
 
@@ -391,7 +391,7 @@ export default class StatusHandlers {
         return true;
     }
 
-    static LetOut(username, date, force = false) {
+    static LetOut(username: string, date: Date, force = false) {
         const state = StatusRepository.getSpaceLastState();
 
         if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
@@ -470,7 +470,7 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async setemojiHandler(bot: HackerEmbassyBot, msg: Message, emoji) {
+    static async setemojiHandler(bot: HackerEmbassyBot, msg: Message, emoji: string) {
         let message = t("status.emoji.fail");
         const username = msg.from.username;
         if (!emoji || emoji === "help") {
@@ -571,7 +571,7 @@ export default class StatusHandlers {
         return await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
-    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString, toDateString) {
+    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString: string, toDateString: string | number | Date) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const fromDate = new Date(fromDateString ?? statsStartDateString);

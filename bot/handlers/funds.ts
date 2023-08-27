@@ -25,7 +25,7 @@ export default class FundsHandlers {
         await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg);
     }
 
-    static async fundHandler(bot: HackerEmbassyBot, msg: Message, fundName) {
+    static async fundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         const funds = [FundsRepository.getFundByName(fundName)];
         const donations = FundsRepository.getDonationsForName(fundName);
         const showAdmin =
@@ -76,7 +76,7 @@ export default class FundsHandlers {
         await bot.sendLongMessage(msg.chat.id, t("funds.fundsall", { list }), msg);
     }
 
-    static async addFundHandler(bot: HackerEmbassyBot, msg: Message, fundName, target, currency) {
+    static async addFundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string, target: string, currency: string) {
         const targetValue = parseMoneyValue(target);
         currency = await prepareCurrency(currency);
 
@@ -89,7 +89,14 @@ export default class FundsHandlers {
         );
     }
 
-    static async updateFundHandler(bot: HackerEmbassyBot, msg: Message, fundName, target, currency, newFund) {
+    static async updateFundHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        fundName: string,
+        target: string,
+        currency: string,
+        newFund: string
+    ) {
         const targetValue = parseMoneyValue(target);
         currency = await prepareCurrency(currency);
         const newFundName = newFund?.length > 0 ? newFund : fundName;
@@ -103,7 +110,7 @@ export default class FundsHandlers {
         );
     }
 
-    static async removeFundHandler(bot: HackerEmbassyBot, msg: Message, fundName) {
+    static async removeFundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         const success = FundsRepository.removeFund(fundName);
 
         await bot.sendMessageExt(
@@ -113,7 +120,7 @@ export default class FundsHandlers {
         );
     }
 
-    static async closeFundHandler(bot: HackerEmbassyBot, msg: Message, fundName) {
+    static async closeFundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         const success = FundsRepository.closeFund(fundName);
 
         await bot.sendMessageExt(
@@ -123,7 +130,7 @@ export default class FundsHandlers {
         );
     }
 
-    static async changeFundStatusHandler(bot: HackerEmbassyBot, msg: Message, fundName, fundStatus) {
+    static async changeFundStatusHandler(bot: HackerEmbassyBot, msg: Message, fundName: string, fundStatus: string) {
         fundStatus = fundStatus.toLowerCase();
 
         const success = FundsRepository.changeFundStatus(fundName, fundStatus);
@@ -135,7 +142,7 @@ export default class FundsHandlers {
         );
     }
 
-    static async transferDonationHandler(bot: HackerEmbassyBot, msg: Message, id, accountant) {
+    static async transferDonationHandler(bot: HackerEmbassyBot, msg: Message, id: number, accountant: string) {
         accountant = accountant.replace("@", "");
 
         const success = FundsRepository.transferDonation(id, accountant);
@@ -156,8 +163,15 @@ export default class FundsHandlers {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async addDonationHandler(bot: HackerEmbassyBot, msg: Message, value, currency, userName, fundName) {
-        value = parseMoneyValue(value);
+    static async addDonationHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        valueString: string,
+        currency: string,
+        userName: string,
+        fundName: string
+    ) {
+        const value = parseMoneyValue(valueString);
         currency = await prepareCurrency(currency);
         userName = userName.replace("@", "");
         const accountant = msg.from.username;
@@ -178,8 +192,8 @@ export default class FundsHandlers {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async costsHandler(bot: HackerEmbassyBot, msg: Message, value, currency, userName) {
-        return this.addDonationHandler(bot, msg, value, currency, userName, FundsRepository.getLatestCosts().name);
+    static async costsHandler(bot: HackerEmbassyBot, msg: Message, valueString: string, currency: string, userName: string) {
+        return FundsHandlers.addDonationHandler(bot, msg, valueString, currency, userName, FundsRepository.getLatestCosts().name);
     }
 
     static async showCostsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -190,13 +204,13 @@ export default class FundsHandlers {
             return;
         }
 
-        return this.fundHandler(bot, msg, fundName);
+        return FundsHandlers.fundHandler(bot, msg, fundName);
     }
 
     static async showCostsDonutHandler(bot: HackerEmbassyBot, msg: Message) {
         const fundName = FundsRepository.getLatestCosts().name;
 
-        return this.exportDonutHandler(bot, msg, fundName);
+        return FundsHandlers.exportDonutHandler(bot, msg, fundName);
     }
 
     static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -219,7 +233,7 @@ export default class FundsHandlers {
         await bot.sendMessageExt(msg.chat.id, resdientsDonatedList, msg);
     }
 
-    static async removeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId) {
+    static async removeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId: number) {
         const success = FundsRepository.removeDonationById(donationId);
 
         await bot.sendMessageExt(
@@ -229,8 +243,14 @@ export default class FundsHandlers {
         );
     }
 
-    static async changeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId, value, currency) {
-        value = parseMoneyValue(value);
+    static async changeDonationHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        donationId: number,
+        valueString: string,
+        currency: string
+    ) {
+        const value = parseMoneyValue(valueString);
         currency = await prepareCurrency(currency);
 
         const success = FundsRepository.updateDonation(donationId, value, currency);
@@ -242,7 +262,7 @@ export default class FundsHandlers {
         );
     }
 
-    static async exportCSVHandler(bot: HackerEmbassyBot, msg: Message, fundName) {
+    static async exportCSVHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         try {
             const csvBuffer = await ExportHelper.exportFundToCSV(fundName);
 
@@ -263,8 +283,9 @@ export default class FundsHandlers {
         }
     }
 
-    static async exportDonutHandler(bot: HackerEmbassyBot, msg: Message, fundName) {
-        let imageBuffer;
+    static async exportDonutHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
+        let imageBuffer: Buffer;
+
         try {
             imageBuffer = await ExportHelper.exportFundToDonut(fundName);
 

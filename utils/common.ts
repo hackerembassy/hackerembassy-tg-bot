@@ -33,7 +33,7 @@ export function stripCustomMarkup(text: string): string {
 }
 
 export function debounce(func: Function, delay: number) {
-    let timeoutId;
+    let timeoutId: string | number | NodeJS.Timeout;
 
     return function () {
         clearTimeout(timeoutId);

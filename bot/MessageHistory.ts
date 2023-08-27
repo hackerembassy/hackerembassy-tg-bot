@@ -7,6 +7,7 @@ const botConfig = config.get("bot") as any;
 
 export default class MessageHistory {
     historypath: string;
+
     constructor() {
         this.historypath = join(botConfig.persistedfolderpath, "history.json");
 

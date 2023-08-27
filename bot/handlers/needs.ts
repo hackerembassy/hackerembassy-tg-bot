@@ -23,7 +23,7 @@ export default class NeedsHandlers {
         });
     }
 
-    static async buyHandler(bot: HackerEmbassyBot, msg: Message, item) {
+    static async buyHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const requester = msg.from.username;
         const success = NeedsRepository.addBuy(item, requester, new Date());
 
@@ -36,11 +36,11 @@ export default class NeedsHandlers {
         );
     }
 
-    static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id) {
-        await this.boughtHandler(bot, msg, NeedsRepository.getNeedById(id).text || "");
+    static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
+        await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id).text || "");
     }
 
-    static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id) {
+    static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
 
         if (need && need.buyer === msg.from.username) {
@@ -51,7 +51,7 @@ export default class NeedsHandlers {
         return false;
     }
 
-    static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item) {
+    static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const buyer = msg.from.username;
         const need = NeedsRepository.getOpenNeedByText(item);
 

@@ -52,7 +52,7 @@ export default class BasicHandlers {
         });
     }
 
-    static async issueHandler(bot: HackerEmbassyBot, msg: Message, issueText) {
+    static async issueHandler(bot: HackerEmbassyBot, msg: Message, issueText: string) {
         const helpMessage = t("basic.issue.help");
         const sentMessage = t("basic.issue.sent");
         const report = t("basic.issue.report", { issue: issueText });
@@ -76,7 +76,7 @@ export default class BasicHandlers {
         await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.caption") });
     }
 
-    static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname) {
+    static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname: string) {
         coinname = coinname.toLowerCase();
         const qrImage = await CoinsHelper.getQR(coinname);
         const coin = CoinsHelper.getCoinDefinition(coinname);

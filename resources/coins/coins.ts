@@ -34,11 +34,11 @@ export const Coins = [
 
 const QRBaseFolder = "./qr";
 
-export function getCoinDefinition(coinname) {
+export function getCoinDefinition(coinname: string) {
     return Coins.find(c => c.shortname === coinname);
 }
 
-export async function getQR(coinname) {
+export async function getQR(coinname: string) {
     const buffer = await fs.readFile(path.join(__dirname, QRBaseFolder, getCoinDefinition(coinname).qrfile));
 
     return buffer;

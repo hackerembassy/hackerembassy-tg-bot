@@ -44,18 +44,18 @@ export default class EmbassyHanlers {
     }
 
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await this.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
+        await EmbassyHanlers.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
     }
 
     static async webcam2Handler(bot: HackerEmbassyBot, msg: Message) {
-        await this.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
+        await EmbassyHanlers.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
     }
 
     static async doorcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await this.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
+        await EmbassyHanlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
     }
 
-    static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path, prefix) {
+    static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path: string, prefix: string) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
@@ -76,7 +76,7 @@ export default class EmbassyHanlers {
 
     static async monitorHandler(bot: HackerEmbassyBot, msg: Message, notifyEmpty = false) {
         try {
-            const statusMessages = await this.queryStatusMonitor();
+            const statusMessages = await EmbassyHanlers.queryStatusMonitor();
 
             if (!notifyEmpty && statusMessages.length === 0) return;
 
@@ -100,7 +100,7 @@ export default class EmbassyHanlers {
     static async enableStatusMonitor(bot: HackerEmbassyBot) {
         setInterval(
             () =>
-                this.monitorHandler(bot, {
+                EmbassyHanlers.monitorHandler(bot, {
                     chat: {
                         id: botConfig.chats.test,
                         type: "private",
@@ -156,7 +156,7 @@ export default class EmbassyHanlers {
         return await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async printerStatusHandler(bot: HackerEmbassyBot, msg: Message, printername) {
+    static async printerStatusHandler(bot: HackerEmbassyBot, msg: Message, printername: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
@@ -204,7 +204,7 @@ export default class EmbassyHanlers {
         }
     }
 
-    static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text) {
+    static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
         bot.sendChatAction(msg.chat.id, "upload_voice", msg);
 
         try {
@@ -230,7 +230,7 @@ export default class EmbassyHanlers {
         }
     }
 
-    static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, link) {
+    static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, link: string) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {

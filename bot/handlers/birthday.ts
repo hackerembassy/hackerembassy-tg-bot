@@ -18,7 +18,7 @@ import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class BirthdayHandlers {
     static async forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
-        this.sendBirthdayWishes(bot, msg, true);
+        BirthdayHandlers.sendBirthdayWishes(bot, msg, true);
     }
 
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -28,14 +28,14 @@ export default class BirthdayHandlers {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date) {
+    static async myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date: string) {
         const username = msg.from.username;
         const formattedUsername = UsersHelper.formatUsername(username, bot.context(msg).mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
 
         let text = t("birthday.fail");
 
-        if (this.isProperFormatDateString(date) && UsersRepository.setBirthday(username, fulldate)) {
+        if (BirthdayHandlers.isProperFormatDateString(date) && UsersRepository.setBirthday(username, fulldate)) {
             text = t("birthday.set", { username: formattedUsername, date });
         } else if (date === "remove" && UsersRepository.setBirthday(username, null)) {
             text = t("birthday.remove", { username: formattedUsername });
@@ -58,7 +58,9 @@ export default class BirthdayHandlers {
         const wishedAmount = wishedToday?.length;
 
         for (const user of birthdayUsers) {
-            const wishedUser = wishedToday.find(entry => entry.username && entry.date === currentDate);
+            const wishedUser = wishedToday.find(
+                (entry: { username: string; date: string }) => entry.username && entry.date === currentDate
+            );
             if (!force && wishedUser) continue;
 
             let message = "🎂 ";
@@ -80,7 +82,7 @@ export default class BirthdayHandlers {
     }
 }
 
-async function getWish(username) {
+async function getWish(username: string) {
     const files = await fs.readdir(baseWishesDir);
     const randomNum = Math.floor(Math.random() * files.length);
     const wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]), { encoding: "utf8" });

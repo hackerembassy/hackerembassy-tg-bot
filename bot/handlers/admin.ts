@@ -43,9 +43,9 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
         await bot.sendLongMessage(msg.chat.id, t("admin.getUsers.text") + userList, msg);
     }
 
-    static async addUserHandler(bot: HackerEmbassyBot, msg: Message, username, roles) {
+    static async addUserHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
         username = username.replace("@", "");
-        roles = roles.split("|");
+        const roles = rolesString.split("|");
 
         const success = UsersRepository.addUser(username, roles);
         const text = success
@@ -55,9 +55,9 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username, roles) {
+    static async updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
         username = username.replace("@", "");
-        roles = roles.split("|");
+        const roles = rolesString.split("|");
 
         const success = UsersRepository.updateRoles(username, roles);
         const text = success
@@ -67,7 +67,7 @@ Autoinside: ${user.autoinside ? "on" : "off"}\n`;
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username) {
+    static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         username = username.replace("@", "");
 
         const success = UsersRepository.removeUser(username);

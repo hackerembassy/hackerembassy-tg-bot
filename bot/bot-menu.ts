@@ -1,5 +1,4 @@
 import HackerEmbassyBot from "./HackerEmbassyBot";
-
 import UsersRepository from "../repositories/usersRepository";
 import logger from "../services/logger";
 

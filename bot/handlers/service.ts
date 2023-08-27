@@ -15,9 +15,11 @@ import t from "../../services/localization";
 import { setMenu } from "../bot-menu";
 import RateLimiter from "../../services/RateLimiter";
 import logger from "../../services/logger";
+import TelegramBot, { InlineKeyboardButton, Message, User } from "node-telegram-bot-api";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class ServiceHandlers {
-    static async clearHandler(bot, msg, count) {
+    static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
         const orderOfLastMessage = msg.reply_to_message?.message_id
@@ -34,7 +36,7 @@ export default class ServiceHandlers {
         }
     }
 
-    static async combineHandler(bot, msg, count) {
+    static async combineHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToCombine = inputCount > 2 ? inputCount : 2;
 
@@ -44,7 +46,7 @@ export default class ServiceHandlers {
 
         if (orderOfLastMessageToEdit === -1) return;
 
-        let lastMessageToEdit;
+        let lastMessageToEdit: { messageId: number; text?: string; datetime: number };
         let foundLast = false;
 
         do {
@@ -94,11 +96,11 @@ export default class ServiceHandlers {
         }
     }
 
-    static async chatidHandler(bot, msg) {
+    static async chatidHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}, topicId: ${msg.message_thread_id}`, msg);
     }
 
-    static async residentMenuHandler(bot, msg) {
+    static async residentMenuHandler(bot: HackerEmbassyBot, msg: Message) {
         UsersRepository.setUserid(msg.from.username ?? msg.from.first_name, msg.from.id);
 
         await setMenu(bot);
@@ -110,14 +112,14 @@ export default class ServiceHandlers {
         );
     }
 
-    static async superstatusHandler(bot, msg) {
+    static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {
         await StatusHandlers.statusHandler(bot, msg);
         await EmbassyHandlers.webcamHandler(bot, msg);
         await EmbassyHandlers.webcam2Handler(bot, msg);
         await EmbassyHandlers.doorcamHandler(bot, msg);
     }
 
-    static async callbackHandler(bot, callbackQuery) {
+    static async callbackHandler(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) {
         const msg = callbackQuery.message;
 
         try {
@@ -131,7 +133,7 @@ export default class ServiceHandlers {
         }
     }
 
-    static async routeQuery(bot, callbackQuery, msg) {
+    static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
         const data = JSON.parse(callbackQuery.data);
 
         msg.from = callbackQuery.from;
@@ -165,7 +167,7 @@ export default class ServiceHandlers {
                 await StatusHandlers.statusHandler(bot, msg);
                 break;
             case "/superstatus":
-                if (isAllowed(this.superstatusHandler)) await this.superstatusHandler(bot, msg);
+                if (isAllowed(ServiceHandlers.superstatusHandler)) await ServiceHandlers.superstatusHandler(bot, msg);
                 break;
             case "/birthdays":
                 await BirthdayHandlers.birthdayHandler(bot, msg);
@@ -244,7 +246,7 @@ export default class ServiceHandlers {
                 await EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus");
                 break;
             case "/bought":
-                await this.boughtButtonHandler(bot, msg, data.id, data);
+                await ServiceHandlers.boughtButtonHandler(bot, msg, data.id, data);
                 break;
             case "/bought_undo":
                 if (NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
@@ -258,16 +260,16 @@ export default class ServiceHandlers {
         await bot.answerCallbackQuery(callbackQuery.id);
     }
 
-    static async newMemberHandler(bot, msg) {
+    static async newMemberHandler(bot: HackerEmbassyBot, msg: Message) {
         const botName = (await bot.getMe()).username;
         const newMembers = msg.new_chat_members.reduce(
-            (res, member) =>
+            (res: string, member: User) =>
                 res +
                 `${member?.username ? UsersHelper.formatUsername(member.username, bot.context(msg).mode) : member?.first_name} `,
             ""
         );
 
-        let welcomeText;
+        let welcomeText: string;
 
         switch (msg.chat.id) {
             case botConfig.chats.offtopic:
@@ -287,10 +289,12 @@ export default class ServiceHandlers {
         bot.sendMessageExt(msg.chat.id, welcomeText, msg);
     }
 
-    static async boughtButtonHandler(bot, message, id, data) {
+    static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string) {
         await NeedsHandlers.boughtByIdHandler(bot, message, id);
 
-        const new_keyboard = message.reply_markup.inline_keyboard.filter(button => button[0].callback_data !== data);
+        const new_keyboard = message.reply_markup.inline_keyboard.filter(
+            (button: InlineKeyboardButton[]) => button[0].callback_data !== data
+        );
 
         if (new_keyboard.length != message.reply_markup.inline_keyboard.length) {
             await bot.editMessageReplyMarkup(

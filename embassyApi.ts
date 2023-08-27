@@ -14,6 +14,7 @@ import logger from "./services/logger";
 import { unlock } from "./services/mqtt";
 import { decrypt } from "./utils/security";
 import { createErrorMiddleware } from "./utils/middleware";
+import config from "config";
 
 const embassyApiConfig = config.get("embassy-api") as any;
 const botConfig = config.get("bot") as any;
@@ -25,7 +26,6 @@ process.env.TZ = botConfig.timezone;
 
 import * as statusMonitor from "./services/statusMonitor";
 import { getClimate } from "./services/home";
-import config from "config";
 statusMonitor.startMonitoring();
 
 const app = express();

@@ -1,5 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-types */
 // Imports
-import TelegramBot, { BotCommandScope } from "node-telegram-bot-api";
+import TelegramBot, {
+    BotCommandScope,
+    CallbackQuery,
+    EditMessageTextOptions,
+    Message,
+    SendMessageOptions,
+} from "node-telegram-bot-api";
 import logger from "../services/logger";
 import { sleep, chunkSubstr } from "../utils/common";
 import MessageHistory from "./MessageHistory";
@@ -19,7 +26,7 @@ function prepareMessageForMarkdown(message: string) {
         .replaceAll(/#/g, "");
 }
 
-function prepareOptionsForMarkdown(options: any) {
+function prepareOptionsForMarkdown(options: SendMessageOptions | EditMessageTextOptions) {
     options.parse_mode = "MarkdownV2";
     options.disable_web_page_preview = true;
 
@@ -38,7 +45,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     accessTable = new Map();
 
-    canUserCall(username: string, callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any: any[]) => void) {
+    canUserCall(username: string, callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void) {
         const savedRestrictions = this.accessTable.get(callback);
 
         if (savedRestrictions !== undefined && !hasRole(username, "admin", ...savedRestrictions)) {
@@ -79,12 +86,9 @@ export default class HackerEmbassyBot extends TelegramBot {
         return this.#context.get(msg);
     }
 
-    onExt(
-        event: TelegramBot.MessageType | "callback_query",
-        listener: { (bot: any, callbackQuery: any): Promise<void>; (bot: any, msg: any): Promise<void>; call?: any }
-    ) {
+    onExt(event: TelegramBot.MessageType | "callback_query", listener: Function) {
         const botthis = this;
-        const newListener = async query => {
+        const newListener = async (query: CallbackQuery | Message) => {
             listener.call(this, botthis, query);
         };
 
@@ -102,7 +106,10 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     async editMessageTextExt(text: string, msg: TelegramBot.Message, options: TelegramBot.EditMessageTextOptions) {
         text = prepareMessageForMarkdown(text);
-        options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context(msg).messageThreadId });
+        options = prepareOptionsForMarkdown({
+            ...options,
+            message_thread_id: this.context(msg).messageThreadId,
+        }) as EditMessageTextOptions;
 
         return super.editMessageText(text, options);
     }

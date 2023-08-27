@@ -2,7 +2,7 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 // @ts-ignore
 const readline = require("readline/promises");
-const UsersRepository = require("../repositories/usersRepository");
+const UsersRepository = require("../repositories/usersRepository").default;
 
 (async function initScript() {
     console.log(

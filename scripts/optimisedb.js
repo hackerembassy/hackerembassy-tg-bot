@@ -1,4 +1,4 @@
-const statusRepository = require("../repositories/statusRepository");
+const statusRepository = require("../repositories/statusRepository").default;
 
 function removeUserStateDuplicates() {
     const allStates = statusRepository.getAllUserStates().sort((a, b) => (a.date > b.date ? 1 : -1));

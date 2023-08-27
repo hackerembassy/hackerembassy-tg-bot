@@ -242,7 +242,7 @@ export default class StatusHandlers {
     static async inHandler(bot: HackerEmbassyBot, msg: Message) {
         const eventDate = new Date();
         const username = msg.from.username ?? msg.from.first_name;
-        const gotIn = this.LetIn(username, eventDate);
+        const gotIn = StatusHandlers.LetIn(username, eventDate);
         let message = t("status.in.gotin", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
 
         if (!gotIn) {
@@ -290,7 +290,7 @@ export default class StatusHandlers {
 
     static async outHandler(bot: HackerEmbassyBot, msg: Message) {
         const eventDate = new Date();
-        const gotOut = this.LetOut(msg.from.username, eventDate);
+        const gotOut = StatusHandlers.LetOut(msg.from.username, eventDate);
         let message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode) });
 
         if (!gotOut) {
@@ -340,7 +340,7 @@ export default class StatusHandlers {
         username = username.replace("@", "");
         const eventDate = new Date();
 
-        const gotIn = this.LetIn(username, eventDate, true);
+        const gotIn = StatusHandlers.LetIn(username, eventDate, true);
 
         let message = t("status.inforce.gotin", {
             memberusername: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode),
@@ -357,7 +357,7 @@ export default class StatusHandlers {
     static async outForceHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         const eventDate = new Date();
         username = username.replace("@", "");
-        const gotOut = this.LetOut(username, eventDate, true);
+        const gotOut = StatusHandlers.LetOut(username, eventDate, true);
 
         let message = t("status.outforce.gotout", {
             memberusername: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode),
@@ -514,7 +514,7 @@ export default class StatusHandlers {
                 ? autousers.filter(u => !insideusernames.includes(u.username))
                 : autousers.filter(u => insideusernames.includes(u.username));
 
-            this.isStatusError = false;
+            StatusHandlers.isStatusError = false;
 
             for (const user of selectedautousers) {
                 const hasDeviceInside = isMacInside(user.mac, devices);
@@ -532,7 +532,7 @@ export default class StatusHandlers {
                 }
             }
         } catch (error) {
-            this.isStatusError = true;
+            StatusHandlers.isStatusError = true;
             logger.error(error);
         }
     }

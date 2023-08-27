@@ -12,21 +12,38 @@ const wishedTodayPath = path.join(__dirname, `../../${botConfig.persistedfolderp
 const baseWishesDir = "./resources/wishes";
 const t = require("../../services/localization");
 
+/**
+ * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("node-telegram-bot-api").Message} Message
+ */
+
 class BirthdayHandlers {
-    static forceBirthdayWishHandler = bot => {
-        this.sendBirthdayWishes(bot, true);
-    };
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async forceBirthdayWishHandler(bot, msg) {
+        this.sendBirthdayWishes(bot, msg, true);
+    }
 
-    static birthdayHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async birthdayHandler(bot, msg) {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
-        const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context.mode);
+        const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
 
-        await bot.sendMessage(msg.chat.id, text);
-    };
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
 
-    static myBirthdayHandler = (bot, msg, date) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async myBirthdayHandler(bot, msg, date) {
         const username = msg.from.username;
-        const formattedUsername = UsersHelper.formatUsername(username, bot.context.mode);
+        const formattedUsername = UsersHelper.formatUsername(username, bot.context(msg).mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
 
         let text = t("birthday.fail");
@@ -37,10 +54,14 @@ class BirthdayHandlers {
             text = t("birthday.remove", { username: formattedUsername });
         }
 
-        bot.sendMessage(msg.chat.id, text);
-    };
+        bot.sendMessageExt(msg.chat.id, text, msg);
+    }
 
-    static async sendBirthdayWishes(bot, force = false) {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async sendBirthdayWishes(bot, msg, force = false) {
         let currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
         let birthdayUsers = UsersRepository.getUsers().filter(u => {
             return u.birthday?.substring(5, 10) === currentDate;
@@ -60,7 +81,7 @@ class BirthdayHandlers {
             let message = "🎂 ";
             message += await getWish(user.username);
 
-            await bot.sendMessage(botConfig.chats.main, message);
+            await bot.sendMessageExt(botConfig.chats.main, message, msg);
             logger.info(`Wished ${user.username} a happy birthday`);
 
             if (!wishedUser) wishedToday.push({ username: user.username, date: currentDate });

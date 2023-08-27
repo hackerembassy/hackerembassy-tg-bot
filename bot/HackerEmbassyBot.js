@@ -60,27 +60,39 @@ class HackerEmbassyBot extends TelegramBot {
         return true;
     }
 
-    context = {
-        mode: {
-            silent: false,
-            mention: false,
-            admin: false,
-        },
-        /**
-         * @type {number | undefined}
-         */
-        messageThreadId: undefined,
-        clear() {
-            this.messageThreadId = undefined;
-            this.mode.silent = false;
-            this.mode.mention = false;
-            this.mode.admin = false;
-        },
-        isAdminMode() {
-            return this.context?.mode?.admin ?? false;
-        },
-        isEditing: false,
+    static defaultModes = {
+        silent: false,
+        mention: false,
+        admin: false,
     };
+
+    #context = new Map();
+
+    /**
+     * @param {TelegramBot.Message} msg
+     */
+    context(msg) {
+        const botthis = this;
+
+        if (!this.#context.has(msg)) {
+            const newContext = {
+                mode: { ...HackerEmbassyBot.defaultModes },
+                messageThreadId: undefined,
+                clear() {
+                    botthis.#context.delete(msg);
+                },
+                isAdminMode() {
+                    return this.mode?.admin ?? false;
+                },
+                isEditing: false,
+            };
+            this.#context.set(msg, newContext);
+
+            return newContext;
+        }
+
+        return this.#context.get(msg);
+    }
 
     /**
      * @param {TelegramBot.MessageType | 'callback_query'} event
@@ -97,7 +109,7 @@ class HackerEmbassyBot extends TelegramBot {
     }
 
     get addedModifiersString() {
-        return Object.keys(this.context.mode)
+        return Object.keys(HackerEmbassyBot.defaultModes)
             .reduce((acc, key) => {
                 return `${acc} -${key}|`;
             }, "(")
@@ -106,11 +118,12 @@ class HackerEmbassyBot extends TelegramBot {
 
     /**
      * @param {string} text
+     * @param {TelegramBot.Message} msg
      * @param {TelegramBot.EditMessageTextOptions} options
      */
-    async editMessageText(text, options) {
+    async editMessageTextExt(text, msg, options) {
         text = prepareMessageForMarkdown(text);
-        options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context.messageThreadId });
+        options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context(msg).messageThreadId });
 
         return super.editMessageText(text, options);
     }
@@ -118,16 +131,17 @@ class HackerEmbassyBot extends TelegramBot {
     /**
      * @param {TelegramBot.ChatId} chatId
      * @param {string | import("stream").Stream | Buffer} photo
+     * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendPhotoOptions} [options]
      * @param {TelegramBot.FileOptions} [fileOptions]
      */
-    async sendPhoto(chatId, photo, options, fileOptions) {
-        this.sendChatAction(chatId, "upload_photo");
+    async sendPhotoExt(chatId, photo, msg, options, fileOptions) {
+        this.sendChatAction(chatId, "upload_photo", msg);
 
         let message = await super.sendPhoto(
             chatId,
             photo,
-            { ...options, message_thread_id: this.context.messageThreadId },
+            { ...options, message_thread_id: this.context(msg).messageThreadId },
             fileOptions
         );
 
@@ -140,12 +154,13 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.ChatId} chatId
      * @param {number} latitude
      * @param {number} longitude
+     * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendLocationOptions} options
      */
-    async sendLocation(chatId, latitude, longitude, options = {}) {
+    async sendLocationExt(chatId, latitude, longitude, msg, options = {}) {
         return await super.sendLocation(chatId, latitude, longitude, {
             ...options,
-            message_thread_id: this.context.messageThreadId,
+            message_thread_id: this.context(msg).messageThreadId,
         });
     }
 
@@ -163,16 +178,17 @@ class HackerEmbassyBot extends TelegramBot {
     /**
      * @param {TelegramBot.ChatId} chatId
      * @param {string} text
+     * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendMessageOptions} [options]
      */
-    async sendMessage(chatId, text, options) {
+    async sendMessageExt(chatId, text, msg, options) {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
-        if (!this.context.mode.silent) {
+        if (!this.context(msg)?.mode?.silent) {
             let message = await super.sendMessage(chatId, preparedText, {
                 ...options,
-                message_thread_id: this.context.messageThreadId,
+                message_thread_id: this.context(msg)?.messageThreadId,
             });
 
             if (!message) return;
@@ -188,35 +204,38 @@ class HackerEmbassyBot extends TelegramBot {
     /**
      * @param {TelegramBot.ChatId} chatId
      * @param {TelegramBot.ChatAction} action
+     * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendChatActionOptions} options
      */
-    async sendChatAction(chatId, action, options = {}) {
+    async sendChatAction(chatId, action, msg, options = {}) {
         return super.sendChatAction(chatId, action, {
             ...options,
-            message_thread_id: this.context.messageThreadId,
+            message_thread_id: this.context(msg).messageThreadId,
         });
     }
 
     /**
      * @param {TelegramBot.ChatId} chatId
      * @param {string} text
+     * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendMessageOptions} options
      */
-    async sendLongMessage(chatId, text, options) {
+    async sendLongMessage(chatId, text, msg, options = {}) {
         let chunks = chunkSubstr(text, maxChunkSize);
 
         if (chunks.length === 1) {
-            this.sendMessage(chatId, chunks[0], options);
+            this.sendMessageExt(chatId, chunks[0], msg, options);
             return;
         }
 
         for (let index = 0; index < chunks.length; index++) {
-            this.sendMessage(
+            this.sendMessageExt(
                 chatId,
                 `📧 ${index + 1} часть 📧
 
 ${chunks[index]}
 📧 Конец части ${index + 1} 📧`,
+                msg,
                 options
             );
             await sleep(messagedelay);
@@ -224,70 +243,70 @@ ${chunks[index]}
     }
 
     /**
-     * @param {RegExp} regexp
+     * @param {RegExp} originalRegex
      * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any) => void} callback
      * @param {BotRole[]} restrictions
      * @returns {Promise<void>}
      */
-    async onTextExt(regexp, callback, restrictions = []) {
+    async onTextExt(originalRegex, callback, restrictions = []) {
         if (restrictions.length > 0) this.accessTable.set(callback, restrictions);
 
-        let originalRegex = regexp;
         let regexString = originalRegex.toString();
         let endOfBodyIndex = regexString.lastIndexOf("/");
         let regexBody = regexString.substring(1, endOfBodyIndex);
         let regexParams = regexString.substring(endOfBodyIndex + 1);
         let botthis = this;
 
-        regexp = new RegExp(regexBody.replace("$", `${this.addedModifiersString}$`), regexParams);
+        let newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
         let newCallback = async function (msg, match) {
             try {
                 if (!botthis.canUserCall(msg.from.username, callback)) {
-                    await botthis.sendMessage(msg.chat.id, t("admin.messages.restricted"));
+                    await botthis.sendMessageExt(msg.chat.id, t("admin.messages.restricted"), msg);
 
                     return;
                 }
 
                 let newCommand = match[0];
 
-                for (const key of Object.keys(botthis.context.mode)) {
+                for (const key of Object.keys(botthis.context(msg).mode)) {
                     newCommand = newCommand.replace(` -${key}`, "");
-                    if (match[0].includes(`-${key}`)) botthis.context.mode[key] = true;
+                    if (match[0].includes(`-${key}`)) botthis.context(msg).mode[key] = true;
                 }
 
                 if (match !== undefined) match = originalRegex.exec(newCommand);
 
-                botthis.context.messageThreadId = msg?.is_topic_message ? msg.message_thread_id : undefined;
+                botthis.context(msg).messageThreadId = msg?.is_topic_message ? msg.message_thread_id : undefined;
 
                 await callback.call(this, botthis, msg, match);
             } catch (error) {
                 logger.error(error);
             } finally {
-                botthis.context.clear();
+                botthis.context(msg)?.clear();
             }
         };
 
-        await super.onText(regexp, newCallback);
+        await super.onText(newRegexp, newCallback);
     }
 
     /**
      * @param {number} chatId
      * @param {string} text
+     * @param {TelegramBot.Message} msg
      * @param {Object} options
      * @param {number} messageId
      */
-    async sendOrEditMessage(chatId, text, options, messageId) {
-        if (this.context.isEditing) {
+    async sendOrEditMessage(chatId, text, msg, options, messageId) {
+        if (this.context(msg).isEditing) {
             try {
-                await this.editMessageText(text, { chat_id: chatId, message_id: messageId, ...options });
+                await this.editMessageTextExt(text, msg, { chat_id: chatId, message_id: messageId, ...options });
             } catch {
                 // Message was not modified
             } finally {
-                this.context.isEditing = false;
+                this.context(msg).isEditing = false;
             }
         } else {
-            await this.sendMessage(chatId, text, options);
+            await this.sendMessageExt(chatId, text, msg, options);
         }
     }
 

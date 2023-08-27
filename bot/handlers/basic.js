@@ -8,29 +8,54 @@ const botConfig = require("config").get("bot");
 const t = require("../../services/localization");
 const { isMessageFromPrivateChat } = require("../bot-helpers");
 
+/**
+ * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("node-telegram-bot-api").Message} Message
+ */
+
 class BasicHandlers {
-    static helpHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async helpHandler(bot, msg) {
         const text = t("basic.help", {
             availableCommands: UsersHelper.getAvailableCommands(msg.from.username),
             globalModifiers: Commands.GlobalModifiers,
         });
 
-        await bot.sendLongMessage(msg.chat.id, text);
-    };
+        await bot.sendLongMessage(msg.chat.id, text, msg);
+    }
 
-    static aboutHandler = async (bot, msg) => {
-        await bot.sendMessage(msg.chat.id, t("basic.about"));
-    };
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async aboutHandler(bot, msg) {
+        await bot.sendMessageExt(msg.chat.id, t("basic.about"), msg);
+    }
 
-    static joinHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async joinHandler(bot, msg) {
         let message = TextGenerators.getJoinText();
-        await bot.sendMessage(msg.chat.id, message);
-    };
+        await bot.sendMessageExt(msg.chat.id, message, msg);
+    }
 
-    static eventsHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async eventsHandler(bot, msg) {
         const message = TextGenerators.getEventsText(false, botConfig.calendarAppLink);
 
-        await bot.sendMessage(msg.chat.id, message, {
+        await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard: isMessageFromPrivateChat(msg)
                     ? [
@@ -46,57 +71,88 @@ class BasicHandlers {
                     : undefined,
             },
         });
-    };
+    }
 
-    static issueHandler = async (bot, msg, issueText) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async issueHandler(bot, msg, issueText) {
         const helpMessage = t("basic.issue.help");
         const sentMessage = t("basic.issue.sent");
         const report = t("basic.issue.report", { issue: issueText });
         if (issueText !== undefined) {
-            await bot.sendMessage(msg.chat.id, sentMessage);
-            await bot.sendMessage(botConfig.chats.key, report);
+            await bot.sendMessageExt(msg.chat.id, sentMessage, msg);
+            await bot.sendMessageExt(botConfig.chats.key, report, msg);
         } else {
-            await bot.sendMessage(msg.chat.id, helpMessage);
+            await bot.sendMessageExt(msg.chat.id, helpMessage, msg);
         }
-    };
+    }
 
-    static donateHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async donateHandler(bot, msg) {
         const accountants = UsersRepository.getUsersByRole("accountant");
         const message = TextGenerators.getDonateText(accountants);
-        await bot.sendMessage(msg.chat.id, message);
-    };
+        await bot.sendMessageExt(msg.chat.id, message, msg);
+    }
 
-    static locationHandler = async (bot, msg) => {
-        await bot.sendMessage(msg.chat.id, t("basic.location.address"));
-        await bot.sendLocation(msg.chat.id, 40.18258, 44.51338);
-        await bot.sendPhoto(msg.chat.id, "./resources/images/house.jpg", { caption: t("basic.location.caption") });
-    };
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async locationHandler(bot, msg) {
+        await bot.sendMessageExt(msg.chat.id, t("basic.location.address"), msg);
+        await bot.sendLocationExt(msg.chat.id, 40.18258, 44.51338, msg);
+        await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.caption") });
+    }
 
-    static donateCoinHandler = async (bot, msg, coinname) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async donateCoinHandler(bot, msg, coinname) {
         coinname = coinname.toLowerCase();
         const qrImage = await CoinsHelper.getQR(coinname);
         const coin = CoinsHelper.getCoinDefinition(coinname);
 
-        await bot.sendPhoto(msg.chat.id, qrImage, {
+        await bot.sendPhotoExt(msg.chat.id, qrImage, msg, {
             parse_mode: "Markdown",
             caption: t("basic.donateCoin", { coin }),
         });
-    };
+    }
 
-    static donateCardHandler = async (bot, msg) => {
-        const accountantsList = TextGenerators.getAccountsList(UsersRepository.getUsersByRole("accountant"), bot.context.mode);
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async donateCardHandler(bot, msg) {
+        const accountantsList = TextGenerators.getAccountsList(
+            UsersRepository.getUsersByRole("accountant"),
+            bot.context(msg).mode
+        );
 
-        await bot.sendMessage(msg.chat.id, t("basic.donateCard", { accountantsList }));
-    };
+        await bot.sendMessageExt(msg.chat.id, t("basic.donateCard", { accountantsList }), msg);
+    }
 
-    static getResidentsHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async getResidentsHandler(bot, msg) {
         const users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
-        const message = TextGenerators.getResidentsList(users, bot.context.mode);
+        const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
-        await bot.sendLongMessage(msg.chat.id, message);
-    };
+        await bot.sendLongMessage(msg.chat.id, message, msg);
+    }
 
-    static startPanelHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async startPanelHandler(bot, msg) {
         const inlineKeyboard = [
             [
                 {
@@ -149,6 +205,7 @@ class BasicHandlers {
         await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.start.text"),
+            msg,
             {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
@@ -156,8 +213,12 @@ class BasicHandlers {
             },
             msg.message_id
         );
-    };
+    }
 
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
     static async controlPanelHandler(bot, msg) {
         const inlineKeyboard = [
             [
@@ -201,6 +262,7 @@ class BasicHandlers {
         await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.control.text"),
+            msg,
             {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
@@ -210,7 +272,11 @@ class BasicHandlers {
         );
     }
 
-    static infoPanelHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async infoPanelHandler(bot, msg) {
         const inlineKeyboard = [
             [
                 {
@@ -247,6 +313,7 @@ class BasicHandlers {
         await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.info.text"),
+            msg,
             {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
@@ -254,7 +321,7 @@ class BasicHandlers {
             },
             msg.message_id
         );
-    };
+    }
 }
 
 module.exports = BasicHandlers;

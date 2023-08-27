@@ -7,71 +7,104 @@ const botConfig = require("config").get("bot");
 const t = require("../../services/localization");
 const { lastModifiedFilePath } = require("../../utils/filesystem");
 
+/**
+ * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("node-telegram-bot-api").Message} Message
+ */
+
 class AdminHandlers {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     * @param {string} text
+     */
     static async forwardHandler(bot, msg, text) {
-        await bot.sendMessage(botConfig.chats.main, text);
-        await bot.sendMessage(msg.chat.id, "Message is forwarded");
+        await bot.sendMessageExt(botConfig.chats.main, text, msg);
+        await bot.sendMessageExt(msg.chat.id, "Message is forwarded", msg);
     }
 
-    static getLogHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async getLogHandler(bot, msg) {
         const logFolderPath = path.join(__dirname, "../..", botConfig.logfolderpath);
         const lastLogFilePath = path.join(__dirname, "../..", botConfig.logfolderpath, lastModifiedFilePath(logFolderPath));
 
         if (lastLogFilePath && fs.existsSync(lastLogFilePath)) await bot.sendDocument(msg.chat.id, lastLogFilePath);
-    };
+    }
 
-    static getHistoryHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async getHistoryHandler(bot, msg) {
         const historypath = bot.messageHistory.historypath;
 
         if (historypath && fs.existsSync(historypath)) await bot.sendDocument(msg.chat.id, historypath);
-    };
-
-    static getUsersHandler = async (bot, msg) => {
+    }
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async getUsersHandler(bot, msg) {
         const users = UsersRepository.getUsers();
         let userList = "";
         for (const user of users) {
-            userList += `> ${UsersHelper.formatUsername(user.username, bot.context.mode)}
+            userList += `> ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
 Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
 Autoinside: ${user.autoinside ? "on" : "off"}\n`;
         }
 
-        await bot.sendLongMessage(msg.chat.id, t("admin.getUsers.text") + userList);
-    };
+        await bot.sendLongMessage(msg.chat.id, t("admin.getUsers.text") + userList, msg);
+    }
 
-    static addUserHandler = async (bot, msg, username, roles) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async addUserHandler(bot, msg, username, roles) {
         username = username.replace("@", "");
         roles = roles.split("|");
 
         const success = UsersRepository.addUser(username, roles);
         const text = success
-            ? t("admin.addUser.success", { username: UsersHelper.formatUsername(username, bot.context.mode), roles })
+            ? t("admin.addUser.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode), roles })
             : t("admin.addUser.fail");
 
-        await bot.sendMessage(msg.chat.id, text);
-    };
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
 
-    static updateRolesHandler = async (bot, msg, username, roles) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async updateRolesHandler(bot, msg, username, roles) {
         username = username.replace("@", "");
         roles = roles.split("|");
 
         const success = UsersRepository.updateRoles(username, roles);
         const text = success
-            ? t("admin.updateRoles.success", { username: UsersHelper.formatUsername(username, bot.context.mode), roles })
+            ? t("admin.updateRoles.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode), roles })
             : t("admin.updateRoles.fail");
 
-        await bot.sendMessage(msg.chat.id, text);
-    };
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
 
-    static removeUserHandler = async (bot, msg, username) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async removeUserHandler(bot, msg, username) {
         username = username.replace("@", "");
 
         const success = UsersRepository.removeUser(username);
         const text = success
-            ? t("admin.removeUser.success", { username: UsersHelper.formatUsername(username, bot.context.mode) })
+            ? t("admin.removeUser.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) })
             : t("admin.removeUser.fail");
 
-        await bot.sendMessage(msg.chat.id, text);
-    };
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
 }
 
 module.exports = AdminHandlers;

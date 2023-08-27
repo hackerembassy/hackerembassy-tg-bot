@@ -4,10 +4,19 @@ const UsersHelper = require("../../services/usersHelper");
 
 const t = require("../../services/localization");
 
+/**
+ * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("node-telegram-bot-api").Message} Message
+ */
+
 class NeedsHandlers {
-    static needsHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async needsHandler(bot, msg) {
         const needs = NeedsRepository.getOpenNeeds();
-        const text = TextGenerators.getNeedsList(needs, bot.context.mode);
+        const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
         const inline_keyboard = needs.map(need => [
             {
                 text: need.text,
@@ -15,28 +24,41 @@ class NeedsHandlers {
             },
         ]);
 
-        await bot.sendMessage(msg.chat.id, text, {
+        await bot.sendMessageExt(msg.chat.id, text, msg, {
             reply_markup: { inline_keyboard },
         });
-    };
+    }
 
-    static buyHandler = async (bot, msg, item) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async buyHandler(bot, msg, item) {
         const requester = msg.from.username;
         const success = NeedsRepository.addBuy(item, requester, new Date());
 
-        await bot.sendMessage(
+        await bot.sendMessageExt(
             msg.chat.id,
             success
-                ? t("needs.buy.success", { username: UsersHelper.formatUsername(requester, bot.context.mode), item })
-                : t("needs.buy.fail")
+                ? t("needs.buy.success", { username: UsersHelper.formatUsername(requester, bot.context(msg).mode), item })
+                : t("needs.buy.fail"),
+            msg
         );
-    };
+    }
 
-    static boughtByIdHandler = async (bot, msg, id) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async boughtByIdHandler(bot, msg, id) {
         await this.boughtHandler(bot, msg, NeedsRepository.getNeedById(id).text || "");
-    };
+    }
 
-    static boughtUndoHandler = (_, msg, id) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async boughtUndoHandler(bot, msg, id) {
         const need = NeedsRepository.getNeedById(id);
 
         if (need && need.buyer === msg.from.username) {
@@ -45,20 +67,27 @@ class NeedsHandlers {
         }
 
         return false;
-    };
+    }
 
-    static boughtHandler = async (bot, msg, item) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async boughtHandler(bot, msg, item) {
         const buyer = msg.from.username;
         const need = NeedsRepository.getOpenNeedByText(item);
 
         if (!need || need.buyer) {
-            bot.sendMessage(msg.chat.id, t("needs.bought.notfound"));
+            bot.sendMessageExt(msg.chat.id, t("needs.bought.notfound"), msg);
             return;
         }
 
         NeedsRepository.closeNeed(item, buyer, new Date());
 
-        const successText = t("needs.bought.success", { username: UsersHelper.formatUsername(buyer, bot.context.mode), item });
+        const successText = t("needs.bought.success", {
+            username: UsersHelper.formatUsername(buyer, bot.context(msg).mode),
+            item,
+        });
         const inline_keyboard = [
             [
                 {
@@ -68,10 +97,10 @@ class NeedsHandlers {
             ],
         ];
 
-        await bot.sendMessage(msg.chat.id, successText, {
+        await bot.sendMessageExt(msg.chat.id, successText, msg, {
             reply_markup: { inline_keyboard },
         });
-    };
+    }
 }
 
 module.exports = NeedsHandlers;

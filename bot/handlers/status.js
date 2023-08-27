@@ -26,38 +26,49 @@ const { toDateObject, getMonthBoundaries } = require("../../utils/date");
 const { isEmoji } = require("../../utils/text");
 const { createUserStatsDonut } = require("../../services/export");
 const statusRepository = require("../../repositories/statusRepository");
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { HackerEmbassyBot } = require("../HackerEmbassyBot");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const TelegramBot = require("node-telegram-bot-api");
 const { fetchWithTimeout } = require("../../utils/network");
+
+/**
+ * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("node-telegram-bot-api").Message} Message
+ */
 
 class StatusHandlers {
     static isStatusError = false;
 
-    static setmacHandler(bot, msg, cmd) {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async setmacHandler(bot, msg, cmd) {
         let message = t("status.mac.fail");
         let username = msg.from.username;
         if (!cmd || cmd === "help") {
             message = t("status.mac.help");
         } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-            message = t("status.mac.set", { cmd, username: UsersHelper.formatUsername(username, bot.context.mode) });
+            message = t("status.mac.set", { cmd, username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "remove") {
             UsersRepository.setMACs(username, null);
             UsersRepository.setAutoinside(username, false);
-            message = t("status.mac.removed", { username: UsersHelper.formatUsername(username, bot.context.mode) });
+            message = t("status.mac.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "status") {
             let usermac = UsersRepository.getUserByName(username)?.mac;
             if (usermac)
-                message = t("status.mac.isset", { username: UsersHelper.formatUsername(username, bot.context.mode), usermac });
-            else message = t("status.mac.isnotset", { username: UsersHelper.formatUsername(username, bot.context.mode) });
+                message = t("status.mac.isset", {
+                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    usermac,
+                });
+            else message = t("status.mac.isnotset", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
         }
 
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static autoinsideHandler(bot, msg, cmd) {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async autoinsideHandler(bot, msg, cmd) {
         let message = t("status.autoinside.fail");
         let username = msg.from.username;
         let user = UsersRepository.getUserByName(username);
@@ -71,29 +82,36 @@ class StatusHandlers {
             else if (UsersRepository.setAutoinside(username, true))
                 message = t("status.autoinside.set", {
                     usermac,
-                    username: UsersHelper.formatUsername(username, bot.context.mode),
+                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
                 });
         } else if (cmd === "disable") {
             UsersRepository.setAutoinside(username, false);
-            message = t("status.autoinside.removed", { username: UsersHelper.formatUsername(username, bot.context.mode) });
+            message = t("status.autoinside.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "status") {
             if (userautoinside)
                 message = t("status.autoinside.isset", {
                     usermac,
-                    username: UsersHelper.formatUsername(username, bot.context.mode),
+                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
                 });
-            else message = t("status.autoinside.isnotset", { username: UsersHelper.formatUsername(username, bot.context.mode) });
+            else
+                message = t("status.autoinside.isnotset", {
+                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                });
         }
 
-        bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static statusHandler = async (bot, msg) => {
-        if (!bot.context.isEditing) bot.sendChatAction(msg.chat.id, "typing");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async statusHandler(bot, msg) {
+        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
         const state = StatusRepository.getSpaceLastState();
 
         if (!state) {
-            bot.sendMessage(msg.chat.id, t("status.status.undefined"));
+            bot.sendMessageExt(msg.chat.id, t("status.status.undefined"), msg);
             return;
         }
 
@@ -103,14 +121,22 @@ class StatusHandlers {
 
         let climateInfo = null;
         try {
-            climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
+            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
+            climateInfo = await response?.json();
         } catch (error) {
             logger.error(error);
         }
 
         const withSecretData = msg.chat.id === botConfig.chats.horny;
 
-        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, bot.context.mode, withSecretData);
+        let statusMessage = TextGenerators.getStatusMessage(
+            state,
+            inside,
+            going,
+            climateInfo,
+            bot.context(msg).mode,
+            withSecretData
+        );
 
         if (StatusHandlers.isStatusError) statusMessage = t("status.status.noconnection", { statusMessage });
 
@@ -154,6 +180,7 @@ class StatusHandlers {
         await bot.sendOrEditMessage(
             msg.chat.id,
             statusMessage,
+            msg,
             {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
@@ -161,9 +188,13 @@ class StatusHandlers {
             },
             msg.message_id
         );
-    };
+    }
 
-    static openHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async openHandler(bot, msg) {
         openSpace(msg.from.username, { checkOpener: true });
 
         let inlineKeyboard = [
@@ -185,18 +216,23 @@ class StatusHandlers {
             ],
         ];
 
-        await bot.sendMessage(
+        await bot.sendMessageExt(
             msg.chat.id,
-            t("status.open", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) }),
+            t("status.open", { username: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode) }),
+            msg,
             {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
                 },
             }
         );
-    };
+    }
 
-    static closeHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async closeHandler(bot, msg) {
         closeSpace(msg.from.username, { evict: true });
 
         let inlineKeyboard = [
@@ -208,28 +244,37 @@ class StatusHandlers {
             ],
         ];
 
-        await bot.sendMessage(
+        await bot.sendMessageExt(
             msg.chat.id,
-            t("status.close", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) }),
+            t("status.close", { username: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode) }),
+            msg,
             {
                 reply_markup: {
                     inline_keyboard: inlineKeyboard,
                 },
             }
         );
-    };
+    }
 
-    static evictHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async evictHandler(bot, msg) {
         evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
 
-        await bot.sendMessage(msg.chat.id, t("status.evict"));
-    };
+        await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
+    }
 
-    static inHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async inHandler(bot, msg) {
         let eventDate = new Date();
         let username = msg.from.username ?? msg.from.first_name;
         let gotIn = this.LetIn(username, eventDate);
-        let message = t("status.in.gotin", { username: UsersHelper.formatUsername(username, bot.context.mode) });
+        let message = t("status.in.gotin", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
 
         if (!gotIn) {
             message = t("status.in.notready");
@@ -267,17 +312,21 @@ class StatusHandlers {
                   ],
               ];
 
-        await bot.sendMessage(msg.chat.id, message, {
+        await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
-    };
+    }
 
-    static outHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async outHandler(bot, msg) {
         let eventDate = new Date();
         let gotOut = this.LetOut(msg.from.username, eventDate);
-        let message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) });
+        let message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode) });
 
         if (!gotOut) {
             message = t("status.out.shouldnot");
@@ -315,49 +364,57 @@ class StatusHandlers {
                   ],
               ];
 
-        await bot.sendMessage(msg.chat.id, message, {
+        await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
-    };
+    }
 
-    static inForceHandler = async (bot, msg, username) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async inForceHandler(bot, msg, username) {
         username = username.replace("@", "");
         let eventDate = new Date();
 
         let gotIn = this.LetIn(username, eventDate, true);
 
         let message = t("status.inforce.gotin", {
-            memberusername: UsersHelper.formatUsername(msg.from.username, bot.context.mode),
-            username: UsersHelper.formatUsername(username, bot.context.mode),
+            memberusername: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode),
+            username: UsersHelper.formatUsername(username, bot.context(msg).mode),
         });
 
         if (!gotIn) {
             message = t("status.inforce.notready");
         }
 
-        await bot.sendMessage(msg.chat.id, message);
-    };
+        await bot.sendMessageExt(msg.chat.id, message, msg);
+    }
 
-    static outForceHandler = async (bot, msg, username) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async outForceHandler(bot, msg, username) {
         let eventDate = new Date();
         username = username.replace("@", "");
         let gotOut = this.LetOut(username, eventDate, true);
 
         let message = t("status.outforce.gotout", {
-            memberusername: UsersHelper.formatUsername(msg.from.username, bot.context.mode),
-            username: UsersHelper.formatUsername(username, bot.context.mode),
+            memberusername: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode),
+            username: UsersHelper.formatUsername(username, bot.context(msg).mode),
         });
 
         if (!gotOut) {
             message = t("status.outforce.shouldnot");
         }
 
-        await bot.sendMessage(msg.chat.id, message);
-    };
+        await bot.sendMessageExt(msg.chat.id, message, msg);
+    }
 
-    static LetIn(username, date, force = false) {
+    static async LetIn(username, date, force = false) {
         // check that space is open
         let state = StatusRepository.getSpaceLastState();
 
@@ -396,7 +453,11 @@ class StatusHandlers {
         return true;
     }
 
-    static goingHandler = async (bot, msg, note) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async goingHandler(bot, msg, note) {
         let username = msg.from.username.replace("@", "");
         let eventDate = new Date();
 
@@ -411,7 +472,7 @@ class StatusHandlers {
 
         StatusRepository.pushPeopleState(userstate);
 
-        let message = t("status.going", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode), note });
+        let message = t("status.going", { username: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode), note });
 
         let inlineKeyboard = [
             [
@@ -426,14 +487,18 @@ class StatusHandlers {
             ],
         ];
 
-        await bot.sendMessage(msg.chat.id, message, {
+        await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
-    };
+    }
 
-    static notGoingHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async notGoingHandler(bot, msg) {
         let username = msg.from.username.replace("@", "");
         let eventDate = new Date();
 
@@ -448,30 +513,37 @@ class StatusHandlers {
 
         StatusRepository.pushPeopleState(userstate);
 
-        let message = t("status.notgoing", { username: UsersHelper.formatUsername(msg.from.username, bot.context.mode) });
+        let message = t("status.notgoing", { username: UsersHelper.formatUsername(msg.from.username, bot.context(msg).mode) });
 
-        await bot.sendMessage(msg.chat.id, message);
-    };
+        await bot.sendMessageExt(msg.chat.id, message, msg);
+    }
 
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
     static async setemojiHandler(bot, msg, emoji) {
         let message = t("status.emoji.fail");
         let username = msg.from.username;
         if (!emoji || emoji === "help") {
             message = t("status.emoji.help");
         } else if (emoji && isEmoji(emoji) && UsersRepository.setEmoji(username, emoji)) {
-            message = t("status.emoji.set", { emoji, username: UsersHelper.formatUsername(username, bot.context.mode) });
+            message = t("status.emoji.set", { emoji, username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
         } else if (emoji === "remove") {
             UsersRepository.setEmoji(username, null);
-            message = t("status.emoji.removed", { username: UsersHelper.formatUsername(username, bot.context.mode) });
+            message = t("status.emoji.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
         } else if (emoji === "status") {
             let emoji = UsersRepository.getUserByName(username)?.emoji;
 
             if (emoji)
-                message = t("status.emoji.isset", { emoji, username: UsersHelper.formatUsername(username, bot.context.mode) });
-            else message = t("status.emoji.isnotset", { username: UsersHelper.formatUsername(username, bot.context.mode) });
+                message = t("status.emoji.isset", {
+                    emoji,
+                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                });
+            else message = t("status.emoji.isnotset", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
         }
 
-        await bot.sendMessage(msg.chat.id, message);
+        await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
     /**
@@ -521,23 +593,32 @@ class StatusHandlers {
         }
     }
 
-    static statsOfHandler = async (bot, msg, username) => {
-        bot.sendChatAction(msg.chat.id, "typing");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async statsOfHandler(bot, msg, username) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const selectedUsername = username ?? msg.from.username;
         const userStates = statusRepository.getUserStates(selectedUsername);
 
         const { days, hours, minutes } = getUserTimeDescriptor(userStates);
-        await bot.sendMessage(
+        await bot.sendMessageExt(
             msg.chat.id,
             `${t("status.statsof", {
-                username: UsersHelper.formatUsername(selectedUsername, bot.context.mode),
-            })}: ${days}d, ${hours}h, ${minutes}m\n\n${t("status.stats.tryautoinside")}`
+                username: UsersHelper.formatUsername(selectedUsername, bot.context(msg).mode),
+            })}: ${days}d, ${hours}h, ${minutes}m\n\n${t("status.stats.tryautoinside")}`,
+            msg
         );
-    };
+    }
 
-    static statsMonthHandler = async (bot, msg, month) => {
-        bot.sendChatAction(msg.chat.id, "typing");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async statsMonthHandler(bot, msg, month) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const currentDate = new Date();
         let resultDate = new Date();
@@ -552,22 +633,26 @@ class StatusHandlers {
         const { startMonthDate, endMonthDate } = getMonthBoundaries(resultDate);
 
         return await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
-    };
+    }
 
     /**
      * @param {HackerEmbassyBot} bot
-     * @param {TelegramBot.Message} msg
+     * @param {Message} msg
      * @param {string} fromDateString
      * @param {string} toDateString
      */
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
     static async statsHandler(bot, msg, fromDateString, toDateString) {
-        bot.sendChatAction(msg.chat.id, "typing");
+        bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const fromDate = new Date(fromDateString ?? statsStartDateString);
         const toDate = toDateString ? new Date(toDateString) : new Date();
 
         if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-            await bot.sendMessage(msg.chat.id, t("status.stats.invaliddates"));
+            await bot.sendMessageExt(msg.chat.id, t("status.stats.invaliddates"), msg);
             return;
         }
 
@@ -577,14 +662,14 @@ class StatusHandlers {
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
 
         if (userTimes.length === 0) {
-            return await bot.sendMessage(msg.chat.id, t("status.stats.nousertimes"));
+            return await bot.sendMessageExt(msg.chat.id, t("status.stats.nousertimes"), msg);
         }
 
         const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod);
         const statsDonut = await createUserStatsDonut(userTimes, dateBoundaries);
 
-        await bot.sendMessage(msg.chat.id, statsText);
-        await bot.sendPhoto(msg.chat.id, statsDonut);
+        await bot.sendMessageExt(msg.chat.id, statsText, msg);
+        await bot.sendPhotoExt(msg.chat.id, statsDonut, msg);
     }
 }
 

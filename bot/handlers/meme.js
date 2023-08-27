@@ -1,17 +1,42 @@
 const { getRandomImageFromFolder } = require("../../services/media");
 
+/**
+ * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("node-telegram-bot-api").Message} Message
+ */
+
 class MemeHandlers {
-    static randomDogHandler = async (bot, msg) =>
-        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/dogs"));
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async randomDogHandler(bot, msg) {
+        await bot.sendPhotoExt(msg.chat.id, await getRandomImageFromFolder("./resources/images/dogs"), msg);
+    }
 
-    static randomCatHandler = async (bot, msg) =>
-        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/cats"));
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async randomCatHandler(bot, msg) {
+        await bot.sendPhotoExt(msg.chat.id, await getRandomImageFromFolder("./resources/images/cats"), msg);
+    }
 
-    static randomCabHandler = async (bot, msg) =>
-        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/cab"));
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async randomCabHandler(bot, msg) {
+        await bot.sendPhotoExt(msg.chat.id, await getRandomImageFromFolder("./resources/images/cab"), msg);
+    }
 
-    static randomRoosterHandler = async (bot, msg) =>
-        await bot.sendPhoto(msg.chat.id, await getRandomImageFromFolder("./resources/images/roosters"));
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async randomRoosterHandler(bot, msg) {
+        await bot.sendPhotoExt(msg.chat.id, await getRandomImageFromFolder("./resources/images/roosters"), msg);
+    }
 }
 
 module.exports = MemeHandlers;

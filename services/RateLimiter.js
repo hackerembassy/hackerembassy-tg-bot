@@ -49,11 +49,11 @@ class RateLimiter {
      * @param {number} userId
      * @param {object} context
      */
-    static throttle(func, args, userId, context) {
+    static async throttle(func, args, userId, context) {
         const cooldown = this.#cooldownTimerIds.get(userId);
 
         if (!cooldown) {
-            func.apply(context, args);
+            await func.apply(context, args);
 
             const timerId = setTimeout(() => {
                 clearTimeout(cooldown);

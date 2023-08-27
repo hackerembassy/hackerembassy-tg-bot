@@ -1,8 +1,6 @@
-// eslint-disable-next-line no-unused-vars
-const UserState = require("../models/UserState");
-
 /**
  * @typedef {import("../utils/date").ElapsedTimeObject} ElapsedTimeObject
+ * @typedef {import("../models/UserState")} UserState
  */
 
 const statusRepository = require("../repositories/statusRepository");

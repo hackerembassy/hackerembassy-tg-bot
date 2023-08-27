@@ -231,9 +231,7 @@ async function setRoutes(bot) {
 
     // Birthdays
     bot.onTextExt(rc.command(["birthdays"]), async (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
-    bot.onTextExt(rc.command(["forcebirthdaywishes", "fbw"]), async bot => BirthdayHandlers.forceBirthdayWishHandler(bot), [
-        "admin",
-    ]);
+    bot.onTextExt(rc.command(["forcebirthdaywishes", "fbw"]), BirthdayHandlers.forceBirthdayWishHandler, ["admin"]);
     bot.onTextExt(rc.command(["mybirthday"], /(.*\S)/), async (bot, msg, match) =>
         BirthdayHandlers.myBirthdayHandler(bot, msg, match[1])
     );

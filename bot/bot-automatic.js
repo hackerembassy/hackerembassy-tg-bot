@@ -1,17 +1,14 @@
-// eslint-disable-next-line no-unused-vars
-const { HackerEmbassyBot } = require("./HackerEmbassyBot");
-
 const botConfig = require("config").get("bot");
 const EmbassyHandlers = require("./handlers/embassy");
 const StatusHandlers = require("./handlers/status");
 const BirthdayHandlers = require("./handlers/birthday");
 
 /**
- * @param {HackerEmbassyBot} bot
+ * @param {import("./HackerEmbassyBot").HackerEmbassyBot} bot
  */
 function setAutomaticFeatures(bot) {
     EmbassyHandlers.enableStatusMonitor(bot);
-    setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, false), 3600000); // 1hr
+    setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, undefined, false), 3600000); // 1hr
     setInterval(
         () =>
             bot.sendNotification(

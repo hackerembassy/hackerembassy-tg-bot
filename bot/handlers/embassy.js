@@ -11,10 +11,19 @@ const TextGenerators = require("../../services/textGenerators");
 
 const t = require("../../services/localization");
 
+/**
+ * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("node-telegram-bot-api").Message} Message
+ */
+
 class EmbassyHanlers {
-    static unlockHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async unlockHandler(bot, msg) {
         if (!(await hasDeviceInside(msg.from.username))) {
-            bot.sendMessage(msg.chat.id, t("embassy.unlock.nomac"));
+            bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
 
             return;
         }
@@ -33,28 +42,44 @@ class EmbassyHanlers {
 
             if (response.status === 200) {
                 logger.info(`${msg.from.username} opened the door`);
-                await bot.sendMessage(msg.chat.id, t("embassy.unlock.success"));
+                await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
             } else throw Error("Request error");
         } catch (error) {
             logger.error(error);
-            bot.sendMessage(msg.chat.id, t("embassy.common.fail"));
+            bot.sendMessageExt(msg.chat.id, t("embassy.common.fail"), msg);
         }
-    };
+    }
 
-    static webcamHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async webcamHandler(bot, msg) {
         await this.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
-    };
+    }
 
-    static webcam2Handler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async webcam2Handler(bot, msg) {
         await this.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
-    };
+    }
 
-    static doorcamHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async doorcamHandler(bot, msg) {
         await this.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
-    };
+    }
 
-    static webcamGenericHandler = async (bot, msg, path, prefix) => {
-        bot.sendChatAction(msg.chat.id, "upload_photo");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async webcamGenericHandler(bot, msg, path, prefix) {
+        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
             const response = await (
@@ -63,16 +88,20 @@ class EmbassyHanlers {
 
             const webcamImage = Buffer.from(response);
 
-            if (webcamImage) await bot.sendPhoto(msg.chat.id, webcamImage);
+            if (webcamImage) await bot.sendPhotoExt(msg.chat.id, webcamImage, msg);
             else throw Error("Empty webcam image");
         } catch (error) {
             logger.error(error);
 
-            await bot.sendMessage(msg.chat.id, t("embassy.webcam.fail", { prefix }));
+            await bot.sendMessageExt(msg.chat.id, t("embassy.webcam.fail", { prefix }), msg);
         }
-    };
+    }
 
-    static monitorHandler = async (bot, msg, notifyEmpty = false) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async monitorHandler(bot, msg, notifyEmpty = false) {
         try {
             const statusMessages = await this.queryStatusMonitor();
 
@@ -83,26 +112,41 @@ class EmbassyHanlers {
                     ? TextGenerators.getMonitorMessagesList(statusMessages)
                     : t("embassy.monitor.nonewmessages");
 
-            bot.sendMessage(msg.chat.id, message);
+            bot.sendMessageExt(msg.chat.id, message, msg);
         } catch (error) {
             logger.error(error);
 
-            bot.sendMessage(msg.chat.id, t("embassy.monitor.fail"));
+            bot.sendMessageExt(msg.chat.id, t("embassy.monitor.fail"), msg);
         }
-    };
+    }
 
-    static queryStatusMonitor = async () => {
+    static async queryStatusMonitor() {
         return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();
-    };
+    }
 
-    static enableStatusMonitor(bot) {
+    /**
+     * @param {HackerEmbassyBot} bot
+     */
+    static async enableStatusMonitor(bot) {
         setInterval(
-            () => this.monitorHandler(bot, { chat: { id: botConfig.chats.test } }),
+            () =>
+                this.monitorHandler(bot, {
+                    chat: {
+                        id: botConfig.chats.test,
+                        type: "private",
+                    },
+                    message_id: undefined,
+                    date: undefined,
+                }),
             embassyApiConfig.queryMonitorInterval
         );
     }
 
-    static printersHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async printersHandler(bot, msg) {
         const text = TextGenerators.getPrintersInfo();
         const inlineKeyboard = [
             [
@@ -117,15 +161,19 @@ class EmbassyHanlers {
             ],
         ];
 
-        bot.sendMessage(msg.chat.id, text, {
+        bot.sendMessageExt(msg.chat.id, text, msg, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
         });
-    };
+    }
 
-    static climateHandler = async (bot, msg) => {
-        bot.sendChatAction(msg.chat.id, "typing");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async climateHandler(bot, msg) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
 
         let message = t("embassy.climate.nodata");
 
@@ -143,11 +191,15 @@ class EmbassyHanlers {
             logger.error(error);
         }
 
-        return await bot.sendMessage(msg.chat.id, message);
-    };
+        return await bot.sendMessageExt(msg.chat.id, message, msg);
+    }
 
-    static printerStatusHandler = async (bot, msg, printername) => {
-        bot.sendChatAction(msg.chat.id, "typing");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async printerStatusHandler(bot, msg, printername) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             const { status, thumbnailBuffer, cam } = await (
@@ -156,7 +208,7 @@ class EmbassyHanlers {
 
             if (!status || status.error) throw Error();
 
-            if (cam) await bot.sendPhoto(msg.chat.id, Buffer.from(cam));
+            if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
 
             const caption = await TextGenerators.getPrinterStatus(status);
             const inline_keyboard = [
@@ -169,18 +221,22 @@ class EmbassyHanlers {
             ];
 
             if (thumbnailBuffer)
-                await bot.sendPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), {
+                await bot.sendPhotoExt(msg.chat.id, Buffer.from(thumbnailBuffer), msg, {
                     caption: caption,
                     reply_markup: { inline_keyboard },
                 });
-            else await bot.sendMessage(msg.chat.id, caption, { reply_markup: { inline_keyboard } });
+            else await bot.sendMessageExt(msg.chat.id, caption, msg, { reply_markup: { inline_keyboard } });
         } catch (error) {
             logger.error(error);
-            await bot.sendMessage(msg.chat.id, t("embassy.printerstatus.fail"));
+            await bot.sendMessageExt(msg.chat.id, t("embassy.printerstatus.fail"), msg);
         }
-    };
+    }
 
-    static doorbellHandler = async (bot, msg) => {
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async doorbellHandler(bot, msg) {
         let text = t("embassy.doorbell.success");
 
         try {
@@ -190,16 +246,20 @@ class EmbassyHanlers {
             logger.error(error);
             text = t("embassy.doorbell.fail");
         } finally {
-            await bot.sendMessage(msg.chat.id, text);
+            await bot.sendMessageExt(msg.chat.id, text, msg);
         }
-    };
+    }
 
-    static sayinspaceHandler = async (bot, msg, text) => {
-        bot.sendChatAction(msg.chat.id, "upload_voice");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async sayinspaceHandler(bot, msg, text) {
+        bot.sendChatAction(msg.chat.id, "upload_voice", msg);
 
         try {
             if (!text) {
-                bot.sendMessage(msg.chat.id, t("embassy.say.help"));
+                bot.sendMessageExt(msg.chat.id, t("embassy.say.help"), msg);
                 return;
             }
 
@@ -212,20 +272,24 @@ class EmbassyHanlers {
                 timeout: 15000,
             });
 
-            if (response.status === 200) await bot.sendMessage(msg.chat.id, t("embassy.say.success"));
+            if (response.status === 200) await bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
             else throw Error("Failed to say in space");
         } catch (error) {
             logger.error(error);
-            await bot.sendMessage(msg.chat.id, t("embassy.say.fail"));
+            await bot.sendMessageExt(msg.chat.id, t("embassy.say.fail"), msg);
         }
-    };
+    }
 
-    static playinspaceHandler = async (bot, msg, link) => {
-        bot.sendChatAction(msg.chat.id, "upload_document");
+    /**
+     * @param {HackerEmbassyBot} bot
+     * @param {Message} msg
+     */
+    static async playinspaceHandler(bot, msg, link) {
+        bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {
             if (!link) {
-                bot.sendMessage(msg.chat.id, t("embassy.play.help"));
+                bot.sendMessageExt(msg.chat.id, t("embassy.play.help"), msg);
                 return;
             }
 
@@ -238,13 +302,13 @@ class EmbassyHanlers {
                 timeout: 15000,
             });
 
-            if (response.status === 200) await bot.sendMessage(msg.chat.id, t("embassy.play.success"));
+            if (response.status === 200) await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg);
             else throw Error("Failed to play in space");
         } catch (error) {
             logger.error(error);
-            await bot.sendMessage(msg.chat.id, t("embassy.play.fail"));
+            await bot.sendMessageExt(msg.chat.id, t("embassy.play.fail"), msg);
         }
-    };
+    }
 }
 
 module.exports = EmbassyHanlers;

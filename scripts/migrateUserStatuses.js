@@ -1,4 +1,4 @@
-const statusRepository = require("../repositories/statusRepository");
+const statusRepository = require("../repositories/statusRepository").default;
 
 function migrateUserStatuses(from, to) {
     console.log("Migrating user statuses usernames");

@@ -4,12 +4,23 @@
         "commonjs": true,
         "es2021": true
     },
-    "extends": "eslint:recommended",
-    "plugins": ["prettier"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+      ],
+    "plugins": ["prettier", "@typescript-eslint"],
     "parserOptions": {
-        "ecmaVersion": "latest"
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "parser": "@typescript-eslint/parser"
     },
     "rules": {
-        "prettier/prettier": ["warn"]
+        "prettier/prettier": ["warn"],
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-this-alias": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+
     }
 }

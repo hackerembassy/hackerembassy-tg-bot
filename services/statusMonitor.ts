@@ -47,9 +47,6 @@ export function startMonitoring() {
     setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }
 
-/**
- * @returns {string[]}
- */
 export function readNewMessages(): string[] {
     const unreadMessages = [];
 

@@ -22,27 +22,15 @@ export default class BasicHandlers {
         await bot.sendLongMessage(msg.chat.id, text, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, t("basic.about"), msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async joinHandler(bot: HackerEmbassyBot, msg: Message) {
         const message = TextGenerators.getJoinText();
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
         const message = TextGenerators.getEventsText(false, botConfig.calendarAppLink);
 
@@ -64,10 +52,6 @@ export default class BasicHandlers {
         });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async issueHandler(bot: HackerEmbassyBot, msg: Message, issueText) {
         const helpMessage = t("basic.issue.help");
         const sentMessage = t("basic.issue.sent");
@@ -80,30 +64,18 @@ export default class BasicHandlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async donateHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountants = UsersRepository.getUsersByRole("accountant");
         const message = TextGenerators.getDonateText(accountants);
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async locationHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, t("basic.location.address"), msg);
         await bot.sendLocationExt(msg.chat.id, 40.18258, 44.51338, msg);
         await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.caption") });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname) {
         coinname = coinname.toLowerCase();
         const qrImage = await CoinsHelper.getQR(coinname);
@@ -115,10 +87,6 @@ export default class BasicHandlers {
         });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async donateCardHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountantsList = TextGenerators.getAccountsList(
             UsersRepository.getUsersByRole("accountant"),
@@ -128,10 +96,6 @@ export default class BasicHandlers {
         await bot.sendMessageExt(msg.chat.id, t("basic.donateCard", { accountantsList }), msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
@@ -139,10 +103,6 @@ export default class BasicHandlers {
         await bot.sendLongMessage(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [
@@ -206,10 +166,6 @@ export default class BasicHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [
@@ -263,10 +219,6 @@ export default class BasicHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [

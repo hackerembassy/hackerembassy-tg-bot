@@ -22,25 +22,15 @@ const CurrencySymbolToCode = {
     ["₽"]: "RUB",
 };
 
-/**
- * @param {number} value
- * @param {string} currency
- */
 export function formatValueForCurrency(value: number, currency: string) {
     const fraction = CurrencyFractionDigits.find(fd => fd.currency === currency)?.fraction ?? 4;
     return Number(value.toFixed(fraction));
 }
 
-/**
- * @param {string} value
- */
 export function parseMoneyValue(value: string) {
     return Number(value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", ""));
 }
 
-/**
- * @param {string} currencyInput
- */
 export async function prepareCurrency(currencyInput: string) {
     if (!currencyInput.length) return currencyConfig.default;
 
@@ -71,12 +61,6 @@ const convert = new CryptoConvert({
     );
 })();
 
-/**
- * @param {number} amount
- * @param {string | number} from
- * @param {string} to
- * @returns {Promise<number>}
- */
 export async function convertCurrency(amount: number, from: string | number, to: string): Promise<number> {
     try {
         await convert.ready();

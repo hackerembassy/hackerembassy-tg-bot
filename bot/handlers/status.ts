@@ -30,18 +30,9 @@ import { fetchWithTimeout } from "../../utils/network";
 import { Message } from "node-telegram-bot-api";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
-/**
- * @typedef {import("../HackerEmbassyBot")} HackerEmbassyBot
- * @typedef {import("node-telegram-bot-api").Message} Message
- */
-
 export default class StatusHandlers {
     static isStatusError = false;
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async setmacHandler(bot: HackerEmbassyBot, msg: Message, cmd) {
         let message = t("status.mac.fail");
         const username = msg.from.username;
@@ -66,10 +57,6 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd) {
         let message = t("status.autoinside.fail");
         const username = msg.from.username;
@@ -104,10 +91,6 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async statusHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
         const state = StatusRepository.getSpaceLastState();
@@ -192,10 +175,6 @@ export default class StatusHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
         openSpace(msg.from.username, { checkOpener: true });
 
@@ -230,10 +209,6 @@ export default class StatusHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
         closeSpace(msg.from.username, { evict: true });
 
@@ -258,20 +233,12 @@ export default class StatusHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
         evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async inHandler(bot: HackerEmbassyBot, msg: Message) {
         const eventDate = new Date();
         const username = msg.from.username ?? msg.from.first_name;
@@ -321,10 +288,6 @@ export default class StatusHandlers {
         });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async outHandler(bot: HackerEmbassyBot, msg: Message) {
         const eventDate = new Date();
         const gotOut = this.LetOut(msg.from.username, eventDate);
@@ -373,10 +336,6 @@ export default class StatusHandlers {
         });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async inForceHandler(bot: HackerEmbassyBot, msg: Message, username) {
         username = username.replace("@", "");
         const eventDate = new Date();
@@ -395,10 +354,6 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async outForceHandler(bot: HackerEmbassyBot, msg: Message, username) {
         const eventDate = new Date();
         username = username.replace("@", "");
@@ -495,10 +450,6 @@ export default class StatusHandlers {
         });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async notGoingHandler(bot: HackerEmbassyBot, msg: Message) {
         const username = msg.from.username.replace("@", "");
         const eventDate = new Date();
@@ -519,10 +470,6 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async setemojiHandler(bot: HackerEmbassyBot, msg: Message, emoji) {
         let message = t("status.emoji.fail");
         const username = msg.from.username;
@@ -547,10 +494,6 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {boolean} isIn
-     * @returns {Promise<void>}
-     */
     static async autoinout(isIn: boolean): Promise<void> {
         try {
             const controller = new AbortController();
@@ -594,10 +537,6 @@ export default class StatusHandlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username = undefined) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -614,10 +553,6 @@ export default class StatusHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async statsMonthHandler(bot: HackerEmbassyBot, msg: Message, month = undefined) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -636,16 +571,6 @@ export default class StatusHandlers {
         return await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     * @param {string} fromDateString
-     * @param {string} toDateString
-     */
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString, toDateString) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 

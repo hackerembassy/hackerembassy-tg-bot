@@ -2,15 +2,6 @@ import { GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantC
 import UsersRepository from "../repositories/usersRepository";
 import User from "../models/User";
 
-/**
- * @typedef {import("../bot/bot").BotRole} BotRole
- */
-
-/**
- * @param {string} username
- * @param {BotRole[]} roles
- * @returns {boolean}
- */
 export function hasRole(username, ...roles) {
     const userRoles = UsersRepository.getUserByName(username)?.rolesList;
 
@@ -21,29 +12,17 @@ export function hasRole(username, ...roles) {
     return intersection.length > 0;
 }
 
-/**
- * @param {string | User} user
- * @returns {string[]}
- */
 export function getRoles(user) {
     if (user instanceof User) return user.rolesList;
 
     return UsersRepository.getUserByName(user)?.rolesList ?? [];
 }
 
-/**
- * @param {string | User} user
- * @returns {boolean}
- */
 export function isMember(user) {
     const userRoles = user instanceof User ? user?.rolesList : UsersRepository.getUserByName(user)?.roles;
     return userRoles.includes("member");
 }
 
-/**
- * @param {string} username
- * @returns {string}
- */
 export function getAvailableCommands(username) {
     let availableCommands = GeneralCommandsList;
     const userRoles = UsersRepository.getUserByName(username)?.roles;
@@ -57,11 +36,6 @@ export function getAvailableCommands(username) {
     return availableCommands;
 }
 
-/**
- * @param {string} username
- * @param {{ mention: boolean; }} mode
- * @param {boolean} isApi
- */
 export function formatUsername(username, mode = { mention: false }, isApi = false) {
     username = username.replace("@", "");
 

@@ -18,11 +18,8 @@ class StatusRepository extends BaseRepository {
         Going: 2,
     };
 
-    /**
-     *  @returns {State}
-     */
     getSpaceLastState(): State {
-        const lastState = /** @type {State} */ this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as State;
+        const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as State;
 
         if (!lastState) return null;
 
@@ -31,29 +28,16 @@ class StatusRepository extends BaseRepository {
         return lastState;
     }
 
-    /**
-     *  @returns {UserState[]}
-     */
     getAllUserStates(): UserState[] {
         return this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all() as UserState[];
     }
 
-    /**
-     * @param {string} username
-     * @param {number} fromDate
-     * @param {number} toDate
-     * @returns {UserState[]}
-     */
     getUserStates(username: string, fromDate: number = 0, toDate: number = Date.now()): UserState[] {
-        return /** @type {UserState[]} */ this.db
+        return this.db
             .prepare("SELECT * FROM userstates WHERE username = ? AND date BETWEEN ? AND ? ORDER BY date")
             .all(username, fromDate, toDate) as UserState[];
     }
 
-    /**
-     * @param {UserState} userState
-     * @returns {boolean}
-     */
     updateUserState(userState: UserState): boolean {
         return (
             this.db
@@ -63,28 +47,16 @@ class StatusRepository extends BaseRepository {
         );
     }
 
-    /**
-     * @param {number} stateId
-     * @returns {boolean}
-     */
     removeUserState(stateId: number): boolean {
         return this.db.prepare("DELETE FROM userstates WHERE id = ?").run(stateId).changes > 0;
     }
 
-    /**
-     * @param {State} state
-     * @returns {void}
-     */
     pushSpaceState(state: State): void {
         this.db
             .prepare("INSERT INTO states (open, changedby, date) VALUES (?, ?, ?)")
             .run(state.open ? 1 : 0, state.changedby, state.date.valueOf());
     }
 
-    /**
-     * @param {UserState} state
-     * @returns {void}
-     */
     pushPeopleState(state: UserState): void {
         this.db
             .prepare("INSERT INTO userstates (status, username, date, type, note) VALUES (?, ?, ?, ?, ?)")

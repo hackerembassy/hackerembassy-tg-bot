@@ -8,10 +8,6 @@ import * as UsersHelper from "../../services/usersHelper";
 import t from "../../services/localization";
 
 export default class NeedsHandlers {
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
@@ -27,10 +23,6 @@ export default class NeedsHandlers {
         });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async buyHandler(bot: HackerEmbassyBot, msg: Message, item) {
         const requester = msg.from.username;
         const success = NeedsRepository.addBuy(item, requester, new Date());
@@ -44,18 +36,10 @@ export default class NeedsHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id) {
         await this.boughtHandler(bot, msg, NeedsRepository.getNeedById(id).text || "");
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id) {
         const need = NeedsRepository.getNeedById(id);
 
@@ -67,10 +51,6 @@ export default class NeedsHandlers {
         return false;
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item) {
         const buyer = msg.from.username;
         const need = NeedsRepository.getOpenNeedByText(item);

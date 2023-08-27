@@ -14,10 +14,6 @@ import { Message } from "node-telegram-bot-api";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class EmbassyHanlers {
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!(await hasDeviceInside(msg.from.username))) {
             bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
@@ -47,34 +43,18 @@ export default class EmbassyHanlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message) {
         await this.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async webcam2Handler(bot: HackerEmbassyBot, msg: Message) {
         await this.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async doorcamHandler(bot: HackerEmbassyBot, msg: Message) {
         await this.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path, prefix) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
@@ -94,10 +74,6 @@ export default class EmbassyHanlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async monitorHandler(bot: HackerEmbassyBot, msg: Message, notifyEmpty = false) {
         try {
             const statusMessages = await this.queryStatusMonitor();
@@ -121,9 +97,6 @@ export default class EmbassyHanlers {
         return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     */
     static async enableStatusMonitor(bot: HackerEmbassyBot) {
         setInterval(
             () =>
@@ -139,10 +112,6 @@ export default class EmbassyHanlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
         const inlineKeyboard = [
@@ -165,10 +134,6 @@ export default class EmbassyHanlers {
         });
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async climateHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -191,10 +156,6 @@ export default class EmbassyHanlers {
         return await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async printerStatusHandler(bot: HackerEmbassyBot, msg: Message, printername) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -229,10 +190,6 @@ export default class EmbassyHanlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async doorbellHandler(bot: HackerEmbassyBot, msg: Message) {
         let text = t("embassy.doorbell.success");
 
@@ -247,10 +204,6 @@ export default class EmbassyHanlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text) {
         bot.sendChatAction(msg.chat.id, "upload_voice", msg);
 
@@ -277,10 +230,6 @@ export default class EmbassyHanlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, link) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 

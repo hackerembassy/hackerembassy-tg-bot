@@ -8,12 +8,6 @@ export default class RateLimiter {
     static #limitTimerIds = new Map();
     static #cooldownTimerIds = new Map();
 
-    /**
-     * @param {Function} func
-     * @param {any[]} args
-     * @param {number} userId
-     * @param {object} context
-     */
     static debounce(func: Function, args: any[], userId: number, context: object) {
         clearTimeout(this.#debounceTimerIds.get(userId));
 
@@ -25,12 +19,6 @@ export default class RateLimiter {
         this.#debounceTimerIds.set(userId, timerId);
     }
 
-    /**
-     * @param {Function} func
-     * @param {any[]} args
-     * @param {number} userId
-     * @param {object} context
-     */
     static limit(func: Function, args: any[], userId: number, context: object) {
         const cooldown = this.#limitTimerIds.get(userId);
         if (!cooldown) func.apply(context, args);

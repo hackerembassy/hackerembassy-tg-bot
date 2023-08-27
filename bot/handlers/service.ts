@@ -17,10 +17,6 @@ import RateLimiter from "../../services/RateLimiter";
 import logger from "../../services/logger";
 
 export default class ServiceHandlers {
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async clearHandler(bot, msg, count) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
@@ -38,10 +34,6 @@ export default class ServiceHandlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async combineHandler(bot, msg, count) {
         const inputCount = Number(count);
         const countToCombine = inputCount > 2 ? inputCount : 2;
@@ -102,18 +94,10 @@ export default class ServiceHandlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async chatidHandler(bot, msg) {
         await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}, topicId: ${msg.message_thread_id}`, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async residentMenuHandler(bot, msg) {
         UsersRepository.setUserid(msg.from.username ?? msg.from.first_name, msg.from.id);
 
@@ -126,10 +110,6 @@ export default class ServiceHandlers {
         );
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async superstatusHandler(bot, msg) {
         await StatusHandlers.statusHandler(bot, msg);
         await EmbassyHandlers.webcamHandler(bot, msg);
@@ -137,10 +117,6 @@ export default class ServiceHandlers {
         await EmbassyHandlers.doorcamHandler(bot, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {CallbackQuery} callbackQuery
-     */
     static async callbackHandler(bot, callbackQuery) {
         const msg = callbackQuery.message;
 
@@ -155,10 +131,6 @@ export default class ServiceHandlers {
         }
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async routeQuery(bot, callbackQuery, msg) {
         const data = JSON.parse(callbackQuery.data);
 
@@ -286,10 +258,6 @@ export default class ServiceHandlers {
         await bot.answerCallbackQuery(callbackQuery.id);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async newMemberHandler(bot, msg) {
         const botName = (await bot.getMe()).username;
         const newMembers = msg.new_chat_members.reduce(
@@ -319,9 +287,6 @@ export default class ServiceHandlers {
         bot.sendMessageExt(msg.chat.id, welcomeText, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     */
     static async boughtButtonHandler(bot, message, id, data) {
         await NeedsHandlers.boughtByIdHandler(bot, message, id);
 

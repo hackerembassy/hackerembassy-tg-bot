@@ -46,9 +46,6 @@ export async function getClimate(): Promise<SpaceClimate> {
     }
 }
 
-/**
- * @param {PromiseSettledResult<any>} climateValue
- */
 function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?") {
     return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }

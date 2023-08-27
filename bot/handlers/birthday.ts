@@ -17,18 +17,10 @@ import { Message } from "node-telegram-bot-api";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class BirthdayHandlers {
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
         this.sendBirthdayWishes(bot, msg, true);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
@@ -36,10 +28,6 @@ export default class BirthdayHandlers {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date) {
         const username = msg.from.username;
         const formattedUsername = UsersHelper.formatUsername(username, bot.context(msg).mode);
@@ -56,10 +44,6 @@ export default class BirthdayHandlers {
         bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
     static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Message, force = false) {
         const currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
         const birthdayUsers = UsersRepository.getUsers().filter(u => {
@@ -91,9 +75,6 @@ export default class BirthdayHandlers {
         if (wishedAmount !== wishedToday.length) fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
     }
 
-    /**
-     * @param {string} date
-     */
     static isProperFormatDateString(date: string) {
         return /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date);
     }

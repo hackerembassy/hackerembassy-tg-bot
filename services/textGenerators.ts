@@ -14,10 +14,6 @@ import Need from "../models/Need";
 import UserState from "../models/UserState";
 import User from "../models/User";
 
-/**
- * @param {Fund[]} funds
- * @param {Donation[]} donations
- */
 export async function createFundList(funds: Fund[], donations: Donation[], options = undefined, mode = { mention: false }) {
     const defaultOptions = { showAdmin: false, isApi: false, isHistory: false };
     options = { defaultOptions, ...options };
@@ -50,11 +46,6 @@ export async function createFundList(funds: Fund[], donations: Donation[], optio
     return list;
 }
 
-/**
- * @param {Fund} fund
- * @param {number} sumOfAllDonations
- * @param {boolean} isHistory
- */
 export function generateFundStatus(fund: Fund, sumOfAllDonations: number, isHistory: boolean) {
     switch (fund.status) {
         case "closed":
@@ -68,10 +59,6 @@ export function generateFundStatus(fund: Fund, sumOfAllDonations: number, isHist
     }
 }
 
-/**
- * @param {Fund} fund
- * @param {boolean} isHistory
- */
 export function generateAdminFundHelp(fund: Fund, isHistory: boolean) {
     let helpList = `${isHistory ? "" : "\n"}#\`/fund ${fund.name}#\`\n`;
 
@@ -91,11 +78,6 @@ export function generateAdminFundHelp(fund: Fund, isHistory: boolean) {
     return helpList;
 }
 
-/**
- * @param {Donation[]} fundDonations
- * @param {{ showAdmin?: any; isApi?: any; }} options
- * @param {{ mention: boolean; }} mode
- */
 export function generateDonationsList(
     fundDonations: Donation[],
     options: { showAdmin?: any; isApi?: any },
@@ -116,12 +98,6 @@ export function generateDonationsList(
     return donationList;
 }
 
-/**
- * @param {{ open: boolean; changedby: string; }} state
- * @param {UserState[]} inside
- * @param {UserState[]} going
- * @returns {string}
- */
 export function getStatusMessage(
     state: { open: boolean; changedby: string },
     inside: UserState[],
@@ -163,10 +139,6 @@ ${insideText}${goingText}${climateText}
 ${updateText}`;
 }
 
-/**
- * @param {string} username
- * @returns {string}
- */
 export function getUserBadges(username: string): string {
     const user = usersRepository.getUserByName(username);
     if (!user) return "";
@@ -178,10 +150,6 @@ export function getUserBadges(username: string): string {
     return `${roleBadges}${customBadge}`;
 }
 
-/**
- * @param {UserState} userStatus
- * @returns {string}
- */
 export function getUserBadgesWithStatus(userStatus: UserState): string {
     const userBadges = getUserBadges(userStatus.username);
     const autoBadge = userStatus.type === StatusRepository.ChangeType.Auto ? "📲" : "";
@@ -198,10 +166,6 @@ export function getAccountsList(accountants: User[], mode, isApi = false): strin
         : "";
 }
 
-/**
- * @param {User[]} residents
- * @returns {string}
- */
 export function getResidentsList(residents: User[], mode): string {
     let userList = "";
     for (const user of residents) {
@@ -211,10 +175,6 @@ export function getResidentsList(residents: User[], mode): string {
     return t("basic.residents", { userList });
 }
 
-/**
- * @param {{level: string; message: string; timestamp: string;}[]} monitorMessages
- * @returns {string}
- */
 export function getMonitorMessagesList(monitorMessages: { level: string; message: string; timestamp: string }[]): string {
     return monitorMessages
         ? monitorMessages
@@ -223,10 +183,6 @@ export function getMonitorMessagesList(monitorMessages: { level: string; message
         : "";
 }
 
-/**
- * @param {Need[]} needs
- * @returns {string}
- */
 export function getNeedsList(needs: Need[], mode): string {
     let message = `${t("needs.buy.nothing")}\n`;
 
@@ -247,11 +203,6 @@ export function getNeedsList(needs: Need[], mode): string {
     return message;
 }
 
-/**
- * @param {User[]} accountants
- * @param {boolean} isApi
- * @returns {string}
- */
 export function getDonateText(accountants: User[], isApi: boolean = false): string {
     const cryptoCommands = !isApi
         ? `#\`/donatecrypto btc#\`
@@ -269,10 +220,6 @@ export function getDonateText(accountants: User[], isApi: boolean = false): stri
     });
 }
 
-/**
- * @param {boolean} isApi
- * @returns {string}
- */
 export function getJoinText(isApi: boolean = false): string {
     return t("basic.join", {
         statusCommand: `${!isApi ? "/" : ""}status`,
@@ -281,10 +228,6 @@ export function getJoinText(isApi: boolean = false): string {
     });
 }
 
-/**
- * @param {boolean} isApi
- * @returns {string}
- */
 export function getEventsText(isApi: boolean = false, calendarAppLink: string = undefined): string {
     return t("basic.events.text", {
         calendarLink: isApi
@@ -298,7 +241,6 @@ export function getEventsText(isApi: boolean = false, calendarAppLink: string = 
     });
 }
 
-/** @type {string[]} */
 const shortMonthNames: string[] = [
     "birthday.months.january",
     "birthday.months.february",
@@ -345,17 +287,10 @@ export function getBirthdaysList(birthdayUsers: User[], mode): string {
     return message + t("birthday.help", { usersList });
 }
 
-/**
- * @returns {string}
- */
 export function getPrintersInfo(): string {
     return t("embassy.printers.help", { anetteApi: printersConfig.anette.apibase, plumbusApi: printersConfig.plumbus.apibase });
 }
 
-/**
- * @param {{ print_stats: any; heater_bed: any; extruder: any; display_status: { progress: number; }; }} status
- * @returns {Promise<string>}
- */
 export async function getPrinterStatus(status: {
     print_stats: any;
     heater_bed: any;
@@ -388,10 +323,6 @@ export async function getPrinterStatus(status: {
     return message;
 }
 
-/**
- * @param {{usertime: ElapsedTimeObject; username: string; }[]} userTimes
- * @param {DateBoundary} dateBoundaries
- */
 export function getStatsText(
     userTimes: { usertime: ElapsedTimeObject; username: string }[],
     dateBoundaries: DateBoundary,
@@ -431,9 +362,6 @@ export function getStatsText(
     return stats;
 }
 
-/**
- * @param {ElapsedTimeObject} usertime
- */
 export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
     const days = `${usertime.days}d`.padStart(4, " ");
     const hours = `${usertime.hours}h`.padStart(3, " ");

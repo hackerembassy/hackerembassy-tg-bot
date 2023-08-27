@@ -1,6 +1,3 @@
-/**
- * @type {string}
- */
 export const GeneralCommandsList: string = `
 Инфа:
 /start - Панель управления бота
@@ -58,9 +55,6 @@ export const GeneralCommandsList: string = `
 /randomcock
 `;
 
-/**
- * @type {string}
- */
 export const MemberCommandsList: string = `
 Команды резидентов:
 /open (o) - Открыть спейс
@@ -81,9 +75,6 @@ export const MemberCommandsList: string = `
 /residentsdonated - Кто из резидентов уже задонатил в этом месяце
 `;
 
-/**
- * @type {string}
- */
 export const AdminCommandsList: string = ` 
 Команды админов:
 /getusers
@@ -97,9 +88,6 @@ export const AdminCommandsList: string = `
 \\* Roles: admin, accountant, member, default
 `;
 
-/**
- * @type {string}
- */
 export const AccountantCommandsList: string = `
 Команды бухгалтера:
 #\`/costs donation_value currency_code from telegram_username#\` - Задонатить в последний актуальный сбор на аренду
@@ -119,9 +107,6 @@ export const AccountantCommandsList: string = `
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead
 `;
 
-/**
- * @type {string}
- */
 export const GlobalModifiers: string = `
 Эти модификаторы можно добавить в конце любой команды:
 #\`-silent#\` - Команда выполнится без вывода ответа
@@ -129,9 +114,6 @@ export const GlobalModifiers: string = `
 #\`-admin#\` - Вспомогательные команды выведутся для админа и бухгалтера и в публичном чате
 `;
 
-/**
- * @type {string}
- */
 export const ApiCommandsList: string = `
 -status - Статус спейса и кто отметился внутри
 -join - Как присоединиться к нам

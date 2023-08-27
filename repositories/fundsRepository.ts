@@ -5,76 +5,40 @@ import BaseRepository from "./baseRepository";
 const currencyConfig = config.get("currency") as any;
 
 class FundsRepository extends BaseRepository {
-    /**
-     * @returns {Fund[]}
-     */
     getFunds(): Fund[] {
         return this.db.prepare("SELECT * FROM funds").all() as Fund[];
     }
 
-    /**
-     * @param {string} fundName
-     * @returns {Fund}
-     */
     getFundByName(fundName: string): Fund {
         return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Fund;
     }
 
-    /**
-     * @param {number} id
-     * @returns {Fund}
-     */
     getFundById(id: number): Fund {
-        return /** @type {Fund} */ this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Fund;
+        return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Fund;
     }
 
-    /**
-     * @returns {Fund}
-     */
     getLatestCosts(): Fund {
         return this.getFunds().find(fund => /(А|а)ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
     }
 
-    /**
-     * @returns {Donation[]}
-     */
     getDonations(): Donation[] {
-        return /** @type {Donation[]} */ this.db.prepare("SELECT * FROM donations").all() as Donation[];
+        return this.db.prepare("SELECT * FROM donations").all() as Donation[];
     }
 
-    /**
-     * @param {number} fundId
-     * @returns {Donation[]}
-     */
     getDonationsForId(fundId: number): Donation[] {
-        return /** @type {Donation[]} */ this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
+        return this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
     }
 
-    /**
-     * @param {string} fundName
-     * @returns {Donation[]}
-     */
     getDonationsForName(fundName: string): Donation[] {
-        return /** @type {Donation[]} */ this.db
+        return this.db
             .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
             .all(fundName) as Donation[];
     }
 
-    /**
-     * @param {number} donationId
-     * @returns {Donation}
-     */
     getDonationById(donationId: number): Donation {
-        return /** @type {Donation} */ this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Donation;
+        return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Donation;
     }
 
-    /**
-     * @param {string} fundName
-     * @param {number} target
-     * @param {string} currency
-     * @param {string} status
-     * @returns {boolean}
-     */
     addFund(fundName: string, target: number, currency: string = currencyConfig.default, status: string = "open"): boolean {
         try {
             if (this.getFundByName(fundName) !== undefined) throw new Error(`Fund ${fundName} already exists`);
@@ -92,13 +56,6 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {string} fundName
-     * @param {number} target
-     * @param {string} currency
-     * @param {string} newFundName
-     * @returns {boolean}
-     */
     updateFund(
         fundName: string,
         target: number,
@@ -122,10 +79,6 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {string} fundName
-     * @returns {boolean}
-     */
     removeFund(fundName: string): boolean {
         try {
             if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
@@ -138,19 +91,10 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {string} fundName
-     * @returns {boolean}
-     */
     closeFund(fundName: string): boolean {
         return this.changeFundStatus(fundName, "closed");
     }
 
-    /**
-     * @param {string} fundName
-     * @param {string} status
-     * @returns {boolean}
-     */
     changeFundStatus(fundName: string, status: string): boolean {
         try {
             if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
@@ -164,14 +108,6 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {string} fundName
-     * @param {string} username
-     * @param {number} value
-     * @param {string} currency
-     * @param {string} accountant
-     * @returns {boolean}
-     */
     addDonationTo(
         fundName: string,
         username: string,
@@ -196,12 +132,6 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {number} donationId
-     * @param {number} value
-     * @param {string} currency
-     * @returns {boolean}
-     */
     updateDonation(donationId: number, value: number, currency: string): boolean {
         try {
             if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
@@ -216,11 +146,6 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {number} id
-     * @param {string} accountant
-     * @returns {boolean}
-     */
     transferDonation(id: number, accountant: string): boolean {
         try {
             if (!this.getDonationById(id)) throw new Error(`Donation with id ${id} not found`);
@@ -234,10 +159,6 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {number} donationId
-     * @returns {boolean}
-     */
     removeDonationById(donationId: number): boolean {
         try {
             if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);

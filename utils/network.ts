@@ -20,11 +20,6 @@ class Cancellation {
     }
 }
 
-/**
- * @param {string} uri
- * @param {object} options
- * @param {any[]} rest
- */
 export function fetchWithTimeout(uri: string, options: any = undefined, ...rest: any[]) {
     const cancellation = new Cancellation(options?.timeout ?? embassyApiConfig.timeout);
 
@@ -32,10 +27,6 @@ export function fetchWithTimeout(uri: string, options: any = undefined, ...rest:
     return fetch(uri, { signal: cancellation.signal, ...options }, ...rest);
 }
 
-/**
- * @param {string} url
- * @returns {Promise<Response>}
- */
 export async function getFromHass(url: string): Promise<Response> {
     // @ts-ignore
     return await fetch(`${url}`, {
@@ -46,11 +37,6 @@ export async function getFromHass(url: string): Promise<Response> {
     });
 }
 
-/**
- * @param {string} url
- * @param {any} body
- * @returns {Promise<Response>}
- */
 export async function postToHass(url: string, body: any): Promise<Response> {
     // @ts-ignore
     return await fetch(url, {
@@ -63,10 +49,6 @@ export async function postToHass(url: string, body: any): Promise<Response> {
     });
 }
 
-/**
- * @param {Response} response
- * @returns {Promise<Buffer>}
- */
 export async function getBufferFromResponse(response: Response): Promise<Buffer> {
     return Buffer.from(await response.arrayBuffer());
 }

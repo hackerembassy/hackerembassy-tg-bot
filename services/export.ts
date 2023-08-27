@@ -49,10 +49,6 @@ const colorScheme = [
 
 const remainedColor = "rgba(0,0,0,0.025)";
 
-/**
- * @param {string} fundname
- * @returns {Promise<Buffer>}
- */
 export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
     const donations = FundsRepository.getDonationsForName(fundname);
@@ -72,10 +68,6 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     return await writeToBuffer(fundDonations, { headers: true });
 }
 
-/**
- * @param {string} fundname
- * @returns {Promise<Buffer>}
- */
 export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
     const alldonations = FundsRepository.getDonationsForName(fundname);
@@ -116,11 +108,6 @@ export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     return await chart.toBinary();
 }
 
-/**
- * @param {{username:string, usertime: {totalSeconds:number}}[]} userTimes
- * @param {DateBoundary} dateBoundaries
- * @returns {Promise<Buffer>}
- */
 export async function createUserStatsDonut(
     userTimes: { username: string; usertime: { totalSeconds: number } }[],
     dateBoundaries: DateBoundary
@@ -133,11 +120,6 @@ export async function createUserStatsDonut(
     ).toBinary();
 }
 
-/**
- * @param {string[]} labels
- * @param {string[] | number[]} data
- * @param {string} titleText
- */
 export function createDonut(
     labels: string[],
     data: string[] | number[],

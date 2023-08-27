@@ -3,9 +3,6 @@ import { default as fetch } from "node-fetch";
 const printersConfig = config.get("printers") as any;
 
 export default class Printer3d {
-    /**
-     * @param {string} printername
-     */
     static async getPrinterStatus(printername: string) {
         const apiBase = this.getApiBase(printername);
         if (!apiBase) return null;
@@ -14,10 +11,6 @@ export default class Printer3d {
         return await response.json();
     }
 
-    /**
-     * @param {string} printername
-     * @param {string} filename
-     */
     static async getFileMetadata(printername: string, filename: string) {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !filename) return null;
@@ -26,10 +19,6 @@ export default class Printer3d {
         return await response.json();
     }
 
-    /**
-     * @param {string} printername
-     * @param {string} path
-     */
     static async getFile(printername: string, path: string) {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
@@ -38,9 +27,6 @@ export default class Printer3d {
         return response.status === 200 ? await response.blob() : null;
     }
 
-    /**
-     * @param {string} printername
-     */
     static async getCam(printername: string) {
         const apiBase = this.getApiBase(printername);
         const camPort = this.getCamPort(printername);
@@ -53,21 +39,13 @@ export default class Printer3d {
             return await camblob
                 // @ts-ignore
                 .arrayBuffer()
-                .then(
-                    (
-                        /** @type {WithImplicitCoercion<string> | { [Symbol.toPrimitive](hint: "string"): string; }} */ arrayBuffer:
-                            | WithImplicitCoercion<string>
-                            | { [Symbol.toPrimitive](hint: "string"): string }
-                    ) => Buffer.from(arrayBuffer, "binary")
+                .then((arrayBuffer: WithImplicitCoercion<string> | { [Symbol.toPrimitive](hint: "string"): string }) =>
+                    Buffer.from(arrayBuffer, "binary")
                 );
 
         return null;
     }
 
-    /**
-     * @param {string} printername
-     * @param {string} path
-     */
     static async getThumbnail(printername: string, path: string) {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
@@ -79,18 +57,11 @@ export default class Printer3d {
         return await thumbnailBlob
             // @ts-ignore
             .arrayBuffer()
-            .then(
-                (
-                    /** @type {WithImplicitCoercion<string> | { [Symbol.toPrimitive](hint: "string"): string; }} */ arrayBuffer:
-                        | WithImplicitCoercion<string>
-                        | { [Symbol.toPrimitive](hint: "string"): string }
-                ) => Buffer.from(arrayBuffer, "binary")
+            .then((arrayBuffer: WithImplicitCoercion<string> | { [Symbol.toPrimitive](hint: "string"): string }) =>
+                Buffer.from(arrayBuffer, "binary")
             );
     }
 
-    /**
-     * @param {string} printername
-     */
     static getApiBase(printername: string) {
         switch (printername) {
             case "anette":
@@ -102,9 +73,6 @@ export default class Printer3d {
         }
     }
 
-    /**
-     * @param {string} printername
-     */
     static getCamPort(printername: string) {
         switch (printername) {
             case "anette":

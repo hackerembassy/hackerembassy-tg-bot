@@ -2,37 +2,18 @@ import Need from "../models/Need";
 import BaseRepository from "./baseRepository";
 
 class NeedsRepository extends BaseRepository {
-    /**
-     * @param {number} id
-     *  @returns {Need}
-     */
     getNeedById(id: number): Need {
-        return /** @type {Need} */ this.db.prepare("SELECT * FROM needs WHERE id = ?").get(id) as Need;
+        return this.db.prepare("SELECT * FROM needs WHERE id = ?").get(id) as Need;
     }
 
-    /**
-     * @param {string} text
-     *  @returns {Need}
-     */
     getOpenNeedByText(text: string): Need {
-        return /** @type {Need} */ this.db
-            .prepare("SELECT * FROM needs WHERE text = ? AND buyer IS NULL LIMIT 1")
-            .get(text) as Need;
+        return this.db.prepare("SELECT * FROM needs WHERE text = ? AND buyer IS NULL LIMIT 1").get(text) as Need;
     }
 
-    /**
-     *  @returns {Need[]}
-     */
     getOpenNeeds(): Need[] {
-        return /** @type {Need[]} */ this.db.prepare("SELECT * FROM needs WHERE buyer IS NULL ORDER BY id ASC").all() as Need[];
+        return this.db.prepare("SELECT * FROM needs WHERE buyer IS NULL ORDER BY id ASC").all() as Need[];
     }
 
-    /**
-     * @param {string} text
-     * @param {string} requester
-     * @param {Date} date
-     *  @returns {boolean}
-     */
     addBuy(text: string, requester: string, date: Date): boolean {
         try {
             if (this.getOpenNeedByText(text)) return false;
@@ -48,12 +29,6 @@ class NeedsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {string} text
-     * @param {string} buyer
-     * @param {Date} date
-     *  @returns {boolean}
-     */
     closeNeed(text: string, buyer: string, date: Date): boolean {
         try {
             const need = this.getOpenNeedByText(text);
@@ -68,10 +43,6 @@ class NeedsRepository extends BaseRepository {
         }
     }
 
-    /**
-     * @param {number} id
-     *  @returns {boolean}
-     */
     undoClose(id: number): boolean {
         try {
             const need = this.getNeedById(id);

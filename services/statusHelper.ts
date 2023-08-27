@@ -9,11 +9,6 @@ const { UserStatusType, ChangeType } = statusRepository;
 
 const embassyApiConfig = require("config").get("embassy-api");
 
-/**
- * @param {string} opener
- * @param {{checkOpener: boolean}} options
- * @returns {void}
- */
 export function openSpace(opener: string, options: { checkOpener: boolean } = { checkOpener: false }): void {
     const opendate = new Date();
     const state = {
@@ -39,11 +34,6 @@ export function openSpace(opener: string, options: { checkOpener: boolean } = { 
     statusRepository.pushPeopleState(userstate);
 }
 
-/**
- * @param {string} closer
- * @param {{evict: boolean}} options
- * @returns {void}
- */
 export function closeSpace(closer: string, options: { evict: boolean } = { evict: false }): void {
     const state = {
         id: 0,
@@ -57,10 +47,6 @@ export function closeSpace(closer: string, options: { evict: boolean } = { evict
     if (options.evict) evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
 }
 
-/**
- * @param {string} username
- * @returns {Promise<boolean>}
- */
 export async function hasDeviceInside(username: string): Promise<boolean> {
     try {
         const response = await fetchWithTimeout(
@@ -74,19 +60,10 @@ export async function hasDeviceInside(username: string): Promise<boolean> {
     }
 }
 
-/**
- * @param {string} mac
- * @param {string[]} devices
- * @returns {boolean}
- */
 export function isMacInside(mac: string, devices: string[]): boolean {
     return mac ? anyItemIsInList(mac.split(","), devices) : false;
 }
 
-/**
- * @param {UserState[]} userStates
- * @returns {ElapsedTimeObject}
- */
 export function getUserTimeDescriptor(userStates: UserState[]): ElapsedTimeObject {
     // TODO Memoize and persist results of this export function for each user
     // to not compute all time from the start every time
@@ -111,10 +88,6 @@ export function getUserTimeDescriptor(userStates: UserState[]): ElapsedTimeObjec
     return convertToElapsedObject(totalTime / 1000);
 }
 
-/**
- * @param {number} seconds
- * @returns {ElapsedTimeObject}
- */
 export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
     return {
         days: Math.floor(seconds / (3600 * 24)),
@@ -124,9 +97,6 @@ export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
     };
 }
 
-/**
- * @param {UserState[]} allUserStates
- */
 export function findRecentStates(allUserStates: UserState[]) {
     const usersLastStates = [];
 
@@ -140,11 +110,6 @@ export function findRecentStates(allUserStates: UserState[]) {
     return usersLastStates;
 }
 
-/**
- * @param {UserState[]} allUserStates
- * @param {Date} fromDate
- * @param {Date} toDate
- */
 export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toDate: Date) {
     const userNames = findRecentStates(allUserStates)
         .map(us => us.username)
@@ -162,26 +127,14 @@ export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toD
     return usersTimes;
 }
 
-/**
- * @param {UserState} userState
- * @returns {boolean}
- */
 export function filterPeopleInside(userState: UserState): boolean {
     return userState.status === UserStatusType.Inside;
 }
 
-/**
- * @param {UserState} userState
- * @returns {boolean}
- */
 export function filterPeopleGoing(userState: UserState): boolean {
     return userState.status === UserStatusType.Going && isToday(new Date(userState.date));
 }
 
-/**
- * @param {UserState[]} insideStates
- * @returns {void}
- */
 export function evictPeople(insideStates: UserState[]): void {
     const date = Date.now();
 

@@ -26,16 +26,10 @@ function prepareOptionsForMarkdown(options: any) {
     return options;
 }
 
-/**
- * @class HackerEmbassyBot
- */
 export default class HackerEmbassyBot extends TelegramBot {
     messageHistory: MessageHistory;
     Name: string;
-    /**
-     * @param {string} token
-     * @param {TelegramBot.ConstructorOptions} options
-     */
+
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
         this.messageHistory = new MessageHistory();
@@ -44,10 +38,6 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     accessTable = new Map();
 
-    /**
-     * @param {string} username
-     * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any: any[]) => void} callback
-     */
     canUserCall(username: string, callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any: any[]) => void) {
         const savedRestrictions = this.accessTable.get(callback);
 
@@ -66,9 +56,6 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     #context = new Map();
 
-    /**
-     * @param {TelegramBot.Message} msg
-     */
     context(msg: TelegramBot.Message) {
         const botthis = this;
 
@@ -92,10 +79,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return this.#context.get(msg);
     }
 
-    /**
-     * @param {TelegramBot.MessageType | 'callback_query'} event
-     * @param {{ (bot: any, callbackQuery: any): Promise<void>; (bot: any, msg: any): Promise<void>; call?: any; }} listener
-     */
     onExt(
         event: TelegramBot.MessageType | "callback_query",
         listener: { (bot: any, callbackQuery: any): Promise<void>; (bot: any, msg: any): Promise<void>; call?: any }
@@ -117,11 +100,6 @@ export default class HackerEmbassyBot extends TelegramBot {
             .replace(/\|$/, ")*");
     }
 
-    /**
-     * @param {string} text
-     * @param {TelegramBot.Message} msg
-     * @param {TelegramBot.EditMessageTextOptions} options
-     */
     async editMessageTextExt(text: string, msg: TelegramBot.Message, options: TelegramBot.EditMessageTextOptions) {
         text = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context(msg).messageThreadId });
@@ -129,13 +107,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return super.editMessageText(text, options);
     }
 
-    /**
-     * @param {TelegramBot.ChatId} chatId
-     * @param {string | import("stream").Stream | Buffer} photo
-     * @param {TelegramBot.Message} msg
-     * @param {TelegramBot.SendPhotoOptions} [options]
-     * @param {TelegramBot.FileOptions} [fileOptions]
-     */
     async sendPhotoExt(
         chatId: TelegramBot.ChatId,
         photo: string | import("stream").Stream | Buffer,
@@ -157,13 +128,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(message);
     }
 
-    /**
-     * @param {TelegramBot.ChatId} chatId
-     * @param {number} latitude
-     * @param {number} longitude
-     * @param {TelegramBot.Message} msg
-     * @param {TelegramBot.SendLocationOptions} options
-     */
     async sendLocationExt(
         chatId: TelegramBot.ChatId,
         latitude: number,
@@ -177,10 +141,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
-    /**
-     * @param {TelegramBot.BotCommand[]} commands
-     * @param {{ scope: BotCommandScope; language_code?: string; }} [options]
-     */
     async setMyCommands(
         commands: TelegramBot.BotCommand[],
         options: { scope: BotCommandScope; language_code?: string } = undefined
@@ -191,12 +151,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
-    /**
-     * @param {TelegramBot.ChatId} chatId
-     * @param {string} text
-     * @param {TelegramBot.Message} msg
-     * @param {TelegramBot.SendMessageOptions} [options]
-     */
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,
@@ -222,12 +176,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(null);
     }
 
-    /**
-     * @param {TelegramBot.ChatId} chatId
-     * @param {TelegramBot.ChatAction} action
-     * @param {TelegramBot.Message} msg
-     * @param {TelegramBot.SendChatActionOptions} options
-     */
     async sendChatAction(
         chatId: TelegramBot.ChatId,
         action: TelegramBot.ChatAction,
@@ -240,12 +188,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
-    /**
-     * @param {TelegramBot.ChatId} chatId
-     * @param {string} text
-     * @param {TelegramBot.Message} msg
-     * @param {TelegramBot.SendMessageOptions} options
-     */
     async sendLongMessage(
         chatId: TelegramBot.ChatId,
         text: string,
@@ -273,12 +215,6 @@ ${chunks[index]}
         }
     }
 
-    /**
-     * @param {RegExp} originalRegex
-     * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any) => void} callback
-     * @param {BotRole[]} restrictions
-     * @returns {Promise<void>}
-     */
     async onTextExt(
         originalRegex: RegExp,
         callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any) => void,
@@ -324,13 +260,6 @@ ${chunks[index]}
         await super.onText(newRegexp, newCallback);
     }
 
-    /**
-     * @param {number} chatId
-     * @param {string} text
-     * @param {TelegramBot.Message} msg
-     * @param {Object} options
-     * @param {number} messageId
-     */
     async sendOrEditMessage(chatId: number, text: string, msg: TelegramBot.Message, options: object, messageId: number) {
         if (this.context(msg).isEditing) {
             try {
@@ -345,11 +274,6 @@ ${chunks[index]}
         }
     }
 
-    /**
-     * @param {string} message
-     * @param {string} date
-     * @param {TelegramBot.ChatId} chat
-     */
     async sendNotification(message: string, date: string, chat: TelegramBot.ChatId) {
         const currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
         if (date !== currentDate) return;

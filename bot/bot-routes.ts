@@ -15,19 +15,11 @@ import logger from "../services/logger";
 
 class RegexCommander {
     botname: string;
-    /**
-     * @param {string} botname
-     */
+
     constructor(botname: string = "") {
         this.botname = botname;
     }
 
-    /**
-     * @param {string[]} aliases
-     * @param {RegExp} params
-     * @param {boolean} optional
-     * @param {string} flags
-     */
     command(aliases: string[], params: RegExp = undefined, optional: boolean = true, flags: string = "i") {
         const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
         const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
@@ -35,9 +27,6 @@ class RegexCommander {
     }
 }
 
-/**
- * @param {HackerEmbassyBot} bot
- */
 export async function setRoutes(bot: HackerEmbassyBot) {
     const rc = new RegexCommander(bot.Name);
 

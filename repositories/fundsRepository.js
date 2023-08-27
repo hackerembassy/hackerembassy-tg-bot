@@ -1,6 +1,6 @@
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Donation = require("../models/Donation");
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Fund = require("../models/Fund");
 const BaseRepository = require("./baseRepository");
 const config = require("config");

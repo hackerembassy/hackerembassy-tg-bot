@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Need = require("../models/Need");
 const BaseRepository = require("./baseRepository");
 

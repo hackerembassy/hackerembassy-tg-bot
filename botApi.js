@@ -1,11 +1,11 @@
 const express = require("express");
 const cors = require("cors");
-const logger = require("./services/logger");
+const logger = require("./services/logger").default;
 const bodyParser = require("body-parser");
 const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 
-const TextGenerators = require("./services/textGenerators");
+const TextGenerators = require("./services/textGenerators").default;
 const StatusRepository = require("./repositories/statusRepository").default;
 const FundsRepository = require("./repositories/fundsRepository").default;
 const UsersRepository = require("./repositories/usersRepository").default;

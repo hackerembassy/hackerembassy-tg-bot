@@ -1,8 +1,8 @@
 import { Message } from "node-telegram-bot-api";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
-import TextGenerators from "../../services/textGenerators";
-import UsersHelper from "../../services/usersHelper";
+import * as TextGenerators from "../../services/textGenerators";
+import * as UsersHelper from "../../services/usersHelper";
 import Commands from "../../resources/commands";
 import CoinsHelper from "../../resources/coins/coins";
 
@@ -11,11 +11,6 @@ import config from "config";
 const botConfig = config.get("bot") as any;
 import t from "../../services/localization";
 import { isMessageFromPrivateChat } from "../bot-helpers";
-
-/**
- * @typedef {import("../HackerEmbassyBot")} HackerEmbassyBot
- * @typedef {import("node-telegram-bot-api").Message} Message
- */
 
 export default class BasicHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message) {

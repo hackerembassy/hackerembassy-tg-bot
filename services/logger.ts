@@ -1,9 +1,9 @@
-const { createLogger, format, transports } = require("winston");
-const winston = require("winston");
-require("winston-daily-rotate-file");
-const botConfig = require("config").get("bot");
+import { createLogger, format, transports } from "winston";
+import { transports as _transports } from "winston";
+import "winston-daily-rotate-file";
+const botConfig = require("config").get("bot") as any;
 
-const rotatedFile = new winston.transports.DailyRotateFile({
+const rotatedFile = new _transports.DailyRotateFile({
     level: "info",
     filename: `${botConfig.logfolderpath}/%DATE%.log`,
     datePattern: "YYYY-MM-DD",
@@ -24,4 +24,4 @@ const logger = createLogger({
     transports: [rotatedFile, new transports.Console()],
 });
 
-module.exports = logger;
+export default logger;

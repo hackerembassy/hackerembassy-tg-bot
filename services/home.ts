@@ -1,25 +1,20 @@
-const config = require("config");
-const { getFromHass } = require("../utils/network");
-const embassyApiConfig = config.get("embassy-api");
+import config from "config";
+import { getFromHass } from "../utils/network";
+const embassyApiConfig = config.get("embassy-api") as any;
 const climateConfig = embassyApiConfig.climate;
 
-/**
- * @typedef {Object} FloorClimate
- * @property {number | "?"} temperature
- * @property {number | "?"} humidity
- */
+interface FloorClimate {
+    temperature: number | "?";
+    humidity: number | "?";
+}
 
-/**
- * @typedef {Object} SpaceClimate
- * @property {FloorClimate} firstFloor
- * @property {FloorClimate} secondFloor
- * @property {FloorClimate} bedroom
- */
+interface SpaceClimate {
+    firstFloor: FloorClimate;
+    secondFloor: FloorClimate;
+    bedroom: FloorClimate;
+}
 
-/**
- * @returns {Promise<SpaceClimate>}
- */
-async function getClimate() {
+async function getClimate(): Promise<SpaceClimate> {
     try {
         const queries = [
             (await getFromHass(climateConfig.first_floor.temperature)).json(),
@@ -54,8 +49,8 @@ async function getClimate() {
 /**
  * @param {PromiseSettledResult<any>} climateValue
  */
-function getValueOrDefault(climateValue, defaultValue = "?") {
+function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?") {
     return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }
 
-module.exports = { getClimate };
+export default { getClimate };

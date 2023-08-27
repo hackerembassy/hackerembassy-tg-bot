@@ -2,8 +2,8 @@ import { Message } from "node-telegram-bot-api";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 import NeedsRepository from "../../repositories/needsRepository";
-import TextGenerators from "../../services/textGenerators";
-import UsersHelper from "../../services/usersHelper";
+import * as TextGenerators from "../../services/textGenerators";
+import * as UsersHelper from "../../services/usersHelper";
 
 import t from "../../services/localization";
 

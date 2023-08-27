@@ -1,7 +1,7 @@
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
-import TextGenerators from "../../services/textGenerators";
-import UsersHelper from "../../services/usersHelper";
+import * as TextGenerators from "../../services/textGenerators";
+import * as UsersHelper from "../../services/usersHelper";
 import logger from "../../services/logger";
 import {
     openSpace,

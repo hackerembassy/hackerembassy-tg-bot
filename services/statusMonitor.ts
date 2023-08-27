@@ -1,14 +1,14 @@
-const winston = require("winston");
-require("winston-daily-rotate-file");
+import { transports as _transports, createLogger, format as _format } from "winston";
+import "winston-daily-rotate-file";
 
-const botConfig = require("config").get("bot");
+import { promise } from "ping";
+import config from "config";
+const botConfig = config.get("bot") as any;
 
-const ping = require("ping");
-const config = require("config");
-const embassyServiceConfig = config.get("embassy-api");
+const embassyServiceConfig = config.get("embassy-api") as any;
 const hosts = embassyServiceConfig.hostsToMonitor;
 
-const transport = new winston.transports.DailyRotateFile({
+const transport = new _transports.DailyRotateFile({
     level: "info",
     filename: `${botConfig.logfolderpath}/monitor/%DATE%.log`,
     datePattern: "YYYY-MM-DD",
@@ -17,35 +17,32 @@ const transport = new winston.transports.DailyRotateFile({
     maxFiles: "14d",
 });
 
-/**
- * @type {string[]}
- */
-const UnreadMessagesBuffer = [];
+const UnreadMessagesBuffer: string[] = [];
 
 transport.on("logged", function (data) {
     UnreadMessagesBuffer.push(data);
 });
 
-const statusLogger = winston.createLogger({
-    format: winston.format.combine(
-        winston.format.timestamp({
+const statusLogger = createLogger({
+    format: _format.combine(
+        _format.timestamp({
             format: "YYYY-MM-DD HH:mm:ss",
         }),
-        winston.format.json()
+        _format.json()
     ),
     transports: [transport],
 });
 
 async function pingInternalDevices() {
-    for (let host of hosts) {
-        let res = await ping.promise.probe(host);
+    for (const host of hosts) {
+        const res = await promise.probe(host);
         if (!res.alive) {
             statusLogger.error("Host " + host + " is not responding");
         }
     }
 }
 
-function startMonitoring() {
+export function startMonitoring() {
     console.log("Device monitoring started");
     setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }
@@ -53,8 +50,8 @@ function startMonitoring() {
 /**
  * @returns {string[]}
  */
-function readNewMessages() {
-    let unreadMessages = [];
+export function readNewMessages(): string[] {
+    const unreadMessages = [];
 
     while (UnreadMessagesBuffer.length > 0) {
         unreadMessages.push(UnreadMessagesBuffer.shift());
@@ -62,5 +59,3 @@ function readNewMessages() {
 
     return unreadMessages;
 }
-
-module.exports = { readNewMessages, startMonitoring };

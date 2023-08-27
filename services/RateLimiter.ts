@@ -1,8 +1,9 @@
-const botConfig = require("config").get("bot");
-
+/* eslint-disable @typescript-eslint/ban-types */
+import config from "config";
+const botConfig = config.get("bot") as any;
 const RATE_LIMIT = botConfig.rateLimit ?? 500;
 
-class RateLimiter {
+export default class RateLimiter {
     static #debounceTimerIds = new Map();
     static #limitTimerIds = new Map();
     static #cooldownTimerIds = new Map();
@@ -13,7 +14,7 @@ class RateLimiter {
      * @param {number} userId
      * @param {object} context
      */
-    static debounce(func, args, userId, context) {
+    static debounce(func: Function, args: any[], userId: number, context: object) {
         clearTimeout(this.#debounceTimerIds.get(userId));
 
         const timerId = setTimeout(() => {
@@ -30,7 +31,7 @@ class RateLimiter {
      * @param {number} userId
      * @param {object} context
      */
-    static limit(func, args, userId, context) {
+    static limit(func: Function, args: any[], userId: number, context: object) {
         const cooldown = this.#limitTimerIds.get(userId);
         if (!cooldown) func.apply(context, args);
         clearTimeout(cooldown);
@@ -43,13 +44,7 @@ class RateLimiter {
         this.#limitTimerIds.set(userId, timerId);
     }
 
-    /**
-     * @param {Function} func
-     * @param {any[]} args
-     * @param {number} userId
-     * @param {object} context
-     */
-    static async throttle(func, args, userId, context) {
+    static async throttle(func: Function, args: any[], userId: number, context: object) {
         const cooldown = this.#cooldownTimerIds.get(userId);
 
         if (!cooldown) {
@@ -64,5 +59,3 @@ class RateLimiter {
         }
     }
 }
-
-module.exports = RateLimiter;

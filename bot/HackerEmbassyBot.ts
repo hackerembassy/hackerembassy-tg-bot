@@ -1,6 +1,6 @@
 // Imports
 import TelegramBot, { BotCommandScope } from "node-telegram-bot-api";
-import { error as _error, info } from "../services/logger";
+import logger from "../services/logger";
 import { sleep, chunkSubstr } from "../utils/common";
 import MessageHistory from "./MessageHistory";
 import { hasRole } from "../services/usersHelper";
@@ -315,7 +315,7 @@ ${chunks[index]}
 
                 await callback.call(this, botthis, msg, match);
             } catch (error) {
-                _error(error);
+                logger.error(error);
             } finally {
                 botthis.context(msg)?.clear();
             }
@@ -355,6 +355,6 @@ ${chunks[index]}
         if (date !== currentDate) return;
 
         this.sendMessage(chat, message);
-        info(`Sent a notification to ${chat}: ${message}`);
+        logger.info(`Sent a notification to ${chat}: ${message}`);
     }
 }

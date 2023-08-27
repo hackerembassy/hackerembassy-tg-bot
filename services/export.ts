@@ -1,30 +1,22 @@
-const { writeToBuffer } = require("@fast-csv/format");
-const FundsRepository = require("../repositories/fundsRepository").default;
-const ChartJsImage = require("chartjs-to-image");
-const Currency = require("../utils/currency");
-const t = require("./localization");
+import { writeToBuffer } from "@fast-csv/format";
+import FundsRepository from "../repositories/fundsRepository";
+import ChartJsImage from "chartjs-to-image";
+import { convertCurrency, formatValueForCurrency } from "../utils/currency";
+import t from "./localization";
+import { DateBoundary } from "../utils/date";
 
-/**
- * @typedef {Object} SimplifiedDonation
- * @property {string} username
- * @property {number} donation
- */
+interface SimplifiedDonation {
+    username: string;
+    donation: number;
+}
 
-/**
- * @typedef {import("../utils/date").DateBoundary} DateBoundary
- */
-
-/**
- * @param {SimplifiedDonation[]} donations
- * @returns {SimplifiedDonation[]}
- */
-function combineDonations(donations) {
-    let uniqueUsernames = [...new Set(donations.map(d => d.username))];
-    let combinedDonations = [];
+export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDonation[] {
+    const uniqueUsernames = [...new Set(donations.map(d => d.username))];
+    const combinedDonations = [];
 
     for (const username of uniqueUsernames) {
-        let userDonations = donations.filter(d => d.username === username);
-        let userCombinedDonation = userDonations.reduce((acc, curr) => acc + curr.donation, 0);
+        const userDonations = donations.filter(d => d.username === username);
+        const userCombinedDonation = userDonations.reduce((acc, curr) => acc + curr.donation, 0);
         combinedDonations.push({ username, donation: userCombinedDonation });
     }
 
@@ -61,17 +53,17 @@ const remainedColor = "rgba(0,0,0,0.025)";
  * @param {string} fundname
  * @returns {Promise<Buffer>}
  */
-async function exportFundToCSV(fundname) {
-    let fund = FundsRepository.getFundByName(fundname);
-    let donations = FundsRepository.getDonationsForName(fundname);
-    let fundDonations = await Promise.all(
+export async function exportFundToCSV(fundname: string): Promise<Buffer> {
+    const fund = FundsRepository.getFundByName(fundname);
+    const donations = FundsRepository.getDonationsForName(fundname);
+    const fundDonations = await Promise.all(
         donations.map(async d => {
-            let convertedValue = await Currency.convertCurrency(d.value, d.currency, fund.target_currency);
+            const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
             return {
                 username: d.username,
                 donation: d.value,
                 currency: d.currency,
-                converted: Currency.formatValueForCurrency(convertedValue, fund.target_currency),
+                converted: formatValueForCurrency(convertedValue, fund.target_currency),
                 target_currency: fund.target_currency,
             };
         })
@@ -84,13 +76,13 @@ async function exportFundToCSV(fundname) {
  * @param {string} fundname
  * @returns {Promise<Buffer>}
  */
-async function exportFundToDonut(fundname) {
-    let fund = FundsRepository.getFundByName(fundname);
-    let alldonations = FundsRepository.getDonationsForName(fundname);
+export async function exportFundToDonut(fundname: string): Promise<Buffer> {
+    const fund = FundsRepository.getFundByName(fundname);
+    const alldonations = FundsRepository.getDonationsForName(fundname);
 
     let fundDonations = await Promise.all(
         alldonations.map(async d => {
-            let convertedValue = await Currency.convertCurrency(d.value, d.currency, fund.target_currency);
+            const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
             return {
                 username: d.username,
                 donation: Number(convertedValue),
@@ -100,15 +92,15 @@ async function exportFundToDonut(fundname) {
 
     fundDonations = combineDonations(fundDonations);
 
-    let labels = fundDonations.map(donation => donation.username);
+    const labels = fundDonations.map(donation => donation.username);
     let data = fundDonations.map(donation => donation.donation);
-    let sum = data.reduce((acc, val) => acc + val, 0);
-    data = data.map(d => Currency.formatValueForCurrency(d, fund.target_currency));
-    let target = fund.target_value;
-    let remained = Currency.formatValueForCurrency(sum - target, fund.target_currency);
-    let spread = colorScheme.length / labels.length;
-    let customColorScheme = labels.map((_, index) => colorScheme[Math.floor(index * spread + spread / 2) % colorScheme.length]);
-    let donutLabels = [
+    const sum = data.reduce((acc, val) => acc + val, 0);
+    data = data.map(d => formatValueForCurrency(d, fund.target_currency));
+    const target = fund.target_value;
+    const remained = formatValueForCurrency(sum - target, fund.target_currency);
+    const spread = colorScheme.length / labels.length;
+    const customColorScheme = labels.map((_, index) => colorScheme[Math.floor(index * spread + spread / 2) % colorScheme.length]);
+    const donutLabels = [
         { text: `${target} ${fund.target_currency}`, font: { size: 30 } },
         { text: "min", font: { size: 20 } },
     ];
@@ -129,7 +121,10 @@ async function exportFundToDonut(fundname) {
  * @param {DateBoundary} dateBoundaries
  * @returns {Promise<Buffer>}
  */
-async function createUserStatsDonut(userTimes, dateBoundaries) {
+export async function createUserStatsDonut(
+    userTimes: { username: string; usertime: { totalSeconds: number } }[],
+    dateBoundaries: DateBoundary
+): Promise<Buffer> {
     return await createDonut(
         userTimes.map(ut => ut.username),
         userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
@@ -143,15 +138,15 @@ async function createUserStatsDonut(userTimes, dateBoundaries) {
  * @param {string[] | number[]} data
  * @param {string} titleText
  */
-function createDonut(
-    labels,
-    data,
-    titleText,
+export function createDonut(
+    labels: string[],
+    data: string[] | number[],
+    titleText: string,
     params = { width: 1400, height: 900 },
     donutLabels = [],
     customColorScheme = undefined
 ) {
-    let chart = new ChartJsImage();
+    const chart = new ChartJsImage();
 
     chart.setConfig({
         type: "donut",
@@ -203,5 +198,3 @@ function createDonut(
 
     return chart;
 }
-
-module.exports = { exportFundToCSV, exportFundToDonut, createDonut, createUserStatsDonut };

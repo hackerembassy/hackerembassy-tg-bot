@@ -1,9 +1,9 @@
 import FundsRepository from "../../repositories/fundsRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import { isMessageFromPrivateChat } from "../bot-helpers";
-import TextGenerators from "../../services/textGenerators";
-import UsersHelper from "../../services/usersHelper";
-import ExportHelper from "../../services/export";
+import * as TextGenerators from "../../services/textGenerators";
+import * as UsersHelper from "../../services/usersHelper";
+import * as ExportHelper from "../../services/export";
 import { prepareCurrency, parseMoneyValue } from "../../utils/currency";
 import logger from "../../services/logger";
 import t from "../../services/localization";

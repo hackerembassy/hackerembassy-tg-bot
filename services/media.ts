@@ -1,9 +1,10 @@
-const { exec } = require("child_process");
-const fs = require("fs").promises;
-const path = require("path");
-const config = require("config");
-const { postToHass, getFromHass, getBufferFromResponse } = require("../utils/network");
-const embassyApiConfig = config.get("embassy-api");
+import { exec } from "child_process";
+import { promises as fs } from "fs";
+import { join } from "path";
+import { postToHass, getFromHass, getBufferFromResponse } from "../utils/network";
+import config from "config";
+const embassyApiConfig = config.get("embassy-api") as any;
+
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;
 const webcam2Path = embassyApiConfig.webcam2;
@@ -14,21 +15,21 @@ const doorbellpath = embassyApiConfig.doorbellpath;
 /**
  * @returns {Promise<Buffer>}
  */
-async function getDoorcamImage() {
+export async function getDoorcamImage(): Promise<Buffer> {
     return getBufferFromResponse(await getFromHass(doorcamPath));
 }
 
 /**
  * @returns {Promise<Buffer>}
  */
-async function getWebcamImage() {
+export async function getWebcamImage(): Promise<Buffer> {
     return getBufferFromResponse(await getFromHass(webcamPath));
 }
 
 /**
  * @returns {Promise<Buffer>}
  */
-async function getWebcam2Image() {
+export async function getWebcam2Image(): Promise<Buffer> {
     return getBufferFromResponse(await getFromHass(webcam2Path));
 }
 
@@ -36,12 +37,12 @@ async function getWebcam2Image() {
  * @param {string} folder
  * @returns {Promise<Buffer>}
  */
-async function getRandomImageFromFolder(folder) {
-    let files = await fs.readdir(folder);
+export async function getRandomImageFromFolder(folder: string): Promise<Buffer> {
+    const files = await fs.readdir(folder);
     if (!files || files.length === 0) return;
 
-    let fileindex = Math.floor(Math.random() * files.length);
-    return await fs.readFile(path.join(folder, files[fileindex]));
+    const fileindex = Math.floor(Math.random() * files.length);
+    return await fs.readFile(join(folder, files[fileindex]));
 }
 
 /**
@@ -50,9 +51,9 @@ async function getRandomImageFromFolder(folder) {
  * @param {string} filename
  * @returns {Promise<Buffer>}
  */
-// eslint-disable-next-line no-unused-vars
-async function getImageFromRTSP(url, filename) {
-    let child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getImageFromRTSP(url: string, filename: string): Promise<Buffer> {
+    const child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;
@@ -75,7 +76,7 @@ async function getImageFromRTSP(url, filename) {
  * @param {string} text
  * @returns {Promise<void>}
  */
-async function sayInSpace(text) {
+export async function sayInSpace(text: string): Promise<void> {
     const response = await postToHass(ttspath, {
         entity_id: "media_player.hackem_speaker",
         message: text,
@@ -89,7 +90,7 @@ async function sayInSpace(text) {
  * @param {string} link
  * @returns {Promise<void>}
  */
-async function playInSpace(link) {
+export async function playInSpace(link: string): Promise<void> {
     const response = await postToHass(playpath, {
         entity_id: "media_player.hackem_speaker",
         media_content_id: link,
@@ -102,20 +103,10 @@ async function playInSpace(link) {
 /**
  * @returns {Promise<void>}
  */
-async function ringDoorbell() {
+export async function ringDoorbell(): Promise<void> {
     const response = await postToHass(doorbellpath, {
         entity_id: "switch.doorbell",
     });
 
     if (response.status !== 200) throw Error("Ringing request failed");
 }
-
-module.exports = {
-    getDoorcamImage,
-    getWebcamImage,
-    getWebcam2Image,
-    sayInSpace,
-    playInSpace,
-    ringDoorbell,
-    getRandomImageFromFolder,
-};

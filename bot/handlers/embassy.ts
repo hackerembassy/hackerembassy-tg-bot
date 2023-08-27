@@ -7,7 +7,7 @@ import config from "config";
 const embassyApiConfig = config.get("embassy-api") as any;
 const botConfig = config.get("bot") as any;
 
-import TextGenerators from "../../services/textGenerators";
+import * as TextGenerators from "../../services/textGenerators";
 
 import t from "../../services/localization";
 import { Message } from "node-telegram-bot-api";

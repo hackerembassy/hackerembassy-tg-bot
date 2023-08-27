@@ -7,10 +7,11 @@ const { NodeSSH } = require("node-ssh");
 const find = require("local-devices");
 const { LUCI } = require("luci-rpc");
 
-const printer3d = require("./services/printer3d");
-const { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } = require("./services/media");
-const logger = require("./services/logger");
-const { unlock } = require("./services/mqtt");
+const printer3d = require("./services/printer3d").default;
+const { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } =
+    require("./services/media").default;
+const logger = require("./services/logger").default;
+const { unlock } = require("./services/mqtt").default;
 const { decrypt } = require("./utils/security");
 const { createErrorMiddleware } = require("./utils/middleware");
 
@@ -23,8 +24,8 @@ const wifiip = embassyApiConfig.wifiip;
 
 process.env.TZ = botConfig.timezone;
 
-const statusMonitor = require("./services/statusMonitor");
-const { getClimate } = require("./services/home");
+const statusMonitor = require("./services/statusMonitor").default;
+const { getClimate } = require("./services/home").default;
 statusMonitor.startMonitoring();
 
 const app = express();

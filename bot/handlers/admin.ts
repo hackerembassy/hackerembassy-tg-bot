@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 
 import UsersRepository from "../../repositories/usersRepository";
-import UsersHelper from "../../services/usersHelper";
+import * as UsersHelper from "../../services/usersHelper";
 import config from "config";
 
 const botConfig = config.get("bot") as any;

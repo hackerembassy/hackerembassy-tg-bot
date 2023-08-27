@@ -1,4 +1,4 @@
-import UsersHelper from "../../services/usersHelper";
+import * as UsersHelper from "../../services/usersHelper";
 import UsersRepository from "../../repositories/usersRepository";
 import config from "config";
 

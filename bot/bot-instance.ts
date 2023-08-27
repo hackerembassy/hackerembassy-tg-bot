@@ -1,4 +1,4 @@
-import { info } from "../services/logger";
+import logger from "../services/logger";
 import HackerEmbassyBot from "./HackerEmbassyBot";
 import { setRoutes } from "./bot-routes";
 import { setAutomaticFeatures } from "./bot-automatic";
@@ -11,7 +11,7 @@ async function init(bot: HackerEmbassyBot) {
     setAutomaticFeatures(bot);
     setMenu(bot);
 
-    info(`Bot is ready to accept commands`);
+    logger.info(`Bot is ready to accept commands`);
 }
 
 // Configure the bot singleton instance

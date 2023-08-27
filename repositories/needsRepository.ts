@@ -1,29 +1,30 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Need = require("../models/Need");
-const BaseRepository = require("./baseRepository");
+import Need from "../models/Need";
+import BaseRepository from "./baseRepository";
 
 class NeedsRepository extends BaseRepository {
     /**
      * @param {number} id
      *  @returns {Need}
      */
-    getNeedById(id) {
-        return /** @type {Need} */ (this.db.prepare("SELECT * FROM needs WHERE id = ?").get(id));
+    getNeedById(id: number): Need {
+        return /** @type {Need} */ this.db.prepare("SELECT * FROM needs WHERE id = ?").get(id) as Need;
     }
 
     /**
      * @param {string} text
      *  @returns {Need}
      */
-    getOpenNeedByText(text) {
-        return /** @type {Need} */ (this.db.prepare("SELECT * FROM needs WHERE text = ? AND buyer IS NULL LIMIT 1").get(text));
+    getOpenNeedByText(text: string): Need {
+        return /** @type {Need} */ this.db
+            .prepare("SELECT * FROM needs WHERE text = ? AND buyer IS NULL LIMIT 1")
+            .get(text) as Need;
     }
 
     /**
      *  @returns {Need[]}
      */
-    getOpenNeeds() {
-        return /** @type {Need[]} */ (this.db.prepare("SELECT * FROM needs WHERE buyer IS NULL ORDER BY id ASC").all());
+    getOpenNeeds(): Need[] {
+        return /** @type {Need[]} */ this.db.prepare("SELECT * FROM needs WHERE buyer IS NULL ORDER BY id ASC").all() as Need[];
     }
 
     /**
@@ -32,7 +33,7 @@ class NeedsRepository extends BaseRepository {
      * @param {Date} date
      *  @returns {boolean}
      */
-    addBuy(text, requester, date) {
+    addBuy(text: string, requester: string, date: Date): boolean {
         try {
             if (this.getOpenNeedByText(text)) return false;
 
@@ -53,9 +54,9 @@ class NeedsRepository extends BaseRepository {
      * @param {Date} date
      *  @returns {boolean}
      */
-    closeNeed(text, buyer, date) {
+    closeNeed(text: string, buyer: string, date: Date): boolean {
         try {
-            let need = this.getOpenNeedByText(text);
+            const need = this.getOpenNeedByText(text);
             if (!need) return false;
 
             this.db.prepare("UPDATE needs SET buyer = ?, updated = ? WHERE id = ?").run(buyer, date.valueOf(), need.id);
@@ -71,9 +72,9 @@ class NeedsRepository extends BaseRepository {
      * @param {number} id
      *  @returns {boolean}
      */
-    undoClose(id) {
+    undoClose(id: number): boolean {
         try {
-            let need = this.getNeedById(id);
+            const need = this.getNeedById(id);
             if (!need) return false;
 
             this.db.prepare("UPDATE needs SET buyer = NULL, updated = NULL WHERE id = ?").run(id);
@@ -86,4 +87,4 @@ class NeedsRepository extends BaseRepository {
     }
 }
 
-module.exports = new NeedsRepository();
+export default new NeedsRepository();

@@ -1,28 +1,24 @@
-const TextGenerators = require("../../services/textGenerators");
-const UsersHelper = require("../../services/usersHelper");
-const Commands = require("../../resources/commands");
-const CoinsHelper = require("../../resources/coins/coins");
+import { Message } from "node-telegram-bot-api";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
-const UsersRepository = require("../../repositories/usersRepository");
-const botConfig = require("config").get("bot");
-const t = require("../../services/localization");
-const { isMessageFromPrivateChat } = require("../bot-helpers");
+import TextGenerators from "../../services/textGenerators";
+import UsersHelper from "../../services/usersHelper";
+import Commands from "../../resources/commands";
+import CoinsHelper from "../../resources/coins/coins";
+
+import UsersRepository from "../../repositories/usersRepository";
+import config from "config";
+const botConfig = config.get("bot") as any;
+import t from "../../services/localization";
+import { isMessageFromPrivateChat } from "../bot-helpers";
 
 /**
- * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
+ * @typedef {import("../HackerEmbassyBot")} HackerEmbassyBot
  * @typedef {import("node-telegram-bot-api").Message} Message
  */
 
-class BasicHandlers {
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
-    /**
-     * @param {HackerEmbassyBot} bot
-     * @param {Message} msg
-     */
-    static async helpHandler(bot, msg) {
+export default class BasicHandlers {
+    static async helpHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = t("basic.help", {
             availableCommands: UsersHelper.getAvailableCommands(msg.from.username),
             globalModifiers: Commands.GlobalModifiers,
@@ -35,7 +31,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async aboutHandler(bot, msg) {
+    static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, t("basic.about"), msg);
     }
 
@@ -43,8 +39,8 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async joinHandler(bot, msg) {
-        let message = TextGenerators.getJoinText();
+    static async joinHandler(bot: HackerEmbassyBot, msg: Message) {
+        const message = TextGenerators.getJoinText();
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
@@ -52,7 +48,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async eventsHandler(bot, msg) {
+    static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
         const message = TextGenerators.getEventsText(false, botConfig.calendarAppLink);
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
@@ -77,7 +73,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async issueHandler(bot, msg, issueText) {
+    static async issueHandler(bot: HackerEmbassyBot, msg: Message, issueText) {
         const helpMessage = t("basic.issue.help");
         const sentMessage = t("basic.issue.sent");
         const report = t("basic.issue.report", { issue: issueText });
@@ -93,7 +89,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async donateHandler(bot, msg) {
+    static async donateHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountants = UsersRepository.getUsersByRole("accountant");
         const message = TextGenerators.getDonateText(accountants);
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -103,7 +99,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async locationHandler(bot, msg) {
+    static async locationHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, t("basic.location.address"), msg);
         await bot.sendLocationExt(msg.chat.id, 40.18258, 44.51338, msg);
         await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.caption") });
@@ -113,7 +109,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async donateCoinHandler(bot, msg, coinname) {
+    static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname) {
         coinname = coinname.toLowerCase();
         const qrImage = await CoinsHelper.getQR(coinname);
         const coin = CoinsHelper.getCoinDefinition(coinname);
@@ -128,7 +124,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async donateCardHandler(bot, msg) {
+    static async donateCardHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountantsList = TextGenerators.getAccountsList(
             UsersRepository.getUsersByRole("accountant"),
             bot.context(msg).mode
@@ -141,7 +137,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async getResidentsHandler(bot, msg) {
+    static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
@@ -152,7 +148,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async startPanelHandler(bot, msg) {
+    static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [
                 {
@@ -219,7 +215,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async controlPanelHandler(bot, msg) {
+    static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [
                 {
@@ -276,7 +272,7 @@ class BasicHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async infoPanelHandler(bot, msg) {
+    static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [
                 {
@@ -323,5 +319,3 @@ class BasicHandlers {
         );
     }
 }
-
-module.exports = BasicHandlers;

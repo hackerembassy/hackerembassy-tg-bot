@@ -1,21 +1,23 @@
-const fs = require("fs");
-const path = require("path");
-const { debounce } = require("../utils/common");
-const botConfig = require("config").get("bot");
+import { existsSync, readFileSync, writeFileSync, promises } from "fs";
+import { join } from "path";
+import { debounce } from "../utils/common";
+import config from "config";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const botConfig = config.get("bot") as any;
 
 /**
  * @class MessageHistory
  */
-class MessageHistory {
+export default class MessageHistory {
+    historypath: string;
     constructor() {
-        /** @type {string}*/
-        this.historypath = path.join(botConfig.persistedfolderpath, "history.json");
+        this.historypath = join(botConfig.persistedfolderpath, "history.json");
 
-        if (fs.existsSync(this.historypath)) {
-            this.#historyBuffer = JSON.parse(fs.readFileSync(this.historypath).toString());
+        if (existsSync(this.historypath)) {
+            this.#historyBuffer = JSON.parse(readFileSync(this.historypath).toString());
         } else {
             this.#historyBuffer = {};
-            fs.writeFileSync(this.historypath, JSON.stringify(this.#historyBuffer));
+            writeFileSync(this.historypath, JSON.stringify(this.#historyBuffer));
         }
     }
 
@@ -23,7 +25,7 @@ class MessageHistory {
      * @param {number} chatId
      * @param {number} messageId
      */
-    orderOf(chatId, messageId) {
+    orderOf(chatId: number, messageId: number) {
         return this.#historyBuffer[chatId].findIndex(x => x.messageId === messageId);
     }
 
@@ -32,7 +34,7 @@ class MessageHistory {
      * @param {number} messageId
      * @param {string | undefined} text
      */
-    async push(chatId, messageId, text = undefined, order = 0) {
+    async push(chatId: string | number, messageId: number, text: string | undefined = undefined, order = 0) {
         if (!this.#historyBuffer[chatId]) this.#historyBuffer[chatId] = [];
         if (this.#historyBuffer[chatId].length >= botConfig.maxchathistory) this.#historyBuffer[chatId].pop();
 
@@ -45,7 +47,7 @@ class MessageHistory {
      * @param {number} chatId
      * @param {number} from
      */
-    async pop(chatId, from = 0) {
+    async pop(chatId: number, from: number = 0) {
         if (!this.#historyBuffer[chatId] || this.#historyBuffer[chatId].length === 0) return;
 
         const removed = this.#historyBuffer[chatId].splice(from, 1)[0];
@@ -57,17 +59,15 @@ class MessageHistory {
     /**
      * @type {{ [chatId: string]: { messageId: number; text?: string; datetime: number }[]; }}
      */
-    #historyBuffer;
+    #historyBuffer: { [chatId: string]: { messageId: number; text?: string; datetime: number }[] };
 
     #debouncedPersistChanges = debounce(async function () {
         await this.#persistChanges();
     }, 1000);
 
     async #persistChanges() {
-        await fs.promises.writeFile(this.historypath, JSON.stringify(this.#historyBuffer));
+        await promises.writeFile(this.historypath, JSON.stringify(this.#historyBuffer));
     }
 
     // TODO update history entry for EditMessage
 }
-
-module.exports = MessageHistory;

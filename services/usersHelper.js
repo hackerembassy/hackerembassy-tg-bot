@@ -1,7 +1,7 @@
 const Commands = require("../resources/commands");
-const UsersRepository = require("../repositories/usersRepository");
+const UsersRepository = require("../repositories/usersRepository").default;
 // eslint-disable-next-line no-unused-vars
-const User = require("../models/User");
+const User = require("../models/User").default;
 
 /**
  * @typedef {import("../bot/bot").BotRole} BotRole

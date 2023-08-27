@@ -1,75 +1,71 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Donation = require("../models/Donation");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Fund = require("../models/Fund");
-const BaseRepository = require("./baseRepository");
-const config = require("config");
-const currencyConfig = config.get("currency");
+import config from "config";
+import Donation from "../models/Donation";
+import Fund from "../models/Fund";
+import BaseRepository from "./baseRepository";
+const currencyConfig = config.get("currency") as any;
 
 class FundsRepository extends BaseRepository {
     /**
      * @returns {Fund[]}
      */
-    getFunds() {
-        return /** @type {Fund[]} */ (this.db.prepare("SELECT * FROM funds").all());
+    getFunds(): Fund[] {
+        return this.db.prepare("SELECT * FROM funds").all() as Fund[];
     }
 
     /**
      * @param {string} fundName
      * @returns {Fund}
      */
-    getFundByName(fundName) {
-        return /** @type {Fund} */ (this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName));
+    getFundByName(fundName: string): Fund {
+        return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Fund;
     }
 
     /**
      * @param {number} id
      * @returns {Fund}
      */
-    getFundById(id) {
-        return /** @type {Fund} */ (this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id));
+    getFundById(id: number): Fund {
+        return /** @type {Fund} */ this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Fund;
     }
 
     /**
      * @returns {Fund}
      */
-    getLatestCosts() {
-        return /** @type {Fund} */ (
-            this.getFunds().find(fund => /(А|а)ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""))
-        );
+    getLatestCosts(): Fund {
+        return this.getFunds().find(fund => /(А|а)ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
     }
 
     /**
      * @returns {Donation[]}
      */
-    getDonations() {
-        return /** @type {Donation[]} */ (this.db.prepare("SELECT * FROM donations").all());
+    getDonations(): Donation[] {
+        return /** @type {Donation[]} */ this.db.prepare("SELECT * FROM donations").all() as Donation[];
     }
 
     /**
      * @param {number} fundId
      * @returns {Donation[]}
      */
-    getDonationsForId(fundId) {
-        return /** @type {Donation[]} */ (this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId));
+    getDonationsForId(fundId: number): Donation[] {
+        return /** @type {Donation[]} */ this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
     }
 
     /**
      * @param {string} fundName
      * @returns {Donation[]}
      */
-    getDonationsForName(fundName) {
-        return /** @type {Donation[]} */ (
-            this.db.prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)").all(fundName)
-        );
+    getDonationsForName(fundName: string): Donation[] {
+        return /** @type {Donation[]} */ this.db
+            .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
+            .all(fundName) as Donation[];
     }
 
     /**
      * @param {number} donationId
      * @returns {Donation}
      */
-    getDonationById(donationId) {
-        return /** @type {Donation} */ (this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId));
+    getDonationById(donationId: number): Donation {
+        return /** @type {Donation} */ this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Donation;
     }
 
     /**
@@ -79,7 +75,7 @@ class FundsRepository extends BaseRepository {
      * @param {string} status
      * @returns {boolean}
      */
-    addFund(fundName, target, currency = currencyConfig.default, status = "open") {
+    addFund(fundName: string, target: number, currency: string = currencyConfig.default, status: string = "open"): boolean {
         try {
             if (this.getFundByName(fundName) !== undefined) throw new Error(`Fund ${fundName} already exists`);
 
@@ -103,9 +99,14 @@ class FundsRepository extends BaseRepository {
      * @param {string} newFundName
      * @returns {boolean}
      */
-    updateFund(fundName, target, currency = currencyConfig.default, newFundName = fundName) {
+    updateFund(
+        fundName: string,
+        target: number,
+        currency: string = currencyConfig.default,
+        newFundName: string = fundName
+    ): boolean {
         try {
-            let fund = this.getFundByName(fundName);
+            const fund = this.getFundByName(fundName);
 
             if (!fund) throw new Error(`Fund ${fundName} not found`);
             if (!currency) throw new Error(`Invalid currency ${currency}`);
@@ -125,7 +126,7 @@ class FundsRepository extends BaseRepository {
      * @param {string} fundName
      * @returns {boolean}
      */
-    removeFund(fundName) {
+    removeFund(fundName: string): boolean {
         try {
             if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
 
@@ -141,7 +142,7 @@ class FundsRepository extends BaseRepository {
      * @param {string} fundName
      * @returns {boolean}
      */
-    closeFund(fundName) {
+    closeFund(fundName: string): boolean {
         return this.changeFundStatus(fundName, "closed");
     }
 
@@ -150,7 +151,7 @@ class FundsRepository extends BaseRepository {
      * @param {string} status
      * @returns {boolean}
      */
-    changeFundStatus(fundName, status) {
+    changeFundStatus(fundName: string, status: string): boolean {
         try {
             if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
 
@@ -171,9 +172,15 @@ class FundsRepository extends BaseRepository {
      * @param {string} accountant
      * @returns {boolean}
      */
-    addDonationTo(fundName, username, value, currency = currencyConfig.default, accountant = null) {
+    addDonationTo(
+        fundName: string,
+        username: string,
+        value: number,
+        currency: string = currencyConfig.default,
+        accountant: string = null
+    ): boolean {
         try {
-            let fundId = this.getFundByName(fundName)?.id;
+            const fundId = this.getFundByName(fundName)?.id;
 
             if (!fundId) throw new Error(`Fund ${fundName} not found`);
             if (!currency) throw new Error(`Invalid currency ${currency}`);
@@ -195,7 +202,7 @@ class FundsRepository extends BaseRepository {
      * @param {string} currency
      * @returns {boolean}
      */
-    updateDonation(donationId, value, currency) {
+    updateDonation(donationId: number, value: number, currency: string): boolean {
         try {
             if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
             if (!currency) throw new Error(`Invalid currency ${currency}`);
@@ -214,7 +221,7 @@ class FundsRepository extends BaseRepository {
      * @param {string} accountant
      * @returns {boolean}
      */
-    transferDonation(id, accountant) {
+    transferDonation(id: number, accountant: string): boolean {
         try {
             if (!this.getDonationById(id)) throw new Error(`Donation with id ${id} not found`);
 
@@ -231,7 +238,7 @@ class FundsRepository extends BaseRepository {
      * @param {number} donationId
      * @returns {boolean}
      */
-    removeDonationById(donationId) {
+    removeDonationById(donationId: number): boolean {
         try {
             if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
 
@@ -245,4 +252,4 @@ class FundsRepository extends BaseRepository {
     }
 }
 
-module.exports = new FundsRepository();
+export default new FundsRepository();

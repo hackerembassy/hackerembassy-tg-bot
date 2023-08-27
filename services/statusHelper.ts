@@ -1,15 +1,11 @@
-/**
- * @typedef {import("../utils/date").ElapsedTimeObject} ElapsedTimeObject
- * @typedef {import("../models/UserState")} UserState
- */
-
-const statusRepository = require("../repositories/statusRepository");
-const usersRepository = require("../repositories/usersRepository");
-const { anyItemIsInList } = require("../utils/common");
-const { fetchWithTimeout } = require("../utils/network");
-const { onlyUniqueFilter } = require("../utils/common");
-const { isToday } = require("../utils/date");
-const { UserStatusType, ChangeType } = require("../repositories/statusRepository");
+import statusRepository from "../repositories/statusRepository";
+import usersRepository from "../repositories/usersRepository";
+import { anyItemIsInList } from "../utils/common";
+import { fetchWithTimeout } from "../utils/network";
+import { onlyUniqueFilter } from "../utils/common";
+import { ElapsedTimeObject, isToday } from "../utils/date";
+import UserState from "../models/UserState";
+const { UserStatusType, ChangeType } = statusRepository;
 
 const embassyApiConfig = require("config").get("embassy-api");
 
@@ -18,9 +14,9 @@ const embassyApiConfig = require("config").get("embassy-api");
  * @param {{checkOpener: boolean}} options
  * @returns {void}
  */
-function openSpace(opener, options = { checkOpener: false }) {
-    let opendate = new Date();
-    let state = {
+export function openSpace(opener: string, options: { checkOpener: boolean } = { checkOpener: false }): void {
+    const opendate = new Date();
+    const state = {
         id: 0,
         open: true,
         date: opendate,
@@ -31,7 +27,7 @@ function openSpace(opener, options = { checkOpener: false }) {
 
     if (!options.checkOpener) return;
 
-    let userstate = {
+    const userstate = {
         id: 0,
         status: statusRepository.UserStatusType.Inside,
         date: opendate,
@@ -48,8 +44,8 @@ function openSpace(opener, options = { checkOpener: false }) {
  * @param {{evict: boolean}} options
  * @returns {void}
  */
-function closeSpace(closer, options = { evict: false }) {
-    let state = {
+export function closeSpace(closer: string, options: { evict: boolean } = { evict: false }): void {
+    const state = {
         id: 0,
         open: false,
         date: new Date(),
@@ -65,7 +61,7 @@ function closeSpace(closer, options = { evict: false }) {
  * @param {string} username
  * @returns {Promise<boolean>}
  */
-async function hasDeviceInside(username) {
+export async function hasDeviceInside(username: string): Promise<boolean> {
     try {
         const response = await fetchWithTimeout(
             `${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`
@@ -83,7 +79,7 @@ async function hasDeviceInside(username) {
  * @param {string[]} devices
  * @returns {boolean}
  */
-function isMacInside(mac, devices) {
+export function isMacInside(mac: string, devices: string[]): boolean {
     return mac ? anyItemIsInList(mac.split(","), devices) : false;
 }
 
@@ -91,8 +87,8 @@ function isMacInside(mac, devices) {
  * @param {UserState[]} userStates
  * @returns {ElapsedTimeObject}
  */
-function getUserTimeDescriptor(userStates) {
-    // TODO Memoize and persist results of this function for each user
+export function getUserTimeDescriptor(userStates: UserState[]): ElapsedTimeObject {
+    // TODO Memoize and persist results of this export function for each user
     // to not compute all time from the start every time
     let totalTime = 0;
     let startTime = -1;
@@ -119,7 +115,7 @@ function getUserTimeDescriptor(userStates) {
  * @param {number} seconds
  * @returns {ElapsedTimeObject}
  */
-function convertToElapsedObject(seconds) {
+export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
     return {
         days: Math.floor(seconds / (3600 * 24)),
         hours: Math.floor((seconds % (3600 * 24)) / 3600),
@@ -131,7 +127,7 @@ function convertToElapsedObject(seconds) {
 /**
  * @param {UserState[]} allUserStates
  */
-function findRecentStates(allUserStates) {
+export function findRecentStates(allUserStates: UserState[]) {
     const usersLastStates = [];
 
     for (const userstate of allUserStates) {
@@ -149,7 +145,7 @@ function findRecentStates(allUserStates) {
  * @param {Date} fromDate
  * @param {Date} toDate
  */
-function getAllUsersTimes(allUserStates, fromDate, toDate) {
+export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toDate: Date) {
     const userNames = findRecentStates(allUserStates)
         .map(us => us.username)
         .filter(onlyUniqueFilter);
@@ -170,7 +166,7 @@ function getAllUsersTimes(allUserStates, fromDate, toDate) {
  * @param {UserState} userState
  * @returns {boolean}
  */
-function filterPeopleInside(userState) {
+export function filterPeopleInside(userState: UserState): boolean {
     return userState.status === UserStatusType.Inside;
 }
 
@@ -178,7 +174,7 @@ function filterPeopleInside(userState) {
  * @param {UserState} userState
  * @returns {boolean}
  */
-function filterPeopleGoing(userState) {
+export function filterPeopleGoing(userState: UserState): boolean {
     return userState.status === UserStatusType.Going && isToday(new Date(userState.date));
 }
 
@@ -186,8 +182,8 @@ function filterPeopleGoing(userState) {
  * @param {UserState[]} insideStates
  * @returns {void}
  */
-function evictPeople(insideStates) {
-    let date = Date.now();
+export function evictPeople(insideStates: UserState[]): void {
+    const date = Date.now();
 
     for (const userstate of insideStates) {
         statusRepository.pushPeopleState({
@@ -200,16 +196,3 @@ function evictPeople(insideStates) {
         });
     }
 }
-
-module.exports = {
-    openSpace,
-    closeSpace,
-    isMacInside,
-    hasDeviceInside,
-    getUserTimeDescriptor,
-    findRecentStates,
-    getAllUsersTimes,
-    evictPeople,
-    filterPeopleInside,
-    filterPeopleGoing,
-};

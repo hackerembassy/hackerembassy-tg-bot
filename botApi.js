@@ -6,9 +6,9 @@ const config = require("config");
 const embassyApiConfig = config.get("embassy-api");
 
 const TextGenerators = require("./services/textGenerators");
-const StatusRepository = require("./repositories/statusRepository");
-const FundsRepository = require("./repositories/fundsRepository");
-const UsersRepository = require("./repositories/usersRepository");
+const StatusRepository = require("./repositories/statusRepository").default;
+const FundsRepository = require("./repositories/fundsRepository").default;
+const UsersRepository = require("./repositories/usersRepository").default;
 const Commands = require("./resources/commands");
 const { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } = require("./services/statusHelper");
 const { stripCustomMarkup } = require("./utils/common");

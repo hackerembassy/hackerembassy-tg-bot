@@ -1,5 +1,5 @@
 const { writeToBuffer } = require("@fast-csv/format");
-const FundsRepository = require("../repositories/fundsRepository");
+const FundsRepository = require("../repositories/fundsRepository").default;
 const ChartJsImage = require("chartjs-to-image");
 const Currency = require("../utils/currency");
 const t = require("./localization");

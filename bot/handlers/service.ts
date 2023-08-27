@@ -1,27 +1,22 @@
-const UsersHelper = require("../../services/usersHelper");
-const UsersRepository = require("../../repositories/usersRepository");
+import UsersHelper from "../../services/usersHelper";
+import UsersRepository from "../../repositories/usersRepository";
+import config from "config";
 
-const StatusHandlers = require("./status");
-const FundsHandlers = require("./funds");
-const NeedsHandlers = require("./needs");
-const BirthdayHandlers = require("./birthday");
-const BasicHandlers = require("./basic");
-const EmbassyHandlers = require("./embassy");
+import StatusHandlers from "./status";
+import FundsHandlers from "./funds";
+import NeedsHandlers from "./needs";
+import BirthdayHandlers from "./birthday";
+import BasicHandlers from "./basic";
+import EmbassyHandlers from "./embassy";
 
-const botConfig = require("config").get("bot");
+const botConfig = config.get("bot") as any;
 
-const t = require("../../services/localization");
-const { logger } = require("../../repositories/statusRepository");
-const { setMenu } = require("../bot-menu");
-const RateLimiter = require("../../services/RateLimiter");
+import t from "../../services/localization";
+import { setMenu } from "../bot-menu";
+import RateLimiter from "../../services/RateLimiter";
+import logger from "../../services/logger";
 
-/**
- * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
- * @typedef {import("node-telegram-bot-api").Message} Message
- * @typedef {import("node-telegram-bot-api").CallbackQuery} CallbackQuery
- */
-
-class ServiceHandlers {
+export default class ServiceHandlers {
     /**
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
@@ -29,7 +24,7 @@ class ServiceHandlers {
     static async clearHandler(bot, msg, count) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
-        let orderOfLastMessage = msg.reply_to_message?.message_id
+        const orderOfLastMessage = msg.reply_to_message?.message_id
             ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
             : 0;
 
@@ -343,5 +338,3 @@ class ServiceHandlers {
         }
     }
 }
-
-module.exports = ServiceHandlers;

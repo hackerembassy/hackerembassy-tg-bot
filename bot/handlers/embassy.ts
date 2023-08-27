@@ -1,27 +1,24 @@
-const { fetchWithTimeout } = require("../../utils/network");
-const logger = require("../../services/logger");
-const { encrypt } = require("../../utils/security");
-const { hasDeviceInside } = require("../../services/statusHelper");
+import { fetchWithTimeout } from "../../utils/network";
+import logger from "../../services/logger";
+import { encrypt } from "../../utils/security";
+import { hasDeviceInside } from "../../services/statusHelper";
 
-const config = require("config");
-const embassyApiConfig = config.get("embassy-api");
-const botConfig = config.get("bot");
+import config from "config";
+const embassyApiConfig = config.get("embassy-api") as any;
+const botConfig = config.get("bot") as any;
 
-const TextGenerators = require("../../services/textGenerators");
+import TextGenerators from "../../services/textGenerators";
 
-const t = require("../../services/localization");
+import t from "../../services/localization";
+import { Message } from "node-telegram-bot-api";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
-/**
- * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
- * @typedef {import("node-telegram-bot-api").Message} Message
- */
-
-class EmbassyHanlers {
+export default class EmbassyHanlers {
     /**
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async unlockHandler(bot, msg) {
+    static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!(await hasDeviceInside(msg.from.username))) {
             bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
 
@@ -54,7 +51,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async webcamHandler(bot, msg) {
+    static async webcamHandler(bot: HackerEmbassyBot, msg: Message) {
         await this.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
     }
 
@@ -62,7 +59,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async webcam2Handler(bot, msg) {
+    static async webcam2Handler(bot: HackerEmbassyBot, msg: Message) {
         await this.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
     }
 
@@ -70,7 +67,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async doorcamHandler(bot, msg) {
+    static async doorcamHandler(bot: HackerEmbassyBot, msg: Message) {
         await this.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
     }
 
@@ -78,7 +75,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async webcamGenericHandler(bot, msg, path, prefix) {
+    static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path, prefix) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
@@ -101,7 +98,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async monitorHandler(bot, msg, notifyEmpty = false) {
+    static async monitorHandler(bot: HackerEmbassyBot, msg: Message, notifyEmpty = false) {
         try {
             const statusMessages = await this.queryStatusMonitor();
 
@@ -127,7 +124,7 @@ class EmbassyHanlers {
     /**
      * @param {HackerEmbassyBot} bot
      */
-    static async enableStatusMonitor(bot) {
+    static async enableStatusMonitor(bot: HackerEmbassyBot) {
         setInterval(
             () =>
                 this.monitorHandler(bot, {
@@ -146,7 +143,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async printersHandler(bot, msg) {
+    static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
         const inlineKeyboard = [
             [
@@ -172,7 +169,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async climateHandler(bot, msg) {
+    static async climateHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         let message = t("embassy.climate.nodata");
@@ -198,7 +195,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async printerStatusHandler(bot, msg, printername) {
+    static async printerStatusHandler(bot: HackerEmbassyBot, msg: Message, printername) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
@@ -236,7 +233,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async doorbellHandler(bot, msg) {
+    static async doorbellHandler(bot: HackerEmbassyBot, msg: Message) {
         let text = t("embassy.doorbell.success");
 
         try {
@@ -254,7 +251,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async sayinspaceHandler(bot, msg, text) {
+    static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text) {
         bot.sendChatAction(msg.chat.id, "upload_voice", msg);
 
         try {
@@ -284,7 +281,7 @@ class EmbassyHanlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async playinspaceHandler(bot, msg, link) {
+    static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, link) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {
@@ -310,5 +307,3 @@ class EmbassyHanlers {
         }
     }
 }
-
-module.exports = EmbassyHanlers;

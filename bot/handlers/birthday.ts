@@ -1,28 +1,27 @@
-const fs = require("fs/promises");
-const path = require("path");
-const { sleep } = require("../../utils/common");
-const logger = require("../../services/logger");
+import fs from "fs/promises";
+import path from "path";
+import { sleep } from "../../utils/common";
+import logger from "../../services/logger";
 
-const UsersRepository = require("../../repositories/usersRepository");
-const TextGenerators = require("../../services/textGenerators");
-const UsersHelper = require("../../services/usersHelper");
-const botConfig = require("config").get("bot");
+import UsersRepository from "../../repositories/usersRepository";
+import TextGenerators from "../../services/textGenerators";
+import UsersHelper from "../../services/usersHelper";
+import config from "config";
+
+const botConfig = config.get("bot") as any;
 
 const wishedTodayPath = path.join(__dirname, `../../${botConfig.persistedfolderpath}/wished-today.json`);
 const baseWishesDir = "./resources/wishes";
-const t = require("../../services/localization");
+import t from "../../services/localization";
+import { Message } from "node-telegram-bot-api";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
-/**
- * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
- * @typedef {import("node-telegram-bot-api").Message} Message
- */
-
-class BirthdayHandlers {
+export default class BirthdayHandlers {
     /**
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async forceBirthdayWishHandler(bot, msg) {
+    static async forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
         this.sendBirthdayWishes(bot, msg, true);
     }
 
@@ -30,7 +29,7 @@ class BirthdayHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async birthdayHandler(bot, msg) {
+    static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
 
@@ -41,7 +40,7 @@ class BirthdayHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async myBirthdayHandler(bot, msg, date) {
+    static async myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date) {
         const username = msg.from.username;
         const formattedUsername = UsersHelper.formatUsername(username, bot.context(msg).mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
@@ -61,9 +60,9 @@ class BirthdayHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async sendBirthdayWishes(bot, msg, force = false) {
-        let currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
-        let birthdayUsers = UsersRepository.getUsers().filter(u => {
+    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Message, force = false) {
+        const currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
+        const birthdayUsers = UsersRepository.getUsers().filter(u => {
             return u.birthday?.substring(5, 10) === currentDate;
         });
 
@@ -71,11 +70,11 @@ class BirthdayHandlers {
             await fs.writeFile(wishedTodayPath, "[]");
         }
 
-        let wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
-        let wishedAmount = wishedToday?.length;
+        const wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
+        const wishedAmount = wishedToday?.length;
 
         for (const user of birthdayUsers) {
-            let wishedUser = wishedToday.find(entry => entry.username && entry.date === currentDate);
+            const wishedUser = wishedToday.find(entry => entry.username && entry.date === currentDate);
             if (!force && wishedUser) continue;
 
             let message = "🎂 ";
@@ -95,17 +94,15 @@ class BirthdayHandlers {
     /**
      * @param {string} date
      */
-    static isProperFormatDateString(date) {
+    static isProperFormatDateString(date: string) {
         return /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date);
     }
 }
 
 async function getWish(username) {
-    let files = await fs.readdir(baseWishesDir);
-    let randomNum = Math.floor(Math.random() * files.length);
-    let wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]), { encoding: "utf8" });
+    const files = await fs.readdir(baseWishesDir);
+    const randomNum = Math.floor(Math.random() * files.length);
+    const wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]), { encoding: "utf8" });
 
     return wishTemplate.replaceAll(/\$username/g, `@${username}`);
 }
-
-module.exports = BirthdayHandlers;

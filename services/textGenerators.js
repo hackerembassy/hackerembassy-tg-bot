@@ -1,20 +1,20 @@
 const Currency = require("../utils/currency");
 const config = require("config");
 const printersConfig = config.get("printers");
-const StatusRepository = require("../repositories/statusRepository");
+const StatusRepository = require("../repositories/statusRepository").default;
 const UsersHelper = require("./usersHelper");
-const usersRepository = require("../repositories/usersRepository");
+const usersRepository = require("../repositories/usersRepository").default;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Fund = require("../models/Fund");
+const Fund = require("../models/Fund").default;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Donation = require("../models/Donation");
+const Donation = require("../models/Donation").default;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const UserState = require("../models/UserState");
+const UserState = require("../models/UserState").default;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const User = require("../models/User");
+const User = require("../models/User").default;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const Need = require("../models/Need");
+const Need = require("../models/Need").default;
 
 /**
  * @typedef {import("../utils/date").ElapsedTimeObject} ElapsedTimeObject

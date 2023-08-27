@@ -1,9 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const State = require("../models/State");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const UserState = require("../models/UserState");
+import State from "../models/State";
+import UserState from "../models/UserState";
 
-const BaseRepository = require("./baseRepository");
+import BaseRepository from "./baseRepository";
 
 class StatusRepository extends BaseRepository {
     ChangeType = {
@@ -23,8 +21,8 @@ class StatusRepository extends BaseRepository {
     /**
      *  @returns {State}
      */
-    getSpaceLastState() {
-        let lastState = /** @type {State} */ (this.db.prepare("SELECT * FROM states ORDER BY date DESC").get());
+    getSpaceLastState(): State {
+        const lastState = /** @type {State} */ this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as State;
 
         if (!lastState) return null;
 
@@ -36,8 +34,8 @@ class StatusRepository extends BaseRepository {
     /**
      *  @returns {UserState[]}
      */
-    getAllUserStates() {
-        return /** @type {UserState[]} */ (this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all());
+    getAllUserStates(): UserState[] {
+        return this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all() as UserState[];
     }
 
     /**
@@ -46,19 +44,17 @@ class StatusRepository extends BaseRepository {
      * @param {number} toDate
      * @returns {UserState[]}
      */
-    getUserStates(username, fromDate = 0, toDate = Date.now()) {
-        return /** @type {UserState[]} */ (
-            this.db
-                .prepare("SELECT * FROM userstates WHERE username = ? AND date BETWEEN ? AND ? ORDER BY date")
-                .all(username, fromDate, toDate)
-        );
+    getUserStates(username: string, fromDate: number = 0, toDate: number = Date.now()): UserState[] {
+        return /** @type {UserState[]} */ this.db
+            .prepare("SELECT * FROM userstates WHERE username = ? AND date BETWEEN ? AND ? ORDER BY date")
+            .all(username, fromDate, toDate) as UserState[];
     }
 
     /**
      * @param {UserState} userState
      * @returns {boolean}
      */
-    updateUserState(userState) {
+    updateUserState(userState: UserState): boolean {
         return (
             this.db
                 .prepare("UPDATE userstates SET username = ?, status = ?, date = ?, type = ?, note = ? WHERE id = ?")
@@ -71,7 +67,7 @@ class StatusRepository extends BaseRepository {
      * @param {number} stateId
      * @returns {boolean}
      */
-    removeUserState(stateId) {
+    removeUserState(stateId: number): boolean {
         return this.db.prepare("DELETE FROM userstates WHERE id = ?").run(stateId).changes > 0;
     }
 
@@ -79,7 +75,7 @@ class StatusRepository extends BaseRepository {
      * @param {State} state
      * @returns {void}
      */
-    pushSpaceState(state) {
+    pushSpaceState(state: State): void {
         this.db
             .prepare("INSERT INTO states (open, changedby, date) VALUES (?, ?, ?)")
             .run(state.open ? 1 : 0, state.changedby, state.date.valueOf());
@@ -89,7 +85,7 @@ class StatusRepository extends BaseRepository {
      * @param {UserState} state
      * @returns {void}
      */
-    pushPeopleState(state) {
+    pushPeopleState(state: UserState): void {
         this.db
             .prepare("INSERT INTO userstates (status, username, date, type, note) VALUES (?, ?, ?, ?, ?)")
             .run(
@@ -102,4 +98,4 @@ class StatusRepository extends BaseRepository {
     }
 }
 
-module.exports = new StatusRepository();
+export default new StatusRepository();

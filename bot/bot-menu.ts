@@ -1,7 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { HackerEmbassyBot } = require("./HackerEmbassyBot");
-const UsersRepository = require("../repositories/usersRepository");
-const { logger } = require("../repositories/statusRepository");
+import HackerEmbassyBot from "./HackerEmbassyBot";
+
+import UsersRepository from "../repositories/usersRepository";
+import logger from "../services/logger";
 
 const botConfig = require("config").get("bot");
 
@@ -67,8 +67,7 @@ const residentCommands = [
     { command: "stats", description: "Статистика по времени в спейсе" },
 ];
 
-/** @param {HackerEmbassyBot} bot*/
-async function setMenu(bot) {
+export async function setMenu(bot: HackerEmbassyBot) {
     try {
         await bot.setMyCommands(defaultCommands);
         await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
@@ -81,5 +80,3 @@ async function setMenu(bot) {
         logger.error(error);
     }
 }
-
-module.exports = { setMenu };

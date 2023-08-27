@@ -1,20 +1,18 @@
-const NeedsRepository = require("../../repositories/needsRepository");
-const TextGenerators = require("../../services/textGenerators");
-const UsersHelper = require("../../services/usersHelper");
+import { Message } from "node-telegram-bot-api";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
-const t = require("../../services/localization");
+import NeedsRepository from "../../repositories/needsRepository";
+import TextGenerators from "../../services/textGenerators";
+import UsersHelper from "../../services/usersHelper";
 
-/**
- * @typedef {import("../HackerEmbassyBot").HackerEmbassyBot} HackerEmbassyBot
- * @typedef {import("node-telegram-bot-api").Message} Message
- */
+import t from "../../services/localization";
 
-class NeedsHandlers {
+export default class NeedsHandlers {
     /**
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async needsHandler(bot, msg) {
+    static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
         const inline_keyboard = needs.map(need => [
@@ -33,7 +31,7 @@ class NeedsHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async buyHandler(bot, msg, item) {
+    static async buyHandler(bot: HackerEmbassyBot, msg: Message, item) {
         const requester = msg.from.username;
         const success = NeedsRepository.addBuy(item, requester, new Date());
 
@@ -50,7 +48,7 @@ class NeedsHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async boughtByIdHandler(bot, msg, id) {
+    static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id) {
         await this.boughtHandler(bot, msg, NeedsRepository.getNeedById(id).text || "");
     }
 
@@ -58,7 +56,7 @@ class NeedsHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async boughtUndoHandler(bot, msg, id) {
+    static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id) {
         const need = NeedsRepository.getNeedById(id);
 
         if (need && need.buyer === msg.from.username) {
@@ -73,7 +71,7 @@ class NeedsHandlers {
      * @param {HackerEmbassyBot} bot
      * @param {Message} msg
      */
-    static async boughtHandler(bot, msg, item) {
+    static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item) {
         const buyer = msg.from.username;
         const need = NeedsRepository.getOpenNeedByText(item);
 
@@ -102,5 +100,3 @@ class NeedsHandlers {
         });
     }
 }
-
-module.exports = NeedsHandlers;

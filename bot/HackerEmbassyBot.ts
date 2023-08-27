@@ -1,29 +1,25 @@
-/**
- * @typedef {import("node-telegram-bot-api").BotCommandScope} BotCommandScope
- * @typedef {import("./bot").BotRole} BotRole
- */
-
 // Imports
-const TelegramBot = require("node-telegram-bot-api");
-const logger = require("../services/logger");
-const { sleep, chunkSubstr } = require("../utils/common");
-const MessageHistory = require("./MessageHistory");
-const UsersHelper = require("../services/usersHelper");
-const { t } = require("i18next");
+import TelegramBot, { BotCommandScope } from "node-telegram-bot-api";
+import { error as _error, info } from "../services/logger";
+import { sleep, chunkSubstr } from "../utils/common";
+import MessageHistory from "./MessageHistory";
+import { hasRole } from "../services/usersHelper";
+import { t } from "i18next";
+import { BotRole } from "./bot";
 
 // Consts
 const maxChunkSize = 3500;
 const messagedelay = 1500;
 
 // Helpers
-function prepareMessageForMarkdown(message) {
+function prepareMessageForMarkdown(message: string) {
     return message
         .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
         .replaceAll(/#([_*[\]()~`>+\-=|{}.!])/g, "$1")
         .replaceAll(/#/g, "");
 }
 
-function prepareOptionsForMarkdown(options) {
+function prepareOptionsForMarkdown(options: any) {
     options.parse_mode = "MarkdownV2";
     options.disable_web_page_preview = true;
 
@@ -33,12 +29,14 @@ function prepareOptionsForMarkdown(options) {
 /**
  * @class HackerEmbassyBot
  */
-class HackerEmbassyBot extends TelegramBot {
+export default class HackerEmbassyBot extends TelegramBot {
+    messageHistory: MessageHistory;
+    Name: string;
     /**
      * @param {string} token
      * @param {TelegramBot.ConstructorOptions} options
      */
-    constructor(token, options) {
+    constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
         this.messageHistory = new MessageHistory();
         this.Name = undefined;
@@ -50,10 +48,10 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {string} username
      * @param {(bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any: any[]) => void} callback
      */
-    canUserCall(username, callback) {
+    canUserCall(username: string, callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any: any[]) => void) {
         const savedRestrictions = this.accessTable.get(callback);
 
-        if (savedRestrictions !== undefined && !UsersHelper.hasRole(username, "admin", ...savedRestrictions)) {
+        if (savedRestrictions !== undefined && !hasRole(username, "admin", ...savedRestrictions)) {
             return false;
         }
 
@@ -71,7 +69,7 @@ class HackerEmbassyBot extends TelegramBot {
     /**
      * @param {TelegramBot.Message} msg
      */
-    context(msg) {
+    context(msg: TelegramBot.Message) {
         const botthis = this;
 
         if (!this.#context.has(msg)) {
@@ -98,9 +96,12 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.MessageType | 'callback_query'} event
      * @param {{ (bot: any, callbackQuery: any): Promise<void>; (bot: any, msg: any): Promise<void>; call?: any; }} listener
      */
-    onExt(event, listener) {
-        let botthis = this;
-        let newListener = async query => {
+    onExt(
+        event: TelegramBot.MessageType | "callback_query",
+        listener: { (bot: any, callbackQuery: any): Promise<void>; (bot: any, msg: any): Promise<void>; call?: any }
+    ) {
+        const botthis = this;
+        const newListener = async query => {
             listener.call(this, botthis, query);
         };
 
@@ -121,7 +122,7 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.Message} msg
      * @param {TelegramBot.EditMessageTextOptions} options
      */
-    async editMessageTextExt(text, msg, options) {
+    async editMessageTextExt(text: string, msg: TelegramBot.Message, options: TelegramBot.EditMessageTextOptions) {
         text = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options, message_thread_id: this.context(msg).messageThreadId });
 
@@ -135,10 +136,16 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.SendPhotoOptions} [options]
      * @param {TelegramBot.FileOptions} [fileOptions]
      */
-    async sendPhotoExt(chatId, photo, msg, options, fileOptions) {
+    async sendPhotoExt(
+        chatId: TelegramBot.ChatId,
+        photo: string | import("stream").Stream | Buffer,
+        msg: TelegramBot.Message,
+        options: TelegramBot.SendPhotoOptions = {},
+        fileOptions: TelegramBot.FileOptions = {}
+    ) {
         this.sendChatAction(chatId, "upload_photo", msg);
 
-        let message = await super.sendPhoto(
+        const message = await super.sendPhoto(
             chatId,
             photo,
             { ...options, message_thread_id: this.context(msg).messageThreadId },
@@ -157,7 +164,13 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendLocationOptions} options
      */
-    async sendLocationExt(chatId, latitude, longitude, msg, options = {}) {
+    async sendLocationExt(
+        chatId: TelegramBot.ChatId,
+        latitude: number,
+        longitude: number,
+        msg: TelegramBot.Message,
+        options: TelegramBot.SendLocationOptions = {}
+    ) {
         return await super.sendLocation(chatId, latitude, longitude, {
             ...options,
             message_thread_id: this.context(msg).messageThreadId,
@@ -168,10 +181,13 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.BotCommand[]} commands
      * @param {{ scope: BotCommandScope; language_code?: string; }} [options]
      */
-    async setMyCommands(commands, options) {
+    async setMyCommands(
+        commands: TelegramBot.BotCommand[],
+        options: { scope: BotCommandScope; language_code?: string } = undefined
+    ) {
         return super.setMyCommands(commands, {
             ...options,
-            scope: /**@type {BotCommandScope} */ (/**@type {unknown} */ (JSON.stringify(options?.scope))),
+            scope: JSON.stringify(options?.scope) as unknown as BotCommandScope,
         });
     }
 
@@ -181,12 +197,17 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendMessageOptions} [options]
      */
-    async sendMessageExt(chatId, text, msg, options) {
+    async sendMessageExt(
+        chatId: TelegramBot.ChatId,
+        text: string,
+        msg: TelegramBot.Message,
+        options: TelegramBot.SendMessageOptions = {}
+    ) {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
         if (!this.context(msg)?.mode?.silent) {
-            let message = await super.sendMessage(chatId, preparedText, {
+            const message = await super.sendMessage(chatId, preparedText, {
                 ...options,
                 message_thread_id: this.context(msg)?.messageThreadId,
             });
@@ -207,7 +228,12 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendChatActionOptions} options
      */
-    async sendChatAction(chatId, action, msg, options = {}) {
+    async sendChatAction(
+        chatId: TelegramBot.ChatId,
+        action: TelegramBot.ChatAction,
+        msg: TelegramBot.Message,
+        options: TelegramBot.SendChatActionOptions = {}
+    ) {
         return super.sendChatAction(chatId, action, {
             ...options,
             message_thread_id: this.context(msg).messageThreadId,
@@ -220,8 +246,13 @@ class HackerEmbassyBot extends TelegramBot {
      * @param {TelegramBot.Message} msg
      * @param {TelegramBot.SendMessageOptions} options
      */
-    async sendLongMessage(chatId, text, msg, options = {}) {
-        let chunks = chunkSubstr(text, maxChunkSize);
+    async sendLongMessage(
+        chatId: TelegramBot.ChatId,
+        text: string,
+        msg: TelegramBot.Message,
+        options: TelegramBot.SendMessageOptions = {}
+    ) {
+        const chunks = chunkSubstr(text, maxChunkSize);
 
         if (chunks.length === 1) {
             this.sendMessageExt(chatId, chunks[0], msg, options);
@@ -248,18 +279,22 @@ ${chunks[index]}
      * @param {BotRole[]} restrictions
      * @returns {Promise<void>}
      */
-    async onTextExt(originalRegex, callback, restrictions = []) {
+    async onTextExt(
+        originalRegex: RegExp,
+        callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any) => void,
+        restrictions: BotRole[] = []
+    ): Promise<void> {
         if (restrictions.length > 0) this.accessTable.set(callback, restrictions);
 
-        let regexString = originalRegex.toString();
-        let endOfBodyIndex = regexString.lastIndexOf("/");
-        let regexBody = regexString.substring(1, endOfBodyIndex);
-        let regexParams = regexString.substring(endOfBodyIndex + 1);
-        let botthis = this;
+        const regexString = originalRegex.toString();
+        const endOfBodyIndex = regexString.lastIndexOf("/");
+        const regexBody = regexString.substring(1, endOfBodyIndex);
+        const regexParams = regexString.substring(endOfBodyIndex + 1);
+        const botthis = this;
 
-        let newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
+        const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
-        let newCallback = async function (msg, match) {
+        const newCallback = async function (msg, match) {
             try {
                 if (!botthis.canUserCall(msg.from.username, callback)) {
                     await botthis.sendMessageExt(msg.chat.id, t("admin.messages.restricted"), msg);
@@ -280,7 +315,7 @@ ${chunks[index]}
 
                 await callback.call(this, botthis, msg, match);
             } catch (error) {
-                logger.error(error);
+                _error(error);
             } finally {
                 botthis.context(msg)?.clear();
             }
@@ -296,7 +331,7 @@ ${chunks[index]}
      * @param {Object} options
      * @param {number} messageId
      */
-    async sendOrEditMessage(chatId, text, msg, options, messageId) {
+    async sendOrEditMessage(chatId: number, text: string, msg: TelegramBot.Message, options: object, messageId: number) {
         if (this.context(msg).isEditing) {
             try {
                 await this.editMessageTextExt(text, msg, { chat_id: chatId, message_id: messageId, ...options });
@@ -315,13 +350,11 @@ ${chunks[index]}
      * @param {string} date
      * @param {TelegramBot.ChatId} chat
      */
-    async sendNotification(message, date, chat) {
-        let currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
+    async sendNotification(message: string, date: string, chat: TelegramBot.ChatId) {
+        const currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
         if (date !== currentDate) return;
 
         this.sendMessage(chat, message);
-        logger.info(`Sent a notification to ${chat}: ${message}`);
+        info(`Sent a notification to ${chat}: ${message}`);
     }
 }
-
-exports.HackerEmbassyBot = HackerEmbassyBot;

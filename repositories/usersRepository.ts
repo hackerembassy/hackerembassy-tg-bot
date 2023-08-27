@@ -1,14 +1,13 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const User = require("../models/User");
-const { anyItemIsInList } = require("../utils/common");
-const BaseRepository = require("./baseRepository");
+import User from "../models/User";
+import { anyItemIsInList } from "../utils/common";
+import BaseRepository from "./baseRepository";
 
 class UserRepository extends BaseRepository {
     /**
      *  @returns {User[]}
      */
-    getUsers() {
-        let users = /** @type {User[]} */ (this.db.prepare("SELECT * FROM users").all());
+    getUsers(): User[] {
+        const users = /** @type {User[]} */ this.db.prepare("SELECT * FROM users").all() as User[];
 
         return users ? users.map(user => new User(user)) : null;
     }
@@ -18,10 +17,10 @@ class UserRepository extends BaseRepository {
      *  @param {string[]} roles
      *  @returns {boolean}
      */
-    addUser(username, roles = ["default"]) {
+    addUser(username: string, roles: string[] = ["default"]): boolean {
         try {
             if (this.getUserByName(username) !== null) return false;
-            let joinedRoles = roles.join("|");
+            const joinedRoles = roles.join("|");
 
             this.db.prepare("INSERT INTO users (username, roles) VALUES (?, ?)").run(username, joinedRoles);
 
@@ -37,10 +36,10 @@ class UserRepository extends BaseRepository {
      *  @param {string[]} roles
      *  @returns {boolean}
      */
-    updateRoles(username, roles = ["default"]) {
+    updateRoles(username: string, roles: string[] = ["default"]): boolean {
         try {
             if (this.getUserByName(username) === null) return false;
-            let joinedRoles = roles.join("|");
+            const joinedRoles = roles.join("|");
 
             this.db.prepare("UPDATE users SET roles = ? WHERE username = ?").run(joinedRoles, username);
 
@@ -55,7 +54,7 @@ class UserRepository extends BaseRepository {
      *  @param {string} cmd
      *  @returns {boolean}
      */
-    testMACs(cmd) {
+    testMACs(cmd: string): boolean {
         const macRegex = /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/;
         return cmd.split(",").every(mac => macRegex.test(mac.trim()));
     }
@@ -63,10 +62,12 @@ class UserRepository extends BaseRepository {
     /**
      *  @returns {string[]}
      */
-    getAllRegisteredMACs() {
-        let registeredMacEntries = /** @type {{mac:string}[]} */ (
-            this.db.prepare("SELECT mac FROM users where mac IS NOT NULL").all()
-        );
+    getAllRegisteredMACs(): string[] {
+        type macEntry = { mac: string };
+
+        const registeredMacEntries = /** @type {{mac:string}[]} */ this.db
+            .prepare("SELECT mac FROM users where mac IS NOT NULL")
+            .all() as macEntry[];
 
         return registeredMacEntries.flatMap(macEntry => macEntry.mac.split("|"));
     }
@@ -76,7 +77,7 @@ class UserRepository extends BaseRepository {
      *  @param {string} macs
      *  @returns {boolean}
      */
-    setMACs(username, macs = null) {
+    setMACs(username: string, macs: string = null): boolean {
         try {
             const currentUser = this.getUserByName(username);
             if (currentUser === null && !this.addUser(username, ["default"])) return false;
@@ -105,7 +106,7 @@ class UserRepository extends BaseRepository {
      *  @param {string} emoji
      *  @returns {boolean}
      */
-    setEmoji(username, emoji = null) {
+    setEmoji(username: string, emoji: string = null): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -123,7 +124,7 @@ class UserRepository extends BaseRepository {
      *  @param {number|null} userid
      *  @returns {boolean}
      */
-    setUserid(username, userid) {
+    setUserid(username: string, userid: number | null): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -141,9 +142,9 @@ class UserRepository extends BaseRepository {
      *  @param {boolean} value
      *  @returns {boolean}
      */
-    setAutoinside(username, value) {
+    setAutoinside(username: string, value: boolean): boolean {
         try {
-            let user = this.getUserByName(username);
+            const user = this.getUserByName(username);
             if ((user === null && !this.addUser(username, ["default"])) || (value && !user.mac)) return false;
 
             this.db.prepare("UPDATE users SET autoinside = ? WHERE username = ?").run(Number(value), username);
@@ -160,7 +161,7 @@ class UserRepository extends BaseRepository {
      *  @param {string} birthday
      *  @returns {boolean}
      */
-    setBirthday(username, birthday = null) {
+    setBirthday(username: string, birthday: string = null): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -177,7 +178,7 @@ class UserRepository extends BaseRepository {
      *  @param {string} username
      *  @returns {boolean}
      */
-    removeUser(username) {
+    removeUser(username: string): boolean {
         try {
             this.db.prepare("DELETE FROM users WHERE username = ?").run(username);
 
@@ -192,10 +193,12 @@ class UserRepository extends BaseRepository {
      *  @param {string} username
      *  @returns {User}
      */
-    getUserByName(username) {
+    getUserByName(username: string): User {
         try {
             /** @type {User} */
-            let user = /** @type {User} */ (this.db.prepare("SELECT * FROM users WHERE username = ?").get(username));
+            const user: User = /** @type {User} */ this.db
+                .prepare("SELECT * FROM users WHERE username = ?")
+                .get(username) as User;
 
             return user ? new User(user) : null;
         } catch (error) {
@@ -208,12 +211,12 @@ class UserRepository extends BaseRepository {
      *  @param {string} role
      *  @returns {User[]}
      */
-    getUsersByRole(role) {
+    getUsersByRole(role: string): User[] {
         try {
             /** @type {User[]} */
-            let users = /** @type {User[]} */ (
-                this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role)
-            );
+            const users: User[] = /** @type {User[]} */ this.db
+                .prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')")
+                .all(role) as User[];
 
             return users ? users.map(user => new User(user)) : null;
         } catch (error) {
@@ -223,4 +226,4 @@ class UserRepository extends BaseRepository {
     }
 }
 
-module.exports = new UserRepository();
+export default new UserRepository();

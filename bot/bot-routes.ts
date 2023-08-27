@@ -1,23 +1,24 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const { HackerEmbassyBot } = require("./HackerEmbassyBot");
+import HackerEmbassyBot from "./HackerEmbassyBot";
 
-const BasicHandlers = require("./handlers/basic");
-const StatusHandlers = require("./handlers/status");
-const FundsHandlers = require("./handlers/funds");
-const NeedsHandlers = require("./handlers/needs");
-const EmbassyHandlers = require("./handlers/embassy");
-const BirthdayHandlers = require("./handlers/birthday");
-const AdminHandlers = require("./handlers/admin");
-const ServiceHandlers = require("./handlers/service");
-const MemeHandlers = require("./handlers/meme");
+import BasicHandlers from "./handlers/basic";
+import StatusHandlers from "./handlers/status";
+import FundsHandlers from "./handlers/funds";
+import NeedsHandlers from "./handlers/needs";
+import EmbassyHandlers from "./handlers/embassy";
+import BirthdayHandlers from "./handlers/birthday";
+import AdminHandlers from "./handlers/admin";
+import ServiceHandlers from "./handlers/service";
+import MemeHandlers from "./handlers/meme";
 
-const logger = require("../services/logger");
+import logger from "../services/logger";
 
 class RegexCommander {
+    botname: string;
     /**
      * @param {string} botname
      */
-    constructor(botname = "") {
+    constructor(botname: string = "") {
         this.botname = botname;
     }
 
@@ -27,7 +28,7 @@ class RegexCommander {
      * @param {boolean} optional
      * @param {string} flags
      */
-    command(aliases, params = undefined, optional = true, flags = "i") {
+    command(aliases: string[], params: RegExp = undefined, optional: boolean = true, flags: string = "i") {
         const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
         const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
         return new RegExp(`^${commandPart}${paramsPart}$`, flags);
@@ -37,7 +38,7 @@ class RegexCommander {
 /**
  * @param {HackerEmbassyBot} bot
  */
-async function setRoutes(bot) {
+export async function setRoutes(bot: HackerEmbassyBot) {
     const rc = new RegexCommander(bot.Name);
 
     // Info
@@ -289,5 +290,3 @@ async function setRoutes(bot) {
         logger.error(error);
     });
 }
-
-module.exports = { setRoutes };

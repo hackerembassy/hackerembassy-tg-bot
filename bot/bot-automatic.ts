@@ -1,12 +1,11 @@
-const botConfig = require("config").get("bot");
-const EmbassyHandlers = require("./handlers/embassy");
-const StatusHandlers = require("./handlers/status");
-const BirthdayHandlers = require("./handlers/birthday");
+import config from "config";
+const botConfig = config.get("bot") as any;
+import EmbassyHandlers from "./handlers/embassy";
+import StatusHandlers from "./handlers/status";
+import BirthdayHandlers from "./handlers/birthday";
+import HackerEmbassyBot from "./HackerEmbassyBot";
 
-/**
- * @param {import("./HackerEmbassyBot").HackerEmbassyBot} bot
- */
-function setAutomaticFeatures(bot) {
+export function setAutomaticFeatures(bot: HackerEmbassyBot) {
     EmbassyHandlers.enableStatusMonitor(bot);
     setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, undefined, false), 3600000); // 1hr
     setInterval(
@@ -45,5 +44,3 @@ function setAutomaticFeatures(bot) {
     setInterval(() => StatusHandlers.autoinout(true), botConfig.timeouts.in);
     setInterval(() => StatusHandlers.autoinout(false), botConfig.timeouts.out);
 }
-
-module.exports = { setAutomaticFeatures };

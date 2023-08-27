@@ -22,7 +22,7 @@ class Cancellation {
  * @param {object} options
  * @param {any[]} rest
  */
-function fetchWithTimeout(uri, options, ...rest) {
+function fetchWithTimeout(uri, options = undefined, ...rest) {
     let cancellation = new Cancellation(options?.timeout ?? embassyApiConfig.timeout);
 
     // @ts-ignore

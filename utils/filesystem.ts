@@ -1,10 +1,7 @@
-const path = require("path");
-const fs = require("fs");
+import path from "path";
+import fs from "fs";
 
-/**
- * @param {string} logfolderpath
- */
-function lastModifiedFilePath(logfolderpath) {
+export function lastModifiedFilePath(logfolderpath: string) {
     const files = fs.readdirSync(logfolderpath);
 
     return files?.length > 0
@@ -15,5 +12,3 @@ function lastModifiedFilePath(logfolderpath) {
           })
         : null;
 }
-
-module.exports = { lastModifiedFilePath };

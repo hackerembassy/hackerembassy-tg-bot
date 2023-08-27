@@ -1,7 +1,7 @@
 /**
  * @type {string}
  */
-const GeneralCommandsList = `
+export const GeneralCommandsList: string = `
 Инфа:
 /start - Панель управления бота
 /help - Помощь
@@ -61,7 +61,7 @@ const GeneralCommandsList = `
 /**
  * @type {string}
  */
-const MemberCommandsList = `
+export const MemberCommandsList: string = `
 Команды резидентов:
 /open (o) - Открыть спейс
 /close (c) - Закрыть спейс
@@ -84,7 +84,7 @@ const MemberCommandsList = `
 /**
  * @type {string}
  */
-const AdminCommandsList = ` 
+export const AdminCommandsList: string = ` 
 Команды админов:
 /getusers
 #\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
@@ -100,7 +100,7 @@ const AdminCommandsList = `
 /**
  * @type {string}
  */
-const AccountantCommandsList = `
+export const AccountantCommandsList: string = `
 Команды бухгалтера:
 #\`/costs donation_value currency_code from telegram_username#\` - Задонатить в последний актуальный сбор на аренду
 #\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
@@ -122,7 +122,7 @@ const AccountantCommandsList = `
 /**
  * @type {string}
  */
-const GlobalModifiers = `
+export const GlobalModifiers: string = `
 Эти модификаторы можно добавить в конце любой команды:
 #\`-silent#\` - Команда выполнится без вывода ответа
 #\`-mention#\` - Пользователь будет упомянут с уведомлением
@@ -132,19 +132,10 @@ const GlobalModifiers = `
 /**
  * @type {string}
  */
-const ApiCommandsList = `
+export const ApiCommandsList: string = `
 -status - Статус спейса и кто отметился внутри
 -join - Как присоединиться к нам
 -donate - Как задонатить
 -funds - Наши открытые сборы
 -events - Мероприятия у нас
 `;
-
-module.exports = {
-    GeneralCommandsList,
-    MemberCommandsList,
-    AdminCommandsList,
-    AccountantCommandsList,
-    ApiCommandsList,
-    GlobalModifiers,
-};

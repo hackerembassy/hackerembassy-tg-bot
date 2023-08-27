@@ -14,7 +14,7 @@ interface SpaceClimate {
     bedroom: FloorClimate;
 }
 
-async function getClimate(): Promise<SpaceClimate> {
+export async function getClimate(): Promise<SpaceClimate> {
     try {
         const queries = [
             (await getFromHass(climateConfig.first_floor.temperature)).json(),
@@ -52,5 +52,3 @@ async function getClimate(): Promise<SpaceClimate> {
 function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?") {
     return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }
-
-export default { getClimate };

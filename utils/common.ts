@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/ban-types */
 /**
  * @param {any[]} items
  * @param {any[]} list
  */
-function anyItemIsInList(items, list) {
+export function anyItemIsInList(items: any[], list: any[]) {
     return items.some(item => list.includes(item));
 }
 
 /**
  * @param {number} ms
  */
-function sleep(ms) {
+export function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -19,7 +20,7 @@ function sleep(ms) {
  * @param {number} index
  * @param {T[]} array
  */
-function onlyUniqueFilter(value, index, array) {
+export function onlyUniqueFilter<T>(value: T, index: number, array: T[]) {
     return array.indexOf(value) === index;
 }
 
@@ -27,7 +28,7 @@ function onlyUniqueFilter(value, index, array) {
  * @param {string} str
  * @param {number} size
  */
-function chunkSubstr(str, size) {
+export function chunkSubstr(str: string, size: number) {
     const chunks = [];
 
     if (str.length < size) return [str];
@@ -47,7 +48,7 @@ function chunkSubstr(str, size) {
  * @param {string} text
  * @returns {string}
  */
-function stripCustomMarkup(text) {
+export function stripCustomMarkup(text: string): string {
     return text.replaceAll(/#./g, "");
 }
 
@@ -55,16 +56,15 @@ function stripCustomMarkup(text) {
  * @param {function} func
  * @param {number} delay
  */
-function debounce(func, delay) {
+export function debounce(func: Function, delay: number) {
     let timeoutId;
 
     return function () {
         clearTimeout(timeoutId);
 
         timeoutId = setTimeout(() => {
+            // eslint-disable-next-line prefer-rest-params
             func.apply(this, arguments);
         }, delay);
     };
 }
-
-module.exports = { anyItemIsInList, sleep, chunkSubstr, stripCustomMarkup, debounce, onlyUniqueFilter };

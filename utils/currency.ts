@@ -1,7 +1,7 @@
-const { Convert } = require("easy-currencies");
-const CryptoConvert = require("crypto-convert").default;
-const config = require("config");
-const currencyConfig = config.get("currency");
+import { Convert } from "easy-currencies";
+import CryptoConvert from "crypto-convert";
+import config from "config";
+const currencyConfig = config.get("currency") as any;
 
 const CurrencyFractionDigits = [
     { currency: "AMD", fraction: 0 },
@@ -26,27 +26,27 @@ const CurrencySymbolToCode = {
  * @param {number} value
  * @param {string} currency
  */
-function formatValueForCurrency(value, currency) {
-    let fraction = CurrencyFractionDigits.find(fd => fd.currency === currency)?.fraction ?? 4;
+export function formatValueForCurrency(value: number, currency: string) {
+    const fraction = CurrencyFractionDigits.find(fd => fd.currency === currency)?.fraction ?? 4;
     return Number(value.toFixed(fraction));
 }
 
 /**
  * @param {string} value
  */
-function parseMoneyValue(value) {
+export function parseMoneyValue(value: string) {
     return Number(value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", ""));
 }
 
 /**
  * @param {string} currencyInput
  */
-async function prepareCurrency(currencyInput) {
+export async function prepareCurrency(currencyInput: string) {
     if (!currencyInput.length) return currencyConfig.default;
 
     if (Object.keys(CurrencySymbolToCode).includes(currencyInput)) return CurrencySymbolToCode[currencyInput];
 
-    let outputCurrency = currencyInput.toUpperCase();
+    const outputCurrency = currencyInput.toUpperCase();
 
     // We don't need nonconvertable currencies
     if (await convertCurrency(1, outputCurrency, "USD")) return outputCurrency;
@@ -77,7 +77,7 @@ const convert = new CryptoConvert({
  * @param {string} to
  * @returns {Promise<number>}
  */
-async function convertCurrency(amount, from, to) {
+export async function convertCurrency(amount: number, from: string | number, to: string): Promise<number> {
     try {
         await convert.ready();
 
@@ -86,5 +86,3 @@ async function convertCurrency(amount, from, to) {
         return undefined;
     }
 }
-
-module.exports = { CurrencyFractionDigits, convertCurrency, formatValueForCurrency, prepareCurrency, parseMoneyValue };

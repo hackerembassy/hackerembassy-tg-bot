@@ -1,4 +1,4 @@
-import { transports as _transports, createLogger, format as _format } from "winston";
+import Winston from "winston";
 import "winston-daily-rotate-file";
 
 import { promise } from "ping";
@@ -8,7 +8,7 @@ const botConfig = config.get("bot") as any;
 const embassyServiceConfig = config.get("embassy-api") as any;
 const hosts = embassyServiceConfig.hostsToMonitor;
 
-const transport = new _transports.DailyRotateFile({
+const transport = new Winston.transports.DailyRotateFile({
     level: "info",
     filename: `${botConfig.logfolderpath}/monitor/%DATE%.log`,
     datePattern: "YYYY-MM-DD",
@@ -23,12 +23,12 @@ transport.on("logged", function (data) {
     UnreadMessagesBuffer.push(data);
 });
 
-const statusLogger = createLogger({
-    format: _format.combine(
-        _format.timestamp({
+const statusLogger = Winston.createLogger({
+    format: Winston.format.combine(
+        Winston.format.timestamp({
             format: "YYYY-MM-DD HH:mm:ss",
         }),
-        _format.json()
+        Winston.format.json()
     ),
     transports: [transport],
 });

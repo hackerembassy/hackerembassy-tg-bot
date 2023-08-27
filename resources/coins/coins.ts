@@ -1,7 +1,7 @@
-const fs = require("fs").promises;
-const path = require("path");
+import { promises as fs } from "fs";
+import path from "path";
 
-const Coins = [
+export const Coins = [
     {
         fullname: "Bitcoin",
         shortname: "btc",
@@ -34,14 +34,12 @@ const Coins = [
 
 const QRBaseFolder = "./qr";
 
-function getCoinDefinition(coinname) {
+export function getCoinDefinition(coinname) {
     return Coins.find(c => c.shortname === coinname);
 }
 
-async function getQR(coinname) {
-    let buffer = await fs.readFile(path.join(__dirname, QRBaseFolder, getCoinDefinition(coinname).qrfile));
+export async function getQR(coinname) {
+    const buffer = await fs.readFile(path.join(__dirname, QRBaseFolder, getCoinDefinition(coinname).qrfile));
 
     return buffer;
 }
-
-module.exports = { Coins, getQR, getCoinDefinition };

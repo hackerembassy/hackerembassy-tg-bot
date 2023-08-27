@@ -1,36 +1,36 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const { default: fetch } = require("node-fetch");
-const { NodeSSH } = require("node-ssh");
-const find = require("local-devices");
-const { LUCI } = require("luci-rpc");
+import { config as envconfig } from "dotenv";
+envconfig();
+import express from "express";
+import cors from "cors";
+import { json } from "body-parser";
+import { default as fetch } from "node-fetch";
+import { NodeSSH } from "node-ssh";
+import find from "local-devices";
+import { LUCI } from "luci-rpc";
 
-const printer3d = require("./services/printer3d").default;
-const { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } =
-    require("./services/media").default;
-const logger = require("./services/logger").default;
-const { unlock } = require("./services/mqtt").default;
-const { decrypt } = require("./utils/security");
-const { createErrorMiddleware } = require("./utils/middleware");
+import printer3d from "./services/printer3d";
+import { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } from "./services/media";
+import logger from "./services/logger";
+import { unlock } from "./services/mqtt";
+import { decrypt } from "./utils/security";
+import { createErrorMiddleware } from "./utils/middleware";
 
-const config = require("config");
-const embassyApiConfig = config.get("embassy-api");
-const botConfig = config.get("bot");
+const embassyApiConfig = config.get("embassy-api") as any;
+const botConfig = config.get("bot") as any;
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
 
 process.env.TZ = botConfig.timezone;
 
-const statusMonitor = require("./services/statusMonitor").default;
-const { getClimate } = require("./services/home").default;
+import * as statusMonitor from "./services/statusMonitor";
+import { getClimate } from "./services/home";
+import config from "config";
 statusMonitor.startMonitoring();
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(json());
 app.use(express.static(embassyApiConfig.static));
 app.use(createErrorMiddleware(logger));
 
@@ -157,7 +157,7 @@ app.get("/devices", async (_, res, next) => {
         await luci.init();
         luci.autoUpdateToken(1000 * 60 * 30);
 
-        let rpc = [
+        const rpc = [
             {
                 jsonrpc: "2.0",
                 id: 93,
@@ -172,7 +172,7 @@ app.get("/devices", async (_, res, next) => {
             },
         ];
 
-        let response = await fetch(`http://${routerip}/ubus/`, {
+        const response = await fetch(`http://${routerip}/ubus/`, {
             headers: {
                 "Content-Type": "application/json",
             },
@@ -180,11 +180,11 @@ app.get("/devices", async (_, res, next) => {
             method: "POST",
         });
 
-        let adapters = await response.json();
+        const adapters = await response.json();
         let macs = [];
 
         for (const wlanAdapter of adapters) {
-            let devices = wlanAdapter.result[1]?.results;
+            const devices = wlanAdapter.result[1]?.results;
             if (devices) macs = macs.concat(devices.map(dev => dev.mac.toLowerCase()));
         }
 
@@ -204,8 +204,8 @@ app.get("/devicesFromKeenetic", async (_, res, next) => {
             password: process.env["WIFIPASSWORD"],
         });
 
-        let sshdata = await ssh.exec("show associations", [""]);
-        let macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)].map(item => item[1]);
+        const sshdata = await ssh.exec("show associations", [""]);
+        const macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)].map(item => item[1]);
         res.json(macs);
     } catch (error) {
         next(error);
@@ -214,7 +214,7 @@ app.get("/devicesFromKeenetic", async (_, res, next) => {
 
 app.get("/printer", async (req, res, next) => {
     try {
-        let printername = req.query.printername;
+        const printername = req.query.printername as string;
 
         if (!printername) {
             res.status(400).send({ message: "Printer name is required" });
@@ -224,11 +224,11 @@ app.get("/printer", async (req, res, next) => {
         let fileMetadata;
         let thumbnailBuffer;
         let cam;
-        let statusResponse = await printer3d.getPrinterStatus(printername);
-        let status = statusResponse?.result?.status;
+        const statusResponse = await printer3d.getPrinterStatus(printername);
+        const status = statusResponse?.result?.status;
 
         if (status) {
-            let fileMetadataResponse = await printer3d.getFileMetadata(printername, status?.print_stats?.filename);
+            const fileMetadataResponse = await printer3d.getFileMetadata(printername, status?.print_stats?.filename);
             try {
                 cam = await printer3d.getCam(printername);
             } catch {
@@ -237,7 +237,7 @@ app.get("/printer", async (req, res, next) => {
 
             if (fileMetadataResponse) {
                 fileMetadata = fileMetadataResponse.result;
-                let thumbnailPath = fileMetadata?.thumbnails[fileMetadata.thumbnails.length - 1]?.relative_path;
+                const thumbnailPath = fileMetadata?.thumbnails[fileMetadata.thumbnails.length - 1]?.relative_path;
                 thumbnailBuffer = await printer3d.getThumbnail(printername, thumbnailPath);
             }
         }

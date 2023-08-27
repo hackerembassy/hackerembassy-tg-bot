@@ -1,8 +1,11 @@
-const config = require("config");
-const embassyApiConfig = config.get("embassy-api");
-const { default: fetch } = require("node-fetch");
+import config from "config";
+const embassyApiConfig = config.get("embassy-api") as any;
+import { default as fetch } from "node-fetch";
 
 class Cancellation {
+    controller: AbortController;
+    timeoutId: NodeJS.Timeout;
+
     constructor(timeout = 15000) {
         this.controller = new AbortController();
         this.timeoutId = setTimeout(() => this.controller.abort(), timeout);
@@ -22,8 +25,8 @@ class Cancellation {
  * @param {object} options
  * @param {any[]} rest
  */
-function fetchWithTimeout(uri, options = undefined, ...rest) {
-    let cancellation = new Cancellation(options?.timeout ?? embassyApiConfig.timeout);
+export function fetchWithTimeout(uri: string, options: any = undefined, ...rest: any[]) {
+    const cancellation = new Cancellation(options?.timeout ?? embassyApiConfig.timeout);
 
     // @ts-ignore
     return fetch(uri, { signal: cancellation.signal, ...options }, ...rest);
@@ -33,7 +36,7 @@ function fetchWithTimeout(uri, options = undefined, ...rest) {
  * @param {string} url
  * @returns {Promise<Response>}
  */
-async function getFromHass(url) {
+export async function getFromHass(url: string): Promise<Response> {
     // @ts-ignore
     return await fetch(`${url}`, {
         headers: {
@@ -48,7 +51,7 @@ async function getFromHass(url) {
  * @param {any} body
  * @returns {Promise<Response>}
  */
-async function postToHass(url, body) {
+export async function postToHass(url: string, body: any): Promise<Response> {
     // @ts-ignore
     return await fetch(url, {
         method: "POST",
@@ -64,8 +67,6 @@ async function postToHass(url, body) {
  * @param {Response} response
  * @returns {Promise<Buffer>}
  */
-async function getBufferFromResponse(response) {
+export async function getBufferFromResponse(response: Response): Promise<Buffer> {
     return Buffer.from(await response.arrayBuffer());
 }
-
-module.exports = { fetchWithTimeout, getFromHass, postToHass, getBufferFromResponse };

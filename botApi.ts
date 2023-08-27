@@ -1,21 +1,21 @@
-const express = require("express");
-const cors = require("cors");
-const logger = require("./services/logger").default;
-const bodyParser = require("body-parser");
-const config = require("config");
-const embassyApiConfig = config.get("embassy-api");
+import express from "express";
+import cors from "cors";
+import logger from "./services/logger";
+import { json } from "body-parser";
+import config from "config";
+const embassyApiConfig = config.get("embassy-api") as any;
 
-const TextGenerators = require("./services/textGenerators").default;
-const StatusRepository = require("./repositories/statusRepository").default;
-const FundsRepository = require("./repositories/fundsRepository").default;
-const UsersRepository = require("./repositories/usersRepository").default;
-const Commands = require("./resources/commands");
-const { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } = require("./services/statusHelper");
-const { stripCustomMarkup } = require("./utils/common");
-const { createErrorMiddleware } = require("./utils/middleware");
-const { fetchWithTimeout } = require("./utils/network");
+import * as TextGenerators from "./services/textGenerators";
+import StatusRepository from "./repositories/statusRepository";
+import FundsRepository from "./repositories/fundsRepository";
+import UsersRepository from "./repositories/usersRepository";
+import { ApiCommandsList } from "./resources/commands";
+import { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } from "./services/statusHelper";
+import { stripCustomMarkup } from "./utils/common";
+import { createErrorMiddleware } from "./utils/middleware";
+import { fetchWithTimeout } from "./utils/network";
 
-const apiConfig = config.get("api");
+const apiConfig = config.get("api") as any;
 const app = express();
 const port = apiConfig.port;
 
@@ -30,12 +30,12 @@ function tokenSecured(req, res, next) {
 }
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(json());
 app.use(createErrorMiddleware(logger));
 
 // Routes
 app.get("/commands", (_, res) => {
-    res.send(Commands.ApiCommandsList);
+    res.send(ApiCommandsList);
 });
 
 app.get("/status", async (_, res) => {
@@ -55,7 +55,7 @@ app.get("/status", async (_, res) => {
 });
 
 app.get("/api/status", (_, res) => {
-    let status = StatusRepository.getSpaceLastState();
+    const status = StatusRepository.getSpaceLastState();
 
     if (!status) {
         res.json({
@@ -89,13 +89,13 @@ app.get("/api/status", (_, res) => {
 });
 
 app.get("/api/inside", (_, res) => {
-    let inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
+    const inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
     res.json(inside);
 });
 
 app.get("/api/insidecount", (_, res) => {
     try {
-        let inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
+        const inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
         res.status(200).send(inside.length.toString());
     } catch {
         res.status(500).send("-1");
@@ -115,21 +115,21 @@ app.post("/api/close", tokenSecured, (_, res) => {
 });
 
 app.get("/join", (_, res) => {
-    let message = TextGenerators.getJoinText(true);
+    const message = TextGenerators.getJoinText(true);
     res.send(message);
 });
 
 app.get("/events", (_, res) => {
-    let message = TextGenerators.getEventsText(true);
+    const message = TextGenerators.getEventsText(true);
     res.send(message);
 });
 
 app.get("/funds", async (_, res) => {
-    let funds = FundsRepository.getFunds().filter(p => p.status === "open");
-    let donations = FundsRepository.getDonations();
-    let list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });
+    const funds = FundsRepository.getFunds().filter(p => p.status === "open");
+    const donations = FundsRepository.getDonations();
+    const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });
 
-    let message = `⚒ Вот наши текущие сборы:
+    const message = `⚒ Вот наши текущие сборы:
 
   ${list}💸 Чтобы узнать, как нам помочь - пиши donate`;
 
@@ -137,8 +137,8 @@ app.get("/funds", async (_, res) => {
 });
 
 app.get("/donate", (_, res) => {
-    let accountants = UsersRepository.getUsersByRole("accountant");
-    let message = TextGenerators.getDonateText(accountants, true);
+    const accountants = UsersRepository.getUsersByRole("accountant");
+    const message = TextGenerators.getDonateText(accountants, true);
     res.send(message);
 });
 

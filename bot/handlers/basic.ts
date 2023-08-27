@@ -3,8 +3,8 @@ import HackerEmbassyBot from "../HackerEmbassyBot";
 
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-import Commands from "../../resources/commands";
-import CoinsHelper from "../../resources/coins/coins";
+import * as Commands from "../../resources/commands";
+import * as CoinsHelper from "../../resources/coins/coins";
 
 import UsersRepository from "../../repositories/usersRepository";
 import config from "config";

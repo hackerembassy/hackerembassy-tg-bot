@@ -1,29 +1,26 @@
-/**
- * @typedef {Object} DateObject
- * @property {number} day
- * @property {number} month
- * @property {number} year
- */
+export interface DateObject {
+    day: number;
+    month: number;
+    year: number;
+}
 
-/**
- * @typedef {object} DateBoundary
- * @property {DateObject} from
- * @property {DateObject} to
- */
+export interface DateBoundary {
+    from: DateObject;
+    to: DateObject;
+}
 
-/**
- * @typedef {object} ElapsedTimeObject
- * @property {number} days
- * @property {number} hours
- * @property {number} minutes
- * @property {number} totalSeconds
- */
+export interface ElapsedTimeObject {
+    days: number;
+    hours: number;
+    minutes: number;
+    totalSeconds: number;
+}
 
 /**
  * @param {Date} date
  * @returns DateObject
  */
-function toDateObject(date) {
+export function toDateObject(date: Date) {
     return { day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear() };
 }
 
@@ -31,7 +28,7 @@ function toDateObject(date) {
  * @param {number} minutes
  * @returns {string}
  */
-function convertMinutesToHours(minutes) {
+export function convertMinutesToHours(minutes: number): string {
     if (isNaN(minutes) || !isFinite(minutes)) return;
 
     const hours = Math.floor(minutes / 60);
@@ -43,10 +40,10 @@ function convertMinutesToHours(minutes) {
 /**
  * @param {Date} date
  */
-function getMonthBoundaries(date) {
-    let startMonthDate = new Date(date);
+export function getMonthBoundaries(date: Date) {
+    const startMonthDate = new Date(date);
     startMonthDate.setDate(1);
-    let endMonthDate = new Date(date);
+    const endMonthDate = new Date(date);
     endMonthDate.setMonth(endMonthDate.getMonth() + 1);
     endMonthDate.setDate(0);
 
@@ -57,7 +54,7 @@ function getMonthBoundaries(date) {
  * @param {Date} someDate
  * @returns {boolean}
  */
-function isToday(someDate) {
+export function isToday(someDate: Date): boolean {
     const today = new Date();
     return (
         someDate.getDate() == today.getDate() &&
@@ -65,5 +62,3 @@ function isToday(someDate) {
         someDate.getFullYear() == today.getFullYear()
     );
 }
-
-module.exports = { toDateObject, convertMinutesToHours, getMonthBoundaries, isToday };

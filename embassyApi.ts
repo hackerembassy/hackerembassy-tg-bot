@@ -9,24 +9,24 @@ import { LUCI } from "luci-rpc";
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 
+import { BotConfig, EmbassyApiConfig } from "./config/schema";
+import { getClimate } from "./services/home";
 import logger from "./services/logger";
 import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "./services/media";
 import { unlock } from "./services/mqtt";
 import printer3d from "./services/printer3d";
+import * as statusMonitor from "./services/statusMonitor";
 import { createErrorMiddleware } from "./utils/middleware";
 import { decrypt } from "./utils/security";
 
-const embassyApiConfig = config.get("embassy-api") as any;
-const botConfig = config.get("bot") as any;
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const botConfig = config.get("bot") as BotConfig;
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
 
-process.env.TZ = botConfig.timezone;
-
-import { getClimate } from "./services/home";
-import * as statusMonitor from "./services/statusMonitor";
 statusMonitor.startMonitoring();
+process.env.TZ = botConfig.timezone;
 
 const app = express();
 app.use(cors());

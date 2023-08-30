@@ -1,6 +1,9 @@
 import config from "config";
-const embassyApiConfig = config.get("embassy-api") as any;
 import { default as fetch } from "node-fetch";
+
+import { EmbassyApiConfig } from "../config/schema";
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
 class Cancellation {
     controller: AbortController;

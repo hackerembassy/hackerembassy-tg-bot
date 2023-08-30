@@ -1,7 +1,9 @@
 import config from "config";
 
+import { EmbassyApiConfig } from "../config/schema";
 import { getFromHass } from "../utils/network";
-const embassyApiConfig = config.get("embassy-api") as any;
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const climateConfig = embassyApiConfig.climate;
 
 interface FloorClimate {

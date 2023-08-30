@@ -3,8 +3,10 @@ import config from "config";
 import { promises as fs } from "fs";
 import { join } from "path";
 
+import { EmbassyApiConfig } from "../config/schema";
 import { getBufferFromResponse, getFromHass, postToHass } from "../utils/network";
-const embassyApiConfig = config.get("embassy-api") as any;
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;

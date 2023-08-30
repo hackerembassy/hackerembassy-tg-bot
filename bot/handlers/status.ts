@@ -1,7 +1,11 @@
 import config from "config";
+import { Message } from "node-telegram-bot-api";
 
+import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
+import { createUserStatsDonut } from "../../services/export";
+import t from "../../services/localization";
 import logger from "../../services/logger";
 import {
     closeSpace,
@@ -16,18 +20,14 @@ import {
 } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-const embassyApiConfig = config.get("embassy-api") as any;
-const botConfig = config.get("bot") as any;
-const statsStartDateString = "2023-01-01";
-
-import { Message } from "node-telegram-bot-api";
-
-import { createUserStatsDonut } from "../../services/export";
-import t from "../../services/localization";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
 import HackerEmbassyBot from "../HackerEmbassyBot";
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const botConfig = config.get("bot") as BotConfig;
+const statsStartDateString = "2023-01-01";
 
 export default class StatusHandlers {
     static isStatusError = false;

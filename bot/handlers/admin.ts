@@ -3,13 +3,14 @@ import fs from "fs";
 import { Message } from "node-telegram-bot-api";
 import path from "path";
 
+import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
+import t from "../../services/localization";
 import * as UsersHelper from "../../services/usersHelper";
+import { lastModifiedFilePath } from "../../utils/filesystem";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
-const botConfig = config.get("bot") as any;
-import t from "../../services/localization";
-import { lastModifiedFilePath } from "../../utils/filesystem";
+const botConfig = config.get("bot") as BotConfig;
 
 export default class AdminHandlers {
     static async forwardHandler(bot: HackerEmbassyBot, msg: Message, text: string) {

@@ -3,9 +3,11 @@ import "winston-daily-rotate-file";
 import config from "config";
 import { promise } from "ping";
 import Winston from "winston";
-const botConfig = config.get("bot") as any;
 
-const embassyServiceConfig = config.get("embassy-api") as any;
+import { BotConfig, EmbassyApiConfig } from "../config/schema";
+
+const botConfig = config.get("bot") as BotConfig;
+const embassyServiceConfig = config.get("embassy-api") as EmbassyApiConfig;
 const hosts = embassyServiceConfig.hostsToMonitor;
 
 const transport = new Winston.transports.DailyRotateFile({

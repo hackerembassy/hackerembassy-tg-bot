@@ -2,9 +2,10 @@ import config from "config";
 import { existsSync, promises, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
+import { BotConfig } from "../config/schema";
 import { debounce } from "../utils/common";
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const botConfig = config.get("bot") as any;
+
+const botConfig = config.get("bot") as BotConfig;
 
 export default class MessageHistory {
     historypath: string;

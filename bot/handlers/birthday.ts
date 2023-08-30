@@ -1,21 +1,21 @@
 import config from "config";
 import fs from "fs/promises";
+import { Message } from "node-telegram-bot-api";
 import path from "path";
 
+import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
+import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
-const botConfig = config.get("bot") as any;
+const botConfig = config.get("bot") as BotConfig;
 
 const wishedTodayPath = path.join(__dirname, `../../${botConfig.persistedfolderpath}/wished-today.json`);
 const baseWishesDir = "./resources/wishes";
-import { Message } from "node-telegram-bot-api";
-
-import t from "../../services/localization";
-import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class BirthdayHandlers {
     static async forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {

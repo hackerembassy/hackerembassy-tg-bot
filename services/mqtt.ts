@@ -2,9 +2,11 @@ import config from "config";
 import { config as envconfig } from "dotenv";
 envconfig();
 import { connect } from "mqtt";
-const embassyApiConfig = config.get("embassy-api") as any;
-const mqtthost = embassyApiConfig.mqtthost;
 import { env } from "process";
+
+import { EmbassyApiConfig } from "../config/schema";
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const mqtthost = embassyApiConfig.mqtthost;
 
 export function unlock(): void {
     const client = connect(`mqtt://${mqtthost}`, {

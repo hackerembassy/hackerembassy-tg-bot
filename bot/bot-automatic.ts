@@ -1,9 +1,12 @@
 import config from "config";
-const botConfig = config.get("bot") as any;
+
+import { BotConfig } from "../config/schema";
 import HackerEmbassyBot from "./HackerEmbassyBot";
 import BirthdayHandlers from "./handlers/birthday";
 import EmbassyHandlers from "./handlers/embassy";
 import StatusHandlers from "./handlers/status";
+
+const botConfig = config.get("bot") as BotConfig;
 
 export function setAutomaticFeatures(bot: HackerEmbassyBot) {
     EmbassyHandlers.enableStatusMonitor(bot);

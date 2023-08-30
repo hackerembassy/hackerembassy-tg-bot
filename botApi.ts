@@ -3,20 +3,21 @@ import config from "config";
 import cors from "cors";
 import express from "express";
 
-import logger from "./services/logger";
-const embassyApiConfig = config.get("embassy-api") as any;
-
+import { BotApiConfig, EmbassyApiConfig } from "./config/schema";
 import FundsRepository from "./repositories/fundsRepository";
 import StatusRepository from "./repositories/statusRepository";
 import UsersRepository from "./repositories/usersRepository";
 import { ApiCommandsList } from "./resources/commands";
+import logger from "./services/logger";
 import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "./services/statusHelper";
 import * as TextGenerators from "./services/textGenerators";
 import { stripCustomMarkup } from "./utils/common";
 import { createErrorMiddleware } from "./utils/middleware";
 import { fetchWithTimeout } from "./utils/network";
 
-const apiConfig = config.get("api") as any;
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const apiConfig = config.get("api") as BotApiConfig;
+
 const app = express();
 const port = apiConfig.port;
 

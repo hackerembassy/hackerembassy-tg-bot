@@ -1,21 +1,22 @@
-import * as UsersHelper from "../../services/usersHelper";
-import UsersRepository from "../../repositories/usersRepository";
 import config from "config";
 
-import StatusHandlers from "./status";
+import UsersRepository from "../../repositories/usersRepository";
+import * as UsersHelper from "../../services/usersHelper";
+import BasicHandlers from "./basic";
+import BirthdayHandlers from "./birthday";
+import EmbassyHandlers from "./embassy";
 import FundsHandlers from "./funds";
 import NeedsHandlers from "./needs";
-import BirthdayHandlers from "./birthday";
-import BasicHandlers from "./basic";
-import EmbassyHandlers from "./embassy";
+import StatusHandlers from "./status";
 
 const botConfig = config.get("bot") as any;
 
-import t from "../../services/localization";
-import { setMenu } from "../bot-menu";
-import RateLimiter from "../../services/RateLimiter";
-import logger from "../../services/logger";
 import TelegramBot, { InlineKeyboardButton, Message, User } from "node-telegram-bot-api";
+
+import t from "../../services/localization";
+import logger from "../../services/logger";
+import RateLimiter from "../../services/RateLimiter";
+import { setMenu } from "../bot-menu";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class ServiceHandlers {
@@ -125,7 +126,7 @@ export default class ServiceHandlers {
         try {
             bot.context(msg).messageThreadId = msg.message_thread_id;
 
-            await RateLimiter.throttle(ServiceHandlers.routeQuery, [bot, callbackQuery, msg], msg.from.id, ServiceHandlers);
+            await RateLimiter.throttled(ServiceHandlers.routeQuery, msg.from.id)(bot, callbackQuery, msg);
         } catch (error) {
             logger.log(error);
         } finally {

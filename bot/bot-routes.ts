@@ -1,17 +1,15 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import HackerEmbassyBot from "./HackerEmbassyBot";
-
-import BasicHandlers from "./handlers/basic";
-import StatusHandlers from "./handlers/status";
-import FundsHandlers from "./handlers/funds";
-import NeedsHandlers from "./handlers/needs";
-import EmbassyHandlers from "./handlers/embassy";
-import BirthdayHandlers from "./handlers/birthday";
-import AdminHandlers from "./handlers/admin";
-import ServiceHandlers from "./handlers/service";
-import MemeHandlers from "./handlers/meme";
-
 import logger from "../services/logger";
+import HackerEmbassyBot from "./HackerEmbassyBot";
+import AdminHandlers from "./handlers/admin";
+import BasicHandlers from "./handlers/basic";
+import BirthdayHandlers from "./handlers/birthday";
+import EmbassyHandlers from "./handlers/embassy";
+import FundsHandlers from "./handlers/funds";
+import MemeHandlers from "./handlers/meme";
+import NeedsHandlers from "./handlers/needs";
+import ServiceHandlers from "./handlers/service";
+import StatusHandlers from "./handlers/status";
 
 class RegexCommander {
     botname: string;

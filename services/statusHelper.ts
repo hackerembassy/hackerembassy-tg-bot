@@ -1,11 +1,10 @@
+import UserState from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
 import { anyItemIsInList } from "../utils/common";
-import { fetchWithTimeout } from "../utils/network";
 import { onlyUniqueFilter } from "../utils/common";
 import { ElapsedTimeObject, isToday } from "../utils/date";
-import UserState from "../models/UserState";
-const { UserStatusType, ChangeType } = statusRepository;
+import { fetchWithTimeout } from "../utils/network";
 
 const embassyApiConfig = require("config").get("embassy-api");
 
@@ -128,11 +127,11 @@ export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toD
 }
 
 export function filterPeopleInside(userState: UserState): boolean {
-    return userState.status === UserStatusType.Inside;
+    return userState.status === statusRepository.UserStatusType.Inside;
 }
 
 export function filterPeopleGoing(userState: UserState): boolean {
-    return userState.status === UserStatusType.Going && isToday(new Date(userState.date));
+    return userState.status === statusRepository.UserStatusType.Going && isToday(new Date(userState.date));
 }
 
 export function evictPeople(insideStates: UserState[]): void {
@@ -141,10 +140,10 @@ export function evictPeople(insideStates: UserState[]): void {
     for (const userstate of insideStates) {
         statusRepository.pushPeopleState({
             id: 0,
-            status: UserStatusType.Outside,
+            status: statusRepository.UserStatusType.Outside,
             date: date,
             username: userstate.username,
-            type: ChangeType.Evicted,
+            type: statusRepository.ChangeType.Evicted,
             note: null,
         });
     }

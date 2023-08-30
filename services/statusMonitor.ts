@@ -1,8 +1,8 @@
-import Winston from "winston";
 import "winston-daily-rotate-file";
 
-import { promise } from "ping";
 import config from "config";
+import { promise } from "ping";
+import Winston from "winston";
 const botConfig = config.get("bot") as any;
 
 const embassyServiceConfig = config.get("embassy-api") as any;

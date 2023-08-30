@@ -1,7 +1,8 @@
-import { existsSync, readFileSync, writeFileSync, promises } from "fs";
-import { join } from "path";
-import { debounce } from "../utils/common";
 import config from "config";
+import { existsSync, promises, readFileSync, writeFileSync } from "fs";
+import { join } from "path";
+
+import { debounce } from "../utils/common";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const botConfig = config.get("bot") as any;
 
@@ -43,7 +44,7 @@ export default class MessageHistory {
 
     #historyBuffer: { [chatId: string]: { messageId: number; text?: string; datetime: number }[] };
 
-    #debouncedPersistChanges = debounce(async function () {
+    #debouncedPersistChanges = debounce(async () => {
         await this.#persistChanges();
     }, 1000);
 

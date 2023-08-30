@@ -1,6 +1,5 @@
 import State from "../models/State";
 import UserState from "../models/UserState";
-
 import BaseRepository from "./baseRepository";
 
 class StatusRepository extends BaseRepository {

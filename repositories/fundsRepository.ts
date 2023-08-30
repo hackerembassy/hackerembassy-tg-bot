@@ -1,4 +1,5 @@
 import config from "config";
+
 import Donation from "../models/Donation";
 import Fund from "../models/Fund";
 import BaseRepository from "./baseRepository";
@@ -18,7 +19,7 @@ class FundsRepository extends BaseRepository {
     }
 
     getLatestCosts(): Fund {
-        return this.getFunds().find(fund => /(А|а)ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
+        return this.getFunds().find(fund => /[Аа]ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
     }
 
     getDonations(): Donation[] {

@@ -1,9 +1,9 @@
 import config from "config";
 const botConfig = config.get("bot") as any;
+import HackerEmbassyBot from "./HackerEmbassyBot";
+import BirthdayHandlers from "./handlers/birthday";
 import EmbassyHandlers from "./handlers/embassy";
 import StatusHandlers from "./handlers/status";
-import BirthdayHandlers from "./handlers/birthday";
-import HackerEmbassyBot from "./HackerEmbassyBot";
 
 export function setAutomaticFeatures(bot: HackerEmbassyBot) {
     EmbassyHandlers.enableStatusMonitor(bot);

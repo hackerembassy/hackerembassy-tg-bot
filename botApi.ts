@@ -1,16 +1,17 @@
-import express from "express";
-import cors from "cors";
-import logger from "./services/logger";
 import { json } from "body-parser";
 import config from "config";
+import cors from "cors";
+import express from "express";
+
+import logger from "./services/logger";
 const embassyApiConfig = config.get("embassy-api") as any;
 
-import * as TextGenerators from "./services/textGenerators";
-import StatusRepository from "./repositories/statusRepository";
 import FundsRepository from "./repositories/fundsRepository";
+import StatusRepository from "./repositories/statusRepository";
 import UsersRepository from "./repositories/usersRepository";
 import { ApiCommandsList } from "./resources/commands";
-import { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } from "./services/statusHelper";
+import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "./services/statusHelper";
+import * as TextGenerators from "./services/textGenerators";
 import { stripCustomMarkup } from "./utils/common";
 import { createErrorMiddleware } from "./utils/middleware";
 import { fetchWithTimeout } from "./utils/network";

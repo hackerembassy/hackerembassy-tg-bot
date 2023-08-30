@@ -1,5 +1,6 @@
 import { ChatId } from "node-telegram-bot-api";
-import { BotRole } from "../bot/bot";
+
+import { BotRole } from "../bot/HackerEmbassyBot";
 
 class User {
     userid: ChatId;

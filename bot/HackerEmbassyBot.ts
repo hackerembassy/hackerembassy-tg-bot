@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/ban-types */
 // Imports
+import { t } from "i18next";
 import TelegramBot, {
     BotCommandScope,
     CallbackQuery,
@@ -7,16 +7,18 @@ import TelegramBot, {
     Message,
     SendMessageOptions,
 } from "node-telegram-bot-api";
+
 import logger from "../services/logger";
-import { sleep, chunkSubstr } from "../utils/common";
-import MessageHistory from "./MessageHistory";
 import { hasRole } from "../services/usersHelper";
-import { t } from "i18next";
-import { BotRole } from "./bot";
+import { chunkSubstr, sleep } from "../utils/common";
+import MessageHistory from "./MessageHistory";
 
 // Consts
 const maxChunkSize = 3500;
 const messagedelay = 1500;
+
+// Types
+export type BotRole = "admin" | "member" | "accountant" | "default";
 
 // Helpers
 function prepareMessageForMarkdown(message: string) {
@@ -86,6 +88,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         return this.#context.get(msg);
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-types
     onExt(event: TelegramBot.MessageType | "callback_query", listener: Function) {
         const botthis = this;
         const newListener = async (query: CallbackQuery | Message) => {

@@ -1,16 +1,16 @@
-import { fetchWithTimeout } from "../../utils/network";
-import logger from "../../services/logger";
-import { encrypt } from "../../utils/security";
-import { hasDeviceInside } from "../../services/statusHelper";
-
 import config from "config";
+
+import logger from "../../services/logger";
+import { hasDeviceInside } from "../../services/statusHelper";
+import { fetchWithTimeout } from "../../utils/network";
+import { encrypt } from "../../utils/security";
 const embassyApiConfig = config.get("embassy-api") as any;
 const botConfig = config.get("bot") as any;
 
-import * as TextGenerators from "../../services/textGenerators";
+import { Message } from "node-telegram-bot-api";
 
 import t from "../../services/localization";
-import { Message } from "node-telegram-bot-api";
+import * as TextGenerators from "../../services/textGenerators";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class EmbassyHanlers {

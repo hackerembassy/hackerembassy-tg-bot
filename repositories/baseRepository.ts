@@ -1,7 +1,8 @@
 import BetterSqlite3 from "better-sqlite3";
+import winston from "winston";
+
 import SQLiteDBWrapper from "../data/db";
 import logger from "../services/logger";
-import winston from "winston";
 
 class BaseRepository {
     db: BetterSqlite3.Database;

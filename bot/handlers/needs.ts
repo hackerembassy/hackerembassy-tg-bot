@@ -1,11 +1,10 @@
 import { Message } from "node-telegram-bot-api";
-import HackerEmbassyBot from "../HackerEmbassyBot";
 
 import NeedsRepository from "../../repositories/needsRepository";
+import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-
-import t from "../../services/localization";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class NeedsHandlers {
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {

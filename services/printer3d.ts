@@ -1,6 +1,9 @@
 import config from "config";
 import { default as fetch } from "node-fetch";
-const printersConfig = config.get("printers") as any;
+
+import { PrintersConfig } from "../config/schema";
+
+const printersConfig = config.get("printers") as PrintersConfig;
 
 export default class Printer3d {
     static async getPrinterStatus(printername: string) {
@@ -76,9 +79,9 @@ export default class Printer3d {
     static getCamPort(printername: string) {
         switch (printername) {
             case "anette":
-                return printersConfig.anette.camPort;
+                return printersConfig.anette.camport;
             case "plumbus":
-                return printersConfig.plumbus.camPort;
+                return printersConfig.plumbus.camport;
             default:
                 return null;
         }

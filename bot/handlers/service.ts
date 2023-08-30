@@ -1,7 +1,14 @@
 import config from "config";
+import TelegramBot, { InlineKeyboardButton, Message, User } from "node-telegram-bot-api";
 
+import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
+import t from "../../services/localization";
+import logger from "../../services/logger";
+import RateLimiter from "../../services/RateLimiter";
 import * as UsersHelper from "../../services/usersHelper";
+import { setMenu } from "../bot-menu";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 import BasicHandlers from "./basic";
 import BirthdayHandlers from "./birthday";
 import EmbassyHandlers from "./embassy";
@@ -9,15 +16,7 @@ import FundsHandlers from "./funds";
 import NeedsHandlers from "./needs";
 import StatusHandlers from "./status";
 
-const botConfig = config.get("bot") as any;
-
-import TelegramBot, { InlineKeyboardButton, Message, User } from "node-telegram-bot-api";
-
-import t from "../../services/localization";
-import logger from "../../services/logger";
-import RateLimiter from "../../services/RateLimiter";
-import { setMenu } from "../bot-menu";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+const botConfig = config.get("bot") as BotConfig;
 
 export default class ServiceHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {

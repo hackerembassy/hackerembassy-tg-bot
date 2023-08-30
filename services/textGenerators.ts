@@ -1,8 +1,6 @@
 import config from "config";
 
-import { convertCurrency, formatValueForCurrency } from "../utils/currency";
-
-const printersConfig = config.get("printers") as any;
+import { PrintersConfig } from "../config/schema";
 import Donation from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
@@ -10,9 +8,12 @@ import User from "../models/User";
 import UserState from "../models/UserState";
 import StatusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
+import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
 import t from "./localization";
 import { formatUsername, getRoles } from "./usersHelper";
+
+const printersConfig = config.get("printers") as PrintersConfig;
 
 export async function createFundList(funds: Fund[], donations: Donation[], options = undefined, mode = { mention: false }) {
     const defaultOptions = { showAdmin: false, isApi: false, isHistory: false };

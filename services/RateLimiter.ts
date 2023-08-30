@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import config from "config";
-const botConfig = config.get("bot") as any;
+
+import { BotConfig } from "../config/schema";
+
+const botConfig = config.get("bot") as BotConfig;
 const DEFAULT_RATE_LIMIT = botConfig.rateLimit ?? 500;
 
 export default class RateLimiter {

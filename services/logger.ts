@@ -1,8 +1,11 @@
 import "winston-daily-rotate-file";
 
+import config from "config";
 import { createLogger, format, transports } from "winston";
 
-const botConfig = require("config").get("bot") as any;
+import { BotConfig } from "../config/schema";
+
+const botConfig = config.get("bot") as BotConfig;
 
 const rotatedFile = new transports.DailyRotateFile({
     level: "info",

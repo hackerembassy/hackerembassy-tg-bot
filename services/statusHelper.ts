@@ -1,3 +1,6 @@
+import config from "config";
+
+import { EmbassyApiConfig } from "../config/schema";
 import UserState from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
@@ -6,7 +9,7 @@ import { onlyUniqueFilter } from "../utils/common";
 import { ElapsedTimeObject, isToday } from "../utils/date";
 import { fetchWithTimeout } from "../utils/network";
 
-const embassyApiConfig = require("config").get("embassy-api");
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
 export function openSpace(opener: string, options: { checkOpener: boolean } = { checkOpener: false }): void {
     const opendate = new Date();

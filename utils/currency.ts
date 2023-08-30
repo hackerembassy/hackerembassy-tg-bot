@@ -1,7 +1,10 @@
 import config from "config";
 import CryptoConvert from "crypto-convert";
 import { Convert } from "easy-currencies";
-const currencyConfig = config.get("currency") as any;
+
+import { CurrencyConfig } from "../config/schema";
+
+const currencyConfig = config.get("currency") as CurrencyConfig;
 
 const CurrencyFractionDigits = [
     { currency: "AMD", fraction: 0 },

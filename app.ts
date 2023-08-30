@@ -1,6 +1,10 @@
-import { config } from "dotenv";
-config();
+import { config as envconfig } from "dotenv";
+envconfig();
+
+import config from "config";
+
+import { BotConfig } from "./config/schema";
 import("./bot/bot-instance");
 import("./botApi");
 
-process.env.TZ = require("config").get("bot").timezone;
+process.env.TZ = (config.get("bot") as BotConfig).timezone;

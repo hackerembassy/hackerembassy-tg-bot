@@ -1,9 +1,11 @@
 import config from "config";
 
+import { CurrencyConfig } from "../config/schema";
 import Donation from "../models/Donation";
 import Fund from "../models/Fund";
 import BaseRepository from "./baseRepository";
-const currencyConfig = config.get("currency") as any;
+
+const currencyConfig = config.get("currency") as CurrencyConfig;
 
 class FundsRepository extends BaseRepository {
     getFunds(): Fund[] {

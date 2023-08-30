@@ -1,17 +1,17 @@
 import config from "config";
-
-import logger from "../../services/logger";
-import { hasDeviceInside } from "../../services/statusHelper";
-import { fetchWithTimeout } from "../../utils/network";
-import { encrypt } from "../../utils/security";
-const embassyApiConfig = config.get("embassy-api") as any;
-const botConfig = config.get("bot") as any;
-
 import { Message } from "node-telegram-bot-api";
 
+import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import t from "../../services/localization";
+import logger from "../../services/logger";
+import { hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
+import { fetchWithTimeout } from "../../utils/network";
+import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../HackerEmbassyBot";
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const botConfig = config.get("bot") as BotConfig;
 
 export default class EmbassyHanlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {

@@ -13,46 +13,46 @@ export default class RateLimiter {
 
     static debounced(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
         return (...args: any) => {
-            clearTimeout(this.#debounceTimerIds.get(userId));
+            clearTimeout(RateLimiter.#debounceTimerIds.get(userId));
 
             const timerId = setTimeout(() => {
                 func(...args);
-                this.#debounceTimerIds.delete(userId);
+                RateLimiter.#debounceTimerIds.delete(userId);
             }, rateLimit);
 
-            this.#debounceTimerIds.set(userId, timerId);
+            RateLimiter.#debounceTimerIds.set(userId, timerId);
         };
     }
 
     static limited(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
         return (...args: any) => {
-            const cooldown = this.#limitTimerIds.get(userId);
+            const cooldown = RateLimiter.#limitTimerIds.get(userId);
 
             if (!cooldown) func(args);
             clearTimeout(cooldown);
 
             const timerId = setTimeout(() => {
                 clearTimeout(cooldown);
-                this.#limitTimerIds.delete(userId);
+                RateLimiter.#limitTimerIds.delete(userId);
             }, rateLimit);
 
-            this.#limitTimerIds.set(userId, timerId);
+            RateLimiter.#limitTimerIds.set(userId, timerId);
         };
     }
 
     static throttled(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
-        return async (...args: any) => {
-            const cooldown = this.#cooldownTimerIds.get(userId);
+        return (...args: any) => {
+            const cooldown = RateLimiter.#cooldownTimerIds.get(userId);
 
             if (!cooldown) {
-                await func(...args);
+                func(...args);
 
                 const timerId = setTimeout(() => {
                     clearTimeout(cooldown);
-                    this.#cooldownTimerIds.delete(userId);
+                    RateLimiter.#cooldownTimerIds.delete(userId);
                 }, rateLimit);
 
-                this.#cooldownTimerIds.set(userId, timerId);
+                RateLimiter.#cooldownTimerIds.set(userId, timerId);
             }
         };
     }

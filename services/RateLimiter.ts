@@ -40,19 +40,19 @@ export default class RateLimiter {
         };
     }
 
-    static throttled(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
-        return (...args: any) => {
+    static throttled(func: Function, userId: number, rateLimit = 5000) {
+        return async (...args: any) => {
             const cooldown = RateLimiter.#cooldownTimerIds.get(userId);
 
             if (!cooldown) {
-                func(...args);
-
                 const timerId = setTimeout(() => {
                     clearTimeout(cooldown);
                     RateLimiter.#cooldownTimerIds.delete(userId);
                 }, rateLimit);
 
                 RateLimiter.#cooldownTimerIds.set(userId, timerId);
+
+                await func(...args);
             }
         };
     }

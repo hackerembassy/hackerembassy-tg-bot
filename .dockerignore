@@ -9,4 +9,5 @@ sec
 log
 
 !config/default.json
+!config/schema.d.ts
 !deploy/entrypoint.sh

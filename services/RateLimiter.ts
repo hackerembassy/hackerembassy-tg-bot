@@ -40,7 +40,7 @@ export default class RateLimiter {
         };
     }
 
-    static throttled(func: Function, userId: number, rateLimit = 5000) {
+    static throttled(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
         return async (...args: any) => {
             const cooldown = RateLimiter.#cooldownTimerIds.get(userId);
 

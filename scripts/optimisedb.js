@@ -20,7 +20,6 @@ function removeUserStateDuplicates() {
             } else {
                 lastState = userStates[i];
             }
-            continue;
         }
     }
 

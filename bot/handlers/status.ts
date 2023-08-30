@@ -1,33 +1,32 @@
+import config from "config";
+
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
-import * as TextGenerators from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
 import logger from "../../services/logger";
 import {
-    openSpace,
     closeSpace,
-    isMacInside,
-    getUserTimeDescriptor,
-    getAllUsersTimes,
-    filterPeopleInside,
-    filterPeopleGoing,
     evictPeople,
+    filterPeopleGoing,
+    filterPeopleInside,
     findRecentStates,
+    getAllUsersTimes,
+    getUserTimeDescriptor,
+    isMacInside,
+    openSpace,
 } from "../../services/statusHelper";
-
-import config from "config";
+import * as TextGenerators from "../../services/textGenerators";
+import * as UsersHelper from "../../services/usersHelper";
 const embassyApiConfig = config.get("embassy-api") as any;
 const botConfig = config.get("bot") as any;
 const statsStartDateString = "2023-01-01";
 
-import t from "../../services/localization";
-import { toDateObject, getMonthBoundaries } from "../../utils/date";
-
-import { isEmoji } from "../../utils/text";
-import { createUserStatsDonut } from "../../services/export";
-import statusRepository from "../../repositories/statusRepository";
-import { fetchWithTimeout } from "../../utils/network";
 import { Message } from "node-telegram-bot-api";
+
+import { createUserStatsDonut } from "../../services/export";
+import t from "../../services/localization";
+import { getMonthBoundaries, toDateObject } from "../../utils/date";
+import { fetchWithTimeout } from "../../utils/network";
+import { isEmoji } from "../../utils/text";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 export default class StatusHandlers {
@@ -234,7 +233,7 @@ export default class StatusHandlers {
     }
 
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
-        evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
+        evictPeople(findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside));
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
@@ -541,7 +540,7 @@ export default class StatusHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const selectedUsername = username ?? msg.from.username;
-        const userStates = statusRepository.getUserStates(selectedUsername);
+        const userStates = StatusRepository.getUserStates(selectedUsername);
 
         const { days, hours, minutes } = getUserTimeDescriptor(userStates);
         await bot.sendMessageExt(

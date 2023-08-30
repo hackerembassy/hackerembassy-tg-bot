@@ -1,12 +1,11 @@
-import { Message } from "node-telegram-bot-api";
-import HackerEmbassyBot from "../HackerEmbassyBot";
-
-import path from "path";
+import config from "config";
 import fs from "fs";
+import { Message } from "node-telegram-bot-api";
+import path from "path";
 
 import UsersRepository from "../../repositories/usersRepository";
 import * as UsersHelper from "../../services/usersHelper";
-import config from "config";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 
 const botConfig = config.get("bot") as any;
 import t from "../../services/localization";

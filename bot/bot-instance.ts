@@ -1,8 +1,8 @@
 import logger from "../services/logger";
-import HackerEmbassyBot from "./HackerEmbassyBot";
-import { setRoutes } from "./bot-routes";
 import { setAutomaticFeatures } from "./bot-automatic";
 import { setMenu } from "./bot-menu";
+import { setRoutes } from "./bot-routes";
+import HackerEmbassyBot from "./HackerEmbassyBot";
 
 async function init(bot: HackerEmbassyBot) {
     const botInstanceInfo = await bot.getMe();

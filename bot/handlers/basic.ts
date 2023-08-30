@@ -1,13 +1,12 @@
+import config from "config";
 import { Message } from "node-telegram-bot-api";
-import HackerEmbassyBot from "../HackerEmbassyBot";
-
-import * as TextGenerators from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
-import * as Commands from "../../resources/commands";
-import * as CoinsHelper from "../../resources/coins/coins";
 
 import UsersRepository from "../../repositories/usersRepository";
-import config from "config";
+import * as CoinsHelper from "../../resources/coins/coins";
+import * as Commands from "../../resources/commands";
+import * as TextGenerators from "../../services/textGenerators";
+import * as UsersHelper from "../../services/usersHelper";
+import HackerEmbassyBot from "../HackerEmbassyBot";
 const botConfig = config.get("bot") as any;
 import t from "../../services/localization";
 import { isMessageFromPrivateChat } from "../bot-helpers";

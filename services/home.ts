@@ -1,4 +1,5 @@
 import config from "config";
+
 import { getFromHass } from "../utils/network";
 const embassyApiConfig = config.get("embassy-api") as any;
 const climateConfig = embassyApiConfig.climate;

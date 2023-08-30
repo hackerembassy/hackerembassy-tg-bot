@@ -1,6 +1,6 @@
-import { join } from "path";
-import { use, t } from "i18next";
+import { t, use } from "i18next";
 import Backend from "i18next-fs-backend";
+import { join } from "path";
 
 // @ts-ignore
 use(Backend).init({

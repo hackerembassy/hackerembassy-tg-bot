@@ -1,4 +1,5 @@
 import { Message } from "node-telegram-bot-api";
+
 import { getRandomImageFromFolder } from "../../services/media";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 

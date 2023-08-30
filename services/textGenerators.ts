@@ -1,18 +1,18 @@
-import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import config from "config";
 
-const printersConfig = config.get("printers") as any;
-import StatusRepository from "../repositories/statusRepository";
-import { formatUsername, getRoles } from "./usersHelper";
-import usersRepository from "../repositories/usersRepository";
+import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 
-import t from "./localization";
-import { DateBoundary, ElapsedTimeObject, convertMinutesToHours } from "../utils/date";
+const printersConfig = config.get("printers") as any;
 import Donation from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
-import UserState from "../models/UserState";
 import User from "../models/User";
+import UserState from "../models/UserState";
+import StatusRepository from "../repositories/statusRepository";
+import usersRepository from "../repositories/usersRepository";
+import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
+import t from "./localization";
+import { formatUsername, getRoles } from "./usersHelper";
 
 export async function createFundList(funds: Fund[], donations: Donation[], options = undefined, mode = { mention: false }) {
     const defaultOptions = { showAdmin: false, isApi: false, isHistory: false };

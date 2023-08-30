@@ -1,6 +1,6 @@
-import { Convert } from "easy-currencies";
-import CryptoConvert from "crypto-convert";
 import config from "config";
+import CryptoConvert from "crypto-convert";
+import { Convert } from "easy-currencies";
 const currencyConfig = config.get("currency") as any;
 
 const CurrencyFractionDigits = [

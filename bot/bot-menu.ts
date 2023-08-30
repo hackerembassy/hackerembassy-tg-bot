@@ -1,6 +1,6 @@
-import HackerEmbassyBot from "./HackerEmbassyBot";
 import UsersRepository from "../repositories/usersRepository";
 import logger from "../services/logger";
+import HackerEmbassyBot from "./HackerEmbassyBot";
 
 const botConfig = require("config").get("bot");
 

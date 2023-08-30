@@ -1,6 +1,6 @@
-import { GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList } from "../resources/commands";
-import UsersRepository from "../repositories/usersRepository";
 import User from "../models/User";
+import UsersRepository from "../repositories/usersRepository";
+import { AccountantCommandsList, AdminCommandsList, GeneralCommandsList, MemberCommandsList } from "../resources/commands";
 
 export function hasRole(username, ...roles) {
     const userRoles = UsersRepository.getUserByName(username)?.rolesList;

@@ -11,7 +11,7 @@ import { parseMoneyValue, prepareCurrency } from "../../utils/currency";
 import { isMessageFromPrivateChat } from "../bot-helpers";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
-const CALLBACK_DATA_RESTRICTION = 20;
+const CALLBACK_DATA_RESTRICTION = 23;
 
 export default class FundsHandlers {
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -42,14 +42,14 @@ export default class FundsHandlers {
                               text: t("funds.fund.buttons.csv"),
                               callback_data: JSON.stringify({
                                   command: "/ef",
-                                  params: [fundName],
+                                  opt: [fundName],
                               }),
                           },
                           {
                               text: t("funds.fund.buttons.donut"),
                               callback_data: JSON.stringify({
                                   command: "/ed",
-                                  params: [fundName],
+                                  opt: [fundName],
                               }),
                           },
                       ],

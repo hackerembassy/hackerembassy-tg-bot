@@ -214,10 +214,10 @@ export default class ServiceHandlers {
                 await BasicHandlers.getResidentsHandler(bot, msg);
                 break;
             case "/ef":
-                await FundsHandlers.exportCSVHandler(bot, msg, data.params[0]);
+                await FundsHandlers.exportCSVHandler(bot, msg, data.opt[0]);
                 break;
             case "/ed":
-                await FundsHandlers.exportDonutHandler(bot, msg, data.params[0]);
+                await FundsHandlers.exportDonutHandler(bot, msg, data.opt[0]);
                 break;
             case "/unlock":
                 if (isAllowed(EmbassyHandlers.unlockHandler)) await EmbassyHandlers.unlockHandler(bot, msg);

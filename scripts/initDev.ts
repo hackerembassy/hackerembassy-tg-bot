@@ -1,8 +1,9 @@
-const fs = require("fs");
-const { execSync } = require("child_process");
+import { execSync } from "child_process";
+import { existsSync, mkdirSync, promises, renameSync, writeFileSync } from "fs";
 // @ts-ignore
-const readline = require("readline/promises");
-const UsersRepository = require("../repositories/usersRepository").default;
+import { createInterface } from "readline/promises";
+
+import UsersRepository from "../repositories/usersRepository";
 
 (async function initScript() {
     console.log(
@@ -10,13 +11,13 @@ const UsersRepository = require("../repositories/usersRepository").default;
     );
 
     // Copy sample db
-    if (!fs.existsSync("./data/db")) {
-        fs.mkdirSync("./data/db", { recursive: true });
+    if (!existsSync("./data/db")) {
+        mkdirSync("./data/db", { recursive: true });
     }
-    await fs.promises.copyFile("./data/sample.db", "./data/db/data.db");
+    await promises.copyFile("./data/sample.db", "./data/db/data.db");
 
     // Read dev telegram username
-    const rl = readline.createInterface({
+    const rl = createInterface({
         input: globalThis.process.stdin,
         output: globalThis.process.stdout,
     });
@@ -44,17 +45,17 @@ WIFIPASSWORD="replace_with_wifi_password"
 HASSTOKEN="replace_with_hass_token"
 `;
 
-    fs.writeFileSync(".env", envData);
+    writeFileSync(".env", envData);
 
     // Create config/sec directory
-    if (!fs.existsSync("./config/sec")) {
-        fs.mkdirSync("./config/sec", { recursive: true });
+    if (!existsSync("./config/sec")) {
+        mkdirSync("./config/sec", { recursive: true });
     }
 
     // Generate SSH key pair
     execSync("ssh-keygen -b 1024 -t rsa -f ./config/sec/priv.key -q -N '' -m pem <<< y");
     // Rename pub.key file
-    fs.renameSync("./config/sec/priv.key.pub", "./config/sec/pub.key");
+    renameSync("./config/sec/priv.key.pub", "./config/sec/pub.key");
 
     // Success
     console.log("\nDone\n");

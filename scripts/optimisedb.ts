@@ -1,4 +1,4 @@
-const statusRepository = require("../repositories/statusRepository").default;
+import statusRepository from "../repositories/statusRepository";
 
 function removeUserStateDuplicates() {
     const allStates = statusRepository.getAllUserStates().sort((a, b) => (a.date > b.date ? 1 : -1));
@@ -30,4 +30,4 @@ function removeUserStateDuplicates() {
 }
 
 removeUserStateDuplicates();
-module.exports = { removeUserStateDuplicates };
+export default { removeUserStateDuplicates };

@@ -20,7 +20,7 @@
     "kill": "skill -c nohup npx ts-node app.ts &",
     "backup": "mkdir ./data/backup -p && cp ./data/db/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
     "reset": "mkdir ./data/backup -p && mv ./data/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db",
-    "init-dev": "node ./scripts/initDev.js",
+    "init-dev": "npx ts-node ./scripts/initDev.ts",
     "prepare": "husky install",
     "lint": "eslint '**/*.{ts,js}'",
     "lint-fix": "eslint '--fix **/*.{ts,js}'",

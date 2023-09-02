@@ -568,10 +568,15 @@ export default class StatusHandlers {
 
         const { startMonthDate, endMonthDate } = getMonthBoundaries(resultDate);
 
-        return await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
+        await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
-    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString: string, toDateString: string | number | Date) {
+    static async statsHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        fromDateString: string,
+        toDateString: string | number | Date
+    ): Promise<Message | void> {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const fromDate = new Date(fromDateString ?? statsStartDateString);

@@ -9,10 +9,19 @@ class User {
     roles: string;
     mac: string;
     birthday: string;
-    autoinside: number;
+    autoinside: boolean;
     emoji: string;
 
-    constructor({ id, username, roles = "default", mac = null, birthday = null, autoinside = 0, emoji = null, userid = null }) {
+    constructor({
+        id,
+        username,
+        roles = "default",
+        mac = null,
+        birthday = null,
+        autoinside = false,
+        emoji = null,
+        userid = null,
+    }) {
         this.id = id;
         this.username = username;
         this.roles = roles;

@@ -5,8 +5,7 @@ import Donation from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
 import User from "../models/User";
-import UserState from "../models/UserState";
-import StatusRepository from "../repositories/statusRepository";
+import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
@@ -153,7 +152,7 @@ export function getUserBadges(username: string): string {
 
 export function getUserBadgesWithStatus(userStatus: UserState): string {
     const userBadges = getUserBadges(userStatus.username);
-    const autoBadge = userStatus.type === StatusRepository.ChangeType.Auto ? "📲" : "";
+    const autoBadge = userStatus.type === UserStateChangeType.Auto ? "📲" : "";
 
     return `${autoBadge}${userBadges}`;
 }

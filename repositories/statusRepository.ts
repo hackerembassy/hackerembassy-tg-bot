@@ -1,22 +1,8 @@
 import State from "../models/State";
-import UserState from "../models/UserState";
+import UserState, { UserStateType } from "../models/UserState";
 import BaseRepository from "./baseRepository";
 
 class StatusRepository extends BaseRepository {
-    ChangeType = {
-        Manual: 0,
-        Auto: 1,
-        Force: 2,
-        Opened: 3,
-        Evicted: 4,
-    };
-
-    UserStatusType = {
-        Outside: 0,
-        Inside: 1,
-        Going: 2,
-    };
-
     getSpaceLastState(): State {
         const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as State;
 
@@ -60,7 +46,7 @@ class StatusRepository extends BaseRepository {
         this.db
             .prepare("INSERT INTO userstates (status, username, date, type, note) VALUES (?, ?, ?, ?, ?)")
             .run(
-                state.status ? state.status : this.UserStatusType.Outside,
+                state.status ? state.status : UserStateType.Outside,
                 state.username,
                 state.date.valueOf(),
                 state.type ?? 0,

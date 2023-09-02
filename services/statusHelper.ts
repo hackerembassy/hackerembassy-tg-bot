@@ -1,7 +1,7 @@
 import config from "config";
 
 import { EmbassyApiConfig } from "../config/schema";
-import UserState from "../models/UserState";
+import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
 import { anyItemIsInList } from "../utils/common";
@@ -26,10 +26,10 @@ export function openSpace(opener: string, options: { checkOpener: boolean } = { 
 
     const userstate = {
         id: 0,
-        status: statusRepository.UserStatusType.Inside,
+        status: UserStateType.Inside,
         date: opendate,
         username: opener,
-        type: statusRepository.ChangeType.Opened,
+        type: UserStateChangeType.Opened,
         note: null,
     };
 
@@ -75,13 +75,9 @@ export function getUserTimeDescriptor(userStates: UserState[]): ElapsedTimeObjec
     userStates.sort((a, b) => (a.date > b.date ? 1 : -1));
 
     for (const userState of userStates) {
-        if (startTime === -1 && userState.status === statusRepository.UserStatusType.Inside) {
+        if (startTime === -1 && userState.status === UserStateType.Inside) {
             startTime = Number(userState.date);
-        } else if (
-            startTime !== -1 &&
-            (userState.status === statusRepository.UserStatusType.Outside ||
-                userState.status === statusRepository.UserStatusType.Going)
-        ) {
+        } else if (startTime !== -1 && (userState.status === UserStateType.Outside || userState.status === UserStateType.Going)) {
             totalTime += Number(userState.date) - startTime;
             startTime = -1;
         }
@@ -130,11 +126,11 @@ export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toD
 }
 
 export function filterPeopleInside(userState: UserState): boolean {
-    return userState.status === statusRepository.UserStatusType.Inside;
+    return userState.status === UserStateType.Inside;
 }
 
 export function filterPeopleGoing(userState: UserState): boolean {
-    return userState.status === statusRepository.UserStatusType.Going && isToday(new Date(userState.date));
+    return userState.status === UserStateType.Going && isToday(new Date(userState.date));
 }
 
 export function evictPeople(insideStates: UserState[]): void {
@@ -143,10 +139,10 @@ export function evictPeople(insideStates: UserState[]): void {
     for (const userstate of insideStates) {
         statusRepository.pushPeopleState({
             id: 0,
-            status: statusRepository.UserStatusType.Outside,
+            status: UserStateType.Outside,
             date: date,
             username: userstate.username,
-            type: statusRepository.ChangeType.Evicted,
+            type: UserStateChangeType.Evicted,
             note: null,
         });
     }

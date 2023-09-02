@@ -29,7 +29,7 @@ export async function getWebcam2Image(): Promise<Buffer> {
 
 export async function getRandomImageFromFolder(folder: string): Promise<Buffer> {
     const files = await fs.readdir(folder);
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) return null;
 
     const fileindex = Math.floor(Math.random() * files.length);
     return await fs.readFile(join(folder, files[fileindex]));

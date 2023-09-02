@@ -21,7 +21,7 @@ export function toDateObject(date: Date): DateObject {
 }
 
 export function convertMinutesToHours(minutes: number): string {
-    if (isNaN(minutes) || !isFinite(minutes)) return;
+    if (isNaN(minutes) || !isFinite(minutes)) return null;
 
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;

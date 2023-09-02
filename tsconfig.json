@@ -6,6 +6,7 @@
       "module": "NodeNext",
       "moduleResolution": "Node",
       "noEmit": true,
+      "noImplicitReturns": true
     },
     "include": ["./**/*"]
 }

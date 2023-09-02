@@ -192,7 +192,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 message_thread_id: this.context(msg)?.messageThreadId,
             });
 
-            if (!message) return;
+            if (!message) return null;
 
             this.messageHistory.push(chatId, message.message_id, text);
 

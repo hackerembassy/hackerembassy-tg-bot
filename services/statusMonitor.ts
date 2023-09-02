@@ -35,7 +35,7 @@ const statusLogger = Winston.createLogger({
     transports: [transport],
 });
 
-async function pingInternalDevices() {
+async function pingInternalDevices(): Promise<void> {
     for (const host of hosts) {
         const res = await promise.probe(host);
         if (!res.alive) {
@@ -44,7 +44,7 @@ async function pingInternalDevices() {
     }
 }
 
-export function startMonitoring() {
+export function startMonitoring(): void {
     console.log("Device monitoring started");
     setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }

@@ -128,8 +128,8 @@ export function createDonut(
     params = { width: 1400, height: 900 },
     donutLabels = [],
     customColorScheme = undefined
-) {
-    const chart = new ChartJsImage();
+): ChartJsImage {
+    const chart: ChartJsImage = new ChartJsImage();
 
     chart.setConfig({
         type: "donut",

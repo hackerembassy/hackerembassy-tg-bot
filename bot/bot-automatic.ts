@@ -8,7 +8,7 @@ import StatusHandlers from "./handlers/status";
 
 const botConfig = config.get("bot") as BotConfig;
 
-export function setAutomaticFeatures(bot: HackerEmbassyBot) {
+export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     EmbassyHandlers.enableStatusMonitor(bot);
     setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, undefined, false), 3600000); // 1hr
     setInterval(

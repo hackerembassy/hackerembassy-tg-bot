@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function lastModifiedFilePath(logfolderpath: string) {
+export function lastModifiedFilePath(logfolderpath: string): string {
     const files = fs.readdirSync(logfolderpath);
 
     return files?.length > 0

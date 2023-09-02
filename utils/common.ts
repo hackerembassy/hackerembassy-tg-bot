@@ -31,7 +31,7 @@ export function stripCustomMarkup(text: string): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export function debounce(func: Function, delay: number) {
+export function debounce(func: Function, delay: number): (...args: any[]) => void {
     let timeoutId: string | number | NodeJS.Timeout;
 
     return function (...args) {

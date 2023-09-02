@@ -2,6 +2,7 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
+import { UserStateChangeType, UserStateType } from "../../models/UserState";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import { createUserStatsDonut } from "../../services/export";
@@ -378,10 +379,10 @@ export default class StatusHandlers {
 
         const userstate = {
             id: 0,
-            status: StatusRepository.UserStatusType.Inside,
+            status: UserStateType.Inside,
             date: date,
             username: username,
-            type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
+            type: force ? UserStateChangeType.Force : UserStateChangeType.Manual,
             note: null,
         };
 
@@ -397,10 +398,10 @@ export default class StatusHandlers {
 
         const userstate = {
             id: 0,
-            status: StatusRepository.UserStatusType.Outside,
+            status: UserStateType.Outside,
             date: date,
             username: username,
-            type: force ? StatusRepository.ChangeType.Force : StatusRepository.ChangeType.Manual,
+            type: force ? UserStateChangeType.Force : UserStateChangeType.Manual,
             note: null,
         };
 
@@ -415,10 +416,10 @@ export default class StatusHandlers {
 
         const userstate = {
             id: 0,
-            status: StatusRepository.UserStatusType.Going,
+            status: UserStateType.Going,
             date: eventDate,
             username: username,
-            type: StatusRepository.ChangeType.Manual,
+            type: UserStateChangeType.Manual,
             note,
         };
 
@@ -455,10 +456,10 @@ export default class StatusHandlers {
 
         const userstate = {
             id: 0,
-            status: StatusRepository.UserStatusType.Outside,
+            status: UserStateType.Outside,
             date: eventDate,
             username: username,
-            type: StatusRepository.ChangeType.Manual,
+            type: UserStateChangeType.Manual,
             note: null,
         };
 
@@ -520,10 +521,10 @@ export default class StatusHandlers {
                 if (isIn ? hasDeviceInside : !hasDeviceInside) {
                     StatusRepository.pushPeopleState({
                         id: 0,
-                        status: isIn ? StatusRepository.UserStatusType.Inside : StatusRepository.UserStatusType.Outside,
+                        status: isIn ? UserStateType.Inside : UserStateType.Outside,
                         date: new Date(),
                         username: user.username,
-                        type: StatusRepository.ChangeType.Auto,
+                        type: UserStateChangeType.Auto,
                         note: null,
                     });
 

@@ -11,7 +11,7 @@ export default class RateLimiter {
     static #limitTimerIds = new Map();
     static #cooldownTimerIds = new Map();
 
-    static debounced(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
+    static debounced(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT): (...args: any) => void {
         return (...args: any) => {
             clearTimeout(RateLimiter.#debounceTimerIds.get(userId));
 
@@ -24,7 +24,7 @@ export default class RateLimiter {
         };
     }
 
-    static limited(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
+    static limited(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT): (...args: any) => void {
         return (...args: any) => {
             const cooldown = RateLimiter.#limitTimerIds.get(userId);
 
@@ -40,7 +40,7 @@ export default class RateLimiter {
         };
     }
 
-    static throttled(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT) {
+    static throttled(func: Function, userId: number, rateLimit = DEFAULT_RATE_LIMIT): (...args: any) => Promise<void> {
         return async (...args: any) => {
             const cooldown = RateLimiter.#cooldownTimerIds.get(userId);
 

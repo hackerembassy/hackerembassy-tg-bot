@@ -14,7 +14,12 @@ import { formatUsername, getRoles } from "./usersHelper";
 
 const printersConfig = config.get("printers") as PrintersConfig;
 
-export async function createFundList(funds: Fund[], donations: Donation[], options = undefined, mode = { mention: false }) {
+export async function createFundList(
+    funds: Fund[],
+    donations: Donation[],
+    options = undefined,
+    mode = { mention: false }
+): Promise<string> {
     const defaultOptions = { showAdmin: false, isApi: false, isHistory: false };
     options = { defaultOptions, ...options };
 
@@ -46,7 +51,7 @@ export async function createFundList(funds: Fund[], donations: Donation[], optio
     return list;
 }
 
-export function generateFundStatus(fund: Fund, sumOfAllDonations: number, isHistory: boolean) {
+export function generateFundStatus(fund: Fund, sumOfAllDonations: number, isHistory: boolean): string {
     switch (fund.status) {
         case "closed":
             return `☑️ \\[${t("funds.fund.closed")}]`;
@@ -59,7 +64,7 @@ export function generateFundStatus(fund: Fund, sumOfAllDonations: number, isHist
     }
 }
 
-export function generateAdminFundHelp(fund: Fund, isHistory: boolean) {
+export function generateAdminFundHelp(fund: Fund, isHistory: boolean): string {
     let helpList = `${isHistory ? "" : "\n"}#\`/fund ${fund.name}#\`\n`;
 
     if (!isHistory) {
@@ -82,7 +87,7 @@ export function generateDonationsList(
     fundDonations: Donation[],
     options: { showAdmin?: any; isApi?: any },
     mode: { mention: boolean }
-) {
+): string {
     let donationList = "";
 
     for (const donation of fundDonations) {
@@ -102,8 +107,8 @@ export function getStatusMessage(
     state: { open: boolean; changedby: string },
     inside: UserState[],
     going: UserState[],
-    climateInfo,
-    mode,
+    climateInfo: any,
+    mode: { mention: boolean },
     withSecrets = false,
     isApi = false
 ): string {
@@ -157,7 +162,7 @@ export function getUserBadgesWithStatus(userStatus: UserState): string {
     return `${autoBadge}${userBadges}`;
 }
 
-export function getAccountsList(accountants: User[], mode, isApi = false): string {
+export function getAccountsList(accountants: User[], mode: { mention: boolean }, isApi = false): string {
     return accountants
         ? accountants.reduce(
               (list, user) => `${list}${formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
@@ -166,7 +171,7 @@ export function getAccountsList(accountants: User[], mode, isApi = false): strin
         : "";
 }
 
-export function getResidentsList(residents: User[], mode): string {
+export function getResidentsList(residents: User[], mode: { mention: boolean }): string {
     let userList = "";
     for (const user of residents) {
         userList += `${formatUsername(user.username, mode)} ${getUserBadges(user.username)}\n`;
@@ -183,7 +188,7 @@ export function getMonitorMessagesList(monitorMessages: { level: string; message
         : "";
 }
 
-export function getNeedsList(needs: Need[], mode): string {
+export function getNeedsList(needs: Need[], mode: { mention: boolean }): string {
     let message = `${t("needs.buy.nothing")}\n`;
 
     if (needs.length > 0) {
@@ -216,7 +221,7 @@ export function getDonateText(accountants: User[], isApi: boolean = false): stri
         donateCardCommand: !isApi ? "/donatecard" : "",
         fundsCommand: !isApi ? "/funds" : "funds",
         cryptoCommands,
-        accountantsList: getAccountsList(accountants, isApi),
+        accountantsList: getAccountsList(accountants, { mention: false }, isApi),
     });
 }
 
@@ -257,7 +262,7 @@ const shortMonthNames: string[] = [
     "birthday.months.december",
 ];
 
-export function getBirthdaysList(birthdayUsers: User[], mode): string {
+export function getBirthdaysList(birthdayUsers: User[], mode: { mention: boolean }): string {
     let message = t("birthday.nextbirthdays");
     let usersList = `\n${t("birthday.noone")}\n`;
 
@@ -333,7 +338,7 @@ export function getStatsText(
     for (let i = 0; i < userTimes.length; i++) {
         const userTime = userTimes[i];
 
-        let medal;
+        let medal: string;
 
         switch (i + 1) {
             case 1:

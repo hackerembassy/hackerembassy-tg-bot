@@ -12,7 +12,7 @@ import logger from "./services/logger";
 import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "./services/statusHelper";
 import * as TextGenerators from "./services/textGenerators";
 import { stripCustomMarkup } from "./utils/common";
-import { createErrorMiddleware } from "./utils/middleware";
+import { createErrorMiddleware, createTokenSecuredMiddleware } from "./utils/middleware";
 import { fetchWithTimeout } from "./utils/network";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
@@ -20,16 +20,7 @@ const apiConfig = config.get("api") as BotApiConfig;
 
 const app = express();
 const port = apiConfig.port;
-
-function tokenSecured(req, res, next) {
-    if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
-        logger.info(`Got request with invalid token`);
-        res.status(401).send({ message: "Invalid token" });
-        return;
-    }
-
-    next();
-}
+const tokenSecured = createTokenSecuredMiddleware(logger);
 
 app.use(cors());
 app.use(json());

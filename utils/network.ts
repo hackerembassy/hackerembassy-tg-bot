@@ -23,7 +23,7 @@ class Cancellation {
     }
 }
 
-export function fetchWithTimeout(uri: string, options: any = undefined, ...rest: any[]) {
+export function fetchWithTimeout(uri: string, options: any = undefined, ...rest: any[]): Promise<Response> {
     const cancellation = new Cancellation(options?.timeout ?? embassyApiConfig.timeout);
 
     // @ts-ignore

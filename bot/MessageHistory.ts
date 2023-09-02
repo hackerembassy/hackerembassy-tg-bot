@@ -7,6 +7,12 @@ import { debounce } from "../utils/common";
 
 const botConfig = config.get("bot") as BotConfig;
 
+type MessageHistoryEntry = {
+    messageId: number;
+    text?: string;
+    datetime: number;
+};
+
 export default class MessageHistory {
     historypath: string;
 
@@ -21,11 +27,11 @@ export default class MessageHistory {
         }
     }
 
-    orderOf(chatId: number, messageId: number) {
+    orderOf(chatId: number, messageId: number): number {
         return this.#historyBuffer[chatId].findIndex(x => x.messageId === messageId);
     }
 
-    async push(chatId: string | number, messageId: number, text: string | undefined = undefined, order = 0) {
+    async push(chatId: string | number, messageId: number, text: string | undefined = undefined, order = 0): Promise<void> {
         if (!this.#historyBuffer[chatId]) this.#historyBuffer[chatId] = [];
         if (this.#historyBuffer[chatId].length >= botConfig.maxchathistory) this.#historyBuffer[chatId].pop();
 
@@ -34,7 +40,7 @@ export default class MessageHistory {
         await this.#persistChanges();
     }
 
-    async pop(chatId: number, from: number = 0) {
+    async pop(chatId: number, from: number = 0): Promise<MessageHistoryEntry> {
         if (!this.#historyBuffer[chatId] || this.#historyBuffer[chatId].length === 0) return;
 
         const removed = this.#historyBuffer[chatId].splice(from, 1)[0];
@@ -43,13 +49,13 @@ export default class MessageHistory {
         return removed;
     }
 
-    #historyBuffer: { [chatId: string]: { messageId: number; text?: string; datetime: number }[] };
+    #historyBuffer: { [chatId: string]: MessageHistoryEntry[] };
 
     #debouncedPersistChanges = debounce(async () => {
         await this.#persistChanges();
     }, 1000);
 
-    async #persistChanges() {
+    async #persistChanges(): Promise<void> {
         await promises.writeFile(this.historypath, JSON.stringify(this.#historyBuffer));
     }
 

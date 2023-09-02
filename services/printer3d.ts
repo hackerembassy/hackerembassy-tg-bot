@@ -1,5 +1,5 @@
 import config from "config";
-import { default as fetch } from "node-fetch";
+import { Blob, default as fetch } from "node-fetch";
 
 import { PrintersConfig } from "../config/schema";
 
@@ -22,15 +22,16 @@ export default class Printer3d {
         return await response.json();
     }
 
-    static async getFile(printername: string, path: string) {
+    static async getFile(printername: string, path: string): Promise<Blob> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
         const response = await fetch(`${apiBase}/server/files/gcodes/${path}`);
+
         return response.status === 200 ? await response.blob() : null;
     }
 
-    static async getCam(printername: string) {
+    static async getCam(printername: string): Promise<Buffer> {
         const apiBase = this.getApiBase(printername);
         const camPort = this.getCamPort(printername);
         if (!apiBase) return null;
@@ -49,7 +50,7 @@ export default class Printer3d {
         return null;
     }
 
-    static async getThumbnail(printername: string, path: string) {
+    static async getThumbnail(printername: string, path: string): Promise<Buffer> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
@@ -65,7 +66,7 @@ export default class Printer3d {
             );
     }
 
-    static getApiBase(printername: string) {
+    static getApiBase(printername: string): string {
         switch (printername) {
             case "anette":
                 return printersConfig.anette.apibase;
@@ -76,7 +77,7 @@ export default class Printer3d {
         }
     }
 
-    static getCamPort(printername: string) {
+    static getCamPort(printername: string): number {
         switch (printername) {
             case "anette":
                 return printersConfig.anette.camport;

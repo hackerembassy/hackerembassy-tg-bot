@@ -11,6 +11,8 @@ import { fetchWithTimeout } from "../utils/network";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
+export type UserStatsTime = { username: string; usertime: ElapsedTimeObject };
+
 export function openSpace(opener: string, options: { checkOpener: boolean } = { checkOpener: false }): void {
     const opendate = new Date();
     const state = {
@@ -108,21 +110,20 @@ export function findRecentStates(allUserStates: UserState[]) {
     return usersLastStates;
 }
 
-export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toDate: Date) {
+export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toDate: Date): UserStatsTime[] {
     const userNames = findRecentStates(allUserStates)
         .map(us => us.username)
         .filter(onlyUniqueFilter);
-    let usersTimes = [];
+    const usersTimes: UserStatsTime[] = [];
 
     for (const username of userNames) {
         const userStates = allUserStates.filter(us => us.username === username && us.date >= fromDate && us.date <= toDate);
         usersTimes.push({ username: username, usertime: getUserTimeDescriptor(userStates) });
     }
 
-    usersTimes = usersTimes.filter(ut => ut.usertime.totalSeconds > 59);
-    usersTimes.sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
-
-    return usersTimes;
+    return usersTimes
+        .filter(ut => ut.usertime.totalSeconds > 59)
+        .sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
 }
 
 export function filterPeopleInside(userState: UserState): boolean {

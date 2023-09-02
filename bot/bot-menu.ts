@@ -66,7 +66,7 @@ const residentCommands = [
     { command: "stats", description: "Статистика по времени в спейсе" },
 ];
 
-export async function setMenu(bot: HackerEmbassyBot) {
+export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
     try {
         await bot.setMyCommands(defaultCommands);
         await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });

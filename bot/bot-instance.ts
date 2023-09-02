@@ -4,7 +4,7 @@ import { setMenu } from "./bot-menu";
 import { setRoutes } from "./bot-routes";
 import HackerEmbassyBot from "./HackerEmbassyBot";
 
-async function init(bot: HackerEmbassyBot) {
+async function init(bot: HackerEmbassyBot): Promise<void> {
     const botInstanceInfo = await bot.getMe();
     bot.Name = botInstanceInfo.username;
     setRoutes(bot);

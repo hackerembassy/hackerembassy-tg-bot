@@ -25,7 +25,7 @@ const CurrencySymbolToCode = {
     ["₽"]: "RUB",
 };
 
-export function formatValueForCurrency(value: number, currency: string) {
+export function formatValueForCurrency(value: number, currency: string): number {
     const fraction = CurrencyFractionDigits.find(fd => fd.currency === currency)?.fraction ?? 4;
     return Number(value.toFixed(fraction));
 }
@@ -34,7 +34,7 @@ export function parseMoneyValue(value: string) {
     return Number(value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", ""));
 }
 
-export async function prepareCurrency(currencyInput: string) {
+export async function prepareCurrency(currencyInput: string): Promise<string> {
     if (!currencyInput.length) return currencyConfig.default;
 
     if (Object.keys(CurrencySymbolToCode).includes(currencyInput)) return CurrencySymbolToCode[currencyInput];

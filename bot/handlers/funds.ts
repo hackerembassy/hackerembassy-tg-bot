@@ -92,7 +92,7 @@ export default class FundsHandlers {
 
         await bot.sendMessageExt(
             msg.chat.id,
-            success ? t("funds.addfund.success", { fundName, targetValue, preparedCurrency }) : t("funds.addfund.fail"),
+            success ? t("funds.addfund.success", { fundName, targetValue, currency: preparedCurrency }) : t("funds.addfund.fail"),
             msg
         );
     }
@@ -116,7 +116,9 @@ export default class FundsHandlers {
 
         await bot.sendMessageExt(
             msg.chat.id,
-            success ? t("funds.updatefund.success", { fundName, targetValue, preparedCurrency }) : t("funds.updatefund.fail"),
+            success
+                ? t("funds.updatefund.success", { fundName, targetValue, currency: preparedCurrency })
+                : t("funds.updatefund.fail"),
             msg
         );
     }
@@ -199,7 +201,7 @@ export default class FundsHandlers {
             ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
                   username: UsersHelper.formatUsername(userName, bot.context(msg).mode),
                   value,
-                  preparedCurrency,
+                  currency: preparedCurrency,
                   fundName,
               })
             : t("funds.adddonation.fail");

@@ -6,7 +6,7 @@ class UserRepository extends BaseRepository {
     getUsers(): User[] | null {
         const users = this.db.prepare("SELECT * FROM users").all();
 
-        return users.map(user => new User(user as User));
+        return users.filter(user => user).map(user => new User(user as User));
     }
 
     addUser(username: string, roles: string[] = ["default"]): boolean {
@@ -142,7 +142,7 @@ class UserRepository extends BaseRepository {
         try {
             const user = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username);
 
-            return new User(user as User);
+            return user ? new User(user as User) : null;
         } catch (error) {
             this.logger.error(error);
             return null;

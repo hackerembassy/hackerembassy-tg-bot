@@ -4,9 +4,9 @@ import BaseRepository from "./baseRepository";
 
 class UserRepository extends BaseRepository {
     getUsers(): User[] | null {
-        const users = this.db.prepare("SELECT * FROM users").all() as User[];
+        const users = this.db.prepare("SELECT * FROM users").all();
 
-        return users;
+        return users.map(user => new User(user as User));
     }
 
     addUser(username: string, roles: string[] = ["default"]): boolean {
@@ -140,9 +140,9 @@ class UserRepository extends BaseRepository {
 
     getUserByName(username: string): User | null {
         try {
-            const user: User = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username) as User;
+            const user = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username);
 
-            return user;
+            return new User(user as User);
         } catch (error) {
             this.logger.error(error);
             return null;

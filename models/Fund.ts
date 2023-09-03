@@ -5,7 +5,7 @@ class Fund {
     target_currency: string;
     status: string;
 
-    constructor(id: any, name: string, target_value: number, target_currency: string, status = "open") {
+    constructor({ id, name, target_value, target_currency, status = "open" }: Fund) {
         this.id = id;
         this.name = name;
         this.target_value = target_value;

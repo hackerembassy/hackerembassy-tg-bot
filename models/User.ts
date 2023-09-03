@@ -10,16 +10,16 @@ class User {
     autoinside: boolean;
     emoji: string | null;
 
-    constructor(
-        id: number,
-        username: string | null,
+    constructor({
+        id,
+        username,
         roles = "default",
-        mac: string | null = null,
-        birthday: string | null = null,
+        mac = null,
+        birthday = null,
         autoinside = false,
         emoji = null,
-        userid = null
-    ) {
+        userid = null,
+    }: User) {
         this.id = id;
         this.username = username;
         this.roles = roles;

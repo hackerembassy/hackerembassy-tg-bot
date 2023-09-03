@@ -20,7 +20,7 @@ class UserState {
     type: UserStateChangeType;
     note: string | null;
 
-    constructor(id = 0, username: string, status: UserStateType, date: number | Date, type = 0, note = null) {
+    constructor({ id = 0, username, status, date, type = 0, note = null }: UserState) {
         this.id = id;
         this.username = username;
         this.status = status;

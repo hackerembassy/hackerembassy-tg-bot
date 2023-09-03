@@ -1,11 +1,11 @@
 class Need {
-    id: number;
+    readonly id: number;
     text: string;
     requester: string;
-    buyer: string;
+    buyer: string | null;
     updated: string;
 
-    constructor({ id, text, requester = null, buyer = null, updated }) {
+    constructor(id: number, text: string, requester: string, buyer = null, updated: string) {
         this.id = id;
         this.text = text;
         this.requester = requester;

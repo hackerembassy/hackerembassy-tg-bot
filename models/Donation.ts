@@ -1,12 +1,12 @@
 class Donation {
-    id: number;
+    readonly id: number;
     username: string;
     fund_id: number;
     value: number;
     currency: string;
     accountant: string;
 
-    constructor({ id, username, fund_id, value, currency, accountant }) {
+    constructor(id: number, username: string, fund_id: number, value: number, currency: string, accountant: string) {
         this.id = id;
         this.username = username;
         this.fund_id = fund_id;

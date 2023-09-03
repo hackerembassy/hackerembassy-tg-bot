@@ -15,6 +15,13 @@ async function init(bot: HackerEmbassyBot): Promise<void> {
 }
 
 // Configure the bot singleton instance
+if (!process.env["HACKERBOTTOKEN"]) {
+    logger.error("HACKERBOTTOKEN is not defined");
+    logger.error("Please set HACKERBOTTOKEN in the .env file or sevironment variables");
+    logger.error("Exiting...");
+    process.exit(1);
+}
+
 const bot = new HackerEmbassyBot(process.env["HACKERBOTTOKEN"], { polling: true });
 
 init(bot);

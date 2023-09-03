@@ -48,7 +48,9 @@ export function closeSpace(closer: string, options: { evict: boolean } = { evict
 
     statusRepository.pushSpaceState(state);
 
-    if (options.evict) evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
+    const allUserStates = statusRepository.getAllUserStates();
+
+    if (options.evict && allUserStates) evictPeople(findRecentStates(allUserStates).filter(filterPeopleInside));
 }
 
 export async function hasDeviceInside(username: string): Promise<boolean> {
@@ -58,7 +60,9 @@ export async function hasDeviceInside(username: string): Promise<boolean> {
         );
         const devices = await response?.json();
 
-        return isMacInside(usersRepository.getUserByName(username).mac, devices);
+        const mac = usersRepository.getUserByName(username)?.mac;
+
+        return mac ? isMacInside(mac, devices) : false;
     } catch {
         return false;
     }
@@ -98,7 +102,7 @@ export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
 }
 
 export function findRecentStates(allUserStates: UserState[]) {
-    const usersLastStates = [];
+    const usersLastStates: UserState[] = [];
 
     for (const userstate of allUserStates) {
         if (!usersLastStates.find(us => us.username === userstate.username)) {

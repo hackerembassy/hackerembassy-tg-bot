@@ -5,6 +5,7 @@ import config from "config";
 import cors from "cors";
 import express from "express";
 import find from "local-devices";
+// @ts-ignore
 import { LUCI } from "luci-rpc";
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
@@ -181,11 +182,11 @@ app.get("/devices", async (_, res, next) => {
         });
 
         const adapters = await response.json();
-        let macs = [];
+        let macs: string[] = [];
 
         for (const wlanAdapter of adapters) {
             const devices = wlanAdapter.result[1]?.results;
-            if (devices) macs = macs.concat(devices.map(dev => dev.mac.toLowerCase()));
+            if (devices) macs = macs.concat(devices.map((dev: any) => dev?.mac.toLowerCase() ?? ""));
         }
 
         res.send(macs);

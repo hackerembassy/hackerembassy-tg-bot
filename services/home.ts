@@ -17,7 +17,7 @@ interface SpaceClimate {
     bedroom: FloorClimate;
 }
 
-export async function getClimate(): Promise<SpaceClimate> {
+export async function getClimate(): Promise<SpaceClimate | null> {
     try {
         const queries = [
             (await getFromHass(climateConfig.first_floor.temperature)).json(),

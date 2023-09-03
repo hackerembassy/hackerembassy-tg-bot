@@ -18,9 +18,9 @@ export function getRoles(user: string | User) {
     return UsersRepository.getUserByName(user)?.rolesList ?? [];
 }
 
-export function isMember(user: string | User) {
+export function isMember(user: string | User): boolean {
     const userRoles = user instanceof User ? user?.rolesList : UsersRepository.getUserByName(user)?.roles;
-    return userRoles.includes("member");
+    return userRoles?.includes("member") ?? false;
 }
 
 export function getAvailableCommands(username: string) {
@@ -36,7 +36,9 @@ export function getAvailableCommands(username: string) {
     return availableCommands;
 }
 
-export function formatUsername(username: string, mode = { mention: false }, isApi = false): string {
+export function formatUsername(username: string | null, mode = { mention: false }, isApi = false): string {
+    if (!username) return "[No username provided]";
+
     username = username.replace("@", "");
 
     if (isApi) return `@${username}`;

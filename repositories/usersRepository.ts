@@ -3,10 +3,10 @@ import { anyItemIsInList } from "../utils/common";
 import BaseRepository from "./baseRepository";
 
 class UserRepository extends BaseRepository {
-    getUsers(): User[] {
+    getUsers(): User[] | null {
         const users = this.db.prepare("SELECT * FROM users").all() as User[];
 
-        return users ? users.map(user => new User(user)) : null;
+        return users;
     }
 
     addUser(username: string, roles: string[] = ["default"]): boolean {
@@ -50,7 +50,7 @@ class UserRepository extends BaseRepository {
         return registeredMacEntries.flatMap(macEntry => macEntry.mac.split("|"));
     }
 
-    setMACs(username: string, macs: string = null): boolean {
+    setMACs(username: string, macs: string | null = null): boolean {
         try {
             const currentUser = this.getUserByName(username);
             if (currentUser === null && !this.addUser(username, ["default"])) return false;
@@ -58,7 +58,7 @@ class UserRepository extends BaseRepository {
             const newMacs = macs ? macs.split(",").map(mac => mac.toLowerCase().replaceAll("-", ":").trim()) : [];
             const existingRegisteredMacs = this.getAllRegisteredMACs();
             const existingOtherUsersMacs = currentUser
-                ? existingRegisteredMacs.filter(mac => !currentUser.mac.split(",").includes(mac))
+                ? existingRegisteredMacs.filter(mac => !currentUser?.mac?.split(",").includes(mac))
                 : existingRegisteredMacs;
             const newMacsString = newMacs?.join(",") ?? null;
 
@@ -74,7 +74,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setEmoji(username: string, emoji: string = null): boolean {
+    setEmoji(username: string, emoji: string | null = null): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -103,7 +103,7 @@ class UserRepository extends BaseRepository {
     setAutoinside(username: string, value: boolean): boolean {
         try {
             const user = this.getUserByName(username);
-            if ((user === null && !this.addUser(username, ["default"])) || (value && !user.mac)) return false;
+            if ((user === null && !this.addUser(username, ["default"])) || (value && !user?.mac)) return false;
 
             this.db.prepare("UPDATE users SET autoinside = ? WHERE username = ?").run(Number(value), username);
 
@@ -114,7 +114,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setBirthday(username: string, birthday: string = null): boolean {
+    setBirthday(username: string, birthday: string | null = null): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -138,22 +138,22 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    getUserByName(username: string): User {
+    getUserByName(username: string): User | null {
         try {
             const user: User = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username) as User;
 
-            return user ? new User(user) : null;
+            return user;
         } catch (error) {
             this.logger.error(error);
             return null;
         }
     }
 
-    getUsersByRole(role: string): User[] {
+    getUsersByRole(role: string): User[] | null {
         try {
             const users: User[] = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role) as User[];
 
-            return users ? users.map(user => new User(user)) : null;
+            return users;
         } catch (error) {
             this.logger.error(error);
             return null;

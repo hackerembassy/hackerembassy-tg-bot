@@ -40,7 +40,7 @@ export default class MessageHistory {
         await this.#persistChanges();
     }
 
-    async pop(chatId: number, from: number = 0): Promise<MessageHistoryEntry> {
+    async pop(chatId: number, from: number = 0): Promise<MessageHistoryEntry | null> {
         if (!this.#historyBuffer[chatId] || this.#historyBuffer[chatId].length === 0) return null;
 
         const removed = this.#historyBuffer[chatId].splice(from, 1)[0];

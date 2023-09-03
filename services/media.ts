@@ -27,7 +27,7 @@ export async function getWebcam2Image(): Promise<Buffer> {
     return getBufferFromResponse(await getFromHass(webcam2Path));
 }
 
-export async function getRandomImageFromFolder(folder: string): Promise<Buffer> {
+export async function getRandomImageFromFolder(folder: string): Promise<Buffer | null> {
     const files = await fs.readdir(folder);
     if (!files || files.length === 0) return null;
 

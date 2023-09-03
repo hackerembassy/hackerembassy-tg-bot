@@ -22,7 +22,7 @@ export default class Printer3d {
         return await response.json();
     }
 
-    static async getFile(printername: string, path: string): Promise<Blob> {
+    static async getFile(printername: string, path: string): Promise<Blob | null> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
@@ -31,7 +31,7 @@ export default class Printer3d {
         return response.status === 200 ? await response.blob() : null;
     }
 
-    static async getCam(printername: string): Promise<Buffer> {
+    static async getCam(printername: string): Promise<Buffer | null> {
         const apiBase = this.getApiBase(printername);
         const camPort = this.getCamPort(printername);
         if (!apiBase) return null;
@@ -50,7 +50,7 @@ export default class Printer3d {
         return null;
     }
 
-    static async getThumbnail(printername: string, path: string): Promise<Buffer> {
+    static async getThumbnail(printername: string, path: string): Promise<Buffer | null> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
@@ -66,7 +66,7 @@ export default class Printer3d {
             );
     }
 
-    static getApiBase(printername: string): string {
+    static getApiBase(printername: string): string | null {
         switch (printername) {
             case "anette":
                 return printersConfig.anette.apibase;
@@ -77,7 +77,7 @@ export default class Printer3d {
         }
     }
 
-    static getCamPort(printername: string): number {
+    static getCamPort(printername: string): number | null {
         switch (printername) {
             case "anette":
                 return printersConfig.anette.camport;

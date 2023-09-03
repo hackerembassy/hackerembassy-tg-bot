@@ -13,14 +13,14 @@ export const enum UserStateType {
 }
 
 class UserState {
-    id: number;
+    readonly id: number;
     username: string;
     status: UserStateType;
     date: number | Date;
     type: UserStateChangeType;
-    note: string;
+    note: string | null;
 
-    constructor({ id = 0, username, status, date, type = 0, note = null }) {
+    constructor({ id = 0, username, status, date, type = 0, note = null }: UserState) {
         this.id = id;
         this.username = username;
         this.status = status;

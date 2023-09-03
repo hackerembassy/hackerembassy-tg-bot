@@ -36,6 +36,8 @@ const statusLogger = Winston.createLogger({
 });
 
 async function pingInternalDevices(): Promise<void> {
+    if (!hosts) return;
+
     for (const host of hosts) {
         const res = await promise.probe(host);
         if (!res.alive) {
@@ -56,5 +58,5 @@ export function readNewMessages(): string[] {
         unreadMessages.push(UnreadMessagesBuffer.shift());
     }
 
-    return unreadMessages;
+    return unreadMessages as string[];
 }

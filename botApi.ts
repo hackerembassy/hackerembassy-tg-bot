@@ -36,7 +36,7 @@ app.get("/status", async (_, res) => {
     let content = `🔐 Статус спейса неопределен`;
 
     if (state) {
-        const allUserStates = findRecentStates(StatusRepository.getAllUserStates());
+        const allUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
         const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
@@ -57,7 +57,7 @@ app.get("/api/status", (_, res) => {
         return;
     }
 
-    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates());
+    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
 
     const inside = recentUserStates.filter(filterPeopleInside).map(p => {
         return {
@@ -82,13 +82,13 @@ app.get("/api/status", (_, res) => {
 });
 
 app.get("/api/inside", (_, res) => {
-    const inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
+    const inside = findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside);
     res.json(inside);
 });
 
 app.get("/api/insidecount", (_, res) => {
     try {
-        const inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
+        const inside = findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside);
         res.status(200).send(inside.length.toString());
     } catch {
         res.status(500).send("-1");
@@ -118,8 +118,9 @@ app.get("/events", (_, res) => {
 });
 
 app.get("/funds", async (_, res) => {
-    const funds = FundsRepository.getFunds().filter(p => p.status === "open");
+    const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
     const donations = FundsRepository.getDonations();
+
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });
 
     const message = `⚒ Вот наши текущие сборы:

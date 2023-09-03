@@ -13,13 +13,13 @@ const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
 export type UserStatsTime = { username: string; usertime: ElapsedTimeObject };
 
-export function openSpace(opener: string, options: { checkOpener: boolean } = { checkOpener: false }): void {
+export function openSpace(opener: string | null | undefined, options: { checkOpener: boolean } = { checkOpener: false }): void {
     const opendate = new Date();
     const state = {
         id: 0,
         open: true,
         date: opendate,
-        changedby: opener,
+        changedby: opener ?? "anon",
     };
 
     statusRepository.pushSpaceState(state);
@@ -30,7 +30,7 @@ export function openSpace(opener: string, options: { checkOpener: boolean } = { 
         id: 0,
         status: UserStateType.Inside,
         date: opendate,
-        username: opener,
+        username: opener ?? "anon",
         type: UserStateChangeType.Opened,
         note: null,
     };
@@ -38,34 +38,40 @@ export function openSpace(opener: string, options: { checkOpener: boolean } = { 
     statusRepository.pushPeopleState(userstate);
 }
 
-export function closeSpace(closer: string, options: { evict: boolean } = { evict: false }): void {
+export function closeSpace(closer: string | null | undefined, options: { evict: boolean } = { evict: false }): void {
     const state = {
         id: 0,
         open: false,
         date: new Date(),
-        changedby: closer,
+        changedby: closer ?? "anon",
     };
 
     statusRepository.pushSpaceState(state);
 
-    if (options.evict) evictPeople(findRecentStates(statusRepository.getAllUserStates()).filter(filterPeopleInside));
+    const allUserStates = statusRepository.getAllUserStates();
+
+    if (options.evict && allUserStates) evictPeople(findRecentStates(allUserStates).filter(filterPeopleInside));
 }
 
-export async function hasDeviceInside(username: string): Promise<boolean> {
+export async function hasDeviceInside(username: string | null | undefined): Promise<boolean> {
+    if (!username) return false;
+
     try {
         const response = await fetchWithTimeout(
             `${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`
         );
         const devices = await response?.json();
 
-        return isMacInside(usersRepository.getUserByName(username).mac, devices);
+        const mac = usersRepository.getUserByName(username)?.mac;
+
+        return mac ? isMacInside(mac, devices) : false;
     } catch {
         return false;
     }
 }
 
 export function isMacInside(mac: string, devices: string[]): boolean {
-    return mac ? anyItemIsInList(mac.split(","), devices) : false;
+    return anyItemIsInList(mac.split(","), devices);
 }
 
 export function getUserTimeDescriptor(userStates: UserState[]): ElapsedTimeObject {
@@ -98,7 +104,7 @@ export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
 }
 
 export function findRecentStates(allUserStates: UserState[]) {
-    const usersLastStates = [];
+    const usersLastStates: UserState[] = [];
 
     for (const userstate of allUserStates) {
         if (!usersLastStates.find(us => us.username === userstate.username)) {

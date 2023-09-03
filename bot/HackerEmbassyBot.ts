@@ -182,16 +182,16 @@ export default class HackerEmbassyBot extends TelegramBot {
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,
-        msg: TelegramBot.Message,
+        msg: TelegramBot.Message | null,
         options: TelegramBot.SendMessageOptions = {}
     ): Promise<TelegramBot.Message | null> {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
-        if (!this.context(msg)?.mode?.silent) {
+        if (!msg || !this.context(msg)?.mode?.silent) {
             const message = await super.sendMessage(chatId, preparedText, {
                 ...options,
-                message_thread_id: this.context(msg)?.messageThreadId,
+                message_thread_id: msg ? this.context(msg)?.messageThreadId : undefined,
             });
 
             if (!message) return null;

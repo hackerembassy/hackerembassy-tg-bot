@@ -170,7 +170,7 @@ export function getUserBadgesWithStatus(userStatus: UserState): string {
     return `${autoBadge}${userBadges}`;
 }
 
-export function getAccountsList(accountants: User[], mode: { mention: boolean }, isApi = false): string {
+export function getAccountsList(accountants: User[] | undefined | null, mode: { mention: boolean }, isApi = false): string {
     return accountants
         ? accountants.reduce(
               (list, user) => `${list}${formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
@@ -179,8 +179,11 @@ export function getAccountsList(accountants: User[], mode: { mention: boolean },
         : "";
 }
 
-export function getResidentsList(residents: User[], mode: { mention: boolean }): string {
+export function getResidentsList(residents: User[] | undefined | null, mode: { mention: boolean }): string {
     let userList = "";
+
+    if (!residents) return userList;
+
     for (const user of residents) {
         userList += `${formatUsername(user.username, mode)} ${getUserBadges(user.username)}\n`;
     }
@@ -196,10 +199,11 @@ export function getMonitorMessagesList(monitorMessages: { level: string; message
         : "";
 }
 
-export function getNeedsList(needs: Need[], mode: { mention: boolean }): string {
+export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): string {
     let message = `${t("needs.buy.nothing")}\n`;
+    const areNeedsProvided = needs && needs.length > 0;
 
-    if (needs.length > 0) {
+    if (areNeedsProvided) {
         message = `${t("needs.buy.pleasebuy")}\n`;
 
         for (const need of needs) {
@@ -209,9 +213,7 @@ export function getNeedsList(needs: Need[], mode: { mention: boolean }): string 
 
     message += `\n${t("needs.buy.helpbuy")}`;
 
-    if (needs.length > 0) {
-        message += t("needs.buy.helpbought");
-    }
+    if (areNeedsProvided) message += t("needs.buy.helpbought");
 
     return message;
 }
@@ -270,7 +272,7 @@ const shortMonthNames: string[] = [
     "birthday.months.december",
 ];
 
-export function getBirthdaysList(birthdayUsers: User[], mode: { mention: boolean }): string {
+export function getBirthdaysList(birthdayUsers: User[] | null | undefined, mode: { mention: boolean }): string {
     let message = t("birthday.nextbirthdays");
     let usersList = `\n${t("birthday.noone")}\n`;
 

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-export function lastModifiedFilePath(logfolderpath: string): string | null {
+export function lastModifiedFilePath(logfolderpath: string): string | undefined {
     const files = fs.readdirSync(logfolderpath);
 
     return files?.length > 0
@@ -10,5 +10,5 @@ export function lastModifiedFilePath(logfolderpath: string): string | null {
               const currTime = fs.statSync(path.join(logfolderpath, curr)).mtime;
               return prevTime > currTime ? prev : curr;
           })
-        : null;
+        : undefined;
 }

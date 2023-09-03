@@ -1,7 +1,5 @@
 import { ChatId } from "node-telegram-bot-api";
 
-import { BotRole } from "../bot/HackerEmbassyBot";
-
 class User {
     readonly id: number;
     userid: ChatId | null;
@@ -30,10 +28,6 @@ class User {
         this.autoinside = autoinside;
         this.emoji = emoji;
         this.userid = userid;
-    }
-
-    get rolesList(): BotRole[] {
-        return this.roles.split("|") as BotRole[];
     }
 }
 

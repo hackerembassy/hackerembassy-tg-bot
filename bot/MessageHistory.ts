@@ -7,7 +7,7 @@ import { debounce } from "../utils/common";
 
 const botConfig = config.get("bot") as BotConfig;
 
-type MessageHistoryEntry = {
+export type MessageHistoryEntry = {
     messageId: number;
     text?: string;
     datetime: number;

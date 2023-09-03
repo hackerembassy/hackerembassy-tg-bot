@@ -18,7 +18,7 @@ class RegexCommander {
         this.botname = botname;
     }
 
-    command(aliases: string[], params: RegExp = undefined, optional: boolean = true, flags: string = "i"): RegExp {
+    command(aliases: string[], params: RegExp | undefined = undefined, optional: boolean = true, flags: string = "i"): RegExp {
         const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
         const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
         return new RegExp(`^${commandPart}${paramsPart}$`, flags);

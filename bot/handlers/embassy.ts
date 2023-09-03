@@ -15,14 +15,17 @@ const botConfig = config.get("bot") as BotConfig;
 
 export default class EmbassyHanlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (!(await hasDeviceInside(msg.from.username))) {
+        if (!(await hasDeviceInside(msg.from?.username))) {
             bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
 
             return;
         }
 
         try {
-            const token = await encrypt(process.env["UNLOCKKEY"]);
+            const unlockKey = process.env["UNLOCKKEY"];
+            if (!unlockKey) throw Error("Environment variable UNLOCKKEY is not provided");
+
+            const token = await encrypt(unlockKey);
 
             const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/unlock`, {
                 headers: {
@@ -30,11 +33,11 @@ export default class EmbassyHanlers {
                     "Content-Type": "application/json",
                 },
                 method: "post",
-                body: JSON.stringify({ token, from: msg.from.username }),
+                body: JSON.stringify({ token, from: msg.from?.username }),
             });
 
             if (response.status === 200) {
-                logger.info(`${msg.from.username} opened the door`);
+                logger.info(`${msg.from?.username} opened the door`);
                 await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
             } else throw Error("Request error");
         } catch (error) {
@@ -105,8 +108,8 @@ export default class EmbassyHanlers {
                         id: botConfig.chats.test,
                         type: "private",
                     },
-                    message_id: undefined,
-                    date: undefined,
+                    message_id: 0,
+                    date: Date.now(),
                 }),
             embassyApiConfig.queryMonitorInterval
         );

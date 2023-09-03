@@ -24,7 +24,7 @@ export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...re
 
 export interface BotMessageContext {
     mode: BotMessageContextMode;
-    messageThreadId: number;
+    messageThreadId: number | undefined;
     clear(): void;
     isAdminMode(): boolean;
     isEditing: boolean;
@@ -49,7 +49,7 @@ function prepareOptionsForMarkdown(
 
 export default class HackerEmbassyBot extends TelegramBot {
     messageHistory: MessageHistory;
-    Name: string;
+    Name: string | undefined;
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
@@ -59,7 +59,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     accessTable = new Map();
 
-    canUserCall(username: string, callback: BotHandler): boolean {
+    canUserCall(username: string | undefined, callback: BotHandler): boolean {
+        if (!username) return false;
+
         const savedRestrictions = this.accessTable.get(callback);
 
         if (savedRestrictions !== undefined && !hasRole(username, "admin", ...savedRestrictions)) {
@@ -169,7 +171,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     async setMyCommands(
         commands: TelegramBot.BotCommand[],
-        options: { scope: BotCommandScope; language_code?: string } = undefined
+        options: { scope: BotCommandScope; language_code?: string } | undefined = undefined
     ): Promise<boolean> {
         return super.setMyCommands(commands, {
             ...options,
@@ -180,16 +182,16 @@ export default class HackerEmbassyBot extends TelegramBot {
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,
-        msg: TelegramBot.Message,
+        msg: TelegramBot.Message | null,
         options: TelegramBot.SendMessageOptions = {}
-    ): Promise<TelegramBot.Message> {
+    ): Promise<TelegramBot.Message | null> {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
-        if (!this.context(msg)?.mode?.silent) {
+        if (!msg || !this.context(msg)?.mode?.silent) {
             const message = await super.sendMessage(chatId, preparedText, {
                 ...options,
-                message_thread_id: this.context(msg)?.messageThreadId,
+                message_thread_id: msg ? this.context(msg)?.messageThreadId : undefined,
             });
 
             if (!message) return null;
@@ -252,26 +254,31 @@ ${chunks[index]}
 
         const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
-        const newCallback = async function (msg, match) {
+        const newCallback = async function (msg: TelegramBot.Message, match: RegExpExecArray | null) {
+            if (!msg) return;
             try {
-                if (!botthis.canUserCall(msg.from.username, callback)) {
+                if (!botthis.canUserCall(msg.from?.username, callback)) {
                     await botthis.sendMessageExt(msg.chat.id, t("admin.messages.restricted"), msg);
 
                     return;
                 }
 
-                let newCommand = match[0];
+                let executedMatch: RegExpExecArray | null = null;
 
-                for (const key of Object.keys(botthis.context(msg).mode)) {
-                    newCommand = newCommand.replace(` -${key}`, "");
-                    if (match[0].includes(`-${key}`)) botthis.context(msg).mode[key] = true;
+                if (match !== null) {
+                    let newCommand = match[0];
+
+                    for (const key of Object.keys(botthis.context(msg).mode)) {
+                        newCommand = newCommand.replace(` -${key}`, "");
+                        if (match[0].includes(`-${key}`)) botthis.context(msg).mode[key as keyof BotMessageContextMode] = true;
+                    }
+
+                    executedMatch = originalRegex.exec(newCommand);
                 }
-
-                if (match !== undefined) match = originalRegex.exec(newCommand);
 
                 botthis.context(msg).messageThreadId = msg?.is_topic_message ? msg.message_thread_id : undefined;
 
-                await callback.call(this, botthis, msg, match);
+                await callback.call(botthis, botthis, msg, executedMatch);
             } catch (error) {
                 logger.error(error);
             } finally {

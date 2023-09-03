@@ -14,36 +14,42 @@ import { formatUsername, getRoles } from "./usersHelper";
 
 const printersConfig = config.get("printers") as PrintersConfig;
 
+type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boolean };
+
 export async function createFundList(
-    funds: Fund[],
-    donations: Donation[],
-    options = undefined,
+    funds: Fund[] | null | undefined,
+    donations: Donation[] | null,
+    { showAdmin = false, isHistory = false, isApi = false }: FundListOptions,
     mode = { mention: false }
 ): Promise<string> {
-    const defaultOptions = { showAdmin: false, isApi: false, isHistory: false };
-    options = { defaultOptions, ...options };
-
     let list = "";
+
+    if (!funds || funds.length === 0) {
+        return list;
+    }
 
     for (const fund of funds) {
         if (!fund) continue;
 
-        const fundDonations = donations.filter(donation => {
-            return donation.fund_id === fund.id;
-        });
+        const fundDonations =
+            donations?.filter(donation => {
+                return donation.fund_id === fund.id;
+            }) ?? [];
         const sumOfAllDonations = await fundDonations.reduce(async (prev, current) => {
             const newValue = await convertCurrency(current.value, current.currency, fund.target_currency);
-            return (await prev) + newValue;
+            const prevValue = await prev;
+
+            return newValue ? prevValue + newValue : prevValue;
         }, Promise.resolve(0));
-        const fundStatus = generateFundStatus(fund, sumOfAllDonations, options.isHistory);
+        const fundStatus = generateFundStatus(fund, sumOfAllDonations, isHistory);
 
         list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${formatValueForCurrency(
             sumOfAllDonations,
             fund.target_currency
         )} ${t("funds.fund.from")} ${fund.target_value} ${fund.target_currency}\n`;
 
-        if (!options.isHistory) list += generateDonationsList(fundDonations, options, mode);
-        if (options.showAdmin) list += generateAdminFundHelp(fund, options.isHistory);
+        if (!isHistory) list += generateDonationsList(fundDonations, { showAdmin, isApi }, mode);
+        if (showAdmin) list += generateAdminFundHelp(fund, isHistory);
 
         list += "\n";
     }
@@ -144,7 +150,9 @@ ${insideText}${goingText}${climateText}
 ${updateText}`;
 }
 
-export function getUserBadges(username: string): string {
+export function getUserBadges(username: string | null): string {
+    if (!username) return "";
+
     const user = usersRepository.getUserByName(username);
     if (!user) return "";
 
@@ -162,7 +170,7 @@ export function getUserBadgesWithStatus(userStatus: UserState): string {
     return `${autoBadge}${userBadges}`;
 }
 
-export function getAccountsList(accountants: User[], mode: { mention: boolean }, isApi = false): string {
+export function getAccountsList(accountants: User[] | undefined | null, mode: { mention: boolean }, isApi = false): string {
     return accountants
         ? accountants.reduce(
               (list, user) => `${list}${formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
@@ -171,8 +179,11 @@ export function getAccountsList(accountants: User[], mode: { mention: boolean },
         : "";
 }
 
-export function getResidentsList(residents: User[], mode: { mention: boolean }): string {
+export function getResidentsList(residents: User[] | undefined | null, mode: { mention: boolean }): string {
     let userList = "";
+
+    if (!residents) return userList;
+
     for (const user of residents) {
         userList += `${formatUsername(user.username, mode)} ${getUserBadges(user.username)}\n`;
     }
@@ -188,10 +199,11 @@ export function getMonitorMessagesList(monitorMessages: { level: string; message
         : "";
 }
 
-export function getNeedsList(needs: Need[], mode: { mention: boolean }): string {
+export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): string {
     let message = `${t("needs.buy.nothing")}\n`;
+    const areNeedsProvided = needs && needs.length > 0;
 
-    if (needs.length > 0) {
+    if (areNeedsProvided) {
         message = `${t("needs.buy.pleasebuy")}\n`;
 
         for (const need of needs) {
@@ -201,14 +213,12 @@ export function getNeedsList(needs: Need[], mode: { mention: boolean }): string 
 
     message += `\n${t("needs.buy.helpbuy")}`;
 
-    if (needs.length > 0) {
-        message += t("needs.buy.helpbought");
-    }
+    if (areNeedsProvided) message += t("needs.buy.helpbought");
 
     return message;
 }
 
-export function getDonateText(accountants: User[], isApi: boolean = false): string {
+export function getDonateText(accountants: User[] | null, isApi: boolean = false): string {
     const cryptoCommands = !isApi
         ? `#\`/donatecrypto btc#\`
   #\`/donatecrypto eth#\`
@@ -221,7 +231,7 @@ export function getDonateText(accountants: User[], isApi: boolean = false): stri
         donateCardCommand: !isApi ? "/donatecard" : "",
         fundsCommand: !isApi ? "/funds" : "funds",
         cryptoCommands,
-        accountantsList: getAccountsList(accountants, { mention: false }, isApi),
+        accountantsList: accountants ? getAccountsList(accountants, { mention: false }, isApi) : "",
     });
 }
 
@@ -233,7 +243,7 @@ export function getJoinText(isApi: boolean = false): string {
     });
 }
 
-export function getEventsText(isApi: boolean = false, calendarAppLink: string = undefined): string {
+export function getEventsText(isApi: boolean = false, calendarAppLink: string | undefined = undefined): string {
     return t("basic.events.text", {
         calendarLink: isApi
             ? "<a href='https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan'>Hacker Embassy Public Events</a>"
@@ -262,14 +272,15 @@ const shortMonthNames: string[] = [
     "birthday.months.december",
 ];
 
-export function getBirthdaysList(birthdayUsers: User[], mode: { mention: boolean }): string {
+export function getBirthdaysList(birthdayUsers: User[] | null | undefined, mode: { mention: boolean }): string {
     let message = t("birthday.nextbirthdays");
     let usersList = `\n${t("birthday.noone")}\n`;
 
     if (birthdayUsers) {
         const usersWithBirthdayThisMonth = birthdayUsers
+            .filter(u => u.birthday !== null)
             .map(u => {
-                const parts = u.birthday.split("-");
+                const parts = (u.birthday as string).split("-");
                 return {
                     day: Number(parts[2]),
                     month: Number(parts[1]),

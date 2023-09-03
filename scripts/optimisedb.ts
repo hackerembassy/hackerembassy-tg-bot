@@ -1,8 +1,15 @@
+import UserState from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 
 function removeUserStateDuplicates() {
-    const allStates = statusRepository.getAllUserStates().sort((a, b) => (a.date > b.date ? 1 : -1));
-    const allUniqueUsers = allStates.reduce((acc, curr) => {
+    const allUserStates = statusRepository.getAllUserStates();
+    if (!allUserStates) {
+        console.log("No user states found");
+        return;
+    }
+
+    const allStates = allUserStates.sort((a, b) => (a.date > b.date ? 1 : -1));
+    const allUniqueUsers = allStates.reduce((acc: string[], curr: UserState) => {
         if (!acc.includes(curr.username)) {
             acc.push(curr.username);
         }

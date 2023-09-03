@@ -20,7 +20,10 @@ export default class AdminHandlers {
 
     static async getLogHandler(bot: HackerEmbassyBot, msg: Message) {
         const logFolderPath = path.join(__dirname, "../..", botConfig.logfolderpath);
-        const lastLogFilePath = path.join(__dirname, "../..", botConfig.logfolderpath, lastModifiedFilePath(logFolderPath));
+        const lastModifiedFile = lastModifiedFilePath(logFolderPath);
+        const lastLogFilePath = lastModifiedFile
+            ? path.join(__dirname, "../..", botConfig.logfolderpath, lastModifiedFile)
+            : undefined;
 
         if (lastLogFilePath && fs.existsSync(lastLogFilePath)) await bot.sendDocument(msg.chat.id, lastLogFilePath);
     }
@@ -34,10 +37,13 @@ export default class AdminHandlers {
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers();
         let userList = "";
-        for (const user of users) {
-            userList += `> ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
-Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
-Autoinside: ${user.autoinside ? "on" : "off"}\n`;
+
+        if (users) {
+            for (const user of users) {
+                userList += `> ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
+    Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
+    Autoinside: ${user.autoinside ? "on" : "off"}\n`;
+            }
         }
 
         await bot.sendLongMessage(msg.chat.id, t("admin.getUsers.text") + userList, msg);

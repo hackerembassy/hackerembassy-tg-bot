@@ -8,37 +8,37 @@ import BaseRepository from "./baseRepository";
 const currencyConfig = config.get("currency") as CurrencyConfig;
 
 class FundsRepository extends BaseRepository {
-    getFunds(): Fund[] {
+    getFunds(): Fund[] | null {
         return this.db.prepare("SELECT * FROM funds").all() as Fund[];
     }
 
-    getFundByName(fundName: string): Fund {
+    getFundByName(fundName: string): Fund | null {
         return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Fund;
     }
 
-    getFundById(id: number): Fund {
+    getFundById(id: number): Fund | null {
         return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Fund;
     }
 
-    getLatestCosts(): Fund {
-        return this.getFunds().find(fund => /[Аа]ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
+    getLatestCosts(): Fund | undefined {
+        return this.getFunds()?.find(fund => /[Аа]ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
     }
 
-    getDonations(): Donation[] {
+    getDonations(): Donation[] | null {
         return this.db.prepare("SELECT * FROM donations").all() as Donation[];
     }
 
-    getDonationsForId(fundId: number): Donation[] {
+    getDonationsForId(fundId: number): Donation[] | null {
         return this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
     }
 
-    getDonationsForName(fundName: string): Donation[] {
+    getDonationsForName(fundName: string): Donation[] | null {
         return this.db
             .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
             .all(fundName) as Donation[];
     }
 
-    getDonationById(donationId: number): Donation {
+    getDonationById(donationId: number): Donation | null {
         return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Donation;
     }
 
@@ -116,7 +116,7 @@ class FundsRepository extends BaseRepository {
         username: string,
         value: number,
         currency: string = currencyConfig.default,
-        accountant: string = null
+        accountant: string | null = null
     ): boolean {
         try {
             const fundId = this.getFundByName(fundName)?.id;

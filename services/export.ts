@@ -1,4 +1,5 @@
 import { writeToBuffer } from "@fast-csv/format";
+// @ts-ignore
 import ChartJsImage from "chartjs-to-image";
 
 import FundsRepository from "../repositories/fundsRepository";
@@ -10,6 +11,13 @@ interface SimplifiedDonation {
     username: string;
     donation: number;
 }
+
+type ChartLabel = {
+    text: string;
+    font: {
+        size: number;
+    };
+};
 
 export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDonation[] {
     const uniqueUsernames = [...new Set(donations.map(d => d.username))];
@@ -52,7 +60,11 @@ const remainedColor = "rgba(0,0,0,0.025)";
 
 export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
+    if (!fund) throw Error("Fund not found");
+
     const donations = FundsRepository.getDonationsForName(fundname);
+    if (!donations) throw Error("Donations missing");
+
     const fundDonations = await Promise.all(
         donations.map(async d => {
             const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
@@ -60,7 +72,9 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
                 username: d.username,
                 donation: d.value,
                 currency: d.currency,
-                converted: formatValueForCurrency(convertedValue, fund.target_currency),
+                converted: convertedValue
+                    ? formatValueForCurrency(convertedValue, fund.target_currency)
+                    : "Error converting value",
                 target_currency: fund.target_currency,
             };
         })
@@ -71,7 +85,10 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
 
 export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
+    if (!fund) throw Error("Fund not found");
+
     const alldonations = FundsRepository.getDonationsForName(fundname);
+    if (!alldonations) throw Error("Donations missing");
 
     let fundDonations = await Promise.all(
         alldonations.map(async d => {
@@ -126,8 +143,8 @@ export function createDonut(
     data: string[] | number[],
     titleText: string,
     params = { width: 1400, height: 900 },
-    donutLabels = [],
-    customColorScheme = undefined
+    donutLabels: ChartLabel[] = [],
+    customColorScheme: string[] | undefined = undefined
 ): ChartJsImage {
     const chart: ChartJsImage = new ChartJsImage();
 
@@ -166,7 +183,7 @@ export function createDonut(
                     align: "end",
                     display: "auto",
                     offset: 10,
-                    formatter: val => val,
+                    formatter: (val: any) => val,
                     font: {
                         size: 15,
                     },

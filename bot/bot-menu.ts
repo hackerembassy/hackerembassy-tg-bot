@@ -1,3 +1,5 @@
+import TelegramBot from "node-telegram-bot-api";
+
 import UsersRepository from "../repositories/usersRepository";
 import logger from "../services/logger";
 import HackerEmbassyBot from "./HackerEmbassyBot";
@@ -71,9 +73,12 @@ export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
         await bot.setMyCommands(defaultCommands);
         await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
 
-        const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
+        const membersWithUserid = UsersRepository.getUsersByRole("member")?.filter(user => user.userid);
+
+        if (!membersWithUserid) return;
+
         for (const member of membersWithUserid) {
-            await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid } });
+            await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid as TelegramBot.ChatId } });
         }
     } catch (error) {
         logger.error(error);

@@ -23,33 +23,35 @@ export default class BirthdayHandlers {
     }
 
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
-        const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
+        const usersWithBirthday = UsersRepository.getUsers()?.filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
     static async myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date: string) {
-        const username = msg.from.username;
+        const username = msg.from?.username;
         const formattedUsername = UsersHelper.formatUsername(username, bot.context(msg).mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
 
         let text = t("birthday.fail");
 
-        if (BirthdayHandlers.isProperFormatDateString(date) && UsersRepository.setBirthday(username, fulldate)) {
+        if (BirthdayHandlers.isProperFormatDateString(date) && username && UsersRepository.setBirthday(username, fulldate)) {
             text = t("birthday.set", { username: formattedUsername, date });
-        } else if (date === "remove" && UsersRepository.setBirthday(username, null)) {
+        } else if (date === "remove" && username && UsersRepository.setBirthday(username, null)) {
             text = t("birthday.remove", { username: formattedUsername });
         }
 
         bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Message, force = false) {
+    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Message | null, force = false) {
         const currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
-        const birthdayUsers = UsersRepository.getUsers().filter(u => {
+        const birthdayUsers = UsersRepository.getUsers()?.filter(u => {
             return u.birthday?.substring(5, 10) === currentDate;
         });
+
+        if (!birthdayUsers) return;
 
         if (await fs.access(wishedTodayPath).catch(() => true)) {
             await fs.writeFile(wishedTodayPath, "[]");
@@ -65,7 +67,7 @@ export default class BirthdayHandlers {
             if (!force && wishedUser) continue;
 
             let message = "🎂 ";
-            message += await getWish(user.username);
+            message += await getWish(user.username ?? "[no username provided]");
 
             await bot.sendMessageExt(botConfig.chats.main, message, msg);
             logger.info(`Wished ${user.username} a happy birthday`);

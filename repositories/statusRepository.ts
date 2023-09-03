@@ -3,7 +3,7 @@ import UserState, { UserStateType } from "../models/UserState";
 import BaseRepository from "./baseRepository";
 
 class StatusRepository extends BaseRepository {
-    getSpaceLastState(): State {
+    getSpaceLastState(): State | null {
         const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as State;
 
         if (!lastState) return null;
@@ -13,7 +13,7 @@ class StatusRepository extends BaseRepository {
         return lastState;
     }
 
-    getAllUserStates(): UserState[] {
+    getAllUserStates(): UserState[] | null {
         return this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all() as UserState[];
     }
 

@@ -1,16 +1,14 @@
 import { ChatId } from "node-telegram-bot-api";
 
-import { BotRole } from "../bot/HackerEmbassyBot";
-
 class User {
-    userid: ChatId;
-    id: number;
-    username: string;
+    readonly id: number;
+    userid: ChatId | null;
+    username: string | null;
     roles: string;
-    mac: string;
-    birthday: string;
+    mac: string | null;
+    birthday: string | null;
     autoinside: boolean;
-    emoji: string;
+    emoji: string | null;
 
     constructor({
         id,
@@ -21,7 +19,7 @@ class User {
         autoinside = false,
         emoji = null,
         userid = null,
-    }) {
+    }: User) {
         this.id = id;
         this.username = username;
         this.roles = roles;
@@ -30,10 +28,6 @@ class User {
         this.autoinside = autoinside;
         this.emoji = emoji;
         this.userid = userid;
-    }
-
-    get rolesList(): BotRole[] {
-        return this.roles.split("|") as BotRole[];
     }
 }
 

@@ -3,8 +3,11 @@ import CryptoConvert from "crypto-convert";
 import { Convert } from "easy-currencies";
 
 import { CurrencyConfig } from "../config/schema";
+import logger from "../services/logger";
 
 const currencyConfig = config.get("currency") as CurrencyConfig;
+
+type CurrencySymbol = "$" | "€" | "£" | "֏" | "₽";
 
 const CurrencyFractionDigits = [
     { currency: "AMD", fraction: 0 },
@@ -34,10 +37,10 @@ export function parseMoneyValue(value: string) {
     return Number(value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", ""));
 }
 
-export async function prepareCurrency(currencyInput: string): Promise<string> {
+export async function prepareCurrency(currencyInput: string): Promise<string | null> {
     if (!currencyInput.length) return currencyConfig.default;
 
-    if (Object.keys(CurrencySymbolToCode).includes(currencyInput)) return CurrencySymbolToCode[currencyInput];
+    if (Object.keys(CurrencySymbolToCode).includes(currencyInput)) return CurrencySymbolToCode[currencyInput as CurrencySymbol];
 
     const outputCurrency = currencyInput.toUpperCase();
 
@@ -64,12 +67,13 @@ const convert = new CryptoConvert({
     );
 })();
 
-export async function convertCurrency(amount: number, from: string | number, to: string): Promise<number> {
+export async function convertCurrency(amount: number, from: string | number, to: string): Promise<number | undefined> {
     try {
         await convert.ready();
 
-        return await convert[from][to](amount);
+        return await convert[from as keyof typeof convert][to](amount);
     } catch (error) {
+        logger.error("Error while converting currency", error);
         return undefined;
     }
 }

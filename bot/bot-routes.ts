@@ -127,6 +127,9 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     bot.onTextExt(rc.command(["sayinspace", "say"], /(.*)/, true, "ims"), (bot, msg, match) =>
         EmbassyHandlers.sayinspaceHandler(bot, msg, match[1])
     );
+    bot.onTextExt(rc.command(["rzd", "announce"], /(.*)/, false, "ims"), (bot, msg, match) =>
+        EmbassyHandlers.announceHandler(bot, msg, match[1])
+    );
     bot.onTextExt(rc.command(["playinspace", "play"], /(.*)/, true, "ims"), (bot, msg, match) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, match[1])
     );
@@ -138,6 +141,12 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     );
     bot.onTextExt(rc.command(["rickroll", "nevergonnagiveyouup"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3")
+    );
+    bot.onTextExt(rc.command(["rzd"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3")
+    );
+    bot.onTextExt(rc.command(["adler"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3")
     );
 
     // Funds

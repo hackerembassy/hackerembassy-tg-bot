@@ -6,6 +6,7 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import { hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
+import { sleep } from "../../utils/common";
 import { fetchWithTimeout } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../HackerEmbassyBot";
@@ -207,6 +208,12 @@ export default class EmbassyHanlers {
         }
     }
 
+    static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
+        await this.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3", true);
+        await sleep(7000);
+        await this.sayinspaceHandler(bot, msg, text);
+    }
+
     static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
         bot.sendChatAction(msg.chat.id, "upload_voice", msg);
 
@@ -233,7 +240,7 @@ export default class EmbassyHanlers {
         }
     }
 
-    static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, link: string) {
+    static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, link: string, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {
@@ -251,11 +258,12 @@ export default class EmbassyHanlers {
                 timeout: 15000,
             });
 
-            if (response.status === 200) await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg);
+            if (response.status === 200)
+                !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg));
             else throw Error("Failed to play in space");
         } catch (error) {
             logger.error(error);
-            await bot.sendMessageExt(msg.chat.id, t("embassy.play.fail"), msg);
+            !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.fail"), msg));
         }
     }
 }

@@ -35,6 +35,7 @@ export const GeneralCommandsList: string = `
 /autoinside - Настроить автоматический вход и выход из спейса
 /issue issue_text - Полностью анонимно сообщить о какой-либо проблеме в спейсе (чего-то не хватает, что-то не работает, кто-то делает что-то очень неправильное в спейсе). Резиденты обязательно её рассмотрят и постараются решить.
 #\`/sayinspace some_text#\` - Сказать что-нибудь на динамике в спейсе
+#\`/announce some_text#\` - Объявить что-нибудь на динамике в спейсе
 
 Надо купить в спейс:
 /needs - Посмотреть, что просили купить в спейс по дороге
@@ -53,6 +54,8 @@ export const GeneralCommandsList: string = `
 /randomdog
 /randomcab
 /randomcock
+/rickroll
+/rzd
 `;
 
 export const MemberCommandsList: string = `

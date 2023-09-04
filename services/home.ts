@@ -11,7 +11,7 @@ interface FloorClimate {
     humidity: number | "?";
 }
 
-interface SpaceClimate {
+export interface SpaceClimate {
     firstFloor: FloorClimate;
     secondFloor: FloorClimate;
     bedroom: FloorClimate;

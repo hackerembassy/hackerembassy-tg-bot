@@ -4,6 +4,7 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import t from "../../services/localization";
 import logger from "../../services/logger";
+import { PrinterStatusResponse } from "../../services/printer3d";
 import { hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
@@ -164,7 +165,7 @@ export default class EmbassyHanlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const { status, thumbnailBuffer, cam } = await (
+            const { status, thumbnailBuffer, cam }: PrinterStatusResponse = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
             ).json();
 
@@ -172,7 +173,7 @@ export default class EmbassyHanlers {
 
             if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
 
-            const caption = await TextGenerators.getPrinterStatus(status);
+            const caption = await TextGenerators.getPrinterStatusText(status);
             const inline_keyboard = [
                 [
                     {

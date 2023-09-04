@@ -1,4 +1,4 @@
-export function anyItemIsInList(items: any[], list: any[]) {
+export function anyItemIsInList<T>(items: T[], list: T[]) {
     return items.some(item => list.includes(item));
 }
 

@@ -9,7 +9,9 @@ import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
+import { SpaceClimate } from "./home";
 import t from "./localization";
+import { PrinterStatus } from "./printer3d";
 import { formatUsername, getRoles } from "./usersHelper";
 
 const printersConfig = config.get("printers") as PrintersConfig;
@@ -91,7 +93,7 @@ export function generateAdminFundHelp(fund: Fund, isHistory: boolean): string {
 
 export function generateDonationsList(
     fundDonations: Donation[],
-    options: { showAdmin?: any; isApi?: any },
+    options: { showAdmin?: boolean; isApi?: boolean },
     mode: { mention: boolean }
 ): string {
     let donationList = "";
@@ -102,7 +104,7 @@ export function generateDonationsList(
             mode,
             options.isApi
         )} - ${formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${
-            options.showAdmin && donation.accountant ? ` ➡️ ${formatUsername(donation.accountant, options.isApi)}` : ""
+            options.showAdmin && donation.accountant ? ` ➡️ ${formatUsername(donation.accountant, mode, options.isApi)}` : ""
         }\n`;
     }
 
@@ -113,7 +115,7 @@ export function getStatusMessage(
     state: { open: boolean; changedby: string },
     inside: UserState[],
     going: UserState[],
-    climateInfo: any,
+    climateInfo: SpaceClimate | null,
     mode: { mention: boolean },
     withSecrets = false,
     isApi = false
@@ -307,12 +309,7 @@ export function getPrintersInfo(): string {
     return t("embassy.printers.help", { anetteApi: printersConfig.anette.apibase, plumbusApi: printersConfig.plumbus.apibase });
 }
 
-export async function getPrinterStatus(status: {
-    print_stats: any;
-    heater_bed: any;
-    extruder: any;
-    display_status: { progress: number };
-}): Promise<string> {
+export async function getPrinterStatusText(status: PrinterStatus): Promise<string> {
     const print_stats = status.print_stats;
     const state = print_stats.state;
     const heater_bed = status.heater_bed;

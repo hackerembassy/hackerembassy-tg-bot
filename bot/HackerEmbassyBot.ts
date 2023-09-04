@@ -35,7 +35,8 @@ function prepareMessageForMarkdown(message: string): string {
     return message
         .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
         .replaceAll(/#([_*[\]()~`>+\-=|{}.!])/g, "$1")
-        .replaceAll(/#/g, "");
+        .replaceAll(/#/g, "")
+        .replaceAll("\\u0023", "\\#");
 }
 
 function prepareOptionsForMarkdown(

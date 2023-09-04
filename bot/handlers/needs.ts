@@ -44,7 +44,7 @@ export default class NeedsHandlers {
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
 
-        if (need && need.buyer === msg.from?.username) {
+        if (need && need?.buyer === msg.from?.username) {
             NeedsRepository.undoClose(need.id);
             return true;
         }

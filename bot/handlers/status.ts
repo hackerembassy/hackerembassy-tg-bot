@@ -6,6 +6,7 @@ import { UserStateChangeType, UserStateType } from "../../models/UserState";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import { createUserStatsDonut } from "../../services/export";
+import { SpaceClimate } from "../../services/home";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import {
@@ -104,7 +105,7 @@ export default class StatusHandlers {
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
 
-        let climateInfo = null;
+        let climateInfo: SpaceClimate | null = null;
         try {
             const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
             climateInfo = await response?.json();

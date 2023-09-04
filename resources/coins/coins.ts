@@ -1,7 +1,15 @@
 import { promises as fs } from "fs";
 import path from "path";
 
-export const Coins = [
+export type CoinDefinition = {
+    fullname: string;
+    shortname: string;
+    address: string;
+    network: string;
+    qrfile: string;
+};
+
+export const Coins: CoinDefinition[] = [
     {
         fullname: "Bitcoin",
         shortname: "btc",
@@ -33,14 +41,6 @@ export const Coins = [
 ];
 
 const QRBaseFolder = "./qr";
-
-export type CoinDefinition = {
-    fullname: string;
-    shortname: string;
-    address: string;
-    network: string;
-    qrfile: string;
-};
 
 export function getCoinDefinition(coinname: string): CoinDefinition | undefined {
     return Coins.find(c => c.shortname === coinname);

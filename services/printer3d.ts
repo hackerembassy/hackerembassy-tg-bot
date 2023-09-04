@@ -3,6 +3,36 @@ import { Blob, default as fetch } from "node-fetch";
 
 import { PrintersConfig } from "../config/schema";
 
+export type TemperatureStatus = {
+    temperature: number;
+    targer: number;
+};
+
+export type DisplayStatus = {
+    progress: number;
+};
+
+export type PrintStatus = {
+    state: string;
+    filename: string;
+    total_duration: number;
+    filament_used: number;
+};
+
+export type PrinterStatus = {
+    print_stats: PrintStatus;
+    heater_bed: TemperatureStatus;
+    extruder: TemperatureStatus;
+    display_status: DisplayStatus;
+    error?: string;
+};
+
+export type PrinterStatusResponse = {
+    status: PrinterStatus;
+    thumbnailBuffer: Buffer | null;
+    cam: Buffer | null;
+};
+
 const printersConfig = config.get("printers") as PrintersConfig;
 
 export default class Printer3d {

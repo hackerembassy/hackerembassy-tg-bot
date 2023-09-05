@@ -1,8 +1,9 @@
 // Imports
 import { t } from "i18next";
-import TelegramBot, {
+import {
     BotCommandScope,
     CallbackQuery,
+    default as TelegramBot,
     EditMessageTextOptions,
     Message,
     SendMessageOptions,
@@ -190,7 +191,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options = prepareOptionsForMarkdown({ ...options });
 
         if (!msg || !this.context(msg)?.mode?.silent) {
-            const message = await super.sendMessage(chatId, preparedText, {
+            const message = await this.sendMessage(chatId, preparedText, {
                 ...options,
                 message_thread_id: msg ? this.context(msg)?.messageThreadId : undefined,
             });

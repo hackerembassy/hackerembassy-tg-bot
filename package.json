@@ -24,7 +24,8 @@
     "prepare": "husky install",
     "lint": "eslint '**/*.{ts,js}'",
     "lint-fix": "eslint '--fix **/*.{ts,js}'",
-    "pretty": "prettier --write '**/*.{ts,js}'"
+    "pretty": "prettier --write '**/*.{ts,js}'",
+    "test": "npx jest tests/botMock.spec.ts"
   },
   "author": "Nick Kiselev",
   "license": "ISC",
@@ -56,10 +57,12 @@
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
+    "@jest/globals": "^29.6.4",
     "@types/better-sqlite3": "^7.6.4",
     "@types/config": "^3.3.0",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.4",
     "@types/node": "^14.18.36",
     "@types/node-fetch": "^2.6.4",
     "@types/node-rsa": "^1.1.1",
@@ -73,7 +76,9 @@
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "husky": "^8.0.0",
     "lint-staged": "^13.2.2",
-    "npm-run-all": "^4.1.5"
+    "nock": "^13.3.3",
+    "npm-run-all": "^4.1.5",
+    "ts-jest": "^29.1.1"
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [

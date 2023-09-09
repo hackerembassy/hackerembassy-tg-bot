@@ -15,6 +15,7 @@ const jestConfig: JestConfigWithTsJest = {
             },
         ],
     },
+    fakeTimers: { enableGlobally: true },
 };
 
 export default jestConfig;

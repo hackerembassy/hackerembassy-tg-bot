@@ -40,7 +40,7 @@ describe("HackerEmbassyBotMock", () => {
         await botMock.processUpdate(createMockMessage("/close"));
         await botMock.processUpdate(createMockMessage("/status"));
 
-        await jest.runAllTimersAsync();
+        await Promise.resolve(process.nextTick);
 
         const results = botMock.getResults();
 

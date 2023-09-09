@@ -12,7 +12,6 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     override async sendMessage(chatId: ChatId, text: string, options: SendMessageOptions): Promise<Message> {
-        // console.log(`Sending message to chat ${chatId}: ${text} with ${options}`);
         this.results.push(text);
         await sleep(0);
         // @ts-ignore
@@ -26,7 +25,10 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
         return;
     }
 
-    public getResults(): string[] {
-        return this.results;
+    public popResults(): string[] {
+        const results = this.results;
+        this.results = [];
+
+        return results;
     }
 }

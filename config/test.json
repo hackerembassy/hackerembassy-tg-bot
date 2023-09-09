@@ -9,7 +9,7 @@
             "key" : -1001942114189,
             "status" : -1001942114189
         },
-        "locales": "../resources/locales/test.yaml",
+        "locales": "../resources/locales/test/translation.yaml",
         "timeouts":{
             "in": 10000,
             "out": 60000

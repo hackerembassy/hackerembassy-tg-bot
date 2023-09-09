@@ -1,4 +1,4 @@
-import fs from "fs";
+// import fs from "fs";
 import nock from "nock";
 import TelegramBot from "node-telegram-bot-api";
 
@@ -7,25 +7,31 @@ import { HackerEmbassyBotMock } from "./HackerEmbassyBotMock";
 
 export function mockTelegramApiRequests() {
     // nock.disableNetConnect();
-    nock("https://api.telegram.org").post("/botTOKEN/getUpdates", "offset=0&timeout=10").reply(200, {
-        ok: true,
-        result: [],
-    });
+    nock("https://api.telegram.org")
+        .post("/botTOKEN/getUpdates", "offset=0&timeout=10")
+        .reply(200, {
+            ok: true,
+            result: [],
+        })
+        .persist();
 
-    nock("https://api.telegram.org").post("/botTOKEN/sendChatAction", "chat_id=1&action=typing").reply(200, {
-        ok: true,
-        result: [],
-    });
+    nock("https://api.telegram.org")
+        .post("/botTOKEN/sendChatAction", "chat_id=1&action=typing")
+        .reply(200, {
+            ok: true,
+            result: [],
+        })
+        .persist();
 }
 
 export function cleanDb() {
-    fs.unlinkSync("./data/test.db");
+    // fs.unlinkSync("./data/test.db");
 }
 
 export async function prepareDb() {
     const usersRepository = (await import("../../repositories/usersRepository")).default;
 
-    usersRepository.addUser("adminusername", ["admin"]);
+    usersRepository.addUser("adminusername", ["admin|member|accountant"]);
 }
 
 export function createBotMock() {
@@ -37,7 +43,7 @@ export function createBotMock() {
     return botMock;
 }
 
-export function createMockMessage(text: string): TelegramBot.Update {
+export function createMockMessage(text: string, fromUsername: string = "adminusername"): TelegramBot.Update {
     return {
         update_id: 0,
         message: {
@@ -46,13 +52,13 @@ export function createMockMessage(text: string): TelegramBot.Update {
                 id: 1,
                 is_bot: false,
                 first_name: "First Name",
-                username: "adminusername",
+                username: fromUsername,
                 language_code: "ru-RU",
             },
             chat: {
                 id: 1,
                 first_name: "First Name",
-                username: "adminusername",
+                username: fromUsername,
                 type: "private",
             },
             date: 1508417092,

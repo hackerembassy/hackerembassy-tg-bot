@@ -9,6 +9,7 @@
             "key": -1001807382938,
             "status": -1001942114189
         },
+        "locales": "../resources/locales/{{lng}}/{{ns}}.yaml",
         "timeouts": {
             "in": 60000,
             "out": 300000

@@ -1,6 +1,7 @@
 .env
 .backup
 config/local.json
+config/test.json
 node_modules
 data.db
 data/db/*

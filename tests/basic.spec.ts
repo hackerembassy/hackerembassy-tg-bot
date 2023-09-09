@@ -1,8 +1,9 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 
+import { sleep } from "../utils/common";
 import { HackerEmbassyBotMock } from "./mocks/HackerEmbassyBotMock";
-import { cleanDb, createBotMock, prepareDb } from "./mocks/mockHelpers";
+import { cleanDb, createBotMock, createMockMessage, prepareDb } from "./mocks/mockHelpers";
 
 jest.mock("../utils/currency", () => {
     return {
@@ -23,55 +24,36 @@ jest.mock("../data/db", () => {
     return new Database("./data/test.db");
 });
 
-function createMockMessage(text: string) {
-    return {
-        update_id: 0,
-        message: {
-            message_id: 207,
-            from: {
-                id: 1,
-                is_bot: false,
-                first_name: "First Name",
-                username: "adminusername",
-                language_code: "ru-RU",
-            },
-            chat: {
-                id: 1,
-                first_name: "First Name",
-                username: "adminusername",
-                type: "private",
-            },
-            date: 1508417092,
-            text,
-            entities: [
-                {
-                    offset: 0,
-                    length: text.length,
-                    type: "bot_command",
-                },
-            ],
-        },
-    };
-}
-
 describe("HackerEmbassyBotMock", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
 
-    beforeAll(() => {
+    beforeAll(async () => {
         prepareDb();
+        await sleep(100);
     });
 
     test("should send message to chat", async () => {
-        botMock?.processUpdate(createMockMessage("/open") as any);
-        botMock?.processUpdate(createMockMessage("/inforce user1") as any);
-        botMock?.processUpdate(createMockMessage("/inforce user2") as any);
-        botMock?.processUpdate(createMockMessage("/inforce user3") as any);
-        botMock?.processUpdate(createMockMessage("/close") as any);
-        botMock?.processUpdate(createMockMessage("/status") as any);
+        await botMock.processUpdate(createMockMessage("/open"));
+        await botMock.processUpdate(createMockMessage("/inforce user1"));
+        await botMock.processUpdate(createMockMessage("/inforce user2"));
+        await botMock.processUpdate(createMockMessage("/inforce user3"));
+        await botMock.processUpdate(createMockMessage("/close"));
+        await botMock.processUpdate(createMockMessage("/status"));
 
         await jest.runAllTimersAsync();
 
-        expect(botMock?.getResults()).toEqual(["basic\\.start\\.text"]);
+        const results = botMock.getResults();
+
+        results[results.length - 1] = results[results.length - 1].replace(/\s\d\d.*\n/gm, "");
+
+        expect(results).toEqual([
+            "status\\.open",
+            "status\\.inforce\\.gotin",
+            "status\\.inforce\\.gotin",
+            "status\\.inforce\\.gotin",
+            "status\\.close",
+            "status\\.status\\.state\n" + "status\\.status\\.nooneinside\n" + "\n" + "⏱ status\\.status\\.updated",
+        ]);
     });
 
     afterAll(() => {

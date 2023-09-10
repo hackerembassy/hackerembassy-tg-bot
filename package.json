@@ -25,7 +25,8 @@
     "lint": "eslint '**/*.{ts,js}'",
     "lint-fix": "eslint '--fix **/*.{ts,js}'",
     "pretty": "prettier --write '**/*.{ts,js}'",
-    "test": "npx jest tests/*"
+    "test": "jest --",
+    "coverage": "jest --collectCoverage --"
   },
   "author": "Nick Kiselev",
   "license": "ISC",

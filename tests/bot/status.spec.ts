@@ -35,8 +35,8 @@ describe("Bot Status commands:", () => {
         await botMock.processUpdate(createMockMessage("/inforce user2", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/inforce user3", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/close", ADMIN_USER_NAME));
+        await Promise.resolve(process.nextTick);
         await botMock.processUpdate(createMockMessage("/status"));
-
         await Promise.resolve(process.nextTick);
 
         const results = botMock.popResults();

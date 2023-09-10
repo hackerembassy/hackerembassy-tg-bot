@@ -50,14 +50,16 @@ export async function prepareCurrency(currencyInput: string): Promise<string | n
     return null;
 }
 
-const convert = new CryptoConvert({
-    cryptoInterval: currencyConfig.cryptoUpdateInterval,
-    fiatInterval: currencyConfig.fiatUpdateInterval,
-    calculateAverage: true,
-    binance: true,
-});
+// Convert Singleton
+let convert: CryptoConvert | null = null;
 
-(async function () {
+export async function initConvert() {
+    convert = new CryptoConvert({
+        cryptoInterval: currencyConfig.cryptoUpdateInterval,
+        fiatInterval: currencyConfig.fiatUpdateInterval,
+        calculateAverage: true,
+        binance: true,
+    });
     await convert.ready(); //Wait for the initial cache to load
     await convert.addCurrency(
         "AMD",
@@ -65,13 +67,18 @@ const convert = new CryptoConvert({
         async () => await Convert(1).from("AMD").to("USD"),
         currencyConfig.fiatUpdateInterval
     );
-})();
+}
 
 export async function convertCurrency(amount: number, from: string | number, to: string): Promise<number | undefined> {
     try {
-        await convert.ready();
+        if (!convert) await initConvert();
 
-        return await convert[from as keyof typeof convert][to](amount);
+        if (convert) {
+            await convert.ready();
+            return await convert[from as keyof typeof convert][to](amount);
+        } else {
+            throw new Error("Error while converting currency, convert failed to initialise");
+        }
     } catch (error) {
         logger.error("Error while converting currency", error);
         return undefined;

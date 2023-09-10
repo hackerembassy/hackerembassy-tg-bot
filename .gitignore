@@ -1,4 +1,6 @@
 .env
+.vars
+.secrets
 .backup
 config/local.json
 node_modules
@@ -8,3 +10,4 @@ data/db/*
 sec
 tmp.jpg
 log
+coverage

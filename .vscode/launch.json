@@ -16,6 +16,19 @@
             "runtimeArgs": [
                 "run-script", "start"
             ],
+        },
+        {
+            "type": "node",
+            "runtimeVersion": "18",
+            "name": "Debug Tests",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script", "test"
+            ],
         }
     ]
 }

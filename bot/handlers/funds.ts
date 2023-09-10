@@ -7,11 +7,14 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-import { parseMoneyValue, prepareCurrency } from "../../utils/currency";
+import { initConvert, parseMoneyValue, prepareCurrency } from "../../utils/currency";
 import { isMessageFromPrivateChat } from "../bot-helpers";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 const CALLBACK_DATA_RESTRICTION = 23;
+
+// Converter library needs time to initialize all currencies, so we need to init it in advance
+initConvert();
 
 export default class FundsHandlers {
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {

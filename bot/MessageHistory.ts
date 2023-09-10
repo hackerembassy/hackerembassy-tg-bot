@@ -1,6 +1,6 @@
 import config from "config";
-import { existsSync, promises, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 
 import { BotConfig } from "../config/schema";
 import { debounce } from "../utils/common";
@@ -23,6 +23,7 @@ export default class MessageHistory {
             this.#historyBuffer = JSON.parse(readFileSync(this.historypath).toString());
         } else {
             this.#historyBuffer = {};
+            mkdirSync(dirname(this.historypath), { recursive: true });
             writeFileSync(this.historypath, JSON.stringify(this.#historyBuffer));
         }
     }

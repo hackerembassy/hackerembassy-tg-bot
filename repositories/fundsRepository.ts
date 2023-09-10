@@ -94,6 +94,19 @@ class FundsRepository extends BaseRepository {
         }
     }
 
+    /**
+     * @deprecated Use for tests only
+     */
+    clearFunds(): boolean {
+        try {
+            this.db.prepare("DELETE FROM funds WHERE id = id").run();
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
+    }
+
     closeFund(fundName: string): boolean {
         return this.changeFundStatus(fundName, "closed");
     }

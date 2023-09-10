@@ -1,6 +1,6 @@
 import fundsRepository from "../../repositories/fundsRepository";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { cleanDb, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
+import { createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
 
 describe("Bot behavior shared for all commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
@@ -14,7 +14,6 @@ describe("Bot behavior shared for all commands:", () => {
 
     afterAll(() => {
         jest.useRealTimers();
-        cleanDb();
     });
 
     test("guest user should not be allowed to use protected commands", async () => {
@@ -57,8 +56,6 @@ describe("Bot behavior shared for all commands:", () => {
 
         await Promise.resolve(process.nextTick);
 
-        const results = botMock.popResults();
-
-        expect(results).toEqual(Array(31).fill("admin\\.messages\\.restricted"));
+        expect(botMock.popResults()).toEqual(Array(31).fill("admin\\.messages\\.restricted"));
     });
 });

@@ -1,6 +1,6 @@
 import fundsRepository from "../../repositories/fundsRepository";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { ADMIN_USER_NAME, cleanDb, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
+import { ADMIN_USER_NAME, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
 
 describe("Bot Funds commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
@@ -14,7 +14,6 @@ describe("Bot Funds commands:", () => {
 
     afterAll(() => {
         jest.useRealTimers();
-        cleanDb();
     });
 
     test("/addfund should properly add a fund to a list returned by /funds", async () => {
@@ -42,9 +41,7 @@ describe("Bot Funds commands:", () => {
 
         await jest.runAllTimersAsync();
 
-        const results = botMock.popResults();
-
-        expect(results).toEqual([
+        expect(botMock.popResults()).toEqual([
             "funds\\.addfund\\.success",
             "funds\\.adddonation\\.success",
             "funds\\.funds🟢 Test\\_Fund\\_With\\_Donations \\- funds\\.fund\\.collected 5000 funds\\.fund\\.from 500 USD\n      [user1](t\\.me/user1) \\- 5000 USD\n\n",

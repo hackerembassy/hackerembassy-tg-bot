@@ -1,4 +1,3 @@
-// import fs from "fs";
 import nock from "nock";
 import TelegramBot from "node-telegram-bot-api";
 
@@ -9,7 +8,6 @@ export const ADMIN_USER_NAME = "adminusername";
 export const GUEST_USER_NAME = "guestusername";
 
 export function mockTelegramApiRequests() {
-    // nock.disableNetConnect();
     nock("https://api.telegram.org")
         .post("/botTOKEN/getUpdates", "offset=0&timeout=10")
         .reply(200, {
@@ -27,19 +25,13 @@ export function mockTelegramApiRequests() {
         .persist();
 }
 
-export function cleanDb() {
-    // fs.unlinkSync("./data/test.db");
-}
-
 export async function prepareDb() {
     const usersRepository = (await import("../../repositories/usersRepository")).default;
-
     usersRepository.addUser(ADMIN_USER_NAME, ["admin|member|accountant"]);
 }
 
 export function createBotMock() {
     mockTelegramApiRequests();
-
     const botMock = new HackerEmbassyBotMock("TOKEN", {});
     setRoutes(botMock);
 
@@ -50,7 +42,7 @@ export function createMockMessage(text: string, fromUsername: string = GUEST_USE
     return {
         update_id: 0,
         message: {
-            message_id: 207,
+            message_id: 1,
             from: {
                 id: 1,
                 is_bot: false,

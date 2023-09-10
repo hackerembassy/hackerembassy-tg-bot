@@ -95,7 +95,7 @@ class FundsRepository extends BaseRepository {
     }
 
     /**
-     * @deprecated use for test only
+     * @deprecated Use for tests only
      */
     clearFunds(): boolean {
         try {

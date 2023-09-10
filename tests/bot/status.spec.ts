@@ -1,8 +1,8 @@
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { ADMIN_USER_NAME, cleanDb, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
+import { ADMIN_USER_NAME, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
 
 function removeStatusUpdatedDate(input: string): string {
-    return input.replace(/\s\d\d.*\n/gm, "");
+    return input.replace(/\s\d\d.*\n/m, "");
 }
 
 describe("Bot Status commands:", () => {
@@ -51,9 +51,5 @@ describe("Bot Status commands:", () => {
             "status\\.close",
             "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n⏱ status\\.status\\.updated",
         ]);
-    });
-
-    afterAll(() => {
-        cleanDb();
     });
 });

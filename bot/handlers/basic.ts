@@ -1,21 +1,22 @@
+import config from "config";
 import { Message } from "node-telegram-bot-api";
-import HackerEmbassyBot from "../HackerEmbassyBot";
 
+import { BotConfig } from "../../config/schema";
+import UsersRepository from "../../repositories/usersRepository";
+import * as CoinsHelper from "../../resources/coins/coins";
+import * as Commands from "../../resources/commands";
+import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-import * as Commands from "../../resources/commands";
-import * as CoinsHelper from "../../resources/coins/coins";
-
-import UsersRepository from "../../repositories/usersRepository";
-import config from "config";
-const botConfig = config.get("bot") as any;
-import t from "../../services/localization";
 import { isMessageFromPrivateChat } from "../bot-helpers";
+import HackerEmbassyBot from "../HackerEmbassyBot";
+
+const botConfig = config.get("bot") as BotConfig;
 
 export default class BasicHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = t("basic.help", {
-            availableCommands: UsersHelper.getAvailableCommands(msg.from.username),
+            availableCommands: UsersHelper.getAvailableCommands(msg.from?.username),
             globalModifiers: Commands.GlobalModifiers,
         });
 
@@ -47,7 +48,7 @@ export default class BasicHandlers {
                               },
                           ],
                       ]
-                    : undefined,
+                    : [],
             },
         });
     }
@@ -77,13 +78,18 @@ export default class BasicHandlers {
     }
 
     static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname: string) {
-        coinname = coinname.toLowerCase();
-        const qrImage = await CoinsHelper.getQR(coinname);
-        const coin = CoinsHelper.getCoinDefinition(coinname);
+        const coinDefinition = CoinsHelper.getCoinDefinition(coinname.toLowerCase());
+
+        if (!coinDefinition) {
+            await bot.sendMessageExt(msg.chat.id, t("basic.donateCoin.invalidCoin"), msg);
+            return;
+        }
+
+        const qrImage = await CoinsHelper.getQR(coinDefinition);
 
         await bot.sendPhotoExt(msg.chat.id, qrImage, msg, {
             parse_mode: "Markdown",
-            caption: t("basic.donateCoin", { coin }),
+            caption: t("basic.donateCoin", { coin: coinDefinition }),
         });
     }
 
@@ -97,7 +103,7 @@ export default class BasicHandlers {
     }
 
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers().filter(u => UsersHelper.hasRole(u.username, "member"));
+        const users = UsersRepository.getUsers()?.filter(u => UsersHelper.hasRole(u.username, "member"));
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
         await bot.sendLongMessage(msg.chat.id, message, msg);

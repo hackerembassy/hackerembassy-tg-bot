@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-types */
-
-export function anyItemIsInList(items: any[], list: any[]) {
+export function anyItemIsInList<T>(items: T[], list: T[]) {
     return items.some(item => list.includes(item));
 }
 
@@ -32,15 +30,16 @@ export function stripCustomMarkup(text: string): string {
     return text.replaceAll(/#./g, "");
 }
 
-export function debounce(func: Function, delay: number) {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function debounce(func: Function, delay: number): (...args: any[]) => void {
     let timeoutId: string | number | NodeJS.Timeout;
 
-    return function () {
+    return function (...args) {
         clearTimeout(timeoutId);
 
         timeoutId = setTimeout(() => {
             // eslint-disable-next-line prefer-rest-params
-            func.apply(this, arguments);
+            func(...args);
         }, delay);
     };
 }

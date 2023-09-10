@@ -1,6 +1,39 @@
 import config from "config";
-import { default as fetch } from "node-fetch";
-const printersConfig = config.get("printers") as any;
+import { Blob, default as fetch } from "node-fetch";
+
+import { PrintersConfig } from "../config/schema";
+
+export type TemperatureStatus = {
+    temperature: number;
+    targer: number;
+};
+
+export type DisplayStatus = {
+    progress: number;
+};
+
+export type PrintStatus = {
+    state: string;
+    filename: string;
+    total_duration: number;
+    filament_used: number;
+};
+
+export type PrinterStatus = {
+    print_stats: PrintStatus;
+    heater_bed: TemperatureStatus;
+    extruder: TemperatureStatus;
+    display_status: DisplayStatus;
+    error?: string;
+};
+
+export type PrinterStatusResponse = {
+    status: PrinterStatus;
+    thumbnailBuffer: Buffer | null;
+    cam: Buffer | null;
+};
+
+const printersConfig = config.get("printers") as PrintersConfig;
 
 export default class Printer3d {
     static async getPrinterStatus(printername: string) {
@@ -19,15 +52,16 @@ export default class Printer3d {
         return await response.json();
     }
 
-    static async getFile(printername: string, path: string) {
+    static async getFile(printername: string, path: string): Promise<Blob | null> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
         const response = await fetch(`${apiBase}/server/files/gcodes/${path}`);
+
         return response.status === 200 ? await response.blob() : null;
     }
 
-    static async getCam(printername: string) {
+    static async getCam(printername: string): Promise<Buffer | null> {
         const apiBase = this.getApiBase(printername);
         const camPort = this.getCamPort(printername);
         if (!apiBase) return null;
@@ -46,7 +80,7 @@ export default class Printer3d {
         return null;
     }
 
-    static async getThumbnail(printername: string, path: string) {
+    static async getThumbnail(printername: string, path: string): Promise<Buffer | null> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
@@ -62,7 +96,7 @@ export default class Printer3d {
             );
     }
 
-    static getApiBase(printername: string) {
+    static getApiBase(printername: string): string | null {
         switch (printername) {
             case "anette":
                 return printersConfig.anette.apibase;
@@ -73,12 +107,12 @@ export default class Printer3d {
         }
     }
 
-    static getCamPort(printername: string) {
+    static getCamPort(printername: string): number | null {
         switch (printername) {
             case "anette":
-                return printersConfig.anette.camPort;
+                return printersConfig.anette.camport;
             case "plumbus":
-                return printersConfig.plumbus.camPort;
+                return printersConfig.plumbus.camport;
             default:
                 return null;
         }

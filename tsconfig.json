@@ -6,6 +6,9 @@
       "module": "NodeNext",
       "moduleResolution": "Node",
       "noEmit": true,
+      "noImplicitReturns": true,
+      "strict": true,
+      "esModuleInterop": true,
     },
     "include": ["./**/*"]
 }

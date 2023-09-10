@@ -1,6 +1,9 @@
 import config from "config";
-const embassyApiConfig = config.get("embassy-api") as any;
 import { default as fetch } from "node-fetch";
+
+import { EmbassyApiConfig } from "../config/schema";
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
 class Cancellation {
     controller: AbortController;
@@ -20,7 +23,7 @@ class Cancellation {
     }
 }
 
-export function fetchWithTimeout(uri: string, options: any = undefined, ...rest: any[]) {
+export function fetchWithTimeout(uri: string, options: any = undefined, ...rest: any[]): Promise<Response> {
     const cancellation = new Cancellation(options?.timeout ?? embassyApiConfig.timeout);
 
     // @ts-ignore

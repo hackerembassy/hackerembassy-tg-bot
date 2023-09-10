@@ -1,9 +1,12 @@
 import { exec } from "child_process";
+import config from "config";
 import { promises as fs } from "fs";
 import { join } from "path";
-import { postToHass, getFromHass, getBufferFromResponse } from "../utils/network";
-import config from "config";
-const embassyApiConfig = config.get("embassy-api") as any;
+
+import { EmbassyApiConfig } from "../config/schema";
+import { getBufferFromResponse, getFromHass, postToHass } from "../utils/network";
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;
@@ -24,9 +27,9 @@ export async function getWebcam2Image(): Promise<Buffer> {
     return getBufferFromResponse(await getFromHass(webcam2Path));
 }
 
-export async function getRandomImageFromFolder(folder: string): Promise<Buffer> {
+export async function getRandomImageFromFolder(folder: string): Promise<Buffer | null> {
     const files = await fs.readdir(folder);
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) return null;
 
     const fileindex = Math.floor(Math.random() * files.length);
     return await fs.readFile(join(folder, files[fileindex]));

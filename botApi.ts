@@ -1,33 +1,26 @@
-import express from "express";
-import cors from "cors";
-import logger from "./services/logger";
 import { json } from "body-parser";
 import config from "config";
-const embassyApiConfig = config.get("embassy-api") as any;
+import cors from "cors";
+import express from "express";
 
-import * as TextGenerators from "./services/textGenerators";
-import StatusRepository from "./repositories/statusRepository";
+import { BotApiConfig, EmbassyApiConfig } from "./config/schema";
 import FundsRepository from "./repositories/fundsRepository";
+import StatusRepository from "./repositories/statusRepository";
 import UsersRepository from "./repositories/usersRepository";
 import { ApiCommandsList } from "./resources/commands";
-import { openSpace, closeSpace, filterPeopleInside, filterPeopleGoing, findRecentStates } from "./services/statusHelper";
+import logger from "./services/logger";
+import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "./services/statusHelper";
+import * as TextGenerators from "./services/textGenerators";
 import { stripCustomMarkup } from "./utils/common";
-import { createErrorMiddleware } from "./utils/middleware";
+import { createErrorMiddleware, createTokenSecuredMiddleware } from "./utils/middleware";
 import { fetchWithTimeout } from "./utils/network";
 
-const apiConfig = config.get("api") as any;
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const apiConfig = config.get("api") as BotApiConfig;
+
 const app = express();
 const port = apiConfig.port;
-
-function tokenSecured(req, res, next) {
-    if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
-        logger.info(`Got request with invalid token`);
-        res.status(401).send({ message: "Invalid token" });
-        return;
-    }
-
-    next();
-}
+const tokenSecured = createTokenSecuredMiddleware(logger);
 
 app.use(cors());
 app.use(json());
@@ -43,7 +36,7 @@ app.get("/status", async (_, res) => {
     let content = `🔐 Статус спейса неопределен`;
 
     if (state) {
-        const allUserStates = findRecentStates(StatusRepository.getAllUserStates());
+        const allUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
         const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
@@ -64,7 +57,7 @@ app.get("/api/status", (_, res) => {
         return;
     }
 
-    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates());
+    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
 
     const inside = recentUserStates.filter(filterPeopleInside).map(p => {
         return {
@@ -89,13 +82,13 @@ app.get("/api/status", (_, res) => {
 });
 
 app.get("/api/inside", (_, res) => {
-    const inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
+    const inside = findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside);
     res.json(inside);
 });
 
 app.get("/api/insidecount", (_, res) => {
     try {
-        const inside = findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside);
+        const inside = findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside);
         res.status(200).send(inside.length.toString());
     } catch {
         res.status(500).send("-1");
@@ -125,8 +118,9 @@ app.get("/events", (_, res) => {
 });
 
 app.get("/funds", async (_, res) => {
-    const funds = FundsRepository.getFunds().filter(p => p.status === "open");
+    const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
     const donations = FundsRepository.getDonations();
+
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });
 
     const message = `⚒ Вот наши текущие сборы:

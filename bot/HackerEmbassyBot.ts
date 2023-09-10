@@ -1,32 +1,48 @@
-/* eslint-disable @typescript-eslint/ban-types */
 // Imports
-import TelegramBot, {
+import { t } from "i18next";
+import {
     BotCommandScope,
     CallbackQuery,
+    default as TelegramBot,
     EditMessageTextOptions,
     Message,
     SendMessageOptions,
 } from "node-telegram-bot-api";
+
 import logger from "../services/logger";
-import { sleep, chunkSubstr } from "../utils/common";
-import MessageHistory from "./MessageHistory";
 import { hasRole } from "../services/usersHelper";
-import { t } from "i18next";
-import { BotRole } from "./bot";
+import { chunkSubstr, sleep } from "../utils/common";
+import MessageHistory from "./MessageHistory";
 
 // Consts
 const maxChunkSize = 3500;
 const messagedelay = 1500;
 
+// Types
+export type BotRole = "admin" | "member" | "accountant" | "default";
+export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean };
+export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
+
+export interface BotMessageContext {
+    mode: BotMessageContextMode;
+    messageThreadId: number | undefined;
+    clear(): void;
+    isAdminMode(): boolean;
+    isEditing: boolean;
+}
+
 // Helpers
-function prepareMessageForMarkdown(message: string) {
+function prepareMessageForMarkdown(message: string): string {
     return message
         .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
         .replaceAll(/#([_*[\]()~`>+\-=|{}.!])/g, "$1")
-        .replaceAll(/#/g, "");
+        .replaceAll(/#/g, "")
+        .replaceAll("\\u0023", "\\#");
 }
 
-function prepareOptionsForMarkdown(options: SendMessageOptions | EditMessageTextOptions) {
+function prepareOptionsForMarkdown(
+    options: SendMessageOptions | EditMessageTextOptions
+): TelegramBot.SendMessageOptions | TelegramBot.EditMessageTextOptions {
     options.parse_mode = "MarkdownV2";
     options.disable_web_page_preview = true;
 
@@ -35,7 +51,7 @@ function prepareOptionsForMarkdown(options: SendMessageOptions | EditMessageText
 
 export default class HackerEmbassyBot extends TelegramBot {
     messageHistory: MessageHistory;
-    Name: string;
+    Name: string | undefined;
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
@@ -45,7 +61,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     accessTable = new Map();
 
-    canUserCall(username: string, callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void) {
+    canUserCall(username: string | undefined, callback: BotHandler): boolean {
+        if (!username) return false;
+
         const savedRestrictions = this.accessTable.get(callback);
 
         if (savedRestrictions !== undefined && !hasRole(username, "admin", ...savedRestrictions)) {
@@ -55,7 +73,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         return true;
     }
 
-    static defaultModes = {
+    static defaultModes: BotMessageContextMode = {
         silent: false,
         mention: false,
         admin: false,
@@ -63,11 +81,11 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     #context = new Map();
 
-    context(msg: TelegramBot.Message) {
+    context(msg: TelegramBot.Message): BotMessageContext {
         const botthis = this;
 
         if (!this.#context.has(msg)) {
-            const newContext = {
+            const newContext: BotMessageContext = {
                 mode: { ...HackerEmbassyBot.defaultModes },
                 messageThreadId: undefined,
                 clear() {
@@ -83,10 +101,11 @@ export default class HackerEmbassyBot extends TelegramBot {
             return newContext;
         }
 
-        return this.#context.get(msg);
+        return this.#context.get(msg) as BotMessageContext;
     }
 
-    onExt(event: TelegramBot.MessageType | "callback_query", listener: Function) {
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    onExt(event: TelegramBot.MessageType | "callback_query", listener: Function): void {
         const botthis = this;
         const newListener = async (query: CallbackQuery | Message) => {
             listener.call(this, botthis, query);
@@ -96,7 +115,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         super.on(event, newListener);
     }
 
-    get addedModifiersString() {
+    get addedModifiersString(): string {
         return Object.keys(HackerEmbassyBot.defaultModes)
             .reduce((acc, key) => {
                 return `${acc} -${key}|`;
@@ -104,7 +123,11 @@ export default class HackerEmbassyBot extends TelegramBot {
             .replace(/\|$/, ")*");
     }
 
-    async editMessageTextExt(text: string, msg: TelegramBot.Message, options: TelegramBot.EditMessageTextOptions) {
+    async editMessageTextExt(
+        text: string,
+        msg: TelegramBot.Message,
+        options: TelegramBot.EditMessageTextOptions
+    ): Promise<boolean | TelegramBot.Message> {
         text = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({
             ...options,
@@ -120,7 +143,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: TelegramBot.SendPhotoOptions = {},
         fileOptions: TelegramBot.FileOptions = {}
-    ) {
+    ): Promise<TelegramBot.Message> {
         this.sendChatAction(chatId, "upload_photo", msg);
 
         const message = await super.sendPhoto(
@@ -141,7 +164,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         longitude: number,
         msg: TelegramBot.Message,
         options: TelegramBot.SendLocationOptions = {}
-    ) {
+    ): Promise<TelegramBot.Message> {
         return await super.sendLocation(chatId, latitude, longitude, {
             ...options,
             message_thread_id: this.context(msg).messageThreadId,
@@ -150,8 +173,8 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     async setMyCommands(
         commands: TelegramBot.BotCommand[],
-        options: { scope: BotCommandScope; language_code?: string } = undefined
-    ) {
+        options: { scope: BotCommandScope; language_code?: string } | undefined = undefined
+    ): Promise<boolean> {
         return super.setMyCommands(commands, {
             ...options,
             scope: JSON.stringify(options?.scope) as unknown as BotCommandScope,
@@ -161,19 +184,19 @@ export default class HackerEmbassyBot extends TelegramBot {
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,
-        msg: TelegramBot.Message,
+        msg: TelegramBot.Message | null,
         options: TelegramBot.SendMessageOptions = {}
-    ) {
+    ): Promise<TelegramBot.Message | null> {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
-        if (!this.context(msg)?.mode?.silent) {
-            const message = await super.sendMessage(chatId, preparedText, {
+        if (!msg || !this.context(msg)?.mode?.silent) {
+            const message = await this.sendMessage(chatId, preparedText, {
                 ...options,
-                message_thread_id: this.context(msg)?.messageThreadId,
+                message_thread_id: msg ? this.context(msg)?.messageThreadId : undefined,
             });
 
-            if (!message) return;
+            if (!message) return null;
 
             this.messageHistory.push(chatId, message.message_id, text);
 
@@ -188,7 +211,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         action: TelegramBot.ChatAction,
         msg: TelegramBot.Message,
         options: TelegramBot.SendChatActionOptions = {}
-    ) {
+    ): Promise<boolean> {
         return super.sendChatAction(chatId, action, {
             ...options,
             message_thread_id: this.context(msg).messageThreadId,
@@ -200,7 +223,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         text: string,
         msg: TelegramBot.Message,
         options: TelegramBot.SendMessageOptions = {}
-    ) {
+    ): Promise<void> {
         const chunks = chunkSubstr(text, maxChunkSize);
 
         if (chunks.length === 1) {
@@ -222,11 +245,7 @@ ${chunks[index]}
         }
     }
 
-    async onTextExt(
-        originalRegex: RegExp,
-        callback: (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...any) => void,
-        restrictions: BotRole[] = []
-    ): Promise<void> {
+    async onTextExt(originalRegex: RegExp, callback: BotHandler, restrictions: BotRole[] = []): Promise<void> {
         if (restrictions.length > 0) this.accessTable.set(callback, restrictions);
 
         const regexString = originalRegex.toString();
@@ -237,26 +256,31 @@ ${chunks[index]}
 
         const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
-        const newCallback = async function (msg, match) {
+        const newCallback = async function (msg: TelegramBot.Message, match: RegExpExecArray | null) {
+            if (!msg) return;
             try {
-                if (!botthis.canUserCall(msg.from.username, callback)) {
+                if (!botthis.canUserCall(msg.from?.username, callback)) {
                     await botthis.sendMessageExt(msg.chat.id, t("admin.messages.restricted"), msg);
 
                     return;
                 }
 
-                let newCommand = match[0];
+                let executedMatch: RegExpExecArray | null = null;
 
-                for (const key of Object.keys(botthis.context(msg).mode)) {
-                    newCommand = newCommand.replace(` -${key}`, "");
-                    if (match[0].includes(`-${key}`)) botthis.context(msg).mode[key] = true;
+                if (match !== null) {
+                    let newCommand = match[0];
+
+                    for (const key of Object.keys(botthis.context(msg).mode)) {
+                        newCommand = newCommand.replace(` -${key}`, "");
+                        if (match[0].includes(`-${key}`)) botthis.context(msg).mode[key as keyof BotMessageContextMode] = true;
+                    }
+
+                    executedMatch = originalRegex.exec(newCommand);
                 }
-
-                if (match !== undefined) match = originalRegex.exec(newCommand);
 
                 botthis.context(msg).messageThreadId = msg?.is_topic_message ? msg.message_thread_id : undefined;
 
-                await callback.call(this, botthis, msg, match);
+                await callback.call(botthis, botthis, msg, executedMatch);
             } catch (error) {
                 logger.error(error);
             } finally {
@@ -264,24 +288,34 @@ ${chunks[index]}
             }
         };
 
-        await super.onText(newRegexp, newCallback);
+        super.onText(newRegexp, newCallback);
     }
 
-    async sendOrEditMessage(chatId: number, text: string, msg: TelegramBot.Message, options: object, messageId: number) {
+    async sendOrEditMessage(
+        chatId: number,
+        text: string,
+        msg: TelegramBot.Message,
+        options: TelegramBot.EditMessageTextOptions | TelegramBot.SendMessageOptions,
+        messageId: number
+    ): Promise<void> {
         if (this.context(msg).isEditing) {
             try {
-                await this.editMessageTextExt(text, msg, { chat_id: chatId, message_id: messageId, ...options });
+                await this.editMessageTextExt(text, msg, {
+                    chat_id: chatId,
+                    message_id: messageId,
+                    ...options,
+                } as TelegramBot.EditMessageTextOptions);
             } catch {
                 // Message was not modified
             } finally {
                 this.context(msg).isEditing = false;
             }
         } else {
-            await this.sendMessageExt(chatId, text, msg, options);
+            await this.sendMessageExt(chatId, text, msg, options as SendMessageOptions);
         }
     }
 
-    async sendNotification(message: string, date: string, chat: TelegramBot.ChatId) {
+    async sendNotification(message: string, date: string, chat: TelegramBot.ChatId): Promise<void> {
         const currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
         if (date !== currentDate) return;
 

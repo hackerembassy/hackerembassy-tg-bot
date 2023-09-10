@@ -1,16 +1,11 @@
 import BetterSqlite3 from "better-sqlite3";
-import SQLiteDBWrapper from "../data/db";
-import logger from "../services/logger";
 import winston from "winston";
 
-class BaseRepository {
-    db: BetterSqlite3.Database;
-    logger: winston.Logger;
+import SQLiteDBWrapper from "../data/db";
+import defaultLogger from "../services/logger";
 
-    constructor(dBWrapper: BetterSqlite3.Database = SQLiteDBWrapper) {
-        this.db = dBWrapper ?? SQLiteDBWrapper;
-        this.logger = logger;
-    }
+abstract class BaseRepository {
+    constructor(protected db: BetterSqlite3.Database = SQLiteDBWrapper, protected logger: winston.Logger = defaultLogger) {}
 }
 
 export default BaseRepository;

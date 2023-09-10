@@ -1,11 +1,13 @@
-import Winston from "winston";
 import "winston-daily-rotate-file";
 
-import { promise } from "ping";
 import config from "config";
-const botConfig = config.get("bot") as any;
+import { promise } from "ping";
+import Winston from "winston";
 
-const embassyServiceConfig = config.get("embassy-api") as any;
+import { BotConfig, EmbassyApiConfig } from "../config/schema";
+
+const botConfig = config.get("bot") as BotConfig;
+const embassyServiceConfig = config.get("embassy-api") as EmbassyApiConfig;
 const hosts = embassyServiceConfig.hostsToMonitor;
 
 const transport = new Winston.transports.DailyRotateFile({
@@ -33,7 +35,9 @@ const statusLogger = Winston.createLogger({
     transports: [transport],
 });
 
-async function pingInternalDevices() {
+async function pingInternalDevices(): Promise<void> {
+    if (!hosts) return;
+
     for (const host of hosts) {
         const res = await promise.probe(host);
         if (!res.alive) {
@@ -42,7 +46,7 @@ async function pingInternalDevices() {
     }
 }
 
-export function startMonitoring() {
+export function startMonitoring(): void {
     console.log("Device monitoring started");
     setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }
@@ -54,5 +58,5 @@ export function readNewMessages(): string[] {
         unreadMessages.push(UnreadMessagesBuffer.shift());
     }
 
-    return unreadMessages;
+    return unreadMessages as string[];
 }

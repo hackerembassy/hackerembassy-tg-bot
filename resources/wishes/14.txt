@@ -1,0 +1,23 @@
+
+\u0023include <iostream>
+\u0023include<string>
+
+void printBirthdayCake(int layers) {
+    for(int i = 0; i < layers; i++) {
+        std::cout << " ";
+        for(int k = 0; k < layers - i; k++) {std::cout << ' ';}
+        for(int j = 0; j < (2*i+1); j++) { std::cout << '*'; }
+        std::cout << "\\n";
+    }
+    std::cout << "    -----" << "\\n";
+    std::cout << "     | | " << "\\n";
+}
+
+int main() {
+    std::string birthdayTarget = "$username";
+    std::string greetings = "С днем рождения, " + birthdayTarget + "!";
+    std::string getYourCake = "Держи праздничный тортик:";
+    std::cout << greetings << std::endl << getYourCake << std::endl;
+    printBirthdayCake(5);
+    return 0;
+}

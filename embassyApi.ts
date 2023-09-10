@@ -1,32 +1,33 @@
 import { config as envconfig } from "dotenv";
 envconfig();
-import express from "express";
-import cors from "cors";
 import { json } from "body-parser";
+import config from "config";
+import cors from "cors";
+import express from "express";
+import find from "local-devices";
+// @ts-ignore
+import { LUCI } from "luci-rpc";
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
-import find from "local-devices";
-import { LUCI } from "luci-rpc";
 
-import printer3d from "./services/printer3d";
-import { getDoorcamImage, getWebcamImage, getWebcam2Image, sayInSpace, playInSpace, ringDoorbell } from "./services/media";
+import { BotConfig, EmbassyApiConfig } from "./config/schema";
+import { getClimate } from "./services/home";
 import logger from "./services/logger";
+import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "./services/media";
 import { unlock } from "./services/mqtt";
-import { decrypt } from "./utils/security";
+import printer3d from "./services/printer3d";
+import * as statusMonitor from "./services/statusMonitor";
 import { createErrorMiddleware } from "./utils/middleware";
-import config from "config";
+import { decrypt } from "./utils/security";
 
-const embassyApiConfig = config.get("embassy-api") as any;
-const botConfig = config.get("bot") as any;
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const botConfig = config.get("bot") as BotConfig;
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
 
-process.env.TZ = botConfig.timezone;
-
-import * as statusMonitor from "./services/statusMonitor";
-import { getClimate } from "./services/home";
 statusMonitor.startMonitoring();
+process.env.TZ = botConfig.timezone;
 
 const app = express();
 app.use(cors());
@@ -181,11 +182,11 @@ app.get("/devices", async (_, res, next) => {
         });
 
         const adapters = await response.json();
-        let macs = [];
+        let macs: string[] = [];
 
         for (const wlanAdapter of adapters) {
             const devices = wlanAdapter.result[1]?.results;
-            if (devices) macs = macs.concat(devices.map(dev => dev.mac.toLowerCase()));
+            if (devices) macs = macs.concat(devices.map((dev: any) => dev?.mac.toLowerCase() ?? ""));
         }
 
         res.send(macs);

@@ -1,13 +1,13 @@
 import { promises as fs } from "fs";
 import NodeRSA from "node-rsa";
 
-export async function encrypt(message: NodeRSA.Data) {
+export async function encrypt(message: NodeRSA.Data): Promise<string> {
     const key = new NodeRSA(await fs.readFile("./config/sec/pub.key", "utf8"));
 
     return key.encrypt(message, "base64");
 }
 
-export async function decrypt(message: string | Buffer) {
+export async function decrypt(message: string | Buffer): Promise<string> {
     const key = new NodeRSA(await fs.readFile("./config/sec/priv.key", "utf8"));
     const decryptedKey = key.decrypt(message);
 

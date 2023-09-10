@@ -73,9 +73,12 @@ export async function convertCurrency(amount: number, from: string | number, to:
     try {
         if (!convert) await initConvert();
 
-        await convert?.ready();
-
-        return convert !== null && (await convert[from as keyof typeof convert][to](amount));
+        if (convert) {
+            await convert.ready();
+            return await convert[from as keyof typeof convert][to](amount);
+        } else {
+            throw new Error("Error while converting currency, convert failed to initialise");
+        }
     } catch (error) {
         logger.error("Error while converting currency", error);
         return undefined;

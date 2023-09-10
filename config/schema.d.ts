@@ -17,6 +17,7 @@ export interface BotConfig {
     maxchathistory: number;
     calendarUrl: string;
     calendarAppLink: string;
+    locales: string;
 }
 
 export interface ChatsConfig {

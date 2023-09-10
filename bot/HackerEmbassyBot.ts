@@ -288,7 +288,7 @@ ${chunks[index]}
             }
         };
 
-        await super.onText(newRegexp, newCallback);
+        super.onText(newRegexp, newCallback);
     }
 
     async sendOrEditMessage(

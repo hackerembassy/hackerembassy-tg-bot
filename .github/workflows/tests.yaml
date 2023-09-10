@@ -1,4 +1,4 @@
-name: Tests CI
+name: Tests and Sonar analysis
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '18.16.0'
           cache: 'npm'
-      - run: npm install
+      - run: npm ci
       - run: npm test
 
       - name: Tests ✅

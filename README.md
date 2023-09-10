@@ -3,83 +3,83 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=bugs)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)  
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=coverage)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)  
 ## About
-Бот для решения различных спейсовских задач. Пока реализованы:
-- Информация о спейсе, резиденстве, местоположении и приеме донатов
-- Открытие и закрытие спейса, отмечание прихода ухода участников, отмечание кто собирается в спейс
-- Управление сборами денег и донатами с генерацией csv и диаграмм, с конвертацией валют фиатов и крипты
-- Управление вещами, которые нужно купить в спейс по дороге
-- Управление пользователями и ролями
-- Получение статуса 3d принтера (фото печатающейся модели, фото с камеры принтера, процент завершения печати, оставшееся время, потраченные расходники, температуры)
-- Доступ к камерам наблюдения первого этажа и двери
-- Вывод данных о климате в спейсе на всех этажах
-- Открытие двери и включение дверного замка с уведомлением в чат и фото с камеры, если звонят тогда, когда в спейсе никого нет
-- API некоторых команд для сайта спейса
-- Глобальные модификаторы команд
-- Кнопки быстрых inline-ответов
-- Учет автоматического входа и ухода участников из спейса через wifi сеть
-- Учет дней рождения и автопоздравление от бота в нужный день
-- Уведомление резидентов об оплате коммуналки и интернета спейса в нужные дни
-- Мем команды с рандомными фотками котиков, пёсиков и Каба
-- Отправка звуков и текста на динамик в спейсе
-- Статистика посещения спейса с инфографикой
+This bot is built to handle various tasks related to managing our hackerspace. Its features include:
 
-Для хранения данных используется база sqlite в файле ./data/db/data.db
-Тестовый файл с верной схемой ./data/sample.db
-Для редактирования базы вручную рекомендую https://sqlitebrowser.org/
+- Providing information about the space, its residents, location, and how to donate
+- Managing arrivals, departures, and attendance of participants 
+- Handling finances, including donations and generating financial reports, it also converts currencies (fiat and crypto)
+- Creating and maintaining a shopping list for the shared space
+- Managing users and roles within the space
+- Providing real-time status updates on the 3D printer, such as printing percent done, time left, temperatures, and material consumption
+- Access to security cameras
+- Reporting climate data for all floors of the space
+- Remote door lock access - if someone knocks when no one is around, the bot will alert the chat group and snap a photo 
+- Offering an API for some commands for the space's website and Home Assistant
+- Quick inline response buttons
+- Automatically recording participant entry and exit via the wifi network
+- Keeping track of birthdays and automatically sending birthday congrats
+- Sending utilities and internet bill reminders
+- Sending random photos of cats, dogs, and Cab 
+- The ability to send sounds and text messages to the speakers in the space
+- Generating space attendance stats with infographics.
 
-Роли пользователей: 
-- admin - управляет пользователями
-- accountant - управляет донатами и сборами
-- member - резидент спейса, может открывать и закрывать спейс
-- default - обычный гость, в базе данных присутствие необязательно
+An sqlite database is used to store data in the file ./data/db/data.db. 
+Test file with the correct schema ./data/sample.db.
+To edit the database manually, I recommend https://sqlitebrowser.org/  
+
+User roles:  
+- admin - manages users  
+- accountant - manages donations and fees  
+- member - a resident of the space, can open and close the space  
+- default - regular guest, presence in the database is not required  
 
 ## Hosting
-Сам бот хостится на VPS с адресом gateway.hackerembassy.site.   
-Сервис embassy-api хостится в спейсе компе le-fail у окна на первом этаже и обеспечивает связь с внутренней инфраструктурой спейса (3d принтер, роутер, камеры, звонок).  
-По всем вопросам деплоя или токена тестового бота обращайтесь к @tectonick и @Himura2la. При мерже в main настроена CI/CD, по ней можно обращаться к @Himura2la.  
-Так же можете создать своего тестового бота с помощью BotFather в телеге.  
+The bot is hosted on a VPS located at gateway.hackerembassy.site. The service, embassy-api is hosted on the le-fail space computer by the window on the first floor and it helps bot to communicate with internal systems of the space, such as 3D printers, routers, cameras, doorbells, sensors, etc.. If you need any help with deployment, CI/CD or a test bot token, reach out to @tectonick and @Himura2la. You can also create your own test bot using the BotFather bot in Telegram.
 
 ## Dependencies
 Node 18+
-Все основные зависимости в облаке и внутреннем сервисе устанавливаются с помощью npm i
-[Deprecated] Для конвертации потока дверной камеры в jpg на сервисе бота нужно установить ffmpeg и прописать его в PATH.
+All main dependencies in the cloud and internal service are installed using npm i
+[Deprecated] To convert the doorcam stream to jpg, you need to install ffmpeg on the bot service and add it to PATH.
 
 ## Local deployment:
-1. Установите nodejs версии 18+
-2. Перейдите в папку склонированного репозитория
-3. Установите зависимости с командой  
-        npm install
-4. Получите токен для вашего тестового бота из бота https://t.me/BotFather  
-5. Подготовьте бот к первому запуску (ssh-keygen должнен быть добавлен в PATH) 
-        npm run init-dev
-6. Запустите бота в режиме автоматического перезапуска при изменении source кода  
-        npm run dev - только бот  
-        npm run dev-service - только сервис  
-        npm run dev-both - бот и сервис одновременно 
+1. Install nodejs version 18+
+2. Go to the cloned repository folder
+3. Install dependencies with the command
+         npm install
+4. Get a token for your test bot from the bot https://t.me/BotFather
+5. Prepare the bot for the first launch (ssh-keygen must be added to PATH)
+         npm run init-dev
+6. Start the bot in automatic restart mode when the source code changes
+         npm run dev - bot only
+         npm run dev-service - service only
+         npm run dev-both - bot and service at the same time
+7. To run tests
+         npm run test
 
 ## Main files
-bot/HackerEmbassyBot.js - Класс бота либы с расширениями для дополнительной функциональности  
-bot/bot-instance.js - инициализация синглтона для работы с ботом  
-bot/bot-routes.js - мапинги текстовых команд на их обработчики  
-bot/bot-automatic.js - настройка действий, которые бот выполняет автоматически по таймеру
-bot/handlers/*.js - обработчики команд пользователей  
+bot/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality  
+bot/bot-instance.ts - initialization of a singleton for working with a bot  
+bot/bot-routes.ts - mapping text commands to their handlers  
+bot/bot-automatic.ts - setting up actions that the bot performs automatically according to a timer  
+bot/handlers/*.ts - user command handlers  
 
-data/sample.db - база темплейт для обновления схемы (TODO сделать человеческие миграции)  
-data/db/data.db - основная база данных sqlite (можно скопировать sample.db и переименовать)  
-data/db.js - сервис для работы с базой  
+data/sample.db - base template for updating the schema (TODO proper migrations)  
+data/db/data.db - main sqlite database (you can copy sample.db and rename it to data.db) 
+data/db.ts - service for working with the database  
 
-repositories - репозитории поверх сервиса работы с базой  
-resources - всякие доп ресурсы, картинки, тексты, и.т.п.  
-service - модули с функционалом для различных нужд (общение по mqtt, получение медиа, генерация текста, экспортаб логгирования и.т.п.)  
-utils - наборы общих реиспользуемых утилит  
-deploy - вспомогательные файлы для развертывания бота и сервиса  
-scripts - скрипты для автоматизации некоторых девелоперских манипуляций  
+repositories - repositories on top of the database service  
+resources - all sorts of additional resources, pictures, texts, etc.  
+service - modules with functionality for various needs (communication via mqtt, receiving media, text generation, logging export, etc.)  
+utils - common reusable utilities  
+deploy - auxiliary files for deploying the bot and service  
+scripts - scripts for automating some dev manipulations  
 
-app.js - стартовый файл бота  
-botApi.js - файл node express сервиса, запускаемого ботом, для общения с ним через API  
-embassyApi.js - стартовый файл внутреннего сервиса спейса  
+app.ts - bot start file  
+botApi.ts - node express service launched by a bot to communicate with it via the API  
+embassyApi.ts - start file of the internal space service  
 
 ## Environment variables needed
 HACKERBOTTOKEN  
@@ -92,6 +92,7 @@ WIFIPASSWORD
 HASSTOKEN  
 
 ## Additional notes
-Для взаимодействия между ботом и сервисом понадобится добавить папку sec с rsa ключами в файлах pub.key и priv.key.  
-Также переменная UNLOCKKEY должна совпадать на боте и на сервисе.    
-Проверьте настройки портов в папке config. Для локальной разработки лучше создать свою конфигурацию в файле config/local.json   
+To interact between the bot and the service, you will need to have "sec" folder with rsa keys in the pub.key and priv.key files.
+Also, the UNLOCKKEY environment variable must be the same on the bot and on the service.
+Check the port settings in the config folder. 
+For local development, it is better to create your own configuration in the config/local.json file  

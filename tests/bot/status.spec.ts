@@ -25,9 +25,7 @@ describe("Bot Status commands:", () => {
 
         expect(results).toEqual([
             "status\\.open",
-            "status\\.status\\.state\n" +
-                "status\\.status\\.insidechecked[adminusername](t\\.me/adminusername) 🔑📒\n\n" +
-                "⏱ status\\.status\\.updated",
+            "status\\.status\\.state\nstatus\\.status\\.insidechecked[adminusername](t\\.me/adminusername) 🔑📒\n\n⏱ status\\.status\\.updated",
         ]);
     });
 
@@ -51,7 +49,7 @@ describe("Bot Status commands:", () => {
             "status\\.inforce\\.gotin",
             "status\\.inforce\\.gotin",
             "status\\.close",
-            "status\\.status\\.state\n" + "status\\.status\\.nooneinside\n" + "\n" + "⏱ status\\.status\\.updated",
+            "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n⏱ status\\.status\\.updated",
         ]);
     });
 

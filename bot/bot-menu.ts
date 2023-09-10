@@ -1,6 +1,8 @@
-import HackerEmbassyBot from "./HackerEmbassyBot";
+import TelegramBot from "node-telegram-bot-api";
+
 import UsersRepository from "../repositories/usersRepository";
 import logger from "../services/logger";
+import HackerEmbassyBot from "./HackerEmbassyBot";
 
 const botConfig = require("config").get("bot");
 
@@ -66,14 +68,17 @@ const residentCommands = [
     { command: "stats", description: "Статистика по времени в спейсе" },
 ];
 
-export async function setMenu(bot: HackerEmbassyBot) {
+export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
     try {
         await bot.setMyCommands(defaultCommands);
         await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
 
-        const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
+        const membersWithUserid = UsersRepository.getUsersByRole("member")?.filter(user => user.userid);
+
+        if (!membersWithUserid) return;
+
         for (const member of membersWithUserid) {
-            await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid } });
+            await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid as TelegramBot.ChatId } });
         }
     } catch (error) {
         logger.error(error);

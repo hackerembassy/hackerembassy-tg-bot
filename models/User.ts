@@ -1,17 +1,25 @@
 import { ChatId } from "node-telegram-bot-api";
-import { BotRole } from "../bot/bot";
 
 class User {
-    userid: ChatId;
-    id: number;
-    username: string;
+    readonly id: number;
+    userid: ChatId | null;
+    username: string | null;
     roles: string;
-    mac: string;
-    birthday: string;
-    autoinside: number;
-    emoji: string;
+    mac: string | null;
+    birthday: string | null;
+    autoinside: boolean;
+    emoji: string | null;
 
-    constructor({ id, username, roles = "default", mac = null, birthday = null, autoinside = 0, emoji = null, userid = null }) {
+    constructor({
+        id,
+        username,
+        roles = "default",
+        mac = null,
+        birthday = null,
+        autoinside = false,
+        emoji = null,
+        userid = null,
+    }: User) {
         this.id = id;
         this.username = username;
         this.roles = roles;
@@ -20,10 +28,6 @@ class User {
         this.autoinside = autoinside;
         this.emoji = emoji;
         this.userid = userid;
-    }
-
-    get rolesList(): BotRole[] {
-        return this.roles.split("|") as BotRole[];
     }
 }
 

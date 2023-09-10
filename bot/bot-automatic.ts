@@ -1,13 +1,16 @@
 import config from "config";
-const botConfig = config.get("bot") as any;
+
+import { BotConfig } from "../config/schema";
+import HackerEmbassyBot from "./HackerEmbassyBot";
+import BirthdayHandlers from "./handlers/birthday";
 import EmbassyHandlers from "./handlers/embassy";
 import StatusHandlers from "./handlers/status";
-import BirthdayHandlers from "./handlers/birthday";
-import HackerEmbassyBot from "./HackerEmbassyBot";
 
-export function setAutomaticFeatures(bot: HackerEmbassyBot) {
+const botConfig = config.get("bot") as BotConfig;
+
+export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     EmbassyHandlers.enableStatusMonitor(bot);
-    setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, undefined, false), 3600000); // 1hr
+    setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, null, false), 3600000); // 1hr
     setInterval(
         () =>
             bot.sendNotification(

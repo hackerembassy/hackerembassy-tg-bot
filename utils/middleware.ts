@@ -1,9 +1,23 @@
+import { ErrorRequestHandler, RequestHandler } from "express";
 import { Logger } from "winston";
 
-export function createErrorMiddleware(logger: Logger) {
+export function createErrorMiddleware(logger: Logger): ErrorRequestHandler {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return function handleError(err, req, res, next) {
         logger.error({ err, req, res });
         res.status(500).json({ message: "Server error", error: err });
+    };
+}
+
+export function createTokenSecuredMiddleware(logger: Logger): RequestHandler {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return function tokenSecured(req, res, next): void {
+        if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
+            logger.info(`Got request with invalid token`);
+            res.status(401).send({ message: "Invalid token" });
+            return;
+        }
+
+        next();
     };
 }

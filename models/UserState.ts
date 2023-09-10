@@ -1,12 +1,26 @@
-class UserState {
-    id: number;
-    username: string;
-    status: number;
-    date: number | Date;
-    type: number;
-    note: string;
+export const enum UserStateChangeType {
+    Manual = 0,
+    Auto = 1,
+    Force = 2,
+    Opened = 3,
+    Evicted = 4,
+}
 
-    constructor({ id = 0, username, status, date, type = 0, note = null }) {
+export const enum UserStateType {
+    Outside = 0,
+    Inside = 1,
+    Going = 2,
+}
+
+class UserState {
+    readonly id: number;
+    username: string;
+    status: UserStateType;
+    date: number | Date;
+    type: UserStateChangeType;
+    note: string | null;
+
+    constructor({ id = 0, username, status, date, type = 0, note = null }: UserState) {
         this.id = id;
         this.username = username;
         this.status = status;

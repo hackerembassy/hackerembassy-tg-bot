@@ -1,11 +1,11 @@
 class Fund {
-    id: any;
-    name: any;
-    target_value: any;
-    target_currency: any;
+    readonly id: number;
+    name: string;
+    target_value: number;
+    target_currency: string;
     status: string;
 
-    constructor({ id, name, target_value, target_currency, status = "open" }) {
+    constructor({ id, name, target_value, target_currency, status = "open" }: Fund) {
         this.id = id;
         this.name = name;
         this.target_value = target_value;

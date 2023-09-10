@@ -1,9 +1,11 @@
-import { GeneralCommandsList, MemberCommandsList, AdminCommandsList, AccountantCommandsList } from "../resources/commands";
-import UsersRepository from "../repositories/usersRepository";
+import { BotRole } from "../bot/HackerEmbassyBot";
 import User from "../models/User";
+import UsersRepository from "../repositories/usersRepository";
+import { AccountantCommandsList, AdminCommandsList, GeneralCommandsList, MemberCommandsList } from "../resources/commands";
 
-export function hasRole(username, ...roles) {
-    const userRoles = UsersRepository.getUserByName(username)?.rolesList;
+export function hasRole(username: string | null | undefined, ...roles: string[]) {
+    if (!username) return false;
+    const userRoles = toRolesList(UsersRepository.getUserByName(username)?.roles);
 
     if (!userRoles) return false;
 
@@ -12,21 +14,27 @@ export function hasRole(username, ...roles) {
     return intersection.length > 0;
 }
 
-export function getRoles(user) {
-    if (user instanceof User) return user.rolesList;
-
-    return UsersRepository.getUserByName(user)?.rolesList ?? [];
+export function toRolesList(roles: string | null | undefined): BotRole[] {
+    return roles ? (roles.split("|") as BotRole[]) : [];
 }
 
-export function isMember(user) {
-    const userRoles = user instanceof User ? user?.rolesList : UsersRepository.getUserByName(user)?.roles;
-    return userRoles.includes("member");
+export function getRoles(user: string | User) {
+    if (user instanceof User) return toRolesList(user.roles);
+
+    return toRolesList(UsersRepository.getUserByName(user)?.roles);
 }
 
-export function getAvailableCommands(username) {
+export function isMember(user: string | User): boolean {
+    const userRoles: BotRole[] | string | undefined =
+        user instanceof User ? toRolesList(user?.roles) : UsersRepository.getUserByName(user)?.roles;
+
+    return userRoles !== undefined && userRoles.includes("member");
+}
+
+export function getAvailableCommands(username: string | undefined | null) {
     let availableCommands = GeneralCommandsList;
-    const userRoles = UsersRepository.getUserByName(username)?.roles;
 
+    const userRoles = username ? UsersRepository.getUserByName(username)?.roles : undefined;
     if (!userRoles) return availableCommands;
 
     if (userRoles.includes("member")) availableCommands += MemberCommandsList;
@@ -36,7 +44,9 @@ export function getAvailableCommands(username) {
     return availableCommands;
 }
 
-export function formatUsername(username, mode = { mention: false }, isApi = false) {
+export function formatUsername(username: string | null | undefined, mode = { mention: false }, isApi = false): string {
+    if (!username) return "[No username provided]";
+
     username = username.replace("@", "");
 
     if (isApi) return `@${username}`;

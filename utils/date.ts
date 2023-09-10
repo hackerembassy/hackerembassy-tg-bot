@@ -16,12 +16,12 @@ export interface ElapsedTimeObject {
     totalSeconds: number;
 }
 
-export function toDateObject(date: Date) {
+export function toDateObject(date: Date): DateObject {
     return { day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear() };
 }
 
-export function convertMinutesToHours(minutes: number): string {
-    if (isNaN(minutes) || !isFinite(minutes)) return;
+export function convertMinutesToHours(minutes: number): string | undefined {
+    if (isNaN(minutes) || !isFinite(minutes)) return undefined;
 
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
@@ -29,7 +29,7 @@ export function convertMinutesToHours(minutes: number): string {
     return hours + "h " + remainingMinutes.toFixed(0) + "m";
 }
 
-export function getMonthBoundaries(date: Date) {
+export function getMonthBoundaries(date: Date): { startMonthDate: Date; endMonthDate: Date } {
     const startMonthDate = new Date(date);
     startMonthDate.setDate(1);
     const endMonthDate = new Date(date);

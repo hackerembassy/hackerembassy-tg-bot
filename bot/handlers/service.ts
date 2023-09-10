@@ -1,22 +1,23 @@
-import * as UsersHelper from "../../services/usersHelper";
-import UsersRepository from "../../repositories/usersRepository";
 import config from "config";
+import TelegramBot, { InlineKeyboardButton, Message, User } from "node-telegram-bot-api";
 
-import StatusHandlers from "./status";
+import { BotConfig } from "../../config/schema";
+import UsersRepository from "../../repositories/usersRepository";
+import t from "../../services/localization";
+import logger from "../../services/logger";
+import RateLimiter from "../../services/RateLimiter";
+import * as UsersHelper from "../../services/usersHelper";
+import { setMenu } from "../bot-menu";
+import HackerEmbassyBot from "../HackerEmbassyBot";
+import { MessageHistoryEntry } from "../MessageHistory";
+import BasicHandlers from "./basic";
+import BirthdayHandlers from "./birthday";
+import EmbassyHandlers from "./embassy";
 import FundsHandlers from "./funds";
 import NeedsHandlers from "./needs";
-import BirthdayHandlers from "./birthday";
-import BasicHandlers from "./basic";
-import EmbassyHandlers from "./embassy";
+import StatusHandlers from "./status";
 
-const botConfig = config.get("bot") as any;
-
-import t from "../../services/localization";
-import { setMenu } from "../bot-menu";
-import RateLimiter from "../../services/RateLimiter";
-import logger from "../../services/logger";
-import TelegramBot, { InlineKeyboardButton, Message, User } from "node-telegram-bot-api";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+const botConfig = config.get("bot") as BotConfig;
 
 export default class ServiceHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
@@ -46,7 +47,7 @@ export default class ServiceHandlers {
 
         if (orderOfLastMessageToEdit === -1) return;
 
-        let lastMessageToEdit: { messageId: number; text?: string; datetime: number };
+        let lastMessageToEdit: MessageHistoryEntry | null;
         let foundLast = false;
 
         do {
@@ -101,13 +102,16 @@ export default class ServiceHandlers {
     }
 
     static async residentMenuHandler(bot: HackerEmbassyBot, msg: Message) {
-        UsersRepository.setUserid(msg.from.username ?? msg.from.first_name, msg.from.id);
+        const usernameOrFirstname = msg.from?.username ?? msg.from?.first_name;
+        if (!usernameOrFirstname) return;
+
+        UsersRepository.setUserid(usernameOrFirstname, msg.from?.id ?? null);
 
         await setMenu(bot);
 
         bot.sendMessageExt(
             msg.chat.id,
-            `Resident menu is enabled for ${msg.from.username}[userid:${msg.from.id}] in the private chat`,
+            `Resident menu is enabled for ${usernameOrFirstname}[userid:${msg.from?.id}] in the private chat`,
             msg
         );
     }
@@ -123,18 +127,21 @@ export default class ServiceHandlers {
         const msg = callbackQuery.message;
 
         try {
+            if (!msg || !msg.from?.id) throw Error("Message with User id is not found");
+
             bot.context(msg).messageThreadId = msg.message_thread_id;
 
-            await RateLimiter.throttle(ServiceHandlers.routeQuery, [bot, callbackQuery, msg], msg.from.id, ServiceHandlers);
+            await RateLimiter.throttled(ServiceHandlers.routeQuery, msg.from.id)(bot, callbackQuery, msg);
         } catch (error) {
-            logger.log(error);
+            logger.error(error);
         } finally {
-            bot.context(msg).clear();
+            msg && bot.context(msg).clear();
         }
     }
 
     static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
-        const data = JSON.parse(callbackQuery.data);
+        const data = callbackQuery.data ? JSON.parse(callbackQuery.data) : undefined;
+        if (!data) throw Error("Missing calback query data");
 
         msg.from = callbackQuery.from;
 
@@ -214,10 +221,10 @@ export default class ServiceHandlers {
                 await BasicHandlers.getResidentsHandler(bot, msg);
                 break;
             case "/ef":
-                await FundsHandlers.exportCSVHandler(bot, msg, data.params[0]);
+                await FundsHandlers.exportCSVHandler(bot, msg, data.opt[0]);
                 break;
             case "/ed":
-                await FundsHandlers.exportDonutHandler(bot, msg, data.params[0]);
+                await FundsHandlers.exportDonutHandler(bot, msg, data.opt[0]);
                 break;
             case "/unlock":
                 if (isAllowed(EmbassyHandlers.unlockHandler)) await EmbassyHandlers.unlockHandler(bot, msg);
@@ -249,7 +256,7 @@ export default class ServiceHandlers {
                 await ServiceHandlers.boughtButtonHandler(bot, msg, data.id, data);
                 break;
             case "/bought_undo":
-                if (NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
+                if (await NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
                     await bot.deleteMessage(msg.chat.id, msg.message_id);
                 }
                 break;
@@ -262,7 +269,7 @@ export default class ServiceHandlers {
 
     static async newMemberHandler(bot: HackerEmbassyBot, msg: Message) {
         const botName = (await bot.getMe()).username;
-        const newMembers = msg.new_chat_members.reduce(
+        const newMembers = msg.new_chat_members?.reduce(
             (res: string, member: User) =>
                 res +
                 `${member?.username ? UsersHelper.formatUsername(member.username, bot.context(msg).mode) : member?.first_name} `,
@@ -291,6 +298,8 @@ export default class ServiceHandlers {
 
     static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string) {
         await NeedsHandlers.boughtByIdHandler(bot, message, id);
+
+        if (!message.reply_markup) return;
 
         const new_keyboard = message.reply_markup.inline_keyboard.filter(
             (button: InlineKeyboardButton[]) => button[0].callback_data !== data

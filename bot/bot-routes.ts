@@ -1,17 +1,15 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import HackerEmbassyBot from "./HackerEmbassyBot";
-
-import BasicHandlers from "./handlers/basic";
-import StatusHandlers from "./handlers/status";
-import FundsHandlers from "./handlers/funds";
-import NeedsHandlers from "./handlers/needs";
-import EmbassyHandlers from "./handlers/embassy";
-import BirthdayHandlers from "./handlers/birthday";
-import AdminHandlers from "./handlers/admin";
-import ServiceHandlers from "./handlers/service";
-import MemeHandlers from "./handlers/meme";
-
 import logger from "../services/logger";
+import HackerEmbassyBot from "./HackerEmbassyBot";
+import AdminHandlers from "./handlers/admin";
+import BasicHandlers from "./handlers/basic";
+import BirthdayHandlers from "./handlers/birthday";
+import EmbassyHandlers from "./handlers/embassy";
+import FundsHandlers from "./handlers/funds";
+import MemeHandlers from "./handlers/meme";
+import NeedsHandlers from "./handlers/needs";
+import ServiceHandlers from "./handlers/service";
+import StatusHandlers from "./handlers/status";
 
 class RegexCommander {
     botname: string;
@@ -20,14 +18,14 @@ class RegexCommander {
         this.botname = botname;
     }
 
-    command(aliases: string[], params: RegExp = undefined, optional: boolean = true, flags: string = "i") {
+    command(aliases: string[], params: RegExp | undefined = undefined, optional: boolean = true, flags: string = "i"): RegExp {
         const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
         const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
         return new RegExp(`^${commandPart}${paramsPart}$`, flags);
     }
 }
 
-export async function setRoutes(bot: HackerEmbassyBot) {
+export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     const rc = new RegexCommander(bot.Name);
 
     // Info
@@ -129,6 +127,9 @@ export async function setRoutes(bot: HackerEmbassyBot) {
     bot.onTextExt(rc.command(["sayinspace", "say"], /(.*)/, true, "ims"), (bot, msg, match) =>
         EmbassyHandlers.sayinspaceHandler(bot, msg, match[1])
     );
+    bot.onTextExt(rc.command(["rzd", "announce"], /(.*)/, false, "ims"), (bot, msg, match) =>
+        EmbassyHandlers.announceHandler(bot, msg, match[1])
+    );
     bot.onTextExt(rc.command(["playinspace", "play"], /(.*)/, true, "ims"), (bot, msg, match) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, match[1])
     );
@@ -140,6 +141,12 @@ export async function setRoutes(bot: HackerEmbassyBot) {
     );
     bot.onTextExt(rc.command(["rickroll", "nevergonnagiveyouup"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3")
+    );
+    bot.onTextExt(rc.command(["rzd"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3")
+    );
+    bot.onTextExt(rc.command(["adler"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3")
     );
 
     // Funds

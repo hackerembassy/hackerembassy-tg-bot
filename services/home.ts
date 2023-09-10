@@ -1,6 +1,9 @@
 import config from "config";
+
+import { EmbassyApiConfig } from "../config/schema";
 import { getFromHass } from "../utils/network";
-const embassyApiConfig = config.get("embassy-api") as any;
+
+const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const climateConfig = embassyApiConfig.climate;
 
 interface FloorClimate {
@@ -8,13 +11,13 @@ interface FloorClimate {
     humidity: number | "?";
 }
 
-interface SpaceClimate {
+export interface SpaceClimate {
     firstFloor: FloorClimate;
     secondFloor: FloorClimate;
     bedroom: FloorClimate;
 }
 
-export async function getClimate(): Promise<SpaceClimate> {
+export async function getClimate(): Promise<SpaceClimate | null> {
     try {
         const queries = [
             (await getFromHass(climateConfig.first_floor.temperature)).json(),
@@ -46,6 +49,6 @@ export async function getClimate(): Promise<SpaceClimate> {
     }
 }
 
-function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?") {
+function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?"): any {
     return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }

@@ -1,5 +1,7 @@
 import Database from "better-sqlite3";
 
+import { sleep } from "../utils/common";
+
 jest.mock("../utils/currency", () => {
     const currencyModule = jest.requireActual("../utils/currency");
     return {
@@ -22,4 +24,9 @@ const sampleDb = new Database("./data/sample.db");
 
 jest.mock("../data/db", () => {
     return new Database(sampleDb.serialize());
+});
+
+beforeAll(async () => {
+    // Artificial wait for translations to load
+    await sleep(100);
 });

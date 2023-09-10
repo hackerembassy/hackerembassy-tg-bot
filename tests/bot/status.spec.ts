@@ -1,24 +1,21 @@
-import { sleep } from "../../utils/common";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { cleanDb, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
+import { ADMIN_USER_NAME, cleanDb, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
 
 function removeStatusUpdatedDate(input: string): string {
     return input.replace(/\s\d\d.*\n/gm, "");
 }
 
-describe("HackerEmbassyBotMock", () => {
+describe("Bot Status commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
 
     beforeAll(async () => {
         prepareDb();
-
-        await sleep(100);
     });
 
     beforeEach(async () => {});
 
-    test("/status show open space after /open", async () => {
-        await botMock.processUpdate(createMockMessage("/open"));
+    test("/open should change the /status of space to opened", async () => {
+        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/status"));
 
         await Promise.resolve(process.nextTick);
@@ -34,12 +31,12 @@ describe("HackerEmbassyBotMock", () => {
         ]);
     });
 
-    test("/status should show space without users after /close", async () => {
-        await botMock.processUpdate(createMockMessage("/open"));
-        await botMock.processUpdate(createMockMessage("/inforce user1"));
-        await botMock.processUpdate(createMockMessage("/inforce user2"));
-        await botMock.processUpdate(createMockMessage("/inforce user3"));
-        await botMock.processUpdate(createMockMessage("/close"));
+    test("/close should change the /status of space to closed and remove users inside", async () => {
+        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/inforce user1", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/inforce user2", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/inforce user3", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/close", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/status"));
 
         await Promise.resolve(process.nextTick);

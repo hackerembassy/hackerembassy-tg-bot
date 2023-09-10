@@ -52,7 +52,7 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     // Status
     bot.onTextExt(rc.command(["status", "s"]), (bot, msg) => StatusHandlers.statusHandler(bot, msg));
     bot.onTextExt(rc.command(["in", "iaminside"]), StatusHandlers.inHandler);
-    bot.onTextExt(rc.command(["open", "o"]), StatusHandlers.openHandler, ["member"]);
+    bot.onTextExt(rc.command(["open", "o"]), StatusHandlers.openHandler);
     bot.onTextExt(rc.command(["close", "c"]), StatusHandlers.closeHandler, ["member"]);
     bot.onTextExt(
         rc.command(["inforce", "goin"], /(\S+)/, false),

@@ -101,6 +101,8 @@ export default class StatusHandlers {
             return;
         }
 
+        const mode = bot.context(msg).mode;
+
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
@@ -115,53 +117,50 @@ export default class StatusHandlers {
 
         const withSecretData = msg.chat.id === botConfig.chats.horny;
 
-        let statusMessage = TextGenerators.getStatusMessage(
-            state,
-            inside,
-            going,
-            climateInfo,
-            bot.context(msg).mode,
-            withSecretData
-        );
+        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, withSecretData);
 
-        if (StatusHandlers.isStatusError) statusMessage = t("status.status.noconnection", { statusMessage });
+        if (StatusHandlers.isStatusError)
+            statusMessage = mode.short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         const inlineKeyboard = state.open
             ? [
                   [
                       {
-                          text: t("status.buttons.in"),
+                          text: t(mode.short ? "status.buttons.in_short" : "status.buttons.in"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                       {
-                          text: t("status.buttons.out"),
+                          text: t(mode.short ? "status.buttons.out_short" : "status.buttons.out"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                   ],
               ]
             : [];
 
-        inlineKeyboard.push([
-            {
-                text: t("status.buttons.going"),
-                callback_data: JSON.stringify({ command: "/going" }),
-            },
-            {
-                text: t("status.buttons.notgoing"),
-                callback_data: JSON.stringify({ command: "/notgoing" }),
-            },
-        ]);
-
-        inlineKeyboard.push([
-            {
-                text: t("status.buttons.refresh"),
-                callback_data: JSON.stringify({ command: "/ustatus" }),
-            },
-            {
-                text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
-                callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
-            },
-        ]);
+        inlineKeyboard.push(
+            [
+                {
+                    text: t(mode.short ? "status.buttons.going_short" : "status.buttons.going"),
+                    callback_data: JSON.stringify({ command: "/going" }),
+                },
+                {
+                    text: t(mode.short ? "status.buttons.notgoing_short" : "status.buttons.notgoing"),
+                    callback_data: JSON.stringify({ command: "/notgoing" }),
+                },
+            ],
+            [
+                {
+                    text: t(mode.short ? "status.buttons.refresh_short" : "status.buttons.refresh"),
+                    callback_data: JSON.stringify({ command: mode.short ? "/s_ustatus" : "/ustatus" }),
+                },
+                {
+                    text: state.open
+                        ? t(mode.short ? "status.buttons.close_short" : "status.buttons.close")
+                        : t(mode.short ? "status.buttons.open_short" : "status.buttons.open"),
+                    callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
+                },
+            ]
+        );
 
         await bot.sendOrEditMessage(
             msg.chat.id,
@@ -169,7 +168,7 @@ export default class StatusHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard: mode.short ? [inlineKeyboard.flat(2)] : inlineKeyboard,
                 },
             },
             msg.message_id

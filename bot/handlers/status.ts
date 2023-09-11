@@ -23,6 +23,7 @@ import {
 } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
+import { sleep } from "../../utils/common";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
@@ -159,6 +160,7 @@ export default class StatusHandlers {
     }
 
     static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, mode: BotMessageContextMode) {
+        sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
         const statusMessage = await StatusHandlers.getStatusMessage(state, mode, resultMessage.chat.id === botConfig.chats.horny);
         const statusInlineKeyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
@@ -202,10 +204,8 @@ export default class StatusHandlers {
             msg.message_id
         )) as Message;
 
-        // TODO do for all chats
-        if (mode.live && resultMessage && (msg.chat.id === botConfig.chats.test || msg.chat.id === botConfig.chats.main)) {
-            bot.CustomEmitter.removeAllListeners("status-live");
-            bot.CustomEmitter.on("status-live", () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode));
+        if (mode.live && resultMessage) {
+            bot.addLiveMessage(resultMessage, "status-live", () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode));
         }
     }
 

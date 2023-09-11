@@ -7,14 +7,10 @@ describe("Bot behavior shared for all commands:", () => {
 
     beforeAll(async () => {
         prepareDb();
-        jest.useFakeTimers({ doNotFake: ["setTimeout"] });
+        jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
     });
 
     afterEach(() => fundsRepository.clearFunds());
-
-    afterAll(() => {
-        jest.useRealTimers();
-    });
 
     test("guest user should not be allowed to use protected commands", async () => {
         // guestuser is a default user
@@ -54,7 +50,7 @@ describe("Bot behavior shared for all commands:", () => {
         await botMock.processUpdate(createMockMessage("/closefund Fund_Name"));
         await botMock.processUpdate(createMockMessage("/removefund Fund_Name"));
 
-        await Promise.resolve(process.nextTick);
+        await jest.runAllTimersAsync();
 
         expect(botMock.popResults()).toEqual(Array(31).fill("admin\\.messages\\.restricted"));
     });

@@ -19,8 +19,8 @@ class StatusRepository extends BaseRepository {
 
     getUserStates(username: string, fromDate: number = 0, toDate: number = Date.now()): UserState[] {
         return this.db
-            .prepare("SELECT * FROM userstates WHERE username = ? AND date BETWEEN ? AND ? ORDER BY date")
-            .all(username, fromDate, toDate) as UserState[];
+            .prepare("SELECT * FROM userstates WHERE LOWER(username) = ? AND date BETWEEN ? AND ? ORDER BY date")
+            .all(username.toLowerCase(), fromDate, toDate) as UserState[];
     }
 
     updateUserState(userState: UserState): boolean {

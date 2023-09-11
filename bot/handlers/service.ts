@@ -173,6 +173,11 @@ export default class ServiceHandlers {
                 bot.context(msg).isEditing = true;
                 await StatusHandlers.statusHandler(bot, msg);
                 break;
+            case "/s_ustatus":
+                bot.context(msg).isEditing = true;
+                bot.context(msg).mode.short = true;
+                await StatusHandlers.statusHandler(bot, msg);
+                break;
             case "/superstatus":
                 if (isAllowed(ServiceHandlers.superstatusHandler)) await ServiceHandlers.superstatusHandler(bot, msg);
                 break;

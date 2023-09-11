@@ -20,7 +20,7 @@ const messagedelay = 1500;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";
-export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean };
+export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean; short: boolean };
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
 
 export interface BotMessageContext {
@@ -77,6 +77,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         silent: false,
         mention: false,
         admin: false,
+        short: false,
     };
 
     #context = new Map();

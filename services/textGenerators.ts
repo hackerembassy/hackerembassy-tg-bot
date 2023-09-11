@@ -116,27 +116,35 @@ export function getStatusMessage(
     inside: UserState[],
     going: UserState[],
     climateInfo: SpaceClimate | null,
-    mode: { mention: boolean },
+    mode: { mention: boolean; short?: boolean },
     withSecrets = false,
     isApi = false
 ): string {
-    const stateFullText = t("status.status.state", {
+    const stateFullText = t(mode.short ? "status.status.state_short" : "status.status.state", {
         stateEmoji: state.open ? "🔓" : "🔒",
         state: state.open ? t("status.status.opened") : t("status.status.closed"),
         stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
         changedBy: formatUsername(state.changedby, mode, isApi),
     });
 
-    let insideText = inside.length > 0 ? t("status.status.insidechecked") : t("status.status.nooneinside") + "\n";
+    let insideText =
+        inside.length > 0
+            ? t(mode.short ? "status.status.insidechecked_short" : "status.status.insidechecked", { count: inside.length })
+            : t("status.status.nooneinside") + (mode.short ? "" : "\n");
     for (const userStatus of inside) {
-        insideText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
+        insideText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}${
+            mode.short ? " " : "\n"
+        }`;
     }
 
-    let goingText = going.length > 0 ? `\n${t("status.status.going")}` : "";
+    let goingText =
+        going.length > 0
+            ? `\n${t(mode.short ? "status.status.going_short" : "status.status.going", { count: going.length })}`
+            : "";
     for (const userStatus of going) {
         goingText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
-            userStatus.note ? `(${userStatus.note})` : ""
-        }\n`;
+            !mode.short && userStatus.note ? `(${userStatus.note})` : ""
+        }${mode.short ? " " : "\n"}`;
     }
 
     const climateText = climateInfo
@@ -144,11 +152,13 @@ export function getStatusMessage(
         : "";
 
     const updateText = !isApi
-        ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21)}\n`
+        ? `⏱ ${mode.short ? "" : t("status.status.updated")} ${new Date()
+              .toLocaleString("RU-ru")
+              .replace(",", " в")
+              .substring(0, 21)}\n`
         : "";
 
-    return `${stateFullText}
-${insideText}${goingText}${climateText}
+    return `${stateFullText}\n${insideText}${goingText}${climateText}
 ${updateText}`;
 }
 

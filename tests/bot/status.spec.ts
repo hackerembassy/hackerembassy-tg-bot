@@ -29,6 +29,29 @@ describe("Bot Status commands:", () => {
         ]);
     });
 
+    test("username case should not matter when executing /inforce and /outforce", async () => {
+        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/out", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/inforce caseuser", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/inforce regularuser", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/outforce CASEUSER", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/status", ADMIN_USER_NAME));
+
+        await Promise.resolve(process.nextTick);
+
+        const results = botMock.popResults();
+        results[results.length - 1] = removeStatusUpdatedDate(results[results.length - 1]);
+
+        expect(results).toEqual([
+            "status\\.open",
+            "status\\.out\\.gotout",
+            "status\\.inforce\\.gotin",
+            "status\\.inforce\\.gotin",
+            "status\\.outforce\\.gotout",
+            "status\\.status\\.state\nstatus\\.status\\.insidechecked[regularuser](t\\.me/regularuser) \n\n⏱ status\\.status\\.updated",
+        ]);
+    });
+
     test("/close should change the /status of space to closed and remove users inside", async () => {
         await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/inforce user1", ADMIN_USER_NAME));

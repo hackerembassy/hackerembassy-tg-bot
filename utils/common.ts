@@ -10,6 +10,10 @@ export function onlyUniqueFilter<T>(value: T, index: number, array: T[]) {
     return array.indexOf(value) === index;
 }
 
+export function onlyUniqueInsFilter(value: string, index: number, array: string[]) {
+    return array.findIndex(item => item.toLowerCase() === value.toLowerCase()) === index;
+}
+
 export function chunkSubstr(str: string, size: number) {
     const chunks = [];
 

@@ -8,6 +8,7 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { initConvert, parseMoneyValue, prepareCurrency } from "../../utils/currency";
+import { equalsIns } from "../../utils/text";
 import { isMessageFromPrivateChat } from "../bot-helpers";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
@@ -193,7 +194,9 @@ export default class FundsHandlers {
         userName = userName.replace("@", "");
         const accountant = msg.from?.username;
 
-        const userDonations = FundsRepository.getDonationsForName(fundName)?.filter(donation => donation.username === userName);
+        const userDonations = FundsRepository.getDonationsForName(fundName)?.filter(donation =>
+            equalsIns(donation.username, userName)
+        );
         const hasAlreadyDonated = userDonations && userDonations.length > 0;
 
         const success =
@@ -254,7 +257,7 @@ export default class FundsHandlers {
 
         if (residents && donations) {
             for (const resident of residents) {
-                const hasDonated = donations.filter(d => d.username === resident.username)?.length > 0;
+                const hasDonated = donations.filter(d => equalsIns(d.username, resident.username))?.length > 0;
                 resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${UsersHelper.formatUsername(resident.username)}\n`;
             }
         }

@@ -3,3 +3,7 @@ export function isEmoji(message: string): boolean {
         message
     );
 }
+
+export function equalsIns(str1: string | null, str2: string | null): boolean {
+    return str1?.toLowerCase() === str2?.toLowerCase();
+}

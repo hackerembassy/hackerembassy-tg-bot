@@ -28,7 +28,7 @@ class UserRepository extends BaseRepository {
             if (this.getUserByName(username) === null) return false;
             const joinedRoles = roles.join("|");
 
-            this.db.prepare("UPDATE users SET roles = ? WHERE username = ?").run(joinedRoles, username);
+            this.db.prepare("UPDATE users SET roles = ? WHERE LOWER(username) = ?").run(joinedRoles, username.toLowerCase());
 
             return true;
         } catch (error) {
@@ -65,7 +65,7 @@ class UserRepository extends BaseRepository {
             if (anyItemIsInList(newMacs, existingOtherUsersMacs))
                 throw Error(`Mac's [${newMacsString}] already exist in database`);
 
-            this.db.prepare("UPDATE users SET mac = ? WHERE username = ?").run(newMacsString, username);
+            this.db.prepare("UPDATE users SET mac = ? WHERE LOWER(username) = ?").run(newMacsString, username.toLowerCase());
 
             return true;
         } catch (error) {
@@ -78,7 +78,7 @@ class UserRepository extends BaseRepository {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
-            this.db.prepare("UPDATE users SET emoji = ? WHERE username = ?").run(emoji, username);
+            this.db.prepare("UPDATE users SET emoji = ? WHERE LOWER(username) = ?").run(emoji, username.toLowerCase());
 
             return true;
         } catch (error) {
@@ -91,7 +91,7 @@ class UserRepository extends BaseRepository {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
-            this.db.prepare("UPDATE users SET userid = ? WHERE username = ?").run(userid, username);
+            this.db.prepare("UPDATE users SET userid = ? WHERE LOWER(username) = ?").run(userid, username.toLowerCase());
 
             return true;
         } catch (error) {
@@ -105,7 +105,9 @@ class UserRepository extends BaseRepository {
             const user = this.getUserByName(username);
             if ((user === null && !this.addUser(username, ["default"])) || (value && !user?.mac)) return false;
 
-            this.db.prepare("UPDATE users SET autoinside = ? WHERE username = ?").run(Number(value), username);
+            this.db
+                .prepare("UPDATE users SET autoinside = ? WHERE LOWER(username) = ?")
+                .run(Number(value), username.toLowerCase());
 
             return true;
         } catch (error) {
@@ -118,7 +120,7 @@ class UserRepository extends BaseRepository {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
-            this.db.prepare("UPDATE users SET birthday = ? WHERE username = ?").run(birthday, username);
+            this.db.prepare("UPDATE users SET birthday = ? WHERE LOWER(username) = ?").run(birthday, username.toLowerCase());
 
             return true;
         } catch (error) {
@@ -129,7 +131,7 @@ class UserRepository extends BaseRepository {
 
     removeUser(username: string): boolean {
         try {
-            this.db.prepare("DELETE FROM users WHERE username = ?").run(username);
+            this.db.prepare("DELETE FROM users WHERE LOWER(username) = ?").run(username.toLowerCase());
 
             return true;
         } catch (error) {
@@ -140,7 +142,7 @@ class UserRepository extends BaseRepository {
 
     getUserByName(username: string): User | null {
         try {
-            const user = this.db.prepare("SELECT * FROM users WHERE username = ?").get(username);
+            const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
 
             return user ? new User(user as User) : null;
         } catch (error) {

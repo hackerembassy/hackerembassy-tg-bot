@@ -8,6 +8,7 @@ import {
     Message,
     SendMessageOptions,
 } from "node-telegram-bot-api";
+import { EventEmitter } from "stream";
 
 import logger from "../services/logger";
 import { hasRole } from "../services/usersHelper";
@@ -20,7 +21,7 @@ const messagedelay = 1500;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";
-export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean; short: boolean };
+export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean; short: boolean; live: boolean };
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
 
 export interface BotMessageContext {
@@ -52,11 +53,13 @@ function prepareOptionsForMarkdown(
 export default class HackerEmbassyBot extends TelegramBot {
     messageHistory: MessageHistory;
     Name: string | undefined;
+    CustomEmitter: EventEmitter;
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
         this.messageHistory = new MessageHistory();
         this.Name = undefined;
+        this.CustomEmitter = new EventEmitter();
     }
 
     accessTable = new Map();
@@ -78,6 +81,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         mention: false,
         admin: false,
         short: false,
+        live: false,
     };
 
     #context = new Map();
@@ -298,10 +302,10 @@ ${chunks[index]}
         msg: TelegramBot.Message,
         options: TelegramBot.EditMessageTextOptions | TelegramBot.SendMessageOptions,
         messageId: number
-    ): Promise<void> {
+    ): Promise<Message | boolean | null> {
         if (this.context(msg).isEditing) {
             try {
-                await this.editMessageTextExt(text, msg, {
+                return await this.editMessageTextExt(text, msg, {
                     chat_id: chatId,
                     message_id: messageId,
                     ...options,
@@ -312,8 +316,10 @@ ${chunks[index]}
                 this.context(msg).isEditing = false;
             }
         } else {
-            await this.sendMessageExt(chatId, text, msg, options as SendMessageOptions);
+            return this.sendMessageExt(chatId, text, msg, options as SendMessageOptions);
         }
+
+        return null;
     }
 
     async sendNotification(message: string, date: string, chat: TelegramBot.ChatId): Promise<void> {

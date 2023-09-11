@@ -1,7 +1,8 @@
 import config from "config";
-import { Message } from "node-telegram-bot-api";
+import TelegramBot, { Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
+import State from "../../models/State";
 import { UserStateChangeType, UserStateType } from "../../models/UserState";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
@@ -25,7 +26,7 @@ import * as UsersHelper from "../../services/usersHelper";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotMessageContextMode } from "../HackerEmbassyBot";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const botConfig = config.get("bot") as BotConfig;
@@ -92,17 +93,7 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async statusHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
-        const state = StatusRepository.getSpaceLastState();
-
-        if (!state) {
-            bot.sendMessageExt(msg.chat.id, t("status.status.undefined"), msg);
-            return;
-        }
-
-        const mode = bot.context(msg).mode;
-
+    static async getStatusMessage(state: State, mode: BotMessageContextMode, withSecretData: boolean) {
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
@@ -115,14 +106,16 @@ export default class StatusHandlers {
             logger.error(error);
         }
 
-        const withSecretData = msg.chat.id === botConfig.chats.horny;
-
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, withSecretData);
 
         if (StatusHandlers.isStatusError)
             statusMessage = mode.short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
-        const inlineKeyboard = state.open
+        return statusMessage;
+    }
+
+    static getStatusInlineKeyboard(state: State, mode: BotMessageContextMode) {
+        const inlineKeyboard = state?.open
             ? [
                   [
                       {
@@ -162,21 +155,63 @@ export default class StatusHandlers {
             ]
         );
 
-        await bot.sendOrEditMessage(
+        return mode.short ? [inlineKeyboard.flat(2)] : inlineKeyboard;
+    }
+
+    static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, mode: BotMessageContextMode) {
+        const state = StatusRepository.getSpaceLastState() as State;
+        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, resultMessage.chat.id === botConfig.chats.horny);
+        const statusInlineKeyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+
+        try {
+            await bot.editMessageTextExt(statusMessage, resultMessage, {
+                chat_id: resultMessage.chat.id,
+                message_id: resultMessage.message_id,
+                reply_markup: {
+                    inline_keyboard: statusInlineKeyboard,
+                },
+            } as TelegramBot.EditMessageTextOptions);
+        } catch {
+            /* Message was not modified */
+        }
+    }
+
+    static async statusHandler(bot: HackerEmbassyBot, msg: Message) {
+        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        const state = StatusRepository.getSpaceLastState();
+        const mode = bot.context(msg).mode;
+
+        if (!state) {
+            bot.sendMessageExt(msg.chat.id, t("status.status.undefined"), msg);
+            return;
+        }
+
+        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, msg.chat.id === botConfig.chats.horny);
+        const statusInlineKeyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+
+        const resultMessage = (await bot.sendOrEditMessage(
             msg.chat.id,
             statusMessage,
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: mode.short ? [inlineKeyboard.flat(2)] : inlineKeyboard,
+                    inline_keyboard: statusInlineKeyboard,
                 },
             },
             msg.message_id
-        );
+        )) as Message;
+
+        // TODO do for all chats
+        if (mode.live && resultMessage && (msg.chat.id === botConfig.chats.test || msg.chat.id === botConfig.chats.main)) {
+            bot.CustomEmitter.removeAllListeners("status-live");
+            bot.CustomEmitter.on("status-live", () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode));
+        }
     }
 
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
         openSpace(msg.from?.username, { checkOpener: true });
+        bot.CustomEmitter.emit("status-live");
 
         const inlineKeyboard = [
             [
@@ -211,6 +246,7 @@ export default class StatusHandlers {
 
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
         closeSpace(msg.from?.username, { evict: true });
+        bot.CustomEmitter.emit("status-live");
 
         const inlineKeyboard = [
             [
@@ -235,6 +271,7 @@ export default class StatusHandlers {
 
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
         evictPeople(findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside));
+        bot.CustomEmitter.emit("status-live");
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
@@ -243,9 +280,13 @@ export default class StatusHandlers {
         const eventDate = new Date();
         const usernameOrFirstname = msg.from?.username ?? msg.from?.first_name;
         const gotIn = usernameOrFirstname ? StatusHandlers.LetIn(usernameOrFirstname, eventDate) : false;
-        let message = t("status.in.gotin", { username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
 
-        if (!gotIn) {
+        let message: string;
+
+        if (gotIn) {
+            message = t("status.in.gotin", { username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
+            bot.CustomEmitter.emit("status-live");
+        } else {
             message = t("status.in.notready");
         }
 
@@ -291,9 +332,12 @@ export default class StatusHandlers {
     static async outHandler(bot: HackerEmbassyBot, msg: Message) {
         const eventDate = new Date();
         const gotOut = msg.from?.username ? StatusHandlers.LetOut(msg.from.username, eventDate) : false;
-        let message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) });
+        let message: string;
 
-        if (!gotOut) {
+        if (gotOut) {
+            message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) });
+            bot.CustomEmitter.emit("status-live");
+        } else {
             message = t("status.out.shouldnot");
         }
 
@@ -342,12 +386,16 @@ export default class StatusHandlers {
 
         const gotIn = StatusHandlers.LetIn(username, eventDate, true);
 
-        let message = t("status.inforce.gotin", {
-            memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
-            username: UsersHelper.formatUsername(username, bot.context(msg).mode),
-        });
+        let message: string;
 
-        if (!gotIn) {
+        if (gotIn) {
+            message = t("status.inforce.gotin", {
+                memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
+                username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+            });
+
+            bot.CustomEmitter.emit("status-live");
+        } else {
             message = t("status.inforce.notready");
         }
 
@@ -359,19 +407,23 @@ export default class StatusHandlers {
         username = username.replace("@", "");
         const gotOut = StatusHandlers.LetOut(username, eventDate, true);
 
-        let message = t("status.outforce.gotout", {
-            memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
-            username: UsersHelper.formatUsername(username, bot.context(msg).mode),
-        });
+        let message: string;
 
-        if (!gotOut) {
+        if (gotOut) {
+            message = t("status.outforce.gotout", {
+                memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
+                username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+            });
+
+            bot.CustomEmitter.emit("status-live");
+        } else {
             message = t("status.outforce.shouldnot");
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async LetIn(username: string, date: Date, force = false) {
+    static LetIn(username: string, date: Date, force = false) {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
 
@@ -427,6 +479,7 @@ export default class StatusHandlers {
         };
 
         StatusRepository.pushPeopleState(userstate);
+        bot.CustomEmitter.emit("status-live");
 
         const message = t("status.going", {
             username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
@@ -469,6 +522,7 @@ export default class StatusHandlers {
         };
 
         StatusRepository.pushPeopleState(userstate);
+        bot.CustomEmitter.emit("status-live");
 
         const message = t("status.notgoing", {
             username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
@@ -501,7 +555,7 @@ export default class StatusHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async autoinout(isIn: boolean): Promise<void> {
+    static async autoinout(bot: HackerEmbassyBot, isIn: boolean): Promise<void> {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -535,6 +589,8 @@ export default class StatusHandlers {
                             type: UserStateChangeType.Auto,
                             note: null,
                         });
+
+                    bot.CustomEmitter.emit("status-live");
 
                     logger.info(`User ${user.username} automatically ${isIn ? "got in" : "got out"}`);
                 }

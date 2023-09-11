@@ -44,6 +44,6 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
         43200000
     ); // 12hr
 
-    setInterval(() => StatusHandlers.autoinout(true), botConfig.timeouts.in);
-    setInterval(() => StatusHandlers.autoinout(false), botConfig.timeouts.out);
+    setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
+    setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
 }

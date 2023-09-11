@@ -10,6 +10,7 @@ describe("Bot Status commands:", () => {
 
     beforeAll(async () => {
         prepareDb();
+        jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
     });
 
     beforeEach(async () => {});
@@ -18,7 +19,7 @@ describe("Bot Status commands:", () => {
         await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/status"));
 
-        await Promise.resolve(process.nextTick);
+        await jest.runAllTimersAsync();
 
         const results = botMock.popResults();
         results[results.length - 1] = removeStatusUpdatedDate(results[results.length - 1]);
@@ -37,7 +38,7 @@ describe("Bot Status commands:", () => {
         await botMock.processUpdate(createMockMessage("/outforce CASEUSER", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/status", ADMIN_USER_NAME));
 
-        await Promise.resolve(process.nextTick);
+        await jest.runAllTimersAsync();
 
         const results = botMock.popResults();
         results[results.length - 1] = removeStatusUpdatedDate(results[results.length - 1]);
@@ -58,9 +59,9 @@ describe("Bot Status commands:", () => {
         await botMock.processUpdate(createMockMessage("/inforce user2", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/inforce user3", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/close", ADMIN_USER_NAME));
-        await Promise.resolve(process.nextTick);
         await botMock.processUpdate(createMockMessage("/status"));
-        await Promise.resolve(process.nextTick);
+
+        await jest.runAllTimersAsync();
 
         const results = botMock.popResults();
 

@@ -3,6 +3,7 @@ import { t } from "i18next";
 import {
     BotCommandScope,
     CallbackQuery,
+    ChatId,
     default as TelegramBot,
     EditMessageTextOptions,
     Message,
@@ -18,6 +19,7 @@ import MessageHistory from "./MessageHistory";
 // Consts
 const maxChunkSize = 3500;
 const messagedelay = 1500;
+const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 1000;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";
@@ -50,16 +52,24 @@ function prepareOptionsForMarkdown(
     return options;
 }
 
+type LiveChatHandler = {
+    chatId: ChatId;
+    expires: number;
+    handler: (...args: any[]) => void;
+};
+
 export default class HackerEmbassyBot extends TelegramBot {
     messageHistory: MessageHistory;
     Name: string | undefined;
     CustomEmitter: EventEmitter;
+    LiveChats: LiveChatHandler[];
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
         this.messageHistory = new MessageHistory();
         this.Name = undefined;
         this.CustomEmitter = new EventEmitter();
+        this.LiveChats = [];
     }
 
     accessTable = new Map();
@@ -328,5 +338,24 @@ ${chunks[index]}
 
         this.sendMessage(chat, message);
         logger.info(`Sent a notification to ${chat}: ${message}`);
+    }
+
+    // TODO add live message persistence (combine wtih history.json to create a persisted state)
+    addLiveMessage(liveMessage: Message, event: string, handler: (...args: any[]) => void) {
+        const chatRecordIndex = this.LiveChats.findIndex(cr => cr.chatId === liveMessage.chat.id);
+        if (chatRecordIndex !== -1) this.CustomEmitter.removeListener("status-live", this.LiveChats[chatRecordIndex].handler);
+
+        this.CustomEmitter.on(event, handler);
+        const newChatRecord = { chatId: liveMessage.chat.id, expires: Date.now() + EDIT_MESSAGE_TIME_LIMIT, handler };
+
+        if (chatRecordIndex !== -1) {
+            this.LiveChats[chatRecordIndex] = newChatRecord;
+        } else {
+            this.LiveChats.push();
+        }
+
+        setTimeout(() => {
+            this.CustomEmitter.removeListener("status-live", handler);
+        }, EDIT_MESSAGE_TIME_LIMIT);
     }
 }

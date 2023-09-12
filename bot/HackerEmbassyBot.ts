@@ -64,6 +64,9 @@ export default class HackerEmbassyBot extends TelegramBot {
     CustomEmitter: EventEmitter;
     LiveChats: LiveChatHandler[];
 
+    // Seconds from bot api
+    IGNORE_UPDATE_TIMEOUT = 5;
+
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
         this.messageHistory = new MessageHistory();
@@ -273,6 +276,10 @@ ${chunks[index]}
 
         const newCallback = async function (msg: TelegramBot.Message, match: RegExpExecArray | null) {
             if (!msg) return;
+
+            // Skip old updates
+            if (Math.abs(Date.now() / 1000 - msg.date) > botthis.IGNORE_UPDATE_TIMEOUT) return;
+
             try {
                 if (!botthis.canUserCall(msg.from?.username, callback)) {
                     await botthis.sendMessageExt(msg.chat.id, t("admin.messages.restricted"), msg);

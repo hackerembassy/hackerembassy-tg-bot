@@ -130,7 +130,7 @@ export function getStatusMessage(
     let insideText =
         inside.length > 0
             ? t(mode.short ? "status.status.insidechecked_short" : "status.status.insidechecked", { count: inside.length })
-            : t("status.status.nooneinside") + (mode.short ? "" : "\n");
+            : t(mode.short ? "status.status.nooneinside_short" : "status.status.nooneinside") + (mode.short ? "" : "\n");
     for (const userStatus of inside) {
         insideText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}${
             mode.short ? " " : "\n"

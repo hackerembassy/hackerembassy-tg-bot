@@ -254,7 +254,7 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         "admin",
     ]);
     bot.onTextExt(rc.command(["getlogs", "logs", "log"]), AdminHandlers.getLogHandler, ["admin"]);
-    bot.onTextExt(rc.command(["gethistory", "history"]), AdminHandlers.getHistoryHandler, ["admin"]);
+    bot.onTextExt(rc.command(["getstate", "state"]), AdminHandlers.getStateHandler, ["admin"]);
 
     // Memes
     bot.onTextExt(rc.command(["randomdog", "dog"]), MemeHandlers.randomDogHandler);

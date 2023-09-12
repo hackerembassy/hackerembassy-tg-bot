@@ -14,6 +14,7 @@ import { EventEmitter } from "stream";
 import logger from "../services/logger";
 import { hasRole } from "../services/usersHelper";
 import { chunkSubstr, sleep } from "../utils/common";
+import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
 
 // Consts
@@ -52,7 +53,7 @@ function prepareOptionsForMarkdown(
     return options;
 }
 
-type LiveChatHandler = {
+export type LiveChatHandler = {
     chatId: ChatId;
     expires: number;
     handler: (...args: any[]) => void;
@@ -62,17 +63,17 @@ export default class HackerEmbassyBot extends TelegramBot {
     messageHistory: MessageHistory;
     Name: string | undefined;
     CustomEmitter: EventEmitter;
-    LiveChats: LiveChatHandler[];
+    botState: BotState;
 
     // Seconds from bot api
-    IGNORE_UPDATE_TIMEOUT = 5;
+    IGNORE_UPDATE_TIMEOUT = 10;
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
-        this.messageHistory = new MessageHistory();
+        this.botState = new BotState();
+        this.messageHistory = new MessageHistory(this.botState);
         this.Name = undefined;
         this.CustomEmitter = new EventEmitter();
-        this.LiveChats = [];
     }
 
     accessTable = new Map();
@@ -347,19 +348,21 @@ ${chunks[index]}
         logger.info(`Sent a notification to ${chat}: ${message}`);
     }
 
-    // TODO add live message persistence (combine wtih history.json to create a persisted state)
     addLiveMessage(liveMessage: Message, event: string, handler: (...args: any[]) => void) {
-        const chatRecordIndex = this.LiveChats.findIndex(cr => cr.chatId === liveMessage.chat.id);
-        if (chatRecordIndex !== -1) this.CustomEmitter.removeListener("status-live", this.LiveChats[chatRecordIndex].handler);
+        const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id);
+        if (chatRecordIndex !== -1)
+            this.CustomEmitter.removeListener("status-live", this.botState.liveChats[chatRecordIndex].handler);
 
         this.CustomEmitter.on(event, handler);
         const newChatRecord = { chatId: liveMessage.chat.id, expires: Date.now() + EDIT_MESSAGE_TIME_LIMIT, handler };
 
         if (chatRecordIndex !== -1) {
-            this.LiveChats[chatRecordIndex] = newChatRecord;
+            this.botState.liveChats[chatRecordIndex] = newChatRecord;
         } else {
-            this.LiveChats.push();
+            this.botState.liveChats.push(newChatRecord);
         }
+
+        this.botState.debouncedPersistChanges();
 
         setTimeout(() => {
             this.CustomEmitter.removeListener("status-live", handler);

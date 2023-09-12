@@ -129,9 +129,6 @@ export default class ServiceHandlers {
         try {
             if (!msg || !msg.from?.id) throw Error("Message with User id is not found");
 
-            // Skip old updates
-            if (Math.abs(Date.now() / 1000 - msg.date) > bot.IGNORE_UPDATE_TIMEOUT) return;
-
             bot.context(msg).messageThreadId = msg.message_thread_id;
 
             await RateLimiter.throttled(ServiceHandlers.routeQuery, msg.from.id)(bot, callbackQuery, msg);

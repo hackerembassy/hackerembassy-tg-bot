@@ -28,10 +28,10 @@ export default class AdminHandlers {
         if (lastLogFilePath && fs.existsSync(lastLogFilePath)) await bot.sendDocument(msg.chat.id, lastLogFilePath);
     }
 
-    static async getHistoryHandler(bot: HackerEmbassyBot, msg: Message) {
-        const historypath = bot.messageHistory.historypath;
+    static async getStateHandler(bot: HackerEmbassyBot, msg: Message) {
+        const statepath = bot.messageHistory.botState.statepath;
 
-        if (historypath && fs.existsSync(historypath)) await bot.sendDocument(msg.chat.id, historypath);
+        if (statepath && fs.existsSync(statepath)) await bot.sendDocument(msg.chat.id, statepath);
     }
 
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {

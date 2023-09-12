@@ -19,7 +19,7 @@ import MessageHistory from "./MessageHistory";
 // Consts
 const maxChunkSize = 3500;
 const messagedelay = 1500;
-const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 1000;
+const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";

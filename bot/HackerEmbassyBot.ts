@@ -24,7 +24,7 @@ const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";
-export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean; short: boolean; live: boolean };
+export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean; pin: boolean; live: boolean };
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
 
 export interface BotMessageContext {
@@ -94,7 +94,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         silent: false,
         mention: false,
         admin: false,
-        short: false,
+        pin: false,
         live: false,
     };
 

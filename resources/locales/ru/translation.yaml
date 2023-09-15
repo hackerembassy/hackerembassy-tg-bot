@@ -426,13 +426,13 @@ status:
 
             {{stateMessage}}
 
-        state_short: "{{stateEmoji}} {{state}} |"
-        insidechecked_short: "👨‍💻 внутри {{count}} |"
+        state_pin: "{{stateEmoji}} {{state}}"
+        insidechecked_pin: "👨‍💻 внутри {{count}}"
         insidechecked: |
             👨‍💻 Внутри отметились [{{count}}]:
         nooneinside: 🛌 Внутри никто не отметился
-        nooneinside_short: 🛌 Внутри [0]
-        going_short: "🚕 планируют {{count}} |"
+        nooneinside_pin: 🛌 Внутри [0]
+        going_pin: "🚕 планируют {{count}}"
         going: |
             🚕 Планируют сегодня зайти [{{count}}]:
     open: |

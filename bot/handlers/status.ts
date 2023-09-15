@@ -110,7 +110,7 @@ export default class StatusHandlers {
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, withSecretData);
 
         if (StatusHandlers.isStatusError)
-            statusMessage = mode.short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
+            statusMessage = mode.pin ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         return statusMessage;
     }
@@ -145,7 +145,7 @@ export default class StatusHandlers {
             [
                 {
                     text: t("status.buttons.refresh"),
-                    callback_data: JSON.stringify({ command: mode.short ? "/s_ustatus" : "/ustatus" }),
+                    callback_data: JSON.stringify({ command: mode.pin ? "/s_ustatus" : "/ustatus" }),
                 },
                 {
                     text: state.open ? t("status.buttons.close") : t("status.buttons.open"),

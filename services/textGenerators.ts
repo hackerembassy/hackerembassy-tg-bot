@@ -116,26 +116,28 @@ export function getStatusMessage(
     inside: UserState[],
     going: UserState[],
     climateInfo: SpaceClimate | null,
-    mode: { mention: boolean; short?: boolean },
+    mode: { mention: boolean; pin?: boolean },
     withSecrets = false,
     isApi = false
 ): string {
-    let stateText =
-        t(mode.short ? "status.status.state_short" : "status.status.state", {
-            stateEmoji: state.open ? "🔓" : "🔒",
-            state: state.open ? t("status.status.opened") : t("status.status.closed"),
-            stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
-            changedBy: formatUsername(state.changedby, mode, isApi),
-        }) + "\n";
+    let stateText = t(mode.pin ? "status.status.state_pin" : "status.status.state", {
+        stateEmoji: state.open ? "🔓" : "🔒",
+        state: state.open ? t("status.status.opened") : t("status.status.closed"),
+        stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
+        changedBy: formatUsername(state.changedby, mode, isApi),
+    });
 
-    if (mode.short) {
+    if (mode.pin) {
+        stateText += "  ";
         stateText +=
             inside.length > 0
-                ? t("status.status.insidechecked_short", { count: inside.length })
-                : t("status.status.nooneinside_short");
-        stateText += going.length > 0 ? `\n${t("status.status.going_short", { count: going.length })}` : "";
-        stateText += "\n\n";
+                ? t("status.status.insidechecked_pin", { count: inside.length })
+                : t("status.status.nooneinside_pin");
+        stateText += "  ";
+        stateText += going.length > 0 ? `${t("status.status.going_pin", { count: going.length })}` : "";
+        stateText += "\n ";
     }
+    stateText += "\n";
     stateText +=
         inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {

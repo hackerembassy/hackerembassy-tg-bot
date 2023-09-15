@@ -120,46 +120,41 @@ export function getStatusMessage(
     withSecrets = false,
     isApi = false
 ): string {
-    const stateFullText = t(mode.short ? "status.status.state_short" : "status.status.state", {
-        stateEmoji: state.open ? "🔓" : "🔒",
-        state: state.open ? t("status.status.opened") : t("status.status.closed"),
-        stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
-        changedBy: formatUsername(state.changedby, mode, isApi),
-    });
+    let stateText =
+        t(mode.short ? "status.status.state_short" : "status.status.state", {
+            stateEmoji: state.open ? "🔓" : "🔒",
+            state: state.open ? t("status.status.opened") : t("status.status.closed"),
+            stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
+            changedBy: formatUsername(state.changedby, mode, isApi),
+        }) + "\n";
 
-    let insideText =
-        inside.length > 0
-            ? t(mode.short ? "status.status.insidechecked_short" : "status.status.insidechecked", { count: inside.length })
-            : t(mode.short ? "status.status.nooneinside_short" : "status.status.nooneinside") + (mode.short ? "" : "\n");
+    if (mode.short) {
+        stateText +=
+            inside.length > 0
+                ? t("status.status.insidechecked_short", { count: inside.length })
+                : t("status.status.nooneinside_short");
+        stateText += going.length > 0 ? `\n${t("status.status.going_short", { count: going.length })}` : "";
+        stateText += "\n\n";
+    }
+    stateText +=
+        inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {
-        insideText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}${
-            mode.short ? " " : "\n"
-        }`;
+        stateText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
-
-    let goingText =
-        going.length > 0
-            ? `\n${t(mode.short ? "status.status.going_short" : "status.status.going", { count: going.length })}`
-            : "";
+    stateText += going.length > 0 ? `\n${t("status.status.going", { count: going.length })}` : "";
     for (const userStatus of going) {
-        goingText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
-            !mode.short && userStatus.note ? `(${userStatus.note})` : ""
-        }${mode.short ? " " : "\n"}`;
+        stateText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
+            userStatus.note ? `(${userStatus.note})` : ""
+        }\n`;
     }
-
-    const climateText = climateInfo
+    stateText += climateInfo
         ? `\n${t("embassy.climate.data", { climateInfo })}${withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""}`
         : "";
-
-    const updateText = !isApi
-        ? `⏱ ${mode.short ? "" : t("status.status.updated")} ${new Date()
-              .toLocaleString("RU-ru")
-              .replace(",", " в")
-              .substring(0, 21)}\n`
+    stateText += "\n";
+    stateText += !isApi
+        ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21)}\n`
         : "";
-
-    return `${stateFullText}\n${insideText}${goingText}${climateText}
-${updateText}`;
+    return stateText;
 }
 
 export function getUserBadges(username: string | null): string {

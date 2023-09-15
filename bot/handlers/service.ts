@@ -175,7 +175,7 @@ export default class ServiceHandlers {
                 break;
             case "/s_ustatus":
                 bot.context(msg).isEditing = true;
-                bot.context(msg).mode.short = true;
+                bot.context(msg).mode.pin = true;
                 await StatusHandlers.statusHandler(bot, msg);
                 break;
             case "/superstatus":

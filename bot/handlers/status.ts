@@ -110,7 +110,7 @@ export default class StatusHandlers {
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, withSecretData);
 
         if (StatusHandlers.isStatusError)
-            statusMessage = mode.short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
+            statusMessage = mode.pin ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         return statusMessage;
     }
@@ -120,11 +120,11 @@ export default class StatusHandlers {
             ? [
                   [
                       {
-                          text: t(mode.short ? "status.buttons.in_short" : "status.buttons.in"),
+                          text: t("status.buttons.in"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                       {
-                          text: t(mode.short ? "status.buttons.out_short" : "status.buttons.out"),
+                          text: t("status.buttons.out"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                   ],
@@ -134,29 +134,27 @@ export default class StatusHandlers {
         inlineKeyboard.push(
             [
                 {
-                    text: t(mode.short ? "status.buttons.going_short" : "status.buttons.going"),
+                    text: t("status.buttons.going"),
                     callback_data: JSON.stringify({ command: "/going" }),
                 },
                 {
-                    text: t(mode.short ? "status.buttons.notgoing_short" : "status.buttons.notgoing"),
+                    text: t("status.buttons.notgoing"),
                     callback_data: JSON.stringify({ command: "/notgoing" }),
                 },
             ],
             [
                 {
-                    text: t(mode.short ? "status.buttons.refresh_short" : "status.buttons.refresh"),
-                    callback_data: JSON.stringify({ command: mode.short ? "/s_ustatus" : "/ustatus" }),
+                    text: t("status.buttons.refresh"),
+                    callback_data: JSON.stringify({ command: mode.pin ? "/s_ustatus" : "/ustatus" }),
                 },
                 {
-                    text: state.open
-                        ? t(mode.short ? "status.buttons.close_short" : "status.buttons.close")
-                        : t(mode.short ? "status.buttons.open_short" : "status.buttons.open"),
+                    text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
                     callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
                 },
             ]
         );
 
-        return mode.short ? [inlineKeyboard.flat(2)] : inlineKeyboard;
+        return inlineKeyboard;
     }
 
     static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, mode: BotMessageContextMode) {

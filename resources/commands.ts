@@ -87,6 +87,8 @@ export const AdminCommandsList: string = `
 /forcebirthdaywishes
 #\`/forward some_text#\`
 /getlogs
+/getstate
+/cleanstate
 
 \\* Roles: admin, accountant, member, default
 `;

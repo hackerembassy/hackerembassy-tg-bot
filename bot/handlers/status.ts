@@ -205,7 +205,11 @@ export default class StatusHandlers {
         )) as Message;
 
         if (mode.live && resultMessage) {
-            bot.addLiveMessage(resultMessage, "status-live", () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode));
+            bot.addLiveMessage(resultMessage, "status-live", () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode), {
+                functionName: StatusHandlers.liveStatusHandler.name,
+                module: __filename,
+                params: [resultMessage, mode],
+            });
         }
     }
 

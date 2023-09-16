@@ -57,6 +57,14 @@ export type LiveChatHandler = {
     chatId: ChatId;
     expires: number;
     handler: (...args: any[]) => void;
+    event: string;
+    serializationData: serializedFunction;
+};
+
+export type serializedFunction = {
+    functionName: string;
+    module: string;
+    params: any[];
 };
 
 export default class HackerEmbassyBot extends TelegramBot {
@@ -70,7 +78,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
-        this.botState = new BotState();
+        this.botState = new BotState(this);
         this.messageHistory = new MessageHistory(this.botState);
         this.Name = undefined;
         this.CustomEmitter = new EventEmitter();
@@ -348,13 +356,23 @@ ${chunks[index]}
         logger.info(`Sent a notification to ${chat}: ${message}`);
     }
 
-    addLiveMessage(liveMessage: Message, event: string, handler: (...args: any[]) => void) {
+    addLiveMessage(
+        liveMessage: Message,
+        event: string,
+        handler: (...args: any[]) => void,
+        serializationData: serializedFunction
+    ) {
         const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id);
-        if (chatRecordIndex !== -1)
-            this.CustomEmitter.removeListener("status-live", this.botState.liveChats[chatRecordIndex].handler);
+        if (chatRecordIndex !== -1) this.CustomEmitter.removeListener(event, this.botState.liveChats[chatRecordIndex].handler);
 
         this.CustomEmitter.on(event, handler);
-        const newChatRecord = { chatId: liveMessage.chat.id, expires: Date.now() + EDIT_MESSAGE_TIME_LIMIT, handler };
+        const newChatRecord = {
+            chatId: liveMessage.chat.id,
+            expires: Date.now() + EDIT_MESSAGE_TIME_LIMIT,
+            handler,
+            event,
+            serializationData,
+        };
 
         if (chatRecordIndex !== -1) {
             this.botState.liveChats[chatRecordIndex] = newChatRecord;
@@ -364,8 +382,10 @@ ${chunks[index]}
 
         this.botState.debouncedPersistChanges();
 
+        // TODO Remove duplication
         setTimeout(() => {
-            this.CustomEmitter.removeListener("status-live", handler);
+            this.CustomEmitter.removeListener(event, handler);
+            this.botState.liveChats = this.botState.liveChats.splice(chatRecordIndex, 1);
         }, EDIT_MESSAGE_TIME_LIMIT);
     }
 }

@@ -34,6 +34,11 @@ export default class AdminHandlers {
         if (statepath && fs.existsSync(statepath)) await bot.sendDocument(msg.chat.id, statepath);
     }
 
+    static async cleanStateHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.botState.clearState();
+        await bot.sendMessageExt(msg.chat.id, "Cleared state. Message history and Live handlets are removed", msg);
+    }
+
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers();
         let userList = "";

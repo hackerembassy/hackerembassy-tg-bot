@@ -101,7 +101,9 @@ export default class StatusHandlers {
 
         let climateInfo: SpaceClimate | null = null;
         try {
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
+            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`, {
+                timeout: 4000,
+            });
             climateInfo = await response?.json();
         } catch (error) {
             logger.error(error);

@@ -236,12 +236,15 @@ export default class ServiceHandlers {
                 if (isAllowed(EmbassyHandlers.doorbellHandler)) await EmbassyHandlers.doorbellHandler(bot, msg);
                 break;
             case "/webcam":
+                bot.context(msg).isEditing = data.edit ?? false;
                 if (isAllowed(EmbassyHandlers.webcamHandler)) await EmbassyHandlers.webcamHandler(bot, msg);
                 break;
             case "/webcam2":
+                bot.context(msg).isEditing = data.edit ?? false;
                 if (isAllowed(EmbassyHandlers.webcam2Handler)) await EmbassyHandlers.webcam2Handler(bot, msg);
                 break;
             case "/doorcam":
+                bot.context(msg).isEditing = data.edit ?? false;
                 if (isAllowed(EmbassyHandlers.doorcamHandler)) await EmbassyHandlers.doorcamHandler(bot, msg);
                 break;
             case "/printers":

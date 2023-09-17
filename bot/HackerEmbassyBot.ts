@@ -1,4 +1,5 @@
 // Imports
+import { promises as fs } from "fs";
 import { t } from "i18next";
 import {
     BotCommandScope,
@@ -6,11 +7,14 @@ import {
     ChatId,
     default as TelegramBot,
     EditMessageTextOptions,
+    InlineKeyboardMarkup,
     InputMedia,
+    InputMediaPhoto,
     Message,
     SendMessageOptions,
 } from "node-telegram-bot-api";
 import { EventEmitter } from "stream";
+import { file } from "tmp-promise";
 
 import logger from "../services/logger";
 import { hasRole } from "../services/usersHelper";
@@ -25,7 +29,14 @@ const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";
-export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean; pin: boolean; live: boolean };
+export type BotMessageContextMode = {
+    silent: boolean;
+    mention: boolean;
+    admin: boolean;
+    pin: boolean;
+    live: boolean;
+    static: boolean;
+};
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
 
 export interface BotMessageContext {
@@ -105,6 +116,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         admin: false,
         pin: false,
         live: false,
+        static: false,
     };
 
     #context = new Map();
@@ -177,7 +189,15 @@ export default class HackerEmbassyBot extends TelegramBot {
         const message = await super.sendPhoto(
             chatId,
             photo,
-            { ...options, message_thread_id: this.context(msg).messageThreadId },
+            {
+                ...options,
+                reply_markup: {
+                    inline_keyboard: this.context(msg).mode?.static
+                        ? []
+                        : (options?.reply_markup as InlineKeyboardMarkup)?.inline_keyboard,
+                },
+                message_thread_id: this.context(msg).messageThreadId,
+            },
             fileOptions
         );
 
@@ -206,6 +226,37 @@ export default class HackerEmbassyBot extends TelegramBot {
         );
 
         this.messageHistory.push(chatId, message.message_id);
+
+        return Promise.resolve(message);
+    }
+
+    async editPhoto(
+        photo: Buffer | ArrayBuffer,
+        msg: TelegramBot.Message,
+        options: any = {}
+    ): Promise<TelegramBot.Message | boolean> {
+        this.sendChatAction(msg.chat.id, "upload_photo", msg);
+
+        const buffer = photo instanceof Buffer ? photo : Buffer.from(photo);
+
+        // TMP file because the lib doesn't support using buffers for editMessageMedia yet
+        const { path, cleanup } = await file();
+
+        await fs.writeFile(path, buffer);
+
+        const imageOption = { type: "photo", media: `attach://${path}` } as InputMediaPhoto;
+
+        const message = await super.editMessageMedia(imageOption, {
+            ...options,
+            reply_markup: {
+                inline_keyboard: this.context(msg).mode?.static ? [] : options.reply_markup.inline_keyboard,
+            },
+            chat_id: msg.chat.id,
+            message_id: msg.message_id,
+            message_thread_id: this.context(msg).messageThreadId,
+        } as any);
+
+        cleanup();
 
         return Promise.resolve(message);
     }
@@ -245,6 +296,12 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (!msg || !this.context(msg)?.mode?.silent) {
             const message = await this.sendMessage(chatId, preparedText, {
                 ...options,
+                reply_markup: {
+                    inline_keyboard:
+                        msg && this.context(msg).mode?.static
+                            ? []
+                            : (options?.reply_markup as InlineKeyboardMarkup)?.inline_keyboard,
+                },
                 message_thread_id: msg ? this.context(msg)?.messageThreadId : undefined,
             });
 

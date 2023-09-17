@@ -53,6 +53,10 @@ export async function postToHass(url: string, body: any): Promise<Response> {
 }
 
 export async function getBufferFromResponse(response: Response): Promise<Buffer> {
+    if (response.status !== 200) {
+        throw new Error(`HTTP error ${response.status}`);
+    }
+
     return Buffer.from(await response.arrayBuffer());
 }
 

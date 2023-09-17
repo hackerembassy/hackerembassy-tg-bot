@@ -235,8 +235,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: any = {}
     ): Promise<TelegramBot.Message | boolean> {
-        this.sendChatAction(msg.chat.id, "upload_photo", msg);
-
         const buffer = photo instanceof Buffer ? photo : Buffer.from(photo);
 
         // TMP file because the lib doesn't support using buffers for editMessageMedia yet

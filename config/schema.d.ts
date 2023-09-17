@@ -18,6 +18,7 @@ export interface BotConfig {
     calendarUrl: string;
     calendarAppLink: string;
     locales: string;
+    liveRefreshInterval: number;
 }
 
 export interface ChatsConfig {

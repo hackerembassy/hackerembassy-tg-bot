@@ -1,7 +1,7 @@
 import config from "config";
 
 import { BotConfig } from "../config/schema";
-import HackerEmbassyBot from "./HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent } from "./HackerEmbassyBot";
 import BirthdayHandlers from "./handlers/birthday";
 import EmbassyHandlers from "./handlers/embassy";
 import StatusHandlers from "./handlers/status";
@@ -47,5 +47,5 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
     setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
 
-    setInterval(() => bot.CustomEmitter.emit("cam-live"), botConfig.liveRefreshInterval);
+    setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.liveRefreshInterval);
 }

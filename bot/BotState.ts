@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 
 import { BotConfig } from "../config/schema";
 import { debounce } from "../utils/common";
-import HackerEmbassyBot, { LiveChatHandler } from "./HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, LiveChatHandler } from "./HackerEmbassyBot";
 import { MessageHistoryEntry } from "./MessageHistory";
 
 const botConfig = config.get("bot") as BotConfig;
@@ -49,11 +49,14 @@ export default class BotState {
     public liveChats: LiveChatHandler[] = [];
     public history: { [chatId: string]: MessageHistoryEntry[] };
 
-    clearLiveHandlers(chatId: number) {
-        for (const lc of this.liveChats.filter(lc => lc.chatId === chatId)) {
+    clearLiveHandlers(chatId: number, event?: BotCustomEvent) {
+        const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);
+
+        for (const lc of toRemove) {
             this.bot.CustomEmitter.removeListener(lc.event, lc.handler);
         }
-        this.liveChats = this.liveChats.filter(lc => lc.chatId !== chatId);
+
+        this.liveChats = this.liveChats.filter(lc => toRemove.indexOf(lc) === -1);
 
         this.persistChanges();
     }

@@ -38,6 +38,10 @@ export type BotMessageContextMode = {
     static: boolean;
 };
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
+export enum BotCustomEvent {
+    statusLive = "status-live",
+    camLive = "cam-live",
+}
 
 export interface BotMessageContext {
     mode: BotMessageContextMode;
@@ -69,7 +73,7 @@ export type LiveChatHandler = {
     chatId: ChatId;
     expires: number;
     handler: (...args: any[]) => void;
-    event: string;
+    event: BotCustomEvent;
     serializationData: serializedFunction;
 };
 
@@ -438,7 +442,7 @@ ${chunks[index]}
 
     addLiveMessage(
         liveMessage: Message,
-        event: string,
+        event: BotCustomEvent,
         handler: (...args: any[]) => void,
         serializationData: serializedFunction
     ) {

@@ -95,7 +95,29 @@ export default class EmbassyHanlers {
 
             const webcamImage = Buffer.from(response);
 
-            if (webcamImage) await bot.sendPhotoExt(msg.chat.id, webcamImage, msg);
+            const webcamInlineKeyboard = [
+                [
+                    {
+                        text: t("status.buttons.refresh"),
+                        callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
+                    },
+                ],
+            ];
+
+            if (webcamImage)
+                if (bot.context(msg).isEditing) {
+                    await bot.editPhoto(webcamImage, msg, {
+                        reply_markup: {
+                            inline_keyboard: webcamInlineKeyboard,
+                        },
+                    });
+                } else {
+                    await bot.sendPhotoExt(msg.chat.id, webcamImage, msg, {
+                        reply_markup: {
+                            inline_keyboard: webcamInlineKeyboard,
+                        },
+                    });
+                }
             else throw Error("Empty webcam image");
         } catch (error) {
             logger.error(error);

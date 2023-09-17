@@ -189,14 +189,21 @@ export default class HackerEmbassyBot extends TelegramBot {
     async sendPhotos(
         chatId: TelegramBot.ChatId,
         photos: Buffer[] | ArrayBuffer[],
-        msg: TelegramBot.Message
+        msg: TelegramBot.Message,
+        options: any = {}
     ): Promise<TelegramBot.Message> {
         this.sendChatAction(chatId, "upload_photo", msg);
 
         const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo)));
         const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
-        // TODO handle topics
-        const message = await super.sendMediaGroup(chatId, imageOpts as InputMedia[]);
+        const message = await super.sendMediaGroup(
+            chatId,
+            imageOpts as InputMedia[],
+            {
+                ...options,
+                message_thread_id: this.context(msg).messageThreadId,
+            } as any
+        );
 
         this.messageHistory.push(chatId, message.message_id);
 

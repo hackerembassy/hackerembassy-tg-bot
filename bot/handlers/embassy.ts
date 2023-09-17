@@ -85,15 +85,19 @@ export default class EmbassyHanlers {
         await EmbassyHanlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
     }
 
-    static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path: string, prefix: string) {
-        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
+    static async getWebcamImage(path: string) {
+        const response = await (
+            await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
+        )?.arrayBuffer();
+
+        return Buffer.from(response);
+    }
+
+    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
+        sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
 
         try {
-            const response = await (
-                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
-            )?.arrayBuffer();
-
-            const webcamImage = Buffer.from(response);
+            const webcamImage = await EmbassyHanlers.getWebcamImage(path);
 
             const webcamInlineKeyboard = [
                 [
@@ -105,20 +109,59 @@ export default class EmbassyHanlers {
             ];
 
             if (webcamImage)
-                if (bot.context(msg).isEditing) {
-                    await bot.editPhoto(webcamImage, msg, {
-                        reply_markup: {
-                            inline_keyboard: webcamInlineKeyboard,
-                        },
-                    });
-                } else {
-                    await bot.sendPhotoExt(msg.chat.id, webcamImage, msg, {
-                        reply_markup: {
-                            inline_keyboard: webcamInlineKeyboard,
-                        },
-                    });
-                }
-            else throw Error("Empty webcam image");
+                await bot.editPhoto(webcamImage, msg, {
+                    reply_markup: {
+                        inline_keyboard: webcamInlineKeyboard,
+                    },
+                });
+        } catch {
+            console.log("SKIP");
+            // Skip this update
+        }
+    }
+
+    static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path: string, prefix: string) {
+        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
+
+        try {
+            const mode = bot.context(msg).mode;
+
+            const webcamImage = await EmbassyHanlers.getWebcamImage(path);
+
+            const webcamInlineKeyboard = [
+                [
+                    {
+                        text: t("status.buttons.refresh"),
+                        callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
+                    },
+                ],
+            ];
+
+            if (!webcamImage) throw Error("Empty webcam image");
+
+            if (bot.context(msg).isEditing) {
+                await bot.editPhoto(webcamImage, msg, {
+                    reply_markup: {
+                        inline_keyboard: webcamInlineKeyboard,
+                    },
+                });
+
+                return;
+            }
+
+            const resultMessage = await bot.sendPhotoExt(msg.chat.id, webcamImage, msg, {
+                reply_markup: {
+                    inline_keyboard: webcamInlineKeyboard,
+                },
+            });
+
+            if (mode.live && resultMessage) {
+                bot.addLiveMessage(resultMessage, "cam-live", () => EmbassyHanlers.liveWebcamHandler(bot, resultMessage, path), {
+                    functionName: EmbassyHanlers.liveWebcamHandler.name,
+                    module: __filename,
+                    params: [resultMessage, path],
+                });
+            }
         } catch (error) {
             logger.error(error);
 

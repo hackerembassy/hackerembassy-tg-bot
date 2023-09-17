@@ -10,7 +10,7 @@ import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent } from "../HackerEmbassyBot";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const botConfig = config.get("bot") as BotConfig;
@@ -156,11 +156,16 @@ export default class EmbassyHanlers {
             });
 
             if (mode.live && resultMessage) {
-                bot.addLiveMessage(resultMessage, "cam-live", () => EmbassyHanlers.liveWebcamHandler(bot, resultMessage, path), {
-                    functionName: EmbassyHanlers.liveWebcamHandler.name,
-                    module: __filename,
-                    params: [resultMessage, path],
-                });
+                bot.addLiveMessage(
+                    resultMessage,
+                    BotCustomEvent.camLive,
+                    () => EmbassyHanlers.liveWebcamHandler(bot, resultMessage, path),
+                    {
+                        functionName: EmbassyHanlers.liveWebcamHandler.name,
+                        module: __filename,
+                        params: [resultMessage, path],
+                    }
+                );
             }
         } catch (error) {
             logger.error(error);

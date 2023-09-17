@@ -36,7 +36,11 @@ export default class AdminHandlers {
 
     static async cleanStateHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.botState.clearState();
-        await bot.sendMessageExt(msg.chat.id, "Cleared state. Message history and Live handlets are removed", msg);
+        await bot.sendMessageExt(
+            msg.chat.id,
+            "Cleared the bot persisted state. Message history and Live handlers are removed",
+            msg
+        );
     }
 
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {

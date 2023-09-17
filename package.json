@@ -27,7 +27,8 @@
     "pretty": "prettier --write '**/*.{ts,js}'",
     "test": "jest",
     "test:ci": "jest --collectCoverage",
-    "coverage": "jest --collectCoverage"
+    "coverage": "jest --collectCoverage",
+    "debug-file": "npx ts-node"
   },
   "author": "Nick Kiselev",
   "license": "ISC",

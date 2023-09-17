@@ -29,6 +29,19 @@
             "runtimeArgs": [
                 "run-script", "test"
             ],
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "18",
+            "name": "Launch File",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script", "debug-file", "${workspaceFolder}/services/eventsFromCalendarExporter.ts"
+            ],
         }
-    ]
+    ]   
 }

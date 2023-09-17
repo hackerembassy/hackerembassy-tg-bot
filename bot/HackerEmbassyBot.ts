@@ -442,7 +442,7 @@ ${chunks[index]}
         handler: (...args: any[]) => void,
         serializationData: serializedFunction
     ) {
-        const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id);
+        const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id && cr.event === event);
         if (chatRecordIndex !== -1) this.CustomEmitter.removeListener(event, this.botState.liveChats[chatRecordIndex].handler);
 
         this.CustomEmitter.on(event, handler);

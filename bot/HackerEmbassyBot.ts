@@ -6,6 +6,7 @@ import {
     ChatId,
     default as TelegramBot,
     EditMessageTextOptions,
+    InputMedia,
     Message,
     SendMessageOptions,
 } from "node-telegram-bot-api";
@@ -179,6 +180,23 @@ export default class HackerEmbassyBot extends TelegramBot {
             { ...options, message_thread_id: this.context(msg).messageThreadId },
             fileOptions
         );
+
+        this.messageHistory.push(chatId, message.message_id);
+
+        return Promise.resolve(message);
+    }
+
+    async sendPhotos(
+        chatId: TelegramBot.ChatId,
+        photos: Buffer[] | ArrayBuffer[],
+        msg: TelegramBot.Message
+    ): Promise<TelegramBot.Message> {
+        this.sendChatAction(chatId, "upload_photo", msg);
+
+        const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo)));
+        const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
+        // TODO handle topics
+        const message = await super.sendMediaGroup(chatId, imageOpts as InputMedia[]);
 
         this.messageHistory.push(chatId, message.message_id);
 

@@ -3,7 +3,7 @@
       "allowJs": true,
       "checkJs": true,
       "target": "ES2022",
-      "module": "NodeNext",
+      "module": "None",
       "moduleResolution": "Node",
       "noEmit": true,
       "noImplicitReturns": true,

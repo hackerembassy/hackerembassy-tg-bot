@@ -102,6 +102,7 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         "member",
     ]);
     bot.onTextExt(rc.command(["doorcam", "doorcum", "dc"]), EmbassyHandlers.doorcamHandler, ["member"]);
+    bot.onTextExt(rc.command(["allcams", "cams", "allcums", "cums", "ac"]), EmbassyHandlers.allCamsHandler, ["member"]);
 
     // Sensors
     bot.onTextExt(rc.command(["climate"]), EmbassyHandlers.climateHandler);

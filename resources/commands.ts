@@ -66,6 +66,7 @@ export const MemberCommandsList: string = `
 /firstfloor (ff) - Глянуть камеру первого этажа
 /secondfloor (sf) - Глянуть камеру второго этажа
 /doorcam (dc) - Глянуть камеру снаружи
+/allcams (ac) - Глянуть все камеры
 /doorbell (db) - Позвонить в дверной звонок
 /unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (default n = 1)

@@ -8,7 +8,7 @@ import { PrinterStatusResponse } from "../../services/printer3d";
 import { hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
-import { fetchWithTimeout } from "../../utils/network";
+import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
@@ -45,6 +45,31 @@ export default class EmbassyHanlers {
         } catch (error) {
             logger.error(error);
             bot.sendMessageExt(msg.chat.id, t("embassy.common.fail"), msg);
+        }
+    }
+
+    static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
+
+        try {
+            const camsPaths = ["webcam", "webcam2", "doorcam"];
+
+            const camResponses = await Promise.allSettled(
+                camsPaths.map(path => fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`))
+            );
+
+            const images: ArrayBuffer[] = await Promise.all(
+                filterFulfilled(camResponses)
+                    .filter(result => result.value?.status === 200)
+                    .map(result => result.value.arrayBuffer())
+            );
+
+            if (images.length > 0) await bot.sendPhotos(msg.chat.id, images, msg);
+            else throw Error("No available images");
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.webcam.failall"), msg);
         }
     }
 

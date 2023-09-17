@@ -118,9 +118,7 @@ export default class ServiceHandlers {
 
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {
         await StatusHandlers.statusHandler(bot, msg);
-        await EmbassyHandlers.webcamHandler(bot, msg);
-        await EmbassyHandlers.webcam2Handler(bot, msg);
-        await EmbassyHandlers.doorcamHandler(bot, msg);
+        await EmbassyHandlers.allCamsHandler(bot, msg);
     }
 
     static async callbackHandler(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) {

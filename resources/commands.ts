@@ -90,6 +90,7 @@ export const AdminCommandsList: string = `
 /getlogs
 /getstate
 /cleanstate
+/stoplive
 
 \\* Roles: admin, accountant, member, default
 `;

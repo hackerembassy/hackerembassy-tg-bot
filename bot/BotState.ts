@@ -49,6 +49,15 @@ export default class BotState {
     public liveChats: LiveChatHandler[] = [];
     public history: { [chatId: string]: MessageHistoryEntry[] };
 
+    clearLiveHandlers(chatId: number) {
+        for (const lc of this.liveChats.filter(lc => lc.chatId === chatId)) {
+            this.bot.CustomEmitter.removeListener(lc.event, lc.handler);
+        }
+        this.liveChats = this.liveChats.filter(lc => lc.chatId !== chatId);
+
+        this.persistChanges();
+    }
+
     clearState() {
         for (const lc of this.liveChats) {
             this.bot.CustomEmitter.removeListener(lc.event, lc.handler);

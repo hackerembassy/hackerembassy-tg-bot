@@ -43,6 +43,11 @@ export default class AdminHandlers {
         );
     }
 
+    static async stopLiveHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.botState.clearLiveHandlers(msg.chat.id);
+        await bot.sendMessageExt(msg.chat.id, "Live handlers are removed from this chat", msg);
+    }
+
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers();
         let userList = "";

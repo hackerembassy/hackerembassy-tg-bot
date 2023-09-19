@@ -149,6 +149,9 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     bot.onTextExt(rc.command(["adler"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3")
     );
+    bot.onTextExt(rc.command(["rfoxed", "rf0x1d"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rfoxed.mp3")
+    );
 
     // Funds
     bot.onTextExt(rc.command(["funds"]), FundsHandlers.fundsHandler);

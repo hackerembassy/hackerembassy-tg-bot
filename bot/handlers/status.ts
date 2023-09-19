@@ -170,7 +170,7 @@ export default class StatusHandlers {
                 chat_id: resultMessage.chat.id,
                 message_id: resultMessage.message_id,
                 reply_markup: {
-                    inline_keyboard: statusInlineKeyboard,
+                    inline_keyboard: mode?.static ? [] : statusInlineKeyboard,
                 },
             } as TelegramBot.EditMessageTextOptions);
         } catch {

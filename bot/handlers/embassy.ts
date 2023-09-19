@@ -10,7 +10,7 @@ import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
-import HackerEmbassyBot, { BotCustomEvent } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotMessageContextMode } from "../HackerEmbassyBot";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const botConfig = config.get("bot") as BotConfig;
@@ -93,20 +93,22 @@ export default class EmbassyHanlers {
         return Buffer.from(response);
     }
 
-    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
+    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, path: string, mode: BotMessageContextMode) {
         sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
 
         try {
             const webcamImage = await EmbassyHanlers.getWebcamImage(path);
 
-            const webcamInlineKeyboard = [
-                [
-                    {
-                        text: t("status.buttons.refresh"),
-                        callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
-                    },
-                ],
-            ];
+            const webcamInlineKeyboard = mode?.static
+                ? []
+                : [
+                      [
+                          {
+                              text: t("status.buttons.refresh"),
+                              callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
+                          },
+                      ],
+                  ];
 
             if (webcamImage)
                 await bot.editPhoto(webcamImage, msg, {
@@ -163,11 +165,11 @@ export default class EmbassyHanlers {
                 bot.addLiveMessage(
                     resultMessage,
                     BotCustomEvent.camLive,
-                    () => EmbassyHanlers.liveWebcamHandler(bot, resultMessage, path),
+                    () => EmbassyHanlers.liveWebcamHandler(bot, resultMessage, path, mode),
                     {
                         functionName: EmbassyHanlers.liveWebcamHandler.name,
                         module: __filename,
-                        params: [resultMessage, path],
+                        params: [resultMessage, path, mode],
                     }
                 );
             }

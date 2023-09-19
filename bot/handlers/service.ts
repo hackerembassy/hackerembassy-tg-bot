@@ -247,6 +247,9 @@ export default class ServiceHandlers {
                 bot.context(msg).isEditing = data.edit ?? false;
                 if (isAllowed(EmbassyHandlers.doorcamHandler)) await EmbassyHandlers.doorcamHandler(bot, msg);
                 break;
+            case "/removeButtons":
+                await ServiceHandlers.removeButtons(bot, msg);
+                break;
             case "/printers":
                 await EmbassyHandlers.printersHandler(bot, msg);
                 break;
@@ -271,6 +274,18 @@ export default class ServiceHandlers {
         }
 
         await bot.answerCallbackQuery(callbackQuery.id);
+    }
+
+    static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
+        bot.editMessageReplyMarkup(
+            {
+                inline_keyboard: [],
+            },
+            {
+                message_id: msg.message_id,
+                chat_id: msg.chat.id,
+            }
+        );
     }
 
     static async newMemberHandler(bot: HackerEmbassyBot, msg: Message) {

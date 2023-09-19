@@ -134,6 +134,10 @@ export default class EmbassyHanlers {
                         text: t("status.buttons.refresh"),
                         callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
                     },
+                    {
+                        text: t("status.buttons.save"),
+                        callback_data: JSON.stringify({ command: `/removeButtons` }),
+                    },
                 ],
             ];
 

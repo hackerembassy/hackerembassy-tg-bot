@@ -455,7 +455,7 @@ export default class StatusHandlers {
     static LetOut(username: string, date: Date, force = false) {
         const state = StatusRepository.getSpaceLastState();
 
-        if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
+        if (!state?.open) return false;
 
         const userstate = {
             id: 0,

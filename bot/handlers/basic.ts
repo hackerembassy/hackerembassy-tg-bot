@@ -5,6 +5,7 @@ import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import * as CoinsHelper from "../../resources/coins/coins";
 import * as Commands from "../../resources/commands";
+import { getNClosestEventsFromCalendar } from "../../services/eventsFromCalendarExporter";
 import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
@@ -270,5 +271,19 @@ export default class BasicHandlers {
             },
             msg.message_id
         );
+    }
+
+    static async getUpcomingEvents(bot: HackerEmbassyBot, msg: Message) {
+        const events = await getNClosestEventsFromCalendar(5);
+        if (!(typeof events === "undefined")) {
+            let messageText: string = "";
+            for (const event of events) {
+                messageText += TextGenerators.HSEventToString(event);
+                messageText += "\n\n";
+            }
+            bot.sendMessage(msg.chat.id, messageText, msg);
+        } else {
+            throw Error("Something went wrong when fetching from calendar");
+        }
     }
 }

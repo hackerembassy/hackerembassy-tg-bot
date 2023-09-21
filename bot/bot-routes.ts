@@ -40,6 +40,7 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         BasicHandlers.donateCoinHandler(bot, msg, match[1])
     );
     bot.onTextExt(rc.command(["getresidents", "gr"]), BasicHandlers.getResidentsHandler);
+    bot.onTextExt(rc.command(["upcoming_events", "ue"]), BasicHandlers.getUpcomingEvents);
 
     // Panels
     bot.onTextExt(rc.command(["start", "startpanel", "sp"]), BasicHandlers.startPanelHandler);

@@ -4,6 +4,6 @@ export function isEmoji(message: string): boolean {
     );
 }
 
-export function equalsIns(str1: string | null, str2: string | null): boolean {
+export function equalsIns(str1: Nullable<string>, str2: Nullable<string>): boolean {
     return str1?.toLowerCase() === str2?.toLowerCase();
 }

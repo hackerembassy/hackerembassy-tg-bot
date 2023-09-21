@@ -47,7 +47,7 @@ export default class ServiceHandlers {
 
         if (orderOfLastMessageToEdit === -1) return;
 
-        let lastMessageToEdit: MessageHistoryEntry | null;
+        let lastMessageToEdit: Nullable<MessageHistoryEntry>;
         let foundLast = false;
 
         do {

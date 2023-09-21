@@ -9,6 +9,7 @@
       "noImplicitReturns": true,
       "strict": true,
       "esModuleInterop": true,
+      "typeRoots" : ["./node_modules/@types", "./typings"]
     },
     "include": ["./**/*"]
 }

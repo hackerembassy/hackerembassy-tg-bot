@@ -37,7 +37,7 @@ export type BotMessageContextMode = {
     live: boolean;
     static: boolean;
 };
-export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
+export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => Promise<any>;
 export enum BotCustomEvent {
     statusLive = "status-live",
     camLive = "cam-live",
@@ -289,9 +289,9 @@ export default class HackerEmbassyBot extends TelegramBot {
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,
-        msg: TelegramBot.Message | null,
+        msg: Nullable<TelegramBot.Message>,
         options: TelegramBot.SendMessageOptions = {}
-    ): Promise<TelegramBot.Message | null> {
+    ): Promise<Nullable<TelegramBot.Message>> {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
@@ -367,7 +367,7 @@ ${chunks[index]}
 
         const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
-        const newCallback = async function (msg: TelegramBot.Message, match: RegExpExecArray | null) {
+        const newCallback = async function (msg: TelegramBot.Message, match: Nullable<RegExpExecArray>) {
             if (!msg) return;
 
             // Skip old updates
@@ -380,7 +380,7 @@ ${chunks[index]}
                     return;
                 }
 
-                let executedMatch: RegExpExecArray | null = null;
+                let executedMatch: Nullable<RegExpExecArray> = null;
 
                 if (match !== null) {
                     let newCommand = match[0];
@@ -443,7 +443,7 @@ ${chunks[index]}
     addLiveMessage(
         liveMessage: Message,
         event: BotCustomEvent,
-        handler: (...args: any[]) => void,
+        handler: (...args: any[]) => Promise<void>,
         serializationData: serializedFunction
     ) {
         const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id && cr.event === event);

@@ -99,7 +99,7 @@ export default class StatusHandlers {
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
 
-        let climateInfo: SpaceClimate | null = null;
+        let climateInfo: Nullable<SpaceClimate> = null;
         try {
             const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`, {
                 timeout: 4000,
@@ -453,10 +453,6 @@ export default class StatusHandlers {
     }
 
     static LetOut(username: string, date: Date, force = false) {
-        const state = StatusRepository.getSpaceLastState();
-
-        if (!state?.open) return false;
-
         const userstate = {
             id: 0,
             status: UserStateType.Outside,

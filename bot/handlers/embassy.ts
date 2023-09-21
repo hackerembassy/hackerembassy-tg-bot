@@ -117,7 +117,6 @@ export default class EmbassyHanlers {
                     },
                 });
         } catch {
-            console.log("SKIP");
             // Skip this update
         }
     }

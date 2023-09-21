@@ -37,7 +37,7 @@ async function getEventsJSON(calendarID: string) {
     const result = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarID}/events?key=${apiKey}`, {
         method: "GET",
     });
-    const json = result.json();
+    const json = await result.json();
     if (!json) {
         throw Error("Something went wrong when fetching calendar from Google API");
     }

@@ -16,10 +16,6 @@ type HSEvent = {
     end: Date;
 };
 
-function isHSEvent(event: any): event is HSEvent {
-    return event.start instanceof Date && event.end instanceof Date;
-}
-
 type JsonDate = {
     dateTime: string;
     timeZone: string;
@@ -48,34 +44,17 @@ async function getEventsJSON(calendarID: string) {
     return json;
 }
 
-function isHSEventFromJSON(event: any): event is HSEventFromJSON {
-    return !(event.start instanceof Date) && !(event.end instanceof Date);
-}
-
-function printEvent<T extends { summary: string; description?: string }>(event: T) {
-    console.log(`${event.summary}: `);
-    if (isHSEvent(event)) {
-        console.log(`${event.start} - ${event.end}\n`);
-    }
-    if (isHSEventFromJSON(event)) {
-        console.log(`${event.start.dateTime} - ${event.end.dateTime}`);
-    }
-    if (!(typeof event.description === "undefined")) {
-        console.log(`${event.description}`);
-    }
-}
-
 function isRecurrenceFieldIllFormed(occurenceEventField: any) {
     return Array.isArray(occurenceEventField) && occurenceEventField.length > 1;
 }
 
 function extractICalDateFromExdate(exdateString: string): string | null {
-    const until = "EXDATE;";
-    const index = exdateString.indexOf(until);
+    const exdateToken = "EXDATE;";
+    const index = exdateString.indexOf(exdateToken);
     if (index === -1) {
         return null;
     }
-    return exdateString.slice(index + until.length, exdateString.length);
+    return exdateString.slice(index + exdateToken.length, exdateString.length);
 }
 
 function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Array<Date> {
@@ -129,15 +108,21 @@ function getEventsMap<T extends HSEventFromJSON, U extends { items: T[] }>(event
     return new Map([...eventsMap].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
 }
 
-export async function doTheJob() {
+export async function getNClosestEventsFromCalendar(numberOfEvents: number): Promise<Array<HSEvent> | undefined> {
     const eventsJson = await getEventsJSON(calendarID);
     try {
-        const emap = getEventsMap(eventsJson);
-        for (const [diff, event] of emap) {
-            console.log(diff);
-            printEvent(event);
+        const retVal = [];
+        let i = 0;
+        for (const [, event] of getEventsMap(eventsJson)) {
+            retVal.push(event);
+            i++;
+            if (i === numberOfEvents) {
+                break;
+            }
         }
+        return retVal;
     } catch (error) {
         console.error(error);
+        return undefined;
     }
 }

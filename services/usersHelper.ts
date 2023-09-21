@@ -3,7 +3,7 @@ import User from "../models/User";
 import UsersRepository from "../repositories/usersRepository";
 import { AccountantCommandsList, AdminCommandsList, GeneralCommandsList, MemberCommandsList } from "../resources/commands";
 
-export function hasRole(username: string | null | undefined, ...roles: string[]) {
+export function hasRole(username: Optional<string>, ...roles: string[]) {
     if (!username) return false;
     const userRoles = toRolesList(UsersRepository.getUserByName(username)?.roles);
 
@@ -14,7 +14,7 @@ export function hasRole(username: string | null | undefined, ...roles: string[])
     return intersection.length > 0;
 }
 
-export function toRolesList(roles: string | null | undefined): BotRole[] {
+export function toRolesList(roles: Optional<string>): BotRole[] {
     return roles ? (roles.split("|") as BotRole[]) : [];
 }
 
@@ -28,10 +28,10 @@ export function isMember(user: string | User): boolean {
     const userRoles: BotRole[] | string | undefined =
         user instanceof User ? toRolesList(user?.roles) : UsersRepository.getUserByName(user)?.roles;
 
-    return userRoles !== undefined && userRoles.includes("member");
+    return userRoles?.includes("member") === true;
 }
 
-export function getAvailableCommands(username: string | undefined | null) {
+export function getAvailableCommands(username: Optional<string>) {
     let availableCommands = GeneralCommandsList;
 
     const userRoles = username ? UsersRepository.getUserByName(username)?.roles : undefined;
@@ -44,7 +44,7 @@ export function getAvailableCommands(username: string | undefined | null) {
     return availableCommands;
 }
 
-export function formatUsername(username: string | null | undefined, mode = { mention: false }, isApi = false): string {
+export function formatUsername(username: Optional<string>, mode = { mention: false }, isApi = false): string {
     if (!username) return "[No username provided]";
 
     username = username.replace("@", "");

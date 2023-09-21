@@ -13,7 +13,7 @@ const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 
 export type UserStatsTime = { username: string; usertime: ElapsedTimeObject };
 
-export function openSpace(opener: string | null | undefined, options: { checkOpener: boolean } = { checkOpener: false }): void {
+export function openSpace(opener: Optional<string>, options: { checkOpener: boolean } = { checkOpener: false }): void {
     const opendate = new Date();
     const state = {
         id: 0,
@@ -38,7 +38,7 @@ export function openSpace(opener: string | null | undefined, options: { checkOpe
     statusRepository.pushPeopleState(userstate);
 }
 
-export function closeSpace(closer: string | null | undefined, options: { evict: boolean } = { evict: false }): void {
+export function closeSpace(closer: Nullable<string> | undefined, options: { evict: boolean } = { evict: false }): void {
     const state = {
         id: 0,
         open: false,
@@ -53,7 +53,7 @@ export function closeSpace(closer: string | null | undefined, options: { evict: 
     if (options.evict && allUserStates) evictPeople(findRecentStates(allUserStates).filter(filterPeopleInside));
 }
 
-export async function hasDeviceInside(username: string | null | undefined): Promise<boolean> {
+export async function hasDeviceInside(username: Optional<string>): Promise<boolean> {
     if (!username) return false;
 
     try {

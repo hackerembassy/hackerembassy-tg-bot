@@ -2,13 +2,13 @@ import { ChatId } from "node-telegram-bot-api";
 
 class User {
     readonly id: number;
-    userid: ChatId | null;
-    username: string | null;
+    userid: Nullable<ChatId>;
+    username: Nullable<string>;
     roles: string;
-    mac: string | null;
-    birthday: string | null;
+    mac: Nullable<string>;
+    birthday: Nullable<string>;
     autoinside: boolean;
-    emoji: string | null;
+    emoji: Nullable<string>;
 
     constructor({
         id,

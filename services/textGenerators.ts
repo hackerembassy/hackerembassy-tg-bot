@@ -19,8 +19,8 @@ const printersConfig = config.get("printers") as PrintersConfig;
 type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boolean };
 
 export async function createFundList(
-    funds: Fund[] | null | undefined,
-    donations: Donation[] | null,
+    funds: Optional<Fund[]>,
+    donations: Nullable<Donation[]>,
     { showAdmin = false, isHistory = false, isApi = false }: FundListOptions,
     mode = { mention: false }
 ): Promise<string> {
@@ -115,7 +115,7 @@ export function getStatusMessage(
     state: { open: boolean; changedby: string },
     inside: UserState[],
     going: UserState[],
-    climateInfo: SpaceClimate | null,
+    climateInfo: Nullable<SpaceClimate>,
     mode: { mention: boolean; pin?: boolean },
     withSecrets = false,
     isApi = false
@@ -154,12 +154,14 @@ export function getStatusMessage(
         : "";
     stateText += "\n";
     stateText += !isApi
-        ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21)}\n`
+        ? t("status.status.updated", {
+              updatedDate: new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21),
+          })
         : "";
     return stateText;
 }
 
-export function getUserBadges(username: string | null): string {
+export function getUserBadges(username: Nullable<string>): string {
     if (!username) return "";
 
     const user = usersRepository.getUserByName(username);
@@ -179,7 +181,7 @@ export function getUserBadgesWithStatus(userStatus: UserState): string {
     return `${autoBadge}${userBadges}`;
 }
 
-export function getAccountsList(accountants: User[] | undefined | null, mode: { mention: boolean }, isApi = false): string {
+export function getAccountsList(accountants: Optional<User[]>, mode: { mention: boolean }, isApi = false): string {
     return accountants
         ? accountants.reduce(
               (list, user) => `${list}${formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
@@ -188,7 +190,7 @@ export function getAccountsList(accountants: User[] | undefined | null, mode: { 
         : "";
 }
 
-export function getResidentsList(residents: User[] | undefined | null, mode: { mention: boolean }): string {
+export function getResidentsList(residents: Optional<User[]>, mode: { mention: boolean }): string {
     let userList = "";
 
     if (!residents) return userList;
@@ -208,7 +210,7 @@ export function getMonitorMessagesList(monitorMessages: { level: string; message
         : "";
 }
 
-export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): string {
+export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }): string {
     let message = `${t("needs.buy.nothing")}\n`;
     const areNeedsProvided = needs && needs.length > 0;
 
@@ -227,7 +229,7 @@ export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): 
     return message;
 }
 
-export function getDonateText(accountants: User[] | null, isApi: boolean = false): string {
+export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = false): string {
     const cryptoCommands = !isApi
         ? `#\`/donatecrypto btc#\`
   #\`/donatecrypto eth#\`
@@ -281,7 +283,7 @@ const shortMonthNames: string[] = [
     "birthday.months.december",
 ];
 
-export function getBirthdaysList(birthdayUsers: User[] | null | undefined, mode: { mention: boolean }): string {
+export function getBirthdaysList(birthdayUsers: Nullable<User[]> | undefined, mode: { mention: boolean }): string {
     let message = t("birthday.nextbirthdays");
     let usersList = `\n${t("birthday.noone")}\n`;
 

@@ -38,7 +38,7 @@ export default class NeedsHandlers {
     }
 
     static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
-        await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.text || "");
+        await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.text ?? "");
     }
 
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {

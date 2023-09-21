@@ -29,8 +29,8 @@ export type PrinterStatus = {
 
 export type PrinterStatusResponse = {
     status: PrinterStatus;
-    thumbnailBuffer: Buffer | null;
-    cam: Buffer | null;
+    thumbnailBuffer: Nullable<Buffer>;
+    cam: Nullable<Buffer>;
 };
 
 const printersConfig = config.get("printers") as PrintersConfig;
@@ -52,7 +52,7 @@ export default class Printer3d {
         return await response.json();
     }
 
-    static async getFile(printername: string, path: string): Promise<Blob | null> {
+    static async getFile(printername: string, path: string): Promise<Nullable<Blob>> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
@@ -61,7 +61,7 @@ export default class Printer3d {
         return response.status === 200 ? await response.blob() : null;
     }
 
-    static async getCam(printername: string): Promise<Buffer | null> {
+    static async getCam(printername: string): Promise<Nullable<Buffer>> {
         const apiBase = this.getApiBase(printername);
         const camPort = this.getCamPort(printername);
         if (!apiBase) return null;
@@ -80,7 +80,7 @@ export default class Printer3d {
         return null;
     }
 
-    static async getThumbnail(printername: string, path: string): Promise<Buffer | null> {
+    static async getThumbnail(printername: string, path: string): Promise<Nullable<Buffer>> {
         const apiBase = this.getApiBase(printername);
         if (!apiBase || !path) return null;
 
@@ -96,7 +96,7 @@ export default class Printer3d {
             );
     }
 
-    static getApiBase(printername: string): string | null {
+    static getApiBase(printername: string): Nullable<string> {
         switch (printername) {
             case "anette":
                 return printersConfig.anette.apibase;
@@ -107,7 +107,7 @@ export default class Printer3d {
         }
     }
 
-    static getCamPort(printername: string): number | null {
+    static getCamPort(printername: string): Nullable<number> {
         switch (printername) {
             case "anette":
                 return printersConfig.anette.camport;

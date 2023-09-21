@@ -9,7 +9,7 @@ const botConfig = config.get("bot") as BotConfig;
 const calendarURL = new URL(botConfig.calendarUrl);
 const calendarID: string = calendarURL.searchParams.get("src")!;
 
-type HSEvent = {
+export type HSEvent = {
     summary: string;
     description?: string;
     start: Date;

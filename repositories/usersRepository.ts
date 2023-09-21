@@ -3,7 +3,7 @@ import { anyItemIsInList } from "../utils/common";
 import BaseRepository from "./baseRepository";
 
 class UserRepository extends BaseRepository {
-    getUsers(): User[] | null {
+    getUsers(): Nullable<User[]> {
         const users = this.db.prepare("SELECT * FROM users").all();
 
         return users.filter(user => user).map(user => new User(user as User));
@@ -50,7 +50,7 @@ class UserRepository extends BaseRepository {
         return registeredMacEntries.flatMap(macEntry => macEntry.mac.split("|"));
     }
 
-    setMACs(username: string, macs: string | null = null): boolean {
+    setMACs(username: string, macs: Nullable<string> = null): boolean {
         try {
             const currentUser = this.getUserByName(username);
             if (currentUser === null && !this.addUser(username, ["default"])) return false;
@@ -74,7 +74,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setEmoji(username: string, emoji: string | null = null): boolean {
+    setEmoji(username: string, emoji: Nullable<string> = null): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -87,7 +87,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setUserid(username: string, userid: number | null): boolean {
+    setUserid(username: string, userid: Nullable<number>): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -116,7 +116,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setBirthday(username: string, birthday: string | null = null): boolean {
+    setBirthday(username: string, birthday: Nullable<string> = null): boolean {
         try {
             if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
 
@@ -140,7 +140,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    getUserByName(username: string): User | null {
+    getUserByName(username: string): Nullable<User> {
         try {
             const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
 
@@ -151,7 +151,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    getUsersByRole(role: string): User[] | null {
+    getUsersByRole(role: string): Nullable<User[]> {
         try {
             const users: User[] = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role) as User[];
 

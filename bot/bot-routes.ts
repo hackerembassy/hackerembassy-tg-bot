@@ -103,6 +103,7 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         "member",
     ]);
     bot.onTextExt(rc.command(["doorcam", "doorcum", "dc"]), EmbassyHandlers.doorcamHandler, ["member"]);
+    bot.onTextExt(rc.command(["allcams", "cams", "allcums", "cums", "ac"]), EmbassyHandlers.allCamsHandler, ["member"]);
 
     // Sensors
     bot.onTextExt(rc.command(["climate"]), EmbassyHandlers.climateHandler);
@@ -148,6 +149,9 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     );
     bot.onTextExt(rc.command(["adler"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3")
+    );
+    bot.onTextExt(rc.command(["rfoxed", "rf0x1d"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rfoxed.mp3")
     );
 
     // Funds
@@ -256,6 +260,12 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     ]);
     bot.onTextExt(rc.command(["getlogs", "logs", "log"]), AdminHandlers.getLogHandler, ["admin"]);
     bot.onTextExt(rc.command(["getstate", "state"]), AdminHandlers.getStateHandler, ["admin"]);
+    bot.onTextExt(rc.command(["cleanstate"]), AdminHandlers.cleanStateHandler, ["admin"]);
+    bot.onTextExt(
+        rc.command(["stoplive", "cleanlive"], /(\S+)/),
+        (bot, msg, match) => AdminHandlers.stopLiveHandler(bot, msg, match[1]),
+        ["admin"]
+    );
 
     // Memes
     bot.onTextExt(rc.command(["randomdog", "dog"]), MemeHandlers.randomDogHandler);

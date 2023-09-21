@@ -45,7 +45,7 @@ export default class BirthdayHandlers {
         bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Message | null, force = false) {
+    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, force = false) {
         const currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
         const birthdayUsers = UsersRepository.getUsers()?.filter(u => {
             return u.birthday?.substring(5, 10) === currentDate;

@@ -8,15 +8,15 @@ import BaseRepository from "./baseRepository";
 const currencyConfig = config.get("currency") as CurrencyConfig;
 
 class FundsRepository extends BaseRepository {
-    getFunds(): Fund[] | null {
+    getFunds(): Nullable<Fund[]> {
         return this.db.prepare("SELECT * FROM funds").all() as Fund[];
     }
 
-    getFundByName(fundName: string): Fund | null {
+    getFundByName(fundName: string): Nullable<Fund> {
         return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Fund;
     }
 
-    getFundById(id: number): Fund | null {
+    getFundById(id: number): Nullable<Fund> {
         return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Fund;
     }
 
@@ -24,21 +24,21 @@ class FundsRepository extends BaseRepository {
         return this.getFunds()?.find(fund => /[Аа]ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
     }
 
-    getDonations(): Donation[] | null {
+    getDonations(): Nullable<Donation[]> {
         return this.db.prepare("SELECT * FROM donations").all() as Donation[];
     }
 
-    getDonationsForId(fundId: number): Donation[] | null {
+    getDonationsForId(fundId: number): Nullable<Donation[]> {
         return this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
     }
 
-    getDonationsForName(fundName: string): Donation[] | null {
+    getDonationsForName(fundName: string): Nullable<Donation[]> {
         return this.db
             .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
             .all(fundName) as Donation[];
     }
 
-    getDonationById(donationId: number): Donation | null {
+    getDonationById(donationId: number): Nullable<Donation> {
         return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Donation;
     }
 
@@ -129,7 +129,7 @@ class FundsRepository extends BaseRepository {
         username: string,
         value: number,
         currency: string = currencyConfig.default,
-        accountant: string | null = null
+        accountant: Nullable<string> = null
     ): boolean {
         try {
             const fundId = this.getFundByName(fundName)?.id;

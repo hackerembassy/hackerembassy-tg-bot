@@ -47,7 +47,7 @@ export default class ServiceHandlers {
 
         if (orderOfLastMessageToEdit === -1) return;
 
-        let lastMessageToEdit: MessageHistoryEntry | null;
+        let lastMessageToEdit: Nullable<MessageHistoryEntry>;
         let foundLast = false;
 
         do {
@@ -118,9 +118,7 @@ export default class ServiceHandlers {
 
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {
         await StatusHandlers.statusHandler(bot, msg);
-        await EmbassyHandlers.webcamHandler(bot, msg);
-        await EmbassyHandlers.webcam2Handler(bot, msg);
-        await EmbassyHandlers.doorcamHandler(bot, msg);
+        await EmbassyHandlers.allCamsHandler(bot, msg);
     }
 
     static async callbackHandler(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) {
@@ -175,7 +173,7 @@ export default class ServiceHandlers {
                 break;
             case "/s_ustatus":
                 bot.context(msg).isEditing = true;
-                bot.context(msg).mode.short = true;
+                bot.context(msg).mode.pin = true;
                 await StatusHandlers.statusHandler(bot, msg);
                 break;
             case "/superstatus":
@@ -238,13 +236,19 @@ export default class ServiceHandlers {
                 if (isAllowed(EmbassyHandlers.doorbellHandler)) await EmbassyHandlers.doorbellHandler(bot, msg);
                 break;
             case "/webcam":
+                bot.context(msg).isEditing = data.edit ?? false;
                 if (isAllowed(EmbassyHandlers.webcamHandler)) await EmbassyHandlers.webcamHandler(bot, msg);
                 break;
             case "/webcam2":
+                bot.context(msg).isEditing = data.edit ?? false;
                 if (isAllowed(EmbassyHandlers.webcam2Handler)) await EmbassyHandlers.webcam2Handler(bot, msg);
                 break;
             case "/doorcam":
+                bot.context(msg).isEditing = data.edit ?? false;
                 if (isAllowed(EmbassyHandlers.doorcamHandler)) await EmbassyHandlers.doorcamHandler(bot, msg);
+                break;
+            case "/removeButtons":
+                await ServiceHandlers.removeButtons(bot, msg);
                 break;
             case "/printers":
                 await EmbassyHandlers.printersHandler(bot, msg);
@@ -270,6 +274,18 @@ export default class ServiceHandlers {
         }
 
         await bot.answerCallbackQuery(callbackQuery.id);
+    }
+
+    static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
+        bot.editMessageReplyMarkup(
+            {
+                inline_keyboard: [],
+            },
+            {
+                message_id: msg.message_id,
+                chat_id: msg.chat.id,
+            }
+        );
     }
 
     static async newMemberHandler(bot: HackerEmbassyBot, msg: Message) {

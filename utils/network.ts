@@ -53,5 +53,13 @@ export async function postToHass(url: string, body: any): Promise<Response> {
 }
 
 export async function getBufferFromResponse(response: Response): Promise<Buffer> {
+    if (response.status !== 200) {
+        throw new Error(`HTTP error ${response.status}`);
+    }
+
     return Buffer.from(await response.arrayBuffer());
+}
+
+export function filterFulfilled<T>(results: PromiseSettledResult<T>[]): PromiseFulfilledResult<T>[] {
+    return results.filter(result => result.status === "fulfilled") as PromiseFulfilledResult<T>[];
 }

@@ -37,7 +37,7 @@ export function parseMoneyValue(value: string) {
     return Number(value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", ""));
 }
 
-export async function prepareCurrency(currencyInput: string): Promise<string | null> {
+export async function prepareCurrency(currencyInput: string): Promise<Nullable<string>> {
     if (!currencyInput.length) return currencyConfig.default;
 
     if (Object.keys(CurrencySymbolToCode).includes(currencyInput)) return CurrencySymbolToCode[currencyInput as CurrencySymbol];
@@ -51,7 +51,7 @@ export async function prepareCurrency(currencyInput: string): Promise<string | n
 }
 
 // Convert Singleton
-let convert: CryptoConvert | null = null;
+let convert: Nullable<CryptoConvert> = null;
 
 export async function initConvert() {
     convert = new CryptoConvert({
@@ -69,7 +69,7 @@ export async function initConvert() {
     );
 }
 
-export async function convertCurrency(amount: number, from: string | number, to: string): Promise<number | undefined> {
+export async function convertCurrency(amount: number, from: string | number, to: string): Promise<Optional<number>> {
     try {
         if (!convert) await initConvert();
 

@@ -8,7 +8,7 @@ import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import * as UsersHelper from "../../services/usersHelper";
 import { lastModifiedFilePath } from "../../utils/filesystem";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent } from "../HackerEmbassyBot";
 
 const botConfig = config.get("bot") as BotConfig;
 
@@ -32,6 +32,43 @@ export default class AdminHandlers {
         const statepath = bot.messageHistory.botState.statepath;
 
         if (statepath && fs.existsSync(statepath)) await bot.sendDocument(msg.chat.id, statepath);
+    }
+
+    static async cleanStateHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.botState.clearState();
+        await bot.sendMessageExt(
+            msg.chat.id,
+            "Cleared the bot persisted state. Message history and Live handlers are removed",
+            msg
+        );
+    }
+
+    // TODO remove when events are attached to the handler
+    static eventCommandMap = {
+        [BotCustomEvent.statusLive]: BotCustomEvent.statusLive,
+        [BotCustomEvent.camLive]: BotCustomEvent.camLive,
+        status: BotCustomEvent.statusLive,
+        s: BotCustomEvent.statusLive,
+        ss: BotCustomEvent.statusLive,
+        webcam: BotCustomEvent.camLive,
+        webcam2: BotCustomEvent.camLive,
+        doorcam: BotCustomEvent.camLive,
+        webcum: BotCustomEvent.camLive,
+        webcum2: BotCustomEvent.camLive,
+        doorcum: BotCustomEvent.camLive,
+        cam: BotCustomEvent.camLive,
+        cam2: BotCustomEvent.camLive,
+        cum: BotCustomEvent.camLive,
+        cum2: BotCustomEvent.camLive,
+        ff: BotCustomEvent.camLive,
+        sf: BotCustomEvent.camLive,
+        dc: BotCustomEvent.camLive,
+    };
+
+    static async stopLiveHandler(bot: HackerEmbassyBot, msg: Message, event?: string) {
+        const customEvent = AdminHandlers.eventCommandMap[event as keyof typeof this.eventCommandMap];
+        bot.botState.clearLiveHandlers(msg.chat.id, customEvent);
+        await bot.sendMessageExt(msg.chat.id, "Live handlers are removed from this chat", msg);
     }
 
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {

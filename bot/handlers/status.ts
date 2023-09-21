@@ -27,7 +27,7 @@ import { sleep } from "../../utils/common";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
-import HackerEmbassyBot, { BotMessageContextMode } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotMessageContextMode } from "../HackerEmbassyBot";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const botConfig = config.get("bot") as BotConfig;
@@ -99,9 +99,11 @@ export default class StatusHandlers {
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
 
-        let climateInfo: SpaceClimate | null = null;
+        let climateInfo: Nullable<SpaceClimate> = null;
         try {
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
+            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`, {
+                timeout: 4000,
+            });
             climateInfo = await response?.json();
         } catch (error) {
             logger.error(error);
@@ -110,7 +112,7 @@ export default class StatusHandlers {
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, withSecretData);
 
         if (StatusHandlers.isStatusError)
-            statusMessage = mode.short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
+            statusMessage = mode.pin ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         return statusMessage;
     }
@@ -120,11 +122,11 @@ export default class StatusHandlers {
             ? [
                   [
                       {
-                          text: t(mode.short ? "status.buttons.in_short" : "status.buttons.in"),
+                          text: t("status.buttons.in"),
                           callback_data: JSON.stringify({ command: "/in" }),
                       },
                       {
-                          text: t(mode.short ? "status.buttons.out_short" : "status.buttons.out"),
+                          text: t("status.buttons.out"),
                           callback_data: JSON.stringify({ command: "/out" }),
                       },
                   ],
@@ -134,29 +136,27 @@ export default class StatusHandlers {
         inlineKeyboard.push(
             [
                 {
-                    text: t(mode.short ? "status.buttons.going_short" : "status.buttons.going"),
+                    text: t("status.buttons.going"),
                     callback_data: JSON.stringify({ command: "/going" }),
                 },
                 {
-                    text: t(mode.short ? "status.buttons.notgoing_short" : "status.buttons.notgoing"),
+                    text: t("status.buttons.notgoing"),
                     callback_data: JSON.stringify({ command: "/notgoing" }),
                 },
             ],
             [
                 {
-                    text: t(mode.short ? "status.buttons.refresh_short" : "status.buttons.refresh"),
-                    callback_data: JSON.stringify({ command: mode.short ? "/s_ustatus" : "/ustatus" }),
+                    text: t("status.buttons.refresh"),
+                    callback_data: JSON.stringify({ command: mode.pin ? "/s_ustatus" : "/ustatus" }),
                 },
                 {
-                    text: state.open
-                        ? t(mode.short ? "status.buttons.close_short" : "status.buttons.close")
-                        : t(mode.short ? "status.buttons.open_short" : "status.buttons.open"),
+                    text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
                     callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
                 },
             ]
         );
 
-        return mode.short ? [inlineKeyboard.flat(2)] : inlineKeyboard;
+        return inlineKeyboard;
     }
 
     static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, mode: BotMessageContextMode) {
@@ -170,7 +170,7 @@ export default class StatusHandlers {
                 chat_id: resultMessage.chat.id,
                 message_id: resultMessage.message_id,
                 reply_markup: {
-                    inline_keyboard: statusInlineKeyboard,
+                    inline_keyboard: mode?.static ? [] : statusInlineKeyboard,
                 },
             } as TelegramBot.EditMessageTextOptions);
         } catch {
@@ -205,13 +205,22 @@ export default class StatusHandlers {
         )) as Message;
 
         if (mode.live && resultMessage) {
-            bot.addLiveMessage(resultMessage, "status-live", () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode));
+            bot.addLiveMessage(
+                resultMessage,
+                BotCustomEvent.statusLive,
+                () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode),
+                {
+                    functionName: StatusHandlers.liveStatusHandler.name,
+                    module: __filename,
+                    params: [resultMessage, mode],
+                }
+            );
         }
     }
 
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
         openSpace(msg.from?.username, { checkOpener: true });
-        bot.CustomEmitter.emit("status-live");
+        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const inlineKeyboard = [
             [
@@ -246,7 +255,7 @@ export default class StatusHandlers {
 
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
         closeSpace(msg.from?.username, { evict: true });
-        bot.CustomEmitter.emit("status-live");
+        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const inlineKeyboard = [
             [
@@ -271,7 +280,7 @@ export default class StatusHandlers {
 
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
         evictPeople(findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside));
-        bot.CustomEmitter.emit("status-live");
+        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
@@ -285,7 +294,7 @@ export default class StatusHandlers {
 
         if (gotIn) {
             message = t("status.in.gotin", { username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
-            bot.CustomEmitter.emit("status-live");
+            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.in.notready");
         }
@@ -336,7 +345,7 @@ export default class StatusHandlers {
 
         if (gotOut) {
             message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) });
-            bot.CustomEmitter.emit("status-live");
+            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.out.shouldnot");
         }
@@ -394,7 +403,7 @@ export default class StatusHandlers {
                 username: UsersHelper.formatUsername(username, bot.context(msg).mode),
             });
 
-            bot.CustomEmitter.emit("status-live");
+            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.inforce.notready");
         }
@@ -415,7 +424,7 @@ export default class StatusHandlers {
                 username: UsersHelper.formatUsername(username, bot.context(msg).mode),
             });
 
-            bot.CustomEmitter.emit("status-live");
+            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.outforce.shouldnot");
         }
@@ -444,10 +453,6 @@ export default class StatusHandlers {
     }
 
     static LetOut(username: string, date: Date, force = false) {
-        const state = StatusRepository.getSpaceLastState();
-
-        if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
-
         const userstate = {
             id: 0,
             status: UserStateType.Outside,
@@ -479,7 +484,7 @@ export default class StatusHandlers {
         };
 
         StatusRepository.pushPeopleState(userstate);
-        bot.CustomEmitter.emit("status-live");
+        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.going", {
             username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
@@ -522,7 +527,7 @@ export default class StatusHandlers {
         };
 
         StatusRepository.pushPeopleState(userstate);
-        bot.CustomEmitter.emit("status-live");
+        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.notgoing", {
             username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
@@ -590,7 +595,7 @@ export default class StatusHandlers {
                             note: null,
                         });
 
-                    bot.CustomEmitter.emit("status-live");
+                    bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
                     logger.info(`User ${user.username} automatically ${isIn ? "got in" : "got out"}`);
                 }

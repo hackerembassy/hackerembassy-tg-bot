@@ -31,7 +31,7 @@ export default class MessageHistory {
         await this.botState.persistChanges();
     }
 
-    async pop(chatId: number, from: number = 0): Promise<MessageHistoryEntry | null> {
+    async pop(chatId: number, from: number = 0): Promise<Nullable<MessageHistoryEntry>> {
         if (!this.botState.history[chatId] || this.botState.history[chatId].length === 0) return null;
 
         const removed = this.botState.history[chatId].splice(from, 1)[0];

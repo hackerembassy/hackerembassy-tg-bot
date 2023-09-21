@@ -8,9 +8,9 @@ import { PrinterStatusResponse } from "../../services/printer3d";
 import { hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
-import { fetchWithTimeout } from "../../utils/network";
+import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotMessageContextMode } from "../HackerEmbassyBot";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const botConfig = config.get("bot") as BotConfig;
@@ -48,6 +48,31 @@ export default class EmbassyHanlers {
         }
     }
 
+    static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
+
+        try {
+            const camsPaths = ["webcam", "webcam2", "doorcam"];
+
+            const camResponses = await Promise.allSettled(
+                camsPaths.map(path => fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`))
+            );
+
+            const images: ArrayBuffer[] = await Promise.all(
+                filterFulfilled(camResponses)
+                    .filter(result => result.value?.status === 200)
+                    .map(result => result.value.arrayBuffer())
+            );
+
+            if (images.length > 0) await bot.sendPhotos(msg.chat.id, images, msg);
+            else throw Error("No available images");
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.webcam.failall"), msg);
+        }
+    }
+
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message) {
         await EmbassyHanlers.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
     }
@@ -60,18 +85,93 @@ export default class EmbassyHanlers {
         await EmbassyHanlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
     }
 
+    static async getWebcamImage(path: string) {
+        const response = await (
+            await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
+        )?.arrayBuffer();
+
+        return Buffer.from(response);
+    }
+
+    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, path: string, mode: BotMessageContextMode) {
+        sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
+
+        try {
+            const webcamImage = await EmbassyHanlers.getWebcamImage(path);
+
+            const webcamInlineKeyboard = mode?.static
+                ? []
+                : [
+                      [
+                          {
+                              text: t("status.buttons.refresh"),
+                              callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
+                          },
+                      ],
+                  ];
+
+            if (webcamImage)
+                await bot.editPhoto(webcamImage, msg, {
+                    reply_markup: {
+                        inline_keyboard: webcamInlineKeyboard,
+                    },
+                });
+        } catch {
+            // Skip this update
+        }
+    }
+
     static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path: string, prefix: string) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
-            const response = await (
-                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
-            )?.arrayBuffer();
+            const mode = bot.context(msg).mode;
 
-            const webcamImage = Buffer.from(response);
+            const webcamImage = await EmbassyHanlers.getWebcamImage(path);
 
-            if (webcamImage) await bot.sendPhotoExt(msg.chat.id, webcamImage, msg);
-            else throw Error("Empty webcam image");
+            const webcamInlineKeyboard = [
+                [
+                    {
+                        text: t("status.buttons.refresh"),
+                        callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
+                    },
+                    {
+                        text: t("status.buttons.save"),
+                        callback_data: JSON.stringify({ command: `/removeButtons` }),
+                    },
+                ],
+            ];
+
+            if (!webcamImage) throw Error("Empty webcam image");
+
+            if (bot.context(msg).isEditing) {
+                await bot.editPhoto(webcamImage, msg, {
+                    reply_markup: {
+                        inline_keyboard: webcamInlineKeyboard,
+                    },
+                });
+
+                return;
+            }
+
+            const resultMessage = await bot.sendPhotoExt(msg.chat.id, webcamImage, msg, {
+                reply_markup: {
+                    inline_keyboard: webcamInlineKeyboard,
+                },
+            });
+
+            if (mode.live && resultMessage) {
+                bot.addLiveMessage(
+                    resultMessage,
+                    BotCustomEvent.camLive,
+                    () => EmbassyHanlers.liveWebcamHandler(bot, resultMessage, path, mode),
+                    {
+                        functionName: EmbassyHanlers.liveWebcamHandler.name,
+                        module: __filename,
+                        params: [resultMessage, path, mode],
+                    }
+                );
+            }
         } catch (error) {
             logger.error(error);
 

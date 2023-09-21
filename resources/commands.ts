@@ -66,6 +66,7 @@ export const MemberCommandsList: string = `
 /firstfloor (ff) - Глянуть камеру первого этажа
 /secondfloor (sf) - Глянуть камеру второго этажа
 /doorcam (dc) - Глянуть камеру снаружи
+/allcams (ac) - Глянуть все камеры
 /doorbell (db) - Позвонить в дверной звонок
 /unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (default n = 1)
@@ -87,6 +88,9 @@ export const AdminCommandsList: string = `
 /forcebirthdaywishes
 #\`/forward some_text#\`
 /getlogs
+/getstate
+/cleanstate
+/stoplive
 
 \\* Roles: admin, accountant, member, default
 `;
@@ -114,7 +118,8 @@ export const GlobalModifiers: string = `
 Эти модификаторы можно добавить в конце любой команды:
 #\`-silent#\` - Команда выполнится без вывода ответа
 #\`-mention#\` - Пользователь будет упомянут с уведомлением
-#\`-short#\` - Короткий вывод команды (если поддерживается)
+#\`-static#\` - Вывод команды без кнопок
+#\`-pin#\` - Вывод команды для закрепа (если поддерживается)
 #\`-live#\` - Текст команды будет обновляться (если поддерживается)
 #\`-admin#\` - Вспомогательные команды выведутся для админа и бухгалтера и в публичном чате
 `;

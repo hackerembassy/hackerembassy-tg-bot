@@ -1,4 +1,5 @@
 // Imports
+import { promises as fs } from "fs";
 import { t } from "i18next";
 import {
     BotCommandScope,
@@ -6,10 +7,14 @@ import {
     ChatId,
     default as TelegramBot,
     EditMessageTextOptions,
+    InlineKeyboardMarkup,
+    InputMedia,
+    InputMediaPhoto,
     Message,
     SendMessageOptions,
 } from "node-telegram-bot-api";
 import { EventEmitter } from "stream";
+import { file } from "tmp-promise";
 
 import logger from "../services/logger";
 import { hasRole } from "../services/usersHelper";
@@ -24,8 +29,19 @@ const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";
-export type BotMessageContextMode = { silent: boolean; mention: boolean; admin: boolean; short: boolean; live: boolean };
-export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => void;
+export type BotMessageContextMode = {
+    silent: boolean;
+    mention: boolean;
+    admin: boolean;
+    pin: boolean;
+    live: boolean;
+    static: boolean;
+};
+export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => Promise<any>;
+export enum BotCustomEvent {
+    statusLive = "status-live",
+    camLive = "cam-live",
+}
 
 export interface BotMessageContext {
     mode: BotMessageContextMode;
@@ -57,6 +73,14 @@ export type LiveChatHandler = {
     chatId: ChatId;
     expires: number;
     handler: (...args: any[]) => void;
+    event: BotCustomEvent;
+    serializationData: serializedFunction;
+};
+
+export type serializedFunction = {
+    functionName: string;
+    module: string;
+    params: any[];
 };
 
 export default class HackerEmbassyBot extends TelegramBot {
@@ -70,7 +94,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
-        this.botState = new BotState();
+        this.botState = new BotState(this);
         this.messageHistory = new MessageHistory(this.botState);
         this.Name = undefined;
         this.CustomEmitter = new EventEmitter();
@@ -94,8 +118,9 @@ export default class HackerEmbassyBot extends TelegramBot {
         silent: false,
         mention: false,
         admin: false,
-        short: false,
+        pin: false,
         live: false,
+        static: false,
     };
 
     #context = new Map();
@@ -168,11 +193,72 @@ export default class HackerEmbassyBot extends TelegramBot {
         const message = await super.sendPhoto(
             chatId,
             photo,
-            { ...options, message_thread_id: this.context(msg).messageThreadId },
+            {
+                ...options,
+                reply_markup: {
+                    inline_keyboard: this.context(msg).mode?.static
+                        ? []
+                        : (options?.reply_markup as InlineKeyboardMarkup)?.inline_keyboard,
+                },
+                message_thread_id: this.context(msg).messageThreadId,
+            },
             fileOptions
         );
 
         this.messageHistory.push(chatId, message.message_id);
+
+        return Promise.resolve(message);
+    }
+
+    async sendPhotos(
+        chatId: TelegramBot.ChatId,
+        photos: Buffer[] | ArrayBuffer[],
+        msg: TelegramBot.Message,
+        options: any = {}
+    ): Promise<TelegramBot.Message> {
+        this.sendChatAction(chatId, "upload_photo", msg);
+
+        const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo)));
+        const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
+        const message = await super.sendMediaGroup(
+            chatId,
+            imageOpts as InputMedia[],
+            {
+                ...options,
+                message_thread_id: this.context(msg).messageThreadId,
+            } as any
+        );
+
+        this.messageHistory.push(chatId, message.message_id);
+
+        return Promise.resolve(message);
+    }
+
+    async editPhoto(
+        photo: Buffer | ArrayBuffer,
+        msg: TelegramBot.Message,
+        options: any = {}
+    ): Promise<TelegramBot.Message | boolean> {
+        const buffer = photo instanceof Buffer ? photo : Buffer.from(photo);
+
+        // TMP file because the lib doesn't support using buffers for editMessageMedia yet
+        const { path, cleanup } = await file();
+
+        await fs.writeFile(path, buffer);
+
+        const imageOption = { type: "photo", media: `attach://${path}` } as InputMediaPhoto;
+
+        const message = await super.editMessageMedia(imageOption, {
+            ...options,
+            reply_markup: {
+                inline_keyboard: this.context(msg).mode?.static ? [] : options.reply_markup.inline_keyboard,
+            },
+            chat_id: msg.chat.id,
+            message_id: msg.message_id,
+            message_thread_id: this.context(msg).messageThreadId,
+        } as any);
+
+        cleanup();
 
         return Promise.resolve(message);
     }
@@ -203,15 +289,21 @@ export default class HackerEmbassyBot extends TelegramBot {
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,
-        msg: TelegramBot.Message | null,
+        msg: Nullable<TelegramBot.Message>,
         options: TelegramBot.SendMessageOptions = {}
-    ): Promise<TelegramBot.Message | null> {
+    ): Promise<Nullable<TelegramBot.Message>> {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
         if (!msg || !this.context(msg)?.mode?.silent) {
             const message = await this.sendMessage(chatId, preparedText, {
                 ...options,
+                reply_markup: {
+                    inline_keyboard:
+                        msg && this.context(msg).mode?.static
+                            ? []
+                            : (options?.reply_markup as InlineKeyboardMarkup)?.inline_keyboard,
+                },
                 message_thread_id: msg ? this.context(msg)?.messageThreadId : undefined,
             });
 
@@ -275,7 +367,7 @@ ${chunks[index]}
 
         const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
-        const newCallback = async function (msg: TelegramBot.Message, match: RegExpExecArray | null) {
+        const newCallback = async function (msg: TelegramBot.Message, match: Nullable<RegExpExecArray>) {
             if (!msg) return;
 
             // Skip old updates
@@ -288,7 +380,7 @@ ${chunks[index]}
                     return;
                 }
 
-                let executedMatch: RegExpExecArray | null = null;
+                let executedMatch: Nullable<RegExpExecArray> = null;
 
                 if (match !== null) {
                     let newCommand = match[0];
@@ -348,13 +440,23 @@ ${chunks[index]}
         logger.info(`Sent a notification to ${chat}: ${message}`);
     }
 
-    addLiveMessage(liveMessage: Message, event: string, handler: (...args: any[]) => void) {
-        const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id);
-        if (chatRecordIndex !== -1)
-            this.CustomEmitter.removeListener("status-live", this.botState.liveChats[chatRecordIndex].handler);
+    addLiveMessage(
+        liveMessage: Message,
+        event: BotCustomEvent,
+        handler: (...args: any[]) => Promise<void>,
+        serializationData: serializedFunction
+    ) {
+        const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id && cr.event === event);
+        if (chatRecordIndex !== -1) this.CustomEmitter.removeListener(event, this.botState.liveChats[chatRecordIndex].handler);
 
         this.CustomEmitter.on(event, handler);
-        const newChatRecord = { chatId: liveMessage.chat.id, expires: Date.now() + EDIT_MESSAGE_TIME_LIMIT, handler };
+        const newChatRecord = {
+            chatId: liveMessage.chat.id,
+            expires: Date.now() + EDIT_MESSAGE_TIME_LIMIT,
+            handler,
+            event,
+            serializationData,
+        };
 
         if (chatRecordIndex !== -1) {
             this.botState.liveChats[chatRecordIndex] = newChatRecord;
@@ -364,8 +466,10 @@ ${chunks[index]}
 
         this.botState.debouncedPersistChanges();
 
+        // TODO Remove duplication
         setTimeout(() => {
-            this.CustomEmitter.removeListener("status-live", handler);
+            this.CustomEmitter.removeListener(event, handler);
+            this.botState.liveChats = this.botState.liveChats.splice(chatRecordIndex, 1);
         }, EDIT_MESSAGE_TIME_LIMIT);
     }
 }

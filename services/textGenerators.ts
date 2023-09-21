@@ -20,8 +20,8 @@ const printersConfig = config.get("printers") as PrintersConfig;
 type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boolean };
 
 export async function createFundList(
-    funds: Fund[] | null | undefined,
-    donations: Donation[] | null,
+    funds: Optional<Fund[]>,
+    donations: Nullable<Donation[]>,
     { showAdmin = false, isHistory = false, isApi = false }: FundListOptions,
     mode = { mention: false }
 ): Promise<string> {
@@ -116,54 +116,53 @@ export function getStatusMessage(
     state: { open: boolean; changedby: string },
     inside: UserState[],
     going: UserState[],
-    climateInfo: SpaceClimate | null,
-    mode: { mention: boolean; short?: boolean },
+    climateInfo: Nullable<SpaceClimate>,
+    mode: { mention: boolean; pin?: boolean },
     withSecrets = false,
     isApi = false
 ): string {
-    const stateFullText = t(mode.short ? "status.status.state_short" : "status.status.state", {
+    let stateText = t(mode.pin ? "status.status.state_pin" : "status.status.state", {
         stateEmoji: state.open ? "🔓" : "🔒",
         state: state.open ? t("status.status.opened") : t("status.status.closed"),
         stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
         changedBy: formatUsername(state.changedby, mode, isApi),
     });
 
-    let insideText =
-        inside.length > 0
-            ? t(mode.short ? "status.status.insidechecked_short" : "status.status.insidechecked", { count: inside.length })
-            : t(mode.short ? "status.status.nooneinside_short" : "status.status.nooneinside") + (mode.short ? "" : "\n");
+    if (mode.pin) {
+        stateText += "  ";
+        stateText +=
+            inside.length > 0
+                ? t("status.status.insidechecked_pin", { count: inside.length })
+                : t("status.status.nooneinside_pin");
+        stateText += "  ";
+        stateText += going.length > 0 ? `${t("status.status.going_pin", { count: going.length })}` : "";
+        stateText += "\n ";
+    }
+    stateText += "\n";
+    stateText +=
+        inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {
-        insideText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}${
-            mode.short ? " " : "\n"
-        }`;
+        stateText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
-
-    let goingText =
-        going.length > 0
-            ? `\n${t(mode.short ? "status.status.going_short" : "status.status.going", { count: going.length })}`
-            : "";
+    stateText += going.length > 0 ? `\n${t("status.status.going", { count: going.length })}` : "";
     for (const userStatus of going) {
-        goingText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
-            !mode.short && userStatus.note ? `(${userStatus.note})` : ""
-        }${mode.short ? " " : "\n"}`;
+        stateText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
+            userStatus.note ? `(${userStatus.note})` : ""
+        }\n`;
     }
-
-    const climateText = climateInfo
+    stateText += climateInfo
         ? `\n${t("embassy.climate.data", { climateInfo })}${withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""}`
         : "";
-
-    const updateText = !isApi
-        ? `⏱ ${mode.short ? "" : t("status.status.updated")} ${new Date()
-              .toLocaleString("RU-ru")
-              .replace(",", " в")
-              .substring(0, 21)}\n`
+    stateText += "\n";
+    stateText += !isApi
+        ? t("status.status.updated", {
+              updatedDate: new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21),
+          })
         : "";
-
-    return `${stateFullText}\n${insideText}${goingText}${climateText}
-${updateText}`;
+    return stateText;
 }
 
-export function getUserBadges(username: string | null): string {
+export function getUserBadges(username: Nullable<string>): string {
     if (!username) return "";
 
     const user = usersRepository.getUserByName(username);
@@ -183,7 +182,7 @@ export function getUserBadgesWithStatus(userStatus: UserState): string {
     return `${autoBadge}${userBadges}`;
 }
 
-export function getAccountsList(accountants: User[] | undefined | null, mode: { mention: boolean }, isApi = false): string {
+export function getAccountsList(accountants: Optional<User[]>, mode: { mention: boolean }, isApi = false): string {
     return accountants
         ? accountants.reduce(
               (list, user) => `${list}${formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
@@ -192,7 +191,7 @@ export function getAccountsList(accountants: User[] | undefined | null, mode: { 
         : "";
 }
 
-export function getResidentsList(residents: User[] | undefined | null, mode: { mention: boolean }): string {
+export function getResidentsList(residents: Optional<User[]>, mode: { mention: boolean }): string {
     let userList = "";
 
     if (!residents) return userList;
@@ -212,7 +211,7 @@ export function getMonitorMessagesList(monitorMessages: { level: string; message
         : "";
 }
 
-export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): string {
+export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }): string {
     let message = `${t("needs.buy.nothing")}\n`;
     const areNeedsProvided = needs && needs.length > 0;
 
@@ -231,7 +230,7 @@ export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): 
     return message;
 }
 
-export function getDonateText(accountants: User[] | null, isApi: boolean = false): string {
+export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = false): string {
     const cryptoCommands = !isApi
         ? `#\`/donatecrypto btc#\`
   #\`/donatecrypto eth#\`
@@ -285,7 +284,7 @@ const shortMonthNames: string[] = [
     "birthday.months.december",
 ];
 
-export function getBirthdaysList(birthdayUsers: User[] | null | undefined, mode: { mention: boolean }): string {
+export function getBirthdaysList(birthdayUsers: Nullable<User[]> | undefined, mode: { mention: boolean }): string {
     let message = t("birthday.nextbirthdays");
     let usersList = `\n${t("birthday.noone")}\n`;
 

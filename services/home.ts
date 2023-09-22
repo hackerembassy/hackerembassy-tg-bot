@@ -1,7 +1,7 @@
 import config from "config";
 
 import { EmbassyApiConfig } from "../config/schema";
-import { getFromHass } from "../utils/network";
+import { getFromHass, postToHass } from "../utils/network";
 
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const climateConfig = embassyApiConfig.climate;
@@ -52,3 +52,35 @@ export async function getClimate(): Promise<Nullable<SpaceClimate>> {
 function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?"): any {
     return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }
+
+export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
+
+class Conditioner {
+    async turnOn() {
+        await postToHass(climateConfig.conditioner.turnOnPath, {
+            entity_id: climateConfig.conditioner.entityId,
+        });
+    }
+
+    async turnOff() {
+        await postToHass(climateConfig.conditioner.turnOffPath, {
+            entity_id: climateConfig.conditioner.entityId,
+        });
+    }
+
+    async setMode(mode: ConditionerMode) {
+        await postToHass(climateConfig.conditioner.setModePath, {
+            hvac_mode: mode,
+            entity_id: climateConfig.conditioner.entityId,
+        });
+    }
+
+    async setTemperature(temperature: number) {
+        await postToHass(climateConfig.conditioner.setTemperaturePath, {
+            temperature: temperature,
+            entity_id: climateConfig.conditioner.entityId,
+        });
+    }
+}
+
+export const conditioner = new Conditioner();

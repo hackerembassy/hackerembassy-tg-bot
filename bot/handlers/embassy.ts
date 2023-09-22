@@ -2,6 +2,7 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
+import { ConditionerMode } from "../../services/home";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
@@ -365,6 +366,41 @@ export default class EmbassyHanlers {
         } catch (error) {
             logger.error(error);
             !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.fail"), msg));
+        }
+    }
+
+    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
+        EmbassyHanlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
+    }
+
+    static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
+        if (isNaN(temperature)) throw Error();
+        EmbassyHanlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
+    }
+
+    static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
+        EmbassyHanlers.controlConditioner(bot, msg, "setconditionermode", { mode });
+    }
+
+    static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {
+        let text = t("embassy.conditioner.success");
+
+        try {
+            const status = await (
+                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${endpoint}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(body),
+                })
+            )?.json();
+            if (!status || status.error) throw Error();
+        } catch (error) {
+            logger.error(error);
+            text = t("embassy.conditioner.fail");
+        } finally {
+            await bot.sendMessageExt(msg.chat.id, text, msg);
         }
     }
 }

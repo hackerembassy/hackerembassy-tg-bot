@@ -210,6 +210,9 @@ embassy:
         secretdata: |
             Оргийная 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%
         nodata: 🌚 Данные о климате недоступны
+    conditioner:
+        success: ✅ Получилось (наверное)
+        fail: ⚠️ Не вышло
     printers:
         help: |
             🖨 У нас есть два 3D принтера:

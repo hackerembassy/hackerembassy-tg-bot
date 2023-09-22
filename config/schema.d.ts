@@ -71,6 +71,15 @@ export interface ClimateConfig {
     first_floor: RoomClimate;
     second_floor: RoomClimate;
     bedroom: RoomClimate;
+    conditioner: ConditionerConfig;
+}
+
+export interface ConditionerConfig {
+    entityId: string;
+    turnOnPath: string;
+    turnOffPath: string;
+    setModePath: string;
+    setTemperaturePath: string;
 }
 
 export interface RoomClimate {

@@ -76,6 +76,7 @@ export interface ClimateConfig {
 
 export interface ConditionerConfig {
     entityId: string;
+    statePath: string;
     turnOnPath: string;
     turnOffPath: string;
     setModePath: string;

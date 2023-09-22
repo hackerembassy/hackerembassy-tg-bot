@@ -211,8 +211,28 @@ embassy:
             Оргийная 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%
         nodata: 🌚 Данные о климате недоступны
     conditioner:
-        success: ✅ Получилось (наверное)
+        status: |
+            ❄️ Статус кондея Midea:
+            Режим: {{conditionerStatus.state}}
+            Целевая температура: {{conditionerStatus.attributes.temperature}}°C
+            Текущая температура: {{conditionerStatus.attributes.current_temperature}}°C
+
+            ℹ️ Команды:
+            /mideaon - Врубить
+            /mideaoff - Вырубить
+            #`/mideamode auto#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/mideatemp 24#` - Целевая температура (16-28°C)
+        success: ✅ Получилось
         fail: ⚠️ Не вышло
+        buttons:
+            turnon: 🌀 Включить
+            turnoff: ⛔️ Выключить
+            more: 🔼 +1°C
+            less: 🔽 -1°C
+            auto: ♻️ Auto
+            heat: 🔥 Heat
+            cool: 🥶 Cool
+            dry: ♨️ Dry
     printers:
         help: |
             🖨 У нас есть два 3D принтера:

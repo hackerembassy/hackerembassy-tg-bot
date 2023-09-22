@@ -7,6 +7,7 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import RateLimiter from "../../services/RateLimiter";
 import * as UsersHelper from "../../services/usersHelper";
+import { sleep } from "../../utils/common";
 import { setMenu } from "../bot-menu";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 import { MessageHistoryEntry } from "../MessageHistory";
@@ -261,6 +262,34 @@ export default class ServiceHandlers {
             case "/plumbusstatus":
                 await EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus");
                 break;
+            case "/uconditioner":
+                bot.context(msg).isEditing = true;
+                if (isAllowed(EmbassyHandlers.conditionerHandler)) await EmbassyHandlers.conditionerHandler(bot, msg);
+                break;
+            case "/turnconditioneron":
+                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
+                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
+                        EmbassyHandlers.turnConditionerHandler(bot, msg, true);
+                    });
+                break;
+            case "/turnconditioneroff":
+                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
+                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
+                        EmbassyHandlers.turnConditionerHandler(bot, msg, false);
+                    });
+                break;
+            case "/addconditionertemp":
+                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
+                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
+                        EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff);
+                    });
+                break;
+            case "/setconditionermode":
+                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
+                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
+                        EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode);
+                    });
+                break;
             case "/bought":
                 await ServiceHandlers.boughtButtonHandler(bot, msg, data.id, data);
                 break;
@@ -274,6 +303,16 @@ export default class ServiceHandlers {
         }
 
         await bot.answerCallbackQuery(callbackQuery.id);
+    }
+
+    static async conditionerCallback(bot: HackerEmbassyBot, msg: Message, callback: () => Promise<void>) {
+        bot.context(msg).mode.silent = true;
+        bot.context(msg).isEditing = true;
+
+        await callback();
+
+        await sleep(5000);
+        await EmbassyHandlers.conditionerHandler(bot, msg);
     }
 
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {

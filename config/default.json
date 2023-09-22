@@ -55,6 +55,7 @@
         "climate": {
             "conditioner": {
                 "entityId": "climate.midea_climate",
+                "statePath": "http://hass.lan:8123/api/states/climate.midea_climate",
                 "turnOnPath": "http://hass.lan:8123/api/services/climate/turn_on",
                 "turnOffPath": "http://hass.lan:8123/api/services/climate/turn_off",
                 "setModePath": "http://hass.lan:8123/api/services/climate/set_hvac_mode",

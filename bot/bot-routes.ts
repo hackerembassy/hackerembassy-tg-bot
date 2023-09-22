@@ -123,6 +123,11 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
 
     // Conditioner
     bot.onTextExt(
+        rc.command(["conditioner", "conditionerstate", "midea", "mideastate"]),
+        (bot, msg) => EmbassyHandlers.conditionerHandler(bot, msg),
+        ["member"]
+    );
+    bot.onTextExt(
         rc.command(["turnonconditioner", "mideaon"]),
         (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, true),
         ["member"]

@@ -79,7 +79,7 @@ export const MemberCommandsList: string = `
 /residentsdonated - Кто из резидентов уже задонатил в этом месяце
 /mideaon - Врубить кондей
 /mideaoff - Вырубить кондей
-/mideamode mode_name - Поменять режим кондея (mode_name = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+/mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
 `;
 

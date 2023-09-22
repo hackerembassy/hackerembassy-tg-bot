@@ -9,10 +9,10 @@ export function createErrorMiddleware(logger: Logger): ErrorRequestHandler {
     };
 }
 
-export function createTokenSecuredMiddleware(logger: Logger): RequestHandler {
+export function createTokenSecuredMiddleware(logger: Logger, token: string | undefined): RequestHandler {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return function tokenSecured(req, res, next): void {
-        if (!req.body?.token || req.body.token !== process.env["UNLOCKKEY"]) {
+        if (!req.body?.token || req.body.token !== token) {
             logger.info(`Got request with invalid token`);
             res.status(401).send({ message: "Invalid token" });
             return;

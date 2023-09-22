@@ -467,16 +467,12 @@ export default class StatusHandlers {
         return true;
     }
 
-    static async goingHandler(bot: HackerEmbassyBot, msg: Message, note: string | undefined = undefined) {
-        const usernameOrFirstname = msg.from?.username?.replace("@", "") ?? msg.from?.first_name;
-        // TODO add proper handling of username together with firstname
-        if (!usernameOrFirstname) return;
-
+    static setGoingState(usernameOrFirstname: string, isGoing: boolean, note: string | undefined = undefined) {
         const eventDate = new Date();
 
         const userstate = {
             id: 0,
-            status: UserStateType.Going,
+            status: isGoing ? UserStateType.Going : UserStateType.Outside,
             date: eventDate,
             username: usernameOrFirstname,
             type: UserStateChangeType.Manual,
@@ -484,6 +480,15 @@ export default class StatusHandlers {
         };
 
         StatusRepository.pushPeopleState(userstate);
+    }
+
+    static async goingHandler(bot: HackerEmbassyBot, msg: Message, note: string | undefined = undefined) {
+        const usernameOrFirstname = msg.from?.username?.replace("@", "") ?? msg.from?.first_name;
+        // TODO add proper handling of username together with firstname
+        if (!usernameOrFirstname) return;
+
+        StatusHandlers.setGoingState(usernameOrFirstname, true, note);
+
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.going", {
@@ -515,18 +520,8 @@ export default class StatusHandlers {
         const usernameOrFirstname = msg.from?.username?.replace("@", "") ?? msg.from?.first_name;
         if (!usernameOrFirstname) return;
 
-        const eventDate = new Date();
+        StatusHandlers.setGoingState(usernameOrFirstname, false);
 
-        const userstate = {
-            id: 0,
-            status: UserStateType.Outside,
-            date: eventDate,
-            username: usernameOrFirstname,
-            type: UserStateChangeType.Manual,
-            note: null,
-        };
-
-        StatusRepository.pushPeopleState(userstate);
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.notgoing", {

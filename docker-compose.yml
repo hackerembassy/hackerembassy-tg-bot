@@ -1,15 +1,16 @@
 services:
-  bot:
-    image: 'ghcr.io/hackerembassy/hackerembassy-tg-bot:local'
-    build:
-      context: '.'
-      dockerfile: ./deploy/Containerfile
-    volumes:
-      - data:/app/data
-    environment:
-      - BOTDEBUG=true
-      - HACKERBOTTOKEN=$HACKERBOTTOKEN
-      - UNLOCKKEY=$UNLOCKKEY
+    bot:
+        image: "ghcr.io/hackerembassy/hackerembassy-tg-bot:local"
+        build:
+            context: "."
+            dockerfile: ./deploy/Containerfile
+        volumes:
+            - data:/app/data
+        environment:
+            - BOTDEBUG=true
+            - HACKERBOTTOKEN=$HACKERBOTTOKEN
+            - UNLOCKKEY=$UNLOCKKEY
+            - GUESTKEY=$GUESTKEY
 volumes:
-  data:
-    name: "hackerembassy-bot-data"
+    data:
+        name: "hackerembassy-bot-data"

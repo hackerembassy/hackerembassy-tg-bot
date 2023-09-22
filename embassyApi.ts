@@ -11,7 +11,7 @@ import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 
 import { BotConfig, EmbassyApiConfig } from "./config/schema";
-import { getClimate } from "./services/home";
+import { conditioner, getClimate } from "./services/home";
 import logger from "./services/logger";
 import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "./services/media";
 import { unlock } from "./services/mqtt";
@@ -244,6 +244,39 @@ app.get("/printer", async (req, res, next) => {
         }
 
         res.send({ status, thumbnailBuffer, cam });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/turnconditioner", async (req, res, next) => {
+    try {
+        if (req.body.enabled) {
+            await conditioner.turnOn();
+        } else {
+            await conditioner.turnOff();
+        }
+        res.send({ message: "Success" });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/setconditionermode", async (req, res, next) => {
+    try {
+        await conditioner.setMode(req.body.mode);
+
+        res.send({ message: "Success" });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/setconditionertemperature", async (req, res, next) => {
+    try {
+        await conditioner.setTemperature(req.body.temperature);
+
+        res.send({ message: "Success" });
     } catch (error) {
         next(error);
     }

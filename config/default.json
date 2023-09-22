@@ -53,6 +53,13 @@
         "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
         "doorbellpath": "http://hass:8123/api/services/switch/turn_on",
         "climate": {
+            "conditioner": {
+                "entityId": "climate.midea_climate",
+                "turnOnPath": "http://hass.lan:8123/api/services/climate/turn_on",
+                "turnOffPath": "http://hass.lan:8123/api/services/climate/turn_off",
+                "setModePath": "http://hass.lan:8123/api/services/climate/set_hvac_mode",
+                "setTemperaturePath": "http://hass.lan:8123/api/services/climate/set_temperature"
+            },
             "first_floor": {
                 "temperature": "http://hass:8123/api/states/sensor.first_floor_temperature",
                 "humidity": "http://hass:8123/api/states/sensor.a4_c1_38_d7_e3_a2_e3a2_humidity"

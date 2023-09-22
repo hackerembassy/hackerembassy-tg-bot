@@ -3,6 +3,7 @@ import config from "config";
 import cors from "cors";
 import express from "express";
 
+import StatusHandlers from "./bot/handlers/status";
 import { BotApiConfig, EmbassyApiConfig } from "./config/schema";
 import FundsRepository from "./repositories/fundsRepository";
 import StatusRepository from "./repositories/statusRepository";
@@ -20,7 +21,8 @@ const apiConfig = config.get("api") as BotApiConfig;
 
 const app = express();
 const port = apiConfig.port;
-const tokenSecured = createTokenSecuredMiddleware(logger);
+const tokenHassSecured = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
+const tokenGuestSecured = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
 
 app.use(cors());
 app.use(json());
@@ -95,13 +97,32 @@ app.get("/api/insidecount", (_, res) => {
     }
 });
 
-app.post("/api/open", tokenSecured, (_, res) => {
+app.post("/api/setgoing", tokenGuestSecured, (req, res) => {
+    try {
+        if (typeof req.body.username !== "string" || typeof req.body.isgoing !== "boolean") {
+            res.status(400).send({ error: "Missing or incorrect parameters" });
+            return;
+        }
+
+        StatusHandlers.setGoingState(
+            req.body.username as string,
+            req.body.isgoing as boolean,
+            req.body.message as string | undefined
+        );
+
+        res.json({ message: "Success" });
+    } catch (error) {
+        res.status(500).send({ error });
+    }
+});
+
+app.post("/api/open", tokenHassSecured, (_, res) => {
     openSpace("hass");
 
     return res.send({ message: "Success" });
 });
 
-app.post("/api/close", tokenSecured, (_, res) => {
+app.post("/api/close", tokenHassSecured, (_, res) => {
     closeSpace("hass", { evict: true });
 
     return res.send({ message: "Success" });

@@ -203,6 +203,12 @@ export default class ServiceHandlers {
                     await BasicHandlers.controlPanelHandler(bot, msg);
                 }
                 break;
+            case "/conditioner":
+                if (isAllowed(EmbassyHandlers.conditionerHandler)) {
+                    bot.context(msg).isEditing = true;
+                    await EmbassyHandlers.conditionerHandler(bot, msg);
+                }
+                break;
             case "/about":
                 await BasicHandlers.aboutHandler(bot, msg);
                 break;
@@ -310,7 +316,6 @@ export default class ServiceHandlers {
         bot.context(msg).isEditing = true;
 
         await callback();
-
         await sleep(5000);
         await EmbassyHandlers.conditionerHandler(bot, msg);
     }

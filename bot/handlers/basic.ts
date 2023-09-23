@@ -206,6 +206,10 @@ export default class BasicHandlers {
             ],
             [
                 {
+                    text: t("basic.control.buttons.conditioner"),
+                    callback_data: JSON.stringify({ command: "/conditioner" }),
+                },
+                {
                     text: t("basic.control.buttons.back"),
                     callback_data: JSON.stringify({ command: "/startpanel" }),
                 },

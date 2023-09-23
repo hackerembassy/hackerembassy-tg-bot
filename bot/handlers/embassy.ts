@@ -370,16 +370,11 @@ export default class EmbassyHanlers {
     }
 
     static async conditionerHandler(bot: HackerEmbassyBot, msg: Message) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
 
-        let text = t("embassy.conditioner.fail");
+        let text = t("embassy.conditioner.unavailable");
+
         const inlineKeyboard = [
-            [
-                {
-                    text: t("status.buttons.refresh"),
-                    callback_data: JSON.stringify({ command: "/uconditioner" }),
-                },
-            ],
             [
                 {
                     text: t("embassy.conditioner.buttons.turnon"),
@@ -416,6 +411,16 @@ export default class EmbassyHanlers {
                 {
                     text: t("embassy.conditioner.buttons.dry"),
                     callback_data: JSON.stringify({ command: "/setconditionermode", mode: "dry" }),
+                },
+            ],
+            [
+                {
+                    text: t("status.buttons.refresh"),
+                    callback_data: JSON.stringify({ command: "/uconditioner" }),
+                },
+                {
+                    text: t("basic.control.buttons.back"),
+                    callback_data: JSON.stringify({ command: "/controlpanel" }),
                 },
             ],
         ];

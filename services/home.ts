@@ -6,6 +6,41 @@ import { getFromHass, postToHass } from "../utils/network";
 const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
 const climateConfig = embassyApiConfig.climate;
 
+export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
+
+export type ConditionerStatus = {
+    entity_id: string;
+    state: string;
+    attributes: Attributes;
+    last_changed: Date;
+    last_updated: Date;
+    context: Context;
+    error: string;
+};
+
+export type Attributes = {
+    hvac_modes: string[];
+    min_temp: number;
+    max_temp: number;
+    target_temp_step: number;
+    fan_modes: string[];
+    preset_modes: string[];
+    swing_modes: string[];
+    current_temperature: number;
+    temperature: number;
+    fan_mode: string;
+    preset_mode: string;
+    swing_mode: string;
+    friendly_name: string;
+    supported_features: number;
+};
+
+export type Context = {
+    id: string;
+    parent_id: null;
+    user_id: null;
+};
+
 interface FloorClimate {
     temperature: number | "?";
     humidity: number | "?";
@@ -52,41 +87,6 @@ export async function getClimate(): Promise<Nullable<SpaceClimate>> {
 function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?"): any {
     return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }
-
-export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
-
-export type ConditionerStatus = {
-    entity_id: string;
-    state: string;
-    attributes: Attributes;
-    last_changed: Date;
-    last_updated: Date;
-    context: Context;
-    error: string;
-};
-
-export type Attributes = {
-    hvac_modes: string[];
-    min_temp: number;
-    max_temp: number;
-    target_temp_step: number;
-    fan_modes: string[];
-    preset_modes: string[];
-    swing_modes: string[];
-    current_temperature: number;
-    temperature: number;
-    fan_mode: string;
-    preset_mode: string;
-    swing_mode: string;
-    friendly_name: string;
-    supported_features: number;
-};
-
-export type Context = {
-    id: string;
-    parent_id: null;
-    user_id: null;
-};
 
 class Conditioner {
     async getState(): Promise<ConditionerStatus> {

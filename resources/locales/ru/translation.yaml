@@ -132,6 +132,7 @@ basic:
             webcam2: 📹 II этаж
             doorcam: 📹 Вход
             superstatus: 🩻 Суперстатус
+            conditioner: ❄️ Кондей
             back: ↩️ Назад
     info:
         text: |
@@ -220,10 +221,11 @@ embassy:
             ℹ️ Команды:
             /mideaon - Врубить
             /mideaoff - Вырубить
-            #`/mideamode auto#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/mideamode cool#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
             #`/mideatemp 24#` - Целевая температура (16-28°C)
         success: ✅ Получилось
         fail: ⚠️ Не вышло
+        unavailable: ⚠️ Кондей недоступен
         buttons:
             turnon: 🌀 Включить
             turnoff: ⛔️ Выключить

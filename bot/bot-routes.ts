@@ -128,22 +128,22 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["turnonconditioner", "mideaon"]),
+        rc.command(["turnonconditioner", "conditioneron", "mideaon"]),
         (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, true),
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["turnoffconditioner", "mideaoff"]),
+        rc.command(["turnoffconditioner", "conditioneroff", "mideaoff"]),
         (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, false),
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["setConditionerMode", "mideamode"], /(\S+)/, false),
+        rc.command(["setConditionerMode", "conditionermode", "mideamode"], /(\S+)/, false),
         (bot, msg, match) => EmbassyHandlers.setConditionerModeHandler(bot, msg, match[1]),
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["setConditionerTemp", "setConditionerTemperature", "mideatemp"], /(\d*)/, false),
+        rc.command(["setConditionerTemp", "setConditionerTemperature", "conditionertemp", "mideatemp"], /(\d*)/, false),
         (bot, msg, match) => EmbassyHandlers.setConditionerTempHandler(bot, msg, Number(match[1])),
         ["member"]
     );

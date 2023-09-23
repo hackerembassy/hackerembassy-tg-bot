@@ -102,7 +102,7 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         "member",
     ]);
     bot.onTextExt(rc.command(["doorcam", "doorcum", "dc"]), EmbassyHandlers.doorcamHandler, ["member"]);
-    bot.onTextExt(rc.command(["allcams", "cams", "allcums", "cums", "ac"]), EmbassyHandlers.allCamsHandler, ["member"]);
+    bot.onTextExt(rc.command(["allcams", "cams", "allcums", "cums", "allc"]), EmbassyHandlers.allCamsHandler, ["member"]);
 
     // Sensors
     bot.onTextExt(rc.command(["climate"]), EmbassyHandlers.climateHandler);
@@ -123,27 +123,27 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
 
     // Conditioner
     bot.onTextExt(
-        rc.command(["conditioner", "conditionerstate", "midea", "mideastate"]),
+        rc.command(["conditioner", "conditionerstate", "midea", "ac", "acstate", "mideastate"]),
         (bot, msg) => EmbassyHandlers.conditionerHandler(bot, msg),
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["turnonconditioner", "conditioneron", "mideaon"]),
+        rc.command(["turnonconditioner", "conditioneron", "mideaon", "acon"]),
         (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, true),
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["turnoffconditioner", "conditioneroff", "mideaoff"]),
+        rc.command(["turnoffconditioner", "conditioneroff", "mideaoff", "acoff"]),
         (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, false),
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["setConditionerMode", "conditionermode", "mideamode"], /(\S+)/, false),
+        rc.command(["setConditionerMode", "conditionermode", "mideamode", "acmode"], /(\S+)/, false),
         (bot, msg, match) => EmbassyHandlers.setConditionerModeHandler(bot, msg, match[1]),
         ["member"]
     );
     bot.onTextExt(
-        rc.command(["setConditionerTemp", "setConditionerTemperature", "conditionertemp", "mideatemp"], /(\d*)/, false),
+        rc.command(["setConditionerTemp", "setConditionerTemperature", "conditionertemp", "mideatemp", "actemp"], /(\d*)/, false),
         (bot, msg, match) => EmbassyHandlers.setConditionerTempHandler(bot, msg, Number(match[1])),
         ["member"]
     );

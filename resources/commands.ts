@@ -77,6 +77,10 @@ export const MemberCommandsList: string = `
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
 /evict - Очистить список отметившихся внутри
 /residentsdonated - Кто из резидентов уже задонатил в этом месяце
+/mideaon - Врубить кондей
+/mideaoff - Вырубить кондей
+/mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+/mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
 `;
 
 export const AdminCommandsList: string = ` 

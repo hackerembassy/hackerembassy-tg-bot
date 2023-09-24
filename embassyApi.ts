@@ -11,12 +11,13 @@ import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 
 import { BotConfig, EmbassyApiConfig } from "./config/schema";
-import { getClimate } from "./services/home";
+import { conditioner, getClimate } from "./services/home";
 import logger from "./services/logger";
 import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "./services/media";
 import { unlock } from "./services/mqtt";
 import printer3d from "./services/printer3d";
 import * as statusMonitor from "./services/statusMonitor";
+import { sleep } from "./utils/common";
 import { createErrorMiddleware } from "./utils/middleware";
 import { decrypt } from "./utils/security";
 
@@ -244,6 +245,78 @@ app.get("/printer", async (req, res, next) => {
         }
 
         res.send({ status, thumbnailBuffer, cam });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/conditionerstate", async (_, res, next) => {
+    try {
+        res.send(await conditioner.getState());
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/turnconditioner", async (req, res, next) => {
+    try {
+        if (req.body.enabled) {
+            await conditioner.turnOn();
+        } else {
+            await conditioner.turnOff();
+        }
+
+        await sleep(5000);
+
+        const updatedState = await conditioner.getState();
+
+        if ((req.body.enabled && updatedState.state !== "off") || (!req.body.enabled && updatedState.state === "off")) {
+            res.send({ message: "Success" });
+            return;
+        }
+        throw new Error("State was not updated");
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/setconditionermode", async (req, res, next) => {
+    try {
+        await conditioner.setMode(req.body.mode);
+
+        await sleep(5000);
+
+        if ((await conditioner.getState()).state === req.body.mode) {
+            res.send({ message: "Success" });
+        }
+        throw new Error("Mode was not updated");
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/setconditionertemperature", async (req, res, next) => {
+    try {
+        await conditioner.setTemperature(req.body.temperature);
+
+        await sleep(5000);
+
+        if ((await conditioner.getState()).attributes.temperature === req.body.temperature) {
+            res.send({ message: "Success" });
+        }
+        throw new Error("Temperature was not updated");
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/addconditionertemperature", async (req, res, next) => {
+    try {
+        const initialState = await conditioner.getState();
+        const newTemperature = initialState.attributes.temperature + req.body.diff;
+        await conditioner.setTemperature(newTemperature);
+
+        res.send({ message: "Queued" });
     } catch (error) {
         next(error);
     }

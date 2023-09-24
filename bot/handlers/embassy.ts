@@ -2,6 +2,7 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
+import { ConditionerMode, ConditionerStatus } from "../../services/home";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
@@ -365,6 +366,128 @@ export default class EmbassyHanlers {
         } catch (error) {
             logger.error(error);
             !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.fail"), msg));
+        }
+    }
+
+    static async conditionerHandler(bot: HackerEmbassyBot, msg: Message) {
+        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        let text = t("embassy.conditioner.unavailable");
+
+        const inlineKeyboard = [
+            [
+                {
+                    text: t("embassy.conditioner.buttons.turnon"),
+                    callback_data: JSON.stringify({ command: "/turnconditioneron" }),
+                },
+                {
+                    text: t("embassy.conditioner.buttons.turnoff"),
+                    callback_data: JSON.stringify({ command: "/turnconditioneroff" }),
+                },
+            ],
+            [
+                {
+                    text: t("embassy.conditioner.buttons.more"),
+                    callback_data: JSON.stringify({ command: "/addconditionertemp", diff: 1 }),
+                },
+                {
+                    text: t("embassy.conditioner.buttons.less"),
+                    callback_data: JSON.stringify({ command: "/addconditionertemp", diff: -1 }),
+                },
+            ],
+            [
+                {
+                    text: t("embassy.conditioner.buttons.auto"),
+                    callback_data: JSON.stringify({ command: "/setconditionermode", mode: "heat_cool" }),
+                },
+                {
+                    text: t("embassy.conditioner.buttons.heat"),
+                    callback_data: JSON.stringify({ command: "/setconditionermode", mode: "heat" }),
+                },
+                {
+                    text: t("embassy.conditioner.buttons.cool"),
+                    callback_data: JSON.stringify({ command: "/setconditionermode", mode: "cool" }),
+                },
+                {
+                    text: t("embassy.conditioner.buttons.dry"),
+                    callback_data: JSON.stringify({ command: "/setconditionermode", mode: "dry" }),
+                },
+            ],
+            [
+                {
+                    text: t("status.buttons.refresh"),
+                    callback_data: JSON.stringify({ command: "/uconditioner" }),
+                },
+                {
+                    text: t("basic.control.buttons.back"),
+                    callback_data: JSON.stringify({ command: "/controlpanel" }),
+                },
+            ],
+        ];
+
+        try {
+            const conditionerStatus: ConditionerStatus = await (
+                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/conditionerstate`)
+            )?.json();
+            if (!conditionerStatus || conditionerStatus.error) throw Error();
+
+            text = t("embassy.conditioner.status", { conditionerStatus });
+        } catch (error) {
+            logger.error(error);
+        } finally {
+            await bot.sendOrEditMessage(
+                msg.chat.id,
+                text,
+                msg,
+                {
+                    reply_markup: {
+                        inline_keyboard: inlineKeyboard,
+                    },
+                },
+                msg.message_id
+            );
+        }
+    }
+
+    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
+        EmbassyHanlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
+    }
+
+    static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, diff: number) {
+        if (isNaN(diff)) throw Error();
+        EmbassyHanlers.controlConditioner(bot, msg, "addconditionertemperature", { diff });
+    }
+
+    static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
+        if (isNaN(temperature)) throw Error();
+        EmbassyHanlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
+    }
+
+    static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
+        EmbassyHanlers.controlConditioner(bot, msg, "setconditionermode", { mode });
+    }
+
+    static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+        let text = t("embassy.conditioner.success");
+
+        try {
+            const status = await (
+                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${endpoint}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(body),
+                })
+            )?.json();
+
+            if (!status || status.error) throw Error();
+        } catch (error) {
+            logger.error(error);
+            text = t("embassy.conditioner.fail");
+        } finally {
+            await bot.sendMessageExt(msg.chat.id, text, msg);
         }
     }
 }

@@ -132,6 +132,7 @@ basic:
             webcam2: 📹 II этаж
             doorcam: 📹 Вход
             superstatus: 🩻 Суперстатус
+            conditioner: ❄️ Кондей
             back: ↩️ Назад
     info:
         text: |
@@ -210,6 +211,30 @@ embassy:
         secretdata: |
             Оргийная 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%
         nodata: 🌚 Данные о климате недоступны
+    conditioner:
+        status: |
+            ❄️ Статус кондея Midea:
+            Режим: {{conditionerStatus.state}}
+            Целевая температура: {{conditionerStatus.attributes.temperature}}°C
+            Текущая температура: {{conditionerStatus.attributes.current_temperature}}°C
+
+            ℹ️ Команды:
+            /mideaon - Врубить
+            /mideaoff - Вырубить
+            #`/mideamode cool#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/mideatemp 24#` - Целевая температура (16-28°C)
+        success: ✅ Получилось
+        fail: ⚠️ Не вышло
+        unavailable: ⚠️ Кондей недоступен
+        buttons:
+            turnon: 🌀 Включить
+            turnoff: ⛔️ Выключить
+            more: 🔼 +1°C
+            less: 🔽 -1°C
+            auto: ♻️ Auto
+            heat: 🔥 Heat
+            cool: 🥶 Cool
+            dry: ♨️ Dry
     printers:
         help: |
             🖨 У нас есть два 3D принтера:

@@ -7,6 +7,7 @@ import * as CoinsHelper from "../../resources/coins/coins";
 import * as Commands from "../../resources/commands";
 import { getNClosestEventsFromCalendar } from "../../services/eventsFromCalendarExporter";
 import t from "../../services/localization";
+import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { isMessageFromPrivateChat } from "../bot-helpers";
@@ -273,17 +274,18 @@ export default class BasicHandlers {
         );
     }
 
-    static async getUpcomingEvents(bot: HackerEmbassyBot, msg: Message) {
+    static async getEventsHandler(bot: HackerEmbassyBot, msg: Message) {
         const events = await getNClosestEventsFromCalendar(5);
-        if (!(typeof events === "undefined")) {
-            let messageText: string = "";
+        let messageText: string = "";
+        if (events) {
             for (const event of events) {
                 messageText += TextGenerators.HSEventToString(event);
                 messageText += "\n\n";
             }
-            bot.sendMessage(msg.chat.id, messageText, msg);
         } else {
-            throw Error("Something went wrong when fetching from calendar");
+            messageText += "Couldn't retrieve events from the calendar";
+            logger.error("Couldn't retrieve events from the calendar");
         }
+        bot.sendMessage(msg.chat.id, messageText, msg);
     }
 }

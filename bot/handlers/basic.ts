@@ -5,7 +5,9 @@ import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import * as CoinsHelper from "../../resources/coins/coins";
 import * as Commands from "../../resources/commands";
+import { getNClosestEventsFromCalendar } from "../../services/googleCalendar";
 import t from "../../services/localization";
+import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { isMessageFromPrivateChat } from "../bot-helpers";
@@ -274,5 +276,20 @@ export default class BasicHandlers {
             },
             msg.message_id
         );
+    }
+
+    static async getEventsHandler(bot: HackerEmbassyBot, msg: Message) {
+        const events = await getNClosestEventsFromCalendar(5);
+        let messageText: string = "";
+        if (events) {
+            for (const event of events) {
+                messageText += TextGenerators.HSEventToString(event);
+                messageText += "\n\n";
+            }
+        } else {
+            messageText += "Couldn't retrieve events from the calendar";
+            logger.error("Couldn't retrieve events from the calendar");
+        }
+        bot.sendMessageExt(msg.chat.id, messageText, msg, { parse_mode: "HTML", disable_web_page_preview: true });
     }
 }

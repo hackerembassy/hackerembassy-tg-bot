@@ -9,6 +9,7 @@ import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
+import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./home";
 import t from "./localization";
 import { PrinterStatus } from "./printer3d";
@@ -389,4 +390,12 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
     const hours = `${usertime.hours}h`.padStart(3, " ");
     const minutes = `${usertime.minutes}m`.padStart(3, " ");
     return `${days} ${hours} ${minutes}`;
+}
+
+export function HSEventToString(event: HSEvent) {
+    let retString = `${event.summary}: ${event.start.toLocaleString()} - ${event.end.toLocaleString()}`;
+    if (event.description) {
+        retString += `\n${event.description}`;
+    }
+    return retString;
 }

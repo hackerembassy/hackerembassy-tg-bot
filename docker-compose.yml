@@ -10,6 +10,7 @@ services:
       - BOTDEBUG=true
       - HACKERBOTTOKEN=$HACKERBOTTOKEN
       - UNLOCKKEY=$UNLOCKKEY
+      - HACKERGOOGLEAPIKEY=$HACKERGOOGLEAPIKEY
 volumes:
   data:
     name: "hackerembassy-bot-data"

@@ -9,7 +9,7 @@ import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
-import { HSEvent } from "./eventsFromCalendarExporter";
+import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./home";
 import t from "./localization";
 import { PrinterStatus } from "./printer3d";

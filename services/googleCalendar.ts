@@ -49,6 +49,7 @@ function isRecurrenceFieldIllFormed(occurenceEventField: any) {
     return Array.isArray(occurenceEventField) && occurenceEventField.length > 1;
 }
 
+// Had to write this function because Google Calendar returnes malformed answers
 function extractICalDateFromExdate(exdateString: string): string | null {
     const exdateToken = "EXDATE;";
     const index = exdateString.indexOf(exdateToken);
@@ -58,6 +59,7 @@ function extractICalDateFromExdate(exdateString: string): string | null {
     return exdateString.slice(index + exdateToken.length, exdateString.length);
 }
 
+// And this one too
 function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Array<Date> {
     if (!event.recurrence) {
         return new Array(new Date(event.start.dateTime));

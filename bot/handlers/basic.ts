@@ -5,7 +5,7 @@ import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import * as CoinsHelper from "../../resources/coins/coins";
 import * as Commands from "../../resources/commands";
-import { getNClosestEventsFromCalendar } from "../../services/eventsFromCalendarExporter";
+import { getNClosestEventsFromCalendar } from "../../services/googleCalendar";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";

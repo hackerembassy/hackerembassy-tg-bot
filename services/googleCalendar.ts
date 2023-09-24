@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import { RRuleSet, rrulestr } from "rrule";
 
 import { BotConfig } from "../config/schema";
+import logger from "./logger";
 
 const botConfig = config.get("bot") as BotConfig;
 const calendarURL = new URL(botConfig.calendarUrl);
@@ -45,6 +46,7 @@ async function getEventsJSON(calendarID: string) {
     return json;
 }
 
+// Recurrence field in Google calendar events is illformed if EXDATE is used and rrule can't parse it
 function isRecurrenceFieldIllFormed(occurenceEventField: any) {
     return Array.isArray(occurenceEventField) && occurenceEventField.length > 1;
 }
@@ -62,7 +64,7 @@ function extractICalDateFromExdate(exdateString: string): string | null {
 // And this one too
 function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Array<Date> {
     if (!event.recurrence) {
-        return new Array(new Date(event.start.dateTime));
+        return [new Date(event.start.dateTime)];
     }
     const rruleset: RRuleSet = new RRuleSet();
     const recurrenceRRuleStr = isRecurrenceFieldIllFormed(event.recurrence) ? event.recurrence?.[1] : event.recurrence?.[0];
@@ -75,11 +77,11 @@ function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Ar
     if (isRecurrenceFieldIllFormed(event.recurrence)) {
         const exdateStr = extractICalDateFromExdate(event.recurrence![0]);
         if (!exdateStr) {
-            console.log(event.recurrence);
+            logger.error(`Got unexpeted recurrence field: ${event.recurrence}`);
             throw Error("Incorrect RRule format in Calendar!");
         }
-        const format = "'TZID='z':'yyyyMMdd'T'HHmmss";
-        const exDateTime = DateTime.fromFormat(exdateStr, format);
+        const exDateFormat = "'TZID='z':'yyyyMMdd'T'HHmmss";
+        const exDateTime = DateTime.fromFormat(exdateStr, exDateFormat);
         rruleset.exdate(exDateTime.toJSDate());
     }
     const timeInterval = new Date();
@@ -87,6 +89,7 @@ function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Ar
     return rruleset.between(new Date(), timeInterval);
 }
 
+// TODO: rewrite this
 function getEventsMap<T extends HSEventFromJSON, U extends { items: T[] }>(eventsJson: U): Map<number, HSEvent> {
     const eventsMap = new Map<number, HSEvent>();
     const currentDT = new Date();
@@ -108,24 +111,18 @@ function getEventsMap<T extends HSEventFromJSON, U extends { items: T[] }>(event
             }
         }
     }
-    return new Map([...eventsMap].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
+    return new Map([...eventsMap].sort((a, b) => a[0] - b[0]));
 }
 
 export async function getNClosestEventsFromCalendar(numberOfEvents: number): Promise<Array<HSEvent> | undefined> {
     const eventsJson = await getEventsJSON(calendarID);
     try {
-        const retVal = [];
-        let i = 0;
-        for (const [, event] of getEventsMap(eventsJson)) {
-            retVal.push(event);
-            i++;
-            if (i === numberOfEvents) {
-                break;
-            }
-        }
-        return retVal;
+        return [...getEventsMap(eventsJson)]
+            .sort((a, b) => a[0] - b[0])
+            .slice(0, numberOfEvents)
+            .map(a => a[1]);
     } catch (error) {
-        console.error(error);
-        return undefined;
+        logger.error(error);
+        return;
     }
 }

@@ -286,6 +286,6 @@ export default class BasicHandlers {
             messageText += "Couldn't retrieve events from the calendar";
             logger.error("Couldn't retrieve events from the calendar");
         }
-        bot.sendMessage(msg.chat.id, messageText, msg);
+        bot.sendMessageExt(msg.chat.id, messageText, msg, { parse_mode: "HTML", disable_web_page_preview: true });
     }
 }

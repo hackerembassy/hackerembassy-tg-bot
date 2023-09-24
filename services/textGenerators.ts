@@ -394,7 +394,7 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
 
 export function HSEventToString(event: HSEvent) {
     let retString = `${event.summary}: ${event.start.toLocaleString()} - ${event.end.toLocaleString()}`;
-    if (!(typeof event.description === "undefined")) {
+    if (event.description) {
         retString += `\n${event.description}`;
     }
     return retString;

@@ -67,8 +67,10 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     );
     bot.onTextExt(rc.command(["out", "iamleaving"]), StatusHandlers.outHandler);
     bot.onTextExt(rc.command(["evict", "outforceall"]), StatusHandlers.evictHandler, ["member"]);
-    bot.onTextExt(rc.command(["going", "g"], /(.*)/), (bot, msg, match) => StatusHandlers.goingHandler(bot, msg, match[1]));
-    bot.onTextExt(rc.command(["notgoing", "ng"]), StatusHandlers.notGoingHandler);
+    bot.onTextExt(rc.command(["going", "coming", "cuming", "g"], /(.*)/), (bot, msg, match) =>
+        StatusHandlers.goingHandler(bot, msg, match[1])
+    );
+    bot.onTextExt(rc.command(["notgoing", "notcoming", "notcuming", "ng"]), StatusHandlers.notGoingHandler);
     bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), async (bot, msg, match) =>
         StatusHandlers.autoinsideHandler(bot, msg, match[1])
     );

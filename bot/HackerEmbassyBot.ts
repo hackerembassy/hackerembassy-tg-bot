@@ -303,8 +303,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
 
-        console.log(preparedText);
-
         if (!msg || !this.context(msg)?.mode?.silent) {
             const message = await this.sendMessage(chatId, preparedText, {
                 ...options,

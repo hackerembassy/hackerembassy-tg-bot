@@ -279,17 +279,22 @@ export default class BasicHandlers {
     }
 
     static async getEventsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const events = await getNClosestEventsFromCalendar(5);
-        let messageText: string = "";
-        if (events) {
+        let messageText: string = t("basic.events.upcoming") + "\n";
+
+        try {
+            const events = await getNClosestEventsFromCalendar(5);
+
+            if (!events || events.length === 0) throw new Error();
+
             for (const event of events) {
                 messageText += TextGenerators.HSEventToString(event);
                 messageText += "\n\n";
             }
-        } else {
-            messageText += "Couldn't retrieve events from the calendar";
-            logger.error("Couldn't retrieve events from the calendar");
+        } catch (error) {
+            messageText = t("basic.events.error");
+            logger.error(error);
+        } finally {
+            bot.sendMessageExt(msg.chat.id, messageText, msg);
         }
-        bot.sendMessageExt(msg.chat.id, messageText, msg, { parse_mode: "HTML", disable_web_page_preview: true });
     }
 }

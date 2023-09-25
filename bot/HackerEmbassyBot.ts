@@ -52,6 +52,14 @@ export interface BotMessageContext {
 }
 
 // Helpers
+
+/**
+ * Bot uses MarkdownV2 by default, because it's needed for almost every command.
+ * But we still want to be able to use markdown special symbols as regular symbols in some cases.
+ * To allow this we prefix these symbols with # when we need them to be used as markup.
+ * @param message where functional markup symbols are escaped with #
+ * @returns string where these are converted to a usual Markdownv2 format
+ */
 function prepareMessageForMarkdown(message: string): string {
     return message
         .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
@@ -294,6 +302,8 @@ export default class HackerEmbassyBot extends TelegramBot {
     ): Promise<Nullable<TelegramBot.Message>> {
         const preparedText = prepareMessageForMarkdown(text);
         options = prepareOptionsForMarkdown({ ...options });
+
+        console.log(preparedText);
 
         if (!msg || !this.context(msg)?.mode?.silent) {
             const message = await this.sendMessage(chatId, preparedText, {

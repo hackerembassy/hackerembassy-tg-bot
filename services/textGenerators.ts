@@ -9,6 +9,7 @@ import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, shortDateTimeOptions } from "../utils/date";
+import { toEscapedTelegramMarkdown } from "../utils/text";
 import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./home";
 import t from "./localization";
@@ -393,13 +394,13 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
 }
 
 export function HSEventToString(event: HSEvent): string {
-    let result = `${event.summary}: ${(event.start.toLocaleString("RU-ru"), shortDateTimeOptions)} - ${event.end.toLocaleString(
+    let result = `${event.summary}: ${event.start.toLocaleString("RU-ru", shortDateTimeOptions)} - ${event.end.toLocaleString(
         "RU-ru",
         shortDateTimeOptions
     )}`;
 
     if (event.description) {
-        result += `\n${event.description}`;
+        result += `\n${toEscapedTelegramMarkdown(event.description)}`;
     }
 
     return result;

@@ -54,9 +54,9 @@ function isRecurrenceFieldIllFormed(occurenceEventField: any) {
 function extractICalDateFromExdate(exdateString: string): string | null {
     const exdateToken = "EXDATE;";
     const index = exdateString.indexOf(exdateToken);
-    if (index === -1) {
-        return null;
-    }
+
+    if (index === -1) return null;
+
     return exdateString.slice(index + exdateToken.length, exdateString.length);
 }
 
@@ -65,6 +65,7 @@ function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Ar
     if (!event.recurrence) {
         return [new Date(event.start.dateTime)];
     }
+
     const rruleset: RRuleSet = new RRuleSet();
     const recurrenceRRuleStr = isRecurrenceFieldIllFormed(event.recurrence) ? event.recurrence?.[1] : event.recurrence?.[0];
     rruleset.rrule(
@@ -73,6 +74,7 @@ function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Ar
             cache: true,
         })
     );
+
     if (isRecurrenceFieldIllFormed(event.recurrence)) {
         const exdateStr = extractICalDateFromExdate(event.recurrence![0]);
         if (!exdateStr) {
@@ -83,45 +85,52 @@ function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Ar
         const exDateTime = DateTime.fromFormat(exdateStr, exDateFormat);
         rruleset.exdate(exDateTime.toJSDate());
     }
+
     const timeInterval = new Date();
     timeInterval.setMonth(timeInterval.getMonth() + 3);
     return rruleset.between(new Date(), timeInterval);
 }
 
 // TODO: rewrite this
-function getEventsMap<T extends HSEventFromJSON, U extends { items: T[] }>(eventsJson: U): Map<number, HSEvent> {
+function getEventsMap(eventsJson: { items: HSEventFromJSON[] }): Map<number, HSEvent> {
     const eventsMap = new Map<number, HSEvent>();
-    const currentDT = new Date();
+    const currentDate = new Date();
+
     for (const event of eventsJson.items) {
-        const startDT = new Date(event.start.dateTime);
-        const endDT = new Date(event.end.dateTime);
-        const eventDuration = endDT.valueOf() - startDT.valueOf();
+        const startDate = new Date(event.start.dateTime);
+        const endDate = new Date(event.end.dateTime);
+        const eventDuration = endDate.valueOf() - startDate.valueOf();
         const ocurrencesDates = getAllEventOcurrencesFromEvent(event);
+
         for (const ocurrenceDate of ocurrencesDates) {
-            const diff = ocurrenceDate.valueOf() - currentDT.valueOf();
+            const diff = ocurrenceDate.valueOf() - currentDate.valueOf();
+
             if (diff > 0) {
-                const ocurrenceEndDT = new Date(ocurrenceDate.valueOf() + eventDuration);
+                const ocurrenceEndDate = new Date(ocurrenceDate.valueOf() + eventDuration);
+
                 eventsMap.set(diff, {
                     summary: event.summary,
                     description: event.description,
                     start: ocurrenceDate,
-                    end: ocurrenceEndDT,
+                    end: ocurrenceEndDate,
                 });
             }
         }
     }
-    return new Map([...eventsMap].sort((a, b) => a[0] - b[0]));
+
+    return eventsMap;
 }
 
-export async function getNClosestEventsFromCalendar(numberOfEvents: number): Promise<Array<HSEvent> | undefined> {
-    const eventsJson = await getEventsJSON(calendarID);
+export async function getNClosestEventsFromCalendar(numberOfEvents: number): Promise<Nullable<HSEvent[]>> {
     try {
+        const eventsJson = await getEventsJSON(calendarID);
+
         return [...getEventsMap(eventsJson)]
             .sort((a, b) => a[0] - b[0])
             .slice(0, numberOfEvents)
             .map(a => a[1]);
     } catch (error) {
         logger.error(error);
-        return;
+        return null;
     }
 }

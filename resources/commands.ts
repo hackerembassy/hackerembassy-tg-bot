@@ -5,6 +5,7 @@ export const GeneralCommandsList: string = `
 /about - О спейсе и боте
 /join - Как присоединиться к нам
 /events - Наши мероприятия
+/upcoming - Ближайшие мероприятия
 /donate - Как задонатить
 /location - Как нас найти
 /getresidents - Наши резиденты, можно к ним обратиться по любым спейсовским вопросам

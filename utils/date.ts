@@ -16,6 +16,11 @@ export interface ElapsedTimeObject {
     totalSeconds: number;
 }
 
+export const shortDateTimeOptions: Intl.DateTimeFormatOptions = {
+    dateStyle: "short",
+    timeStyle: "short",
+};
+
 export function toDateObject(date: Date): DateObject {
     return { day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear() };
 }

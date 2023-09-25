@@ -8,7 +8,7 @@ import User from "../models/User";
 import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
-import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
+import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, shortDateTimeOptions } from "../utils/date";
 import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./home";
 import t from "./localization";
@@ -392,10 +392,15 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
     return `${days} ${hours} ${minutes}`;
 }
 
-export function HSEventToString(event: HSEvent) {
-    let retString = `${event.summary}: ${event.start.toLocaleString()} - ${event.end.toLocaleString()}`;
+export function HSEventToString(event: HSEvent): string {
+    let result = `${event.summary}: ${(event.start.toLocaleString("RU-ru"), shortDateTimeOptions)} - ${event.end.toLocaleString(
+        "RU-ru",
+        shortDateTimeOptions
+    )}`;
+
     if (event.description) {
-        retString += `\n${event.description}`;
+        result += `\n${event.description}`;
     }
-    return retString;
+
+    return result;
 }

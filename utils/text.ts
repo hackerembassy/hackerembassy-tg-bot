@@ -16,13 +16,10 @@ export function equalsIns(str1: Nullable<string>, str2: Nullable<string>): boole
  * @returns string in Markdownv2 format where all markdown tags are escaped with # symbol
  */
 export function toEscapedTelegramMarkdown(text: string): string {
-    return (
-        NodeHtmlMarkdown.translate(text, {
-            useInlineLinks: false,
-        })
-            .replaceAll(/https?:\/\/t\.me/g, "t.me")
-            .replaceAll(/\[t\.me\/(.*?)\]/g, "[$1]")
-            // eslint-disable-next-line no-useless-escape
-            .replaceAll(/([\(\)\[\]`\*_~])/g, "#$1")
-    );
+    return NodeHtmlMarkdown.translate(text, {
+        useInlineLinks: false,
+    })
+        .replaceAll(/https?:\/\/t\.me/g, "t.me")
+        .replaceAll(/\[t\.me\/(.*?)\]/g, "[$1]")
+        .replaceAll(/\[(.*?)\]\((.*?)\)/g, "#[$1#]#($2#)");
 }

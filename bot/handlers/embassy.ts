@@ -284,12 +284,12 @@ export default class EmbassyHanlers {
                 ],
             ];
 
-            if (thumbnailBuffer)
-                await bot.sendPhotoExt(msg.chat.id, Buffer.from(thumbnailBuffer), msg, {
+            if (thumbnailBuffer) {
+                await bot.sendOrEditPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), msg, {
                     caption: caption,
                     reply_markup: { inline_keyboard },
                 });
-            else await bot.sendMessageExt(msg.chat.id, caption, msg, { reply_markup: { inline_keyboard } });
+            } else await bot.sendOrEditMessage(msg.chat.id, caption, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
         } catch (error) {
             logger.error(error);
             await bot.sendMessageExt(msg.chat.id, t("embassy.printerstatus.fail"), msg);

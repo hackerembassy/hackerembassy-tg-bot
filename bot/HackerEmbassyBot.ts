@@ -12,6 +12,7 @@ import {
     InputMediaPhoto,
     Message,
     SendMessageOptions,
+    SendPhotoOptions,
 } from "node-telegram-bot-api";
 import { EventEmitter } from "stream";
 import { file } from "tmp-promise";
@@ -256,15 +257,27 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         const imageOption = { type: "photo", media: `attach://${path}` } as InputMediaPhoto;
 
-        const message = await super.editMessageMedia(imageOption, {
+        const inlineKeyboard = this.context(msg).mode?.static ? [] : options.reply_markup.inline_keyboard;
+
+        let message: Message | boolean = false;
+
+        message = await super.editMessageMedia(imageOption, {
             ...options,
             reply_markup: {
-                inline_keyboard: this.context(msg).mode?.static ? [] : options.reply_markup.inline_keyboard,
+                inline_keyboard: inlineKeyboard,
             },
             chat_id: msg.chat.id,
             message_id: msg.message_id,
             message_thread_id: this.context(msg).messageThreadId,
         } as any);
+
+        if (options.caption) {
+            await super.editMessageCaption(options.caption, {
+                chat_id: msg.chat.id,
+                message_id: msg.message_id,
+                reply_markup: { inline_keyboard: inlineKeyboard },
+            });
+        }
 
         cleanup();
 
@@ -435,6 +448,31 @@ ${chunks[index]}
             }
         } else {
             return this.sendMessageExt(chatId, text, msg, options as SendMessageOptions);
+        }
+
+        return null;
+    }
+
+    async sendOrEditPhoto(
+        chatId: number,
+        photo: Buffer | ArrayBuffer,
+        msg: TelegramBot.Message,
+        options: TelegramBot.SendPhotoOptions
+    ): Promise<Message | boolean | null> {
+        if (this.context(msg).isEditing) {
+            try {
+                return await this.editPhoto(photo, msg, {
+                    chat_id: chatId,
+                    message_id: msg.message_id,
+                    ...options,
+                } as TelegramBot.EditMessageTextOptions);
+            } catch {
+                // Message was not modified
+            } finally {
+                this.context(msg).isEditing = false;
+            }
+        } else {
+            return this.sendPhotoExt(chatId, photo as Buffer, msg, options as SendPhotoOptions);
         }
 
         return null;

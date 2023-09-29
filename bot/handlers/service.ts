@@ -262,10 +262,14 @@ export default class ServiceHandlers {
                 break;
             case "/printerstatus anette":
             case "/anettestatus":
+                bot.context(msg).isEditing = true;
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.printerStatusHandler(bot, msg, "anette");
                 break;
             case "/printerstatus plumbus":
             case "/plumbusstatus":
+                bot.context(msg).isEditing = true;
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus");
                 break;
             case "/uconditioner":

@@ -18,6 +18,8 @@ export function equalsIns(str1: Nullable<string>, str2: Nullable<string>): boole
 export function toEscapedTelegramMarkdown(text: string): string {
     return NodeHtmlMarkdown.translate(text, {
         useInlineLinks: false,
+        strongDelimiter: "#*",
+        emDelimiter: "#_",
     })
         .replaceAll(/https?:\/\/t\.me/g, "t.me")
         .replaceAll(/\[t\.me\/(.*?)\]/g, "[$1]")

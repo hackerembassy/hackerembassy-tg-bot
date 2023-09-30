@@ -31,6 +31,7 @@ const botConfig = config.get("bot") as BotConfig;
 const maxChunkSize = 3500;
 const messagedelay = 1500;
 const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
+const defaultForwardTarget = botConfig.chats.main;
 
 // Types
 export type BotRole = "admin" | "member" | "accountant" | "default";
@@ -204,7 +205,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         fileOptions: TelegramBot.FileOptions = {}
     ): Promise<TelegramBot.Message> {
         const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? botConfig.chats.key : chatId;
+        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
@@ -235,7 +236,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: any = {}
     ): Promise<TelegramBot.Message> {
         const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? botConfig.chats.key : chatId;
+        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
@@ -332,7 +333,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options = prepareOptionsForMarkdown({ ...options });
 
         const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? botConfig.chats.key : chatId;
+        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
         const inline_keyboard = mode?.static ? [] : (options?.reply_markup as InlineKeyboardMarkup)?.inline_keyboard;
         const message_thread_id = msg ? this.context(msg)?.messageThreadId : undefined;
 
@@ -362,7 +363,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: TelegramBot.SendChatActionOptions = {}
     ): Promise<boolean> {
         const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? botConfig.chats.key : chatId;
+        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
 
         return super.sendChatAction(chatIdToUse, action, {
             ...options,

@@ -10,7 +10,7 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-import { isMessageFromPrivateChat } from "../bot-helpers";
+import { isPrivateMessage } from "../bot-helpers";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 const botConfig = config.get("bot") as BotConfig;
@@ -39,7 +39,7 @@ export default class BasicHandlers {
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
-                inline_keyboard: isMessageFromPrivateChat(msg)
+                inline_keyboard: isPrivateMessage(msg, bot.context(msg))
                     ? [
                           [
                               {

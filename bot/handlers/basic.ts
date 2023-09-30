@@ -35,7 +35,7 @@ export default class BasicHandlers {
     }
 
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const message = TextGenerators.getEventsText(false, botConfig.calendarAppLink);
+        const message = TextGenerators.getEventsText(false, botConfig.calendar.appLink);
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
@@ -45,7 +45,7 @@ export default class BasicHandlers {
                               {
                                   text: t("basic.events.opencalendar"),
                                   web_app: {
-                                      url: botConfig.calendarUrl,
+                                      url: botConfig.calendar.appLink,
                                   },
                               },
                           ],
@@ -282,7 +282,7 @@ export default class BasicHandlers {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
         try {
-            const events = await getNClosestEventsFromCalendar(5);
+            const events = await getNClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad ?? 5);
 
             if (!events || events.length === 0) throw new Error();
 

@@ -15,10 +15,15 @@ export interface BotConfig {
     logfolderpath: string;
     persistedfolderpath: string;
     maxchathistory: number;
-    calendarUrl: string;
-    calendarAppLink: string;
+    calendar: CalendarConfig;
     locales: string;
     liveRefreshInterval: number;
+}
+
+export interface CalendarConfig {
+    url: string;
+    appLink: string;
+    upcomingToLoad: number;
 }
 
 export interface ChatsConfig {

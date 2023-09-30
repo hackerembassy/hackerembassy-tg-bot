@@ -7,7 +7,7 @@ import { BotConfig } from "../config/schema";
 import logger from "./logger";
 
 const botConfig = config.get("bot") as BotConfig;
-const calendarURL = new URL(botConfig.calendarUrl);
+const calendarURL = new URL(botConfig.calendar.url);
 const calendarID: string = calendarURL.searchParams.get("src")!;
 
 export type HSEvent = {
@@ -16,6 +16,8 @@ export type HSEvent = {
     start: Date;
     end: Date;
 };
+
+type CalendarListResponse = { items: HSEventFromJSON[] };
 
 type JsonDate = {
     dateTime: string;
@@ -30,14 +32,23 @@ type HSEventFromJSON = {
     recurrence?: string[];
 };
 
-async function getEventsJSON(calendarID: string) {
+async function getEventsJSON(
+    calendarID: string,
+    numberOfEvents: number = 5,
+    fromDate: Date = new Date(0)
+): Promise<CalendarListResponse> {
     const apiKey = process.env["HACKERGOOGLEAPIKEY"];
+    const dateMin = fromDate.toISOString();
+
     if (!apiKey) {
         throw Error("No Google API key is provided");
     }
-    const result = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarID}/events?key=${apiKey}`, {
-        method: "GET",
-    });
+    const result = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${calendarID}/events?key=${apiKey}&maxResults=${numberOfEvents}&singleEvents=true&orderBy=startTime&timeMin=${dateMin}`,
+        {
+            method: "GET",
+        }
+    );
     const json = await result.json();
     if (!json) {
         throw Error("Something went wrong when fetching calendar from Google API");
@@ -46,11 +57,13 @@ async function getEventsJSON(calendarID: string) {
 }
 
 // Recurrence field in Google calendar events is illformed if EXDATE is used and rrule can't parse it
+/** @deprecated */
 function isRecurrenceFieldIllFormed(occurenceEventField: any) {
     return Array.isArray(occurenceEventField) && occurenceEventField.length > 1;
 }
 
 // Had to write this function because Google Calendar returnes malformed answers
+/** @deprecated */
 function extractICalDateFromExdate(exdateString: string): string | null {
     const exdateToken = "EXDATE;";
     const index = exdateString.indexOf(exdateToken);
@@ -61,6 +74,7 @@ function extractICalDateFromExdate(exdateString: string): string | null {
 }
 
 // And this one too
+/** @deprecated */
 function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Array<Date> {
     if (!event.recurrence) {
         return [new Date(event.start.dateTime)];
@@ -91,8 +105,10 @@ function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Ar
     return rruleset.between(new Date(), timeInterval);
 }
 
+/** @deprecated */
 // TODO: rewrite this
-function getEventsMap(eventsJson: { items: HSEventFromJSON[] }): Map<number, HSEvent> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getEventsMap(eventsJson: CalendarListResponse): Map<number, HSEvent> {
     const eventsMap = new Map<number, HSEvent>();
     const currentDate = new Date();
 
@@ -123,12 +139,14 @@ function getEventsMap(eventsJson: { items: HSEventFromJSON[] }): Map<number, HSE
 
 export async function getNClosestEventsFromCalendar(numberOfEvents: number): Promise<Nullable<HSEvent[]>> {
     try {
-        const eventsJson = await getEventsJSON(calendarID);
+        const eventsJson = await getEventsJSON(calendarID, numberOfEvents, new Date());
 
-        return [...getEventsMap(eventsJson)]
-            .sort((a, b) => a[0] - b[0])
-            .slice(0, numberOfEvents)
-            .map(a => a[1]);
+        return eventsJson.items.map((event: HSEventFromJSON) => ({
+            summary: event.summary,
+            description: event.description,
+            start: new Date(event.start.dateTime),
+            end: new Date(event.end.dateTime),
+        }));
     } catch (error) {
         logger.error(error);
         return null;

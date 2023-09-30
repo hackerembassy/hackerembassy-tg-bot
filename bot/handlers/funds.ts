@@ -9,7 +9,7 @@ import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { initConvert, parseMoneyValue, prepareCurrency } from "../../utils/currency";
 import { equalsIns } from "../../utils/text";
-import { isMessageFromPrivateChat } from "../bot-helpers";
+import { isPrivateMessage } from "../bot-helpers";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
 const CALLBACK_DATA_RESTRICTION = 23;
@@ -23,7 +23,7 @@ export default class FundsHandlers {
         const donations = FundsRepository.getDonations();
         const showAdmin =
             UsersHelper.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isMessageFromPrivateChat(msg) || bot.context(msg).isAdminMode());
+            (isPrivateMessage(msg, bot.context(msg)) || bot.context(msg).isAdminMode());
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, bot.context(msg).mode);
 
@@ -41,7 +41,7 @@ export default class FundsHandlers {
         const donations = FundsRepository.getDonationsForName(fundName);
         const showAdmin =
             UsersHelper.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isMessageFromPrivateChat(msg) || bot.context(msg).isAdminMode());
+            (isPrivateMessage(msg, bot.context(msg)) || bot.context(msg).isAdminMode());
 
         // telegram callback_data is restricted to 64 bytes
         const inlineKeyboard =
@@ -76,13 +76,14 @@ export default class FundsHandlers {
     }
 
     static async fundsallHandler(bot: HackerEmbassyBot, msg: Message) {
+        const context = bot.context(msg);
         const funds = FundsRepository.getFunds();
         const donations = FundsRepository.getDonations();
         const showAdmin =
             UsersHelper.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isMessageFromPrivateChat(msg) || bot.context(msg).isAdminMode());
+            (isPrivateMessage(msg, context) || bot.context(msg).isAdminMode());
 
-        const list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true }, bot.context(msg).mode);
+        const list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true }, context.mode);
 
         await bot.sendLongMessage(msg.chat.id, t("funds.fundsall", { list }), msg);
     }

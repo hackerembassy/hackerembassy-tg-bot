@@ -7,7 +7,7 @@ import { debounce } from "../utils/common";
 import HackerEmbassyBot, { BotCustomEvent, LiveChatHandler } from "./HackerEmbassyBot";
 import { MessageHistoryEntry } from "./MessageHistory";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 export default class BotState {
     static readonly STATE_FILE_NAME = "state.json";
@@ -47,7 +47,7 @@ export default class BotState {
     }
 
     public liveChats: LiveChatHandler[] = [];
-    public history: { [chatId: string]: MessageHistoryEntry[] };
+    public history: { [chatId: string]: Optional<MessageHistoryEntry[]> };
 
     clearLiveHandlers(chatId: number, event?: BotCustomEvent) {
         const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);

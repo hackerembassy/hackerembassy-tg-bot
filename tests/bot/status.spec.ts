@@ -4,12 +4,10 @@ import { ADMIN_USER_NAME, createBotMock, createMockMessage, GUEST_USER_NAME, pre
 describe("Bot Status commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
 
-    beforeAll(async () => {
+    beforeAll(() => {
         prepareDb();
         jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
     });
-
-    beforeEach(async () => {});
 
     test("/open should change the /status of space to opened", async () => {
         await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));

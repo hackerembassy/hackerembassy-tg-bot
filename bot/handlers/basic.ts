@@ -3,17 +3,17 @@ import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import * as CoinsHelper from "../../resources/coins/coins";
 import * as Commands from "../../resources/commands";
 import { getNClosestEventsFromCalendar } from "../../services/googleCalendar";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
+import * as CoinsHelper from "../../utils/coins";
 import { isPrivateMessage } from "../bot-helpers";
 import HackerEmbassyBot from "../HackerEmbassyBot";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -59,7 +59,7 @@ export default class BasicHandlers {
         const helpMessage = t("basic.issue.help");
         const sentMessage = t("basic.issue.sent");
         const report = t("basic.issue.report", { issue: issueText });
-        if (issueText !== undefined) {
+        if (issueText) {
             await bot.sendMessageExt(msg.chat.id, sentMessage, msg);
             await bot.sendMessageExt(botConfig.chats.key, report, msg);
         } else {
@@ -282,7 +282,7 @@ export default class BasicHandlers {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
         try {
-            const events = await getNClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad ?? 5);
+            const events = await getNClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad);
 
             if (!events || events.length === 0) throw new Error();
 

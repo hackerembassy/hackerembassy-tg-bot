@@ -18,7 +18,7 @@ import FundsHandlers from "./funds";
 import NeedsHandlers from "./needs";
 import StatusHandlers from "./status";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 export default class ServiceHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
@@ -28,9 +28,11 @@ export default class ServiceHandlers {
             ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
             : 0;
 
+        if (!orderOfLastMessage || orderOfLastMessage === -1) return;
+
         let messagesRemained = countToClear;
         while (messagesRemained > 0) {
-            const message = await bot.messageHistory.pop(msg.chat.id, orderOfLastMessage);
+            const message = bot.messageHistory.pop(msg.chat.id, orderOfLastMessage);
             if (!message) return;
 
             const success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
@@ -46,13 +48,13 @@ export default class ServiceHandlers {
             ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
             : 0;
 
-        if (orderOfLastMessageToEdit === -1) return;
+        if (!orderOfLastMessageToEdit || orderOfLastMessageToEdit === -1) return;
 
         let lastMessageToEdit: Nullable<MessageHistoryEntry>;
         let foundLast = false;
 
         do {
-            lastMessageToEdit = await bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            lastMessageToEdit = bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
             if (!lastMessageToEdit) return;
             foundLast = await bot
                 .editMessageTextExt("combining...", msg, {
@@ -69,7 +71,7 @@ export default class ServiceHandlers {
         let messagesRemained = countToCombine - 1;
 
         while (messagesRemained > 0) {
-            const message = await bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            const message = bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
             if (!message) break;
 
             const success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
@@ -279,32 +281,32 @@ export default class ServiceHandlers {
             case "/turnconditioneron":
                 if (isAllowed(EmbassyHandlers.turnConditionerHandler))
                     await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        EmbassyHandlers.turnConditionerHandler(bot, msg, true);
+                        await EmbassyHandlers.turnConditionerHandler(bot, msg, true);
                     });
                 break;
             case "/turnconditioneroff":
                 if (isAllowed(EmbassyHandlers.turnConditionerHandler))
                     await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        EmbassyHandlers.turnConditionerHandler(bot, msg, false);
+                        await EmbassyHandlers.turnConditionerHandler(bot, msg, false);
                     });
                 break;
             case "/addconditionertemp":
                 if (isAllowed(EmbassyHandlers.turnConditionerHandler))
                     await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff);
+                        await EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff);
                     });
                 break;
             case "/setconditionermode":
                 if (isAllowed(EmbassyHandlers.turnConditionerHandler))
                     await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode);
+                        await EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode);
                     });
                 break;
             case "/bought":
                 await ServiceHandlers.boughtButtonHandler(bot, msg, data.id, data);
                 break;
             case "/bought_undo":
-                if (await NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
+                if (NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
                     await bot.deleteMessage(msg.chat.id, msg.message_id);
                 }
                 break;
@@ -325,7 +327,7 @@ export default class ServiceHandlers {
     }
 
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
-        bot.editMessageReplyMarkup(
+        await bot.editMessageReplyMarkup(
             {
                 inline_keyboard: [],
             },
@@ -341,7 +343,7 @@ export default class ServiceHandlers {
         const newMembers = msg.new_chat_members?.reduce(
             (res: string, member: User) =>
                 res +
-                `${member?.username ? UsersHelper.formatUsername(member.username, bot.context(msg).mode) : member?.first_name} `,
+                `${member.username ? UsersHelper.formatUsername(member.username, bot.context(msg).mode) : member.first_name} `,
             ""
         );
 
@@ -374,7 +376,7 @@ export default class ServiceHandlers {
             (button: InlineKeyboardButton[]) => button[0].callback_data !== data
         );
 
-        if (new_keyboard.length != message.reply_markup.inline_keyboard.length) {
+        if (new_keyboard.length !== message.reply_markup.inline_keyboard.length) {
             await bot.editMessageReplyMarkup(
                 { inline_keyboard: new_keyboard },
                 {

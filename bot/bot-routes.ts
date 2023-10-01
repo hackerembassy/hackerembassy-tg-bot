@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import logger from "../services/logger";
 import HackerEmbassyBot from "./HackerEmbassyBot";
@@ -25,7 +27,7 @@ class RegexCommander {
     }
 }
 
-export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
+export function setRoutes(bot: HackerEmbassyBot): void {
     const rc = new RegexCommander(bot.Name);
 
     // Info
@@ -71,12 +73,10 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         StatusHandlers.goingHandler(bot, msg, match[1])
     );
     bot.onTextExt(rc.command(["notgoing", "notcoming", "notcuming", "ng"]), StatusHandlers.notGoingHandler);
-    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), (bot, msg, match) =>
         StatusHandlers.autoinsideHandler(bot, msg, match[1])
     );
-    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), async (bot, msg, match) =>
-        StatusHandlers.setmacHandler(bot, msg, match[1])
-    );
+    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), (bot, msg, match) => StatusHandlers.setmacHandler(bot, msg, match[1]));
     bot.onTextExt(rc.command(["superstatus", "ss"]), ServiceHandlers.superstatusHandler, ["member"]);
 
     // Stats
@@ -205,10 +205,10 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         (bot, msg, match) => FundsHandlers.removeFundHandler(bot, msg, match[1]),
         ["accountant"]
     );
-    bot.onTextExt(rc.command(["exportfund"], /(.*\S)/, false), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["exportfund"], /(.*\S)/, false), (bot, msg, match) =>
         FundsHandlers.exportCSVHandler(bot, msg, match[1])
     );
-    bot.onTextExt(rc.command(["exportdonut"], /(.*\S)/, false), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["exportdonut"], /(.*\S)/, false), (bot, msg, match) =>
         FundsHandlers.exportDonutHandler(bot, msg, match[1])
     );
     bot.onTextExt(
@@ -264,9 +264,9 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     bot.onTextExt(rc.command(["bought"], /(.*)/, false), (bot, msg, match) => NeedsHandlers.boughtHandler(bot, msg, match[1]));
 
     // Birthdays
-    bot.onTextExt(rc.command(["birthdays"]), async (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
+    bot.onTextExt(rc.command(["birthdays"]), (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
     bot.onTextExt(rc.command(["forcebirthdaywishes", "fbw"]), BirthdayHandlers.forceBirthdayWishHandler, ["admin"]);
-    bot.onTextExt(rc.command(["mybirthday"], /(.*\S)/), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["mybirthday"], /(.*\S)/), (bot, msg, match) =>
         BirthdayHandlers.myBirthdayHandler(bot, msg, match[1])
     );
 

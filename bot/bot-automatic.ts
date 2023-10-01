@@ -6,7 +6,7 @@ import BirthdayHandlers from "./handlers/birthday";
 import EmbassyHandlers from "./handlers/embassy";
 import StatusHandlers from "./handlers/status";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     EmbassyHandlers.enableStatusMonitor(bot);

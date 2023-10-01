@@ -13,8 +13,8 @@ import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot, { BotCustomEvent, BotMessageContextMode } from "../HackerEmbassyBot";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
-const botConfig = config.get("bot") as BotConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+const botConfig = config.get<BotConfig>("bot");
 
 export default class EmbassyHanlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -61,7 +61,7 @@ export default class EmbassyHanlers {
 
             const images: ArrayBuffer[] = await Promise.all(
                 filterFulfilled(camResponses)
-                    .filter(result => result.value?.status === 200)
+                    .filter(result => result.value.status === 200)
                     .map(result => result.value.arrayBuffer())
             );
 
@@ -89,7 +89,7 @@ export default class EmbassyHanlers {
     static async getWebcamImage(path: string) {
         const response = await (
             await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
-        )?.arrayBuffer();
+        ).arrayBuffer();
 
         return Buffer.from(response);
     }
@@ -100,7 +100,7 @@ export default class EmbassyHanlers {
         try {
             const webcamImage = await EmbassyHanlers.getWebcamImage(path);
 
-            const webcamInlineKeyboard = mode?.static
+            const webcamInlineKeyboard = mode.static
                 ? []
                 : [
                       [
@@ -111,12 +111,11 @@ export default class EmbassyHanlers {
                       ],
                   ];
 
-            if (webcamImage)
-                await bot.editPhoto(webcamImage, msg, {
-                    reply_markup: {
-                        inline_keyboard: webcamInlineKeyboard,
-                    },
-                });
+            await bot.editPhoto(webcamImage, msg, {
+                reply_markup: {
+                    inline_keyboard: webcamInlineKeyboard,
+                },
+            });
         } catch {
             // Skip this update
         }
@@ -143,7 +142,7 @@ export default class EmbassyHanlers {
                 ],
             ];
 
-            if (!webcamImage) throw Error("Empty webcam image");
+            if (webcamImage.byteLength === 0) throw Error("Empty webcam image");
 
             if (bot.context(msg).isEditing) {
                 await bot.editPhoto(webcamImage, msg, {
@@ -161,7 +160,7 @@ export default class EmbassyHanlers {
                 },
             });
 
-            if (mode.live && resultMessage) {
+            if (mode.live) {
                 bot.addLiveMessage(
                     resultMessage,
                     BotCustomEvent.camLive,
@@ -200,10 +199,10 @@ export default class EmbassyHanlers {
     }
 
     static async queryStatusMonitor() {
-        return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();
+        return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`)).json();
     }
 
-    static async enableStatusMonitor(bot: HackerEmbassyBot) {
+    static enableStatusMonitor(bot: HackerEmbassyBot) {
         setInterval(
             () =>
                 EmbassyHanlers.monitorHandler(bot, {
@@ -233,7 +232,7 @@ export default class EmbassyHanlers {
             ],
         ];
 
-        bot.sendMessageExt(msg.chat.id, text, msg, {
+        await bot.sendMessageExt(msg.chat.id, text, msg, {
             reply_markup: {
                 inline_keyboard: inlineKeyboard,
             },
@@ -247,7 +246,7 @@ export default class EmbassyHanlers {
 
         try {
             const climateResponse = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
-            const climateInfo = climateResponse.status === 200 ? await climateResponse?.json() : null;
+            const climateInfo = climateResponse.status === 200 ? await climateResponse.json() : null;
             if (climateInfo) {
                 message = t("embassy.climate.data", { climateInfo });
 
@@ -274,7 +273,7 @@ export default class EmbassyHanlers {
 
             if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
 
-            const caption = await TextGenerators.getPrinterStatusText(status);
+            const caption = TextGenerators.getPrinterStatusText(status);
             const inline_keyboard = [
                 [
                     {
@@ -300,7 +299,7 @@ export default class EmbassyHanlers {
         let text = t("embassy.doorbell.success");
 
         try {
-            const status = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`))?.json();
+            const status = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`)).json();
             if (!status || status.error) throw Error();
         } catch (error) {
             logger.error(error);
@@ -426,9 +425,9 @@ export default class EmbassyHanlers {
         ];
 
         try {
-            const conditionerStatus: ConditionerStatus = await (
+            const conditionerStatus: Optional<ConditionerStatus> = await (
                 await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/conditionerstate`)
-            )?.json();
+            ).json();
             if (!conditionerStatus || conditionerStatus.error) throw Error();
 
             text = t("embassy.conditioner.status", { conditionerStatus });
@@ -450,21 +449,21 @@ export default class EmbassyHanlers {
     }
 
     static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
-        EmbassyHanlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
+        await EmbassyHanlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
     }
 
     static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, diff: number) {
         if (isNaN(diff)) throw Error();
-        EmbassyHanlers.controlConditioner(bot, msg, "addconditionertemperature", { diff });
+        await EmbassyHanlers.controlConditioner(bot, msg, "addconditionertemperature", { diff });
     }
 
     static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
         if (isNaN(temperature)) throw Error();
-        EmbassyHanlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
+        await EmbassyHanlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
     }
 
     static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
-        EmbassyHanlers.controlConditioner(bot, msg, "setconditionermode", { mode });
+        await EmbassyHanlers.controlConditioner(bot, msg, "setconditionermode", { mode });
     }
 
     static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {
@@ -480,7 +479,7 @@ export default class EmbassyHanlers {
                     },
                     body: JSON.stringify(body),
                 })
-            )?.json();
+            ).json();
 
             if (!status || status.error) throw Error();
         } catch (error) {

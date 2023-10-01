@@ -3,7 +3,7 @@ import config from "config";
 import { BotConfig } from "../config/schema";
 import BotState from "./BotState";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 export type MessageHistoryEntry = {
     messageId: number;
@@ -18,23 +18,28 @@ export default class MessageHistory {
         this.botState = botState;
     }
 
-    orderOf(chatId: number, messageId: number): number {
-        return this.botState.history[chatId].findIndex(x => x.messageId === messageId);
+    orderOf(chatId: number, messageId: number): Optional<number> {
+        return this.botState.history[chatId]?.findIndex(x => x.messageId === messageId);
     }
 
     async push(chatId: string | number, messageId: number, text: string | undefined = undefined, order = 0): Promise<void> {
         if (!this.botState.history[chatId]) this.botState.history[chatId] = [];
-        if (this.botState.history[chatId].length >= botConfig.maxchathistory) this.botState.history[chatId].pop();
 
-        this.botState.history[chatId].splice(order, 0, { messageId, text, datetime: Date.now() });
+        const chatHistory = this.botState.history[chatId] as MessageHistoryEntry[];
+
+        if (chatHistory.length >= botConfig.maxchathistory) chatHistory.pop();
+
+        chatHistory.splice(order, 0, { messageId, text, datetime: Date.now() });
 
         await this.botState.persistChanges();
     }
 
-    async pop(chatId: number, from: number = 0): Promise<Nullable<MessageHistoryEntry>> {
-        if (!this.botState.history[chatId] || this.botState.history[chatId].length === 0) return null;
+    pop(chatId: number, from: number = 0): Nullable<MessageHistoryEntry> {
+        const chatHistory = this.botState.history[chatId] as MessageHistoryEntry[] | undefined;
 
-        const removed = this.botState.history[chatId].splice(from, 1)[0];
+        if (!chatHistory || chatHistory.length === 0) return null;
+
+        const removed = chatHistory.splice(from, 1)[0];
         this.botState.debouncedPersistChanges();
 
         return removed;

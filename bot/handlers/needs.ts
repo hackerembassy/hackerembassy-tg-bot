@@ -41,12 +41,11 @@ export default class NeedsHandlers {
         await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.text ?? "");
     }
 
-    static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
+    static boughtUndoHandler(_: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
 
-        if (need && need?.buyer === msg.from?.username) {
-            NeedsRepository.undoClose(need.id);
-            return true;
+        if (need && need.buyer === msg.from?.username) {
+            return NeedsRepository.undoClose(need.id);
         }
 
         return false;

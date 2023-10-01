@@ -28,12 +28,12 @@ export type PrinterStatus = {
 };
 
 export type PrinterStatusResponse = {
-    status: PrinterStatus;
+    status?: PrinterStatus;
     thumbnailBuffer: Nullable<Buffer>;
     cam: Nullable<Buffer>;
 };
 
-const printersConfig = config.get("printers") as PrintersConfig;
+const printersConfig = config.get<PrintersConfig>("printers");
 
 export default class Printer3d {
     static async getPrinterStatus(printername: string) {

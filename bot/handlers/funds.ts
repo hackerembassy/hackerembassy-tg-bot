@@ -108,11 +108,11 @@ export default class FundsHandlers {
         fundName: string,
         target: string,
         currency: string,
-        newFund: string
+        newFund?: string
     ) {
         const targetValue = parseMoneyValue(target);
         const preparedCurrency = await prepareCurrency(currency);
-        const newFundName = newFund?.length > 0 ? newFund : fundName;
+        const newFundName = newFund && newFund.length > 0 ? newFund : fundName;
 
         const success =
             !isNaN(targetValue) &&
@@ -153,7 +153,7 @@ export default class FundsHandlers {
 
         const success = FundsRepository.changeFundStatus(fundName, fundStatus);
 
-        bot.sendMessageExt(
+        await bot.sendMessageExt(
             msg.chat.id,
             success ? t("funds.changestatus.success", { fundName, fundStatus }) : t("funds.changestatus.fail"),
             msg
@@ -221,7 +221,7 @@ export default class FundsHandlers {
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
 
-        return FundsHandlers.addDonationHandler(bot, msg, valueString, currency, userName, latestCostsFund.name);
+        return await FundsHandlers.addDonationHandler(bot, msg, valueString, currency, userName, latestCostsFund.name);
     }
 
     static async showCostsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -232,7 +232,7 @@ export default class FundsHandlers {
             return;
         }
 
-        return FundsHandlers.fundHandler(bot, msg, fundName);
+        return await FundsHandlers.fundHandler(bot, msg, fundName);
     }
 
     static async showCostsDonutHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -240,7 +240,7 @@ export default class FundsHandlers {
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
 
-        return FundsHandlers.exportDonutHandler(bot, msg, latestCostsFund.name);
+        return await FundsHandlers.exportDonutHandler(bot, msg, latestCostsFund.name);
     }
 
     static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -258,7 +258,7 @@ export default class FundsHandlers {
 
         if (residents && donations) {
             for (const resident of residents) {
-                const hasDonated = donations.filter(d => equalsIns(d.username, resident.username))?.length > 0;
+                const hasDonated = donations.filter(d => equalsIns(d.username, resident.username)).length > 0;
                 resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${UsersHelper.formatUsername(resident.username)}\n`;
             }
         }
@@ -299,7 +299,7 @@ export default class FundsHandlers {
         try {
             const csvBuffer = await ExportHelper.exportFundToCSV(fundName);
 
-            if (!csvBuffer?.length) {
+            if (csvBuffer.length === 0) {
                 bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
                 return;
             }
@@ -322,7 +322,7 @@ export default class FundsHandlers {
         try {
             imageBuffer = await ExportHelper.exportFundToDonut(fundName);
 
-            if (!imageBuffer?.length) {
+            if (imageBuffer.length === 0) {
                 bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
                 return;
             }

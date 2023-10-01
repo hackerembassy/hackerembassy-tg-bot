@@ -6,7 +6,7 @@ describe("Bot behavior shared for all commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
     const mockDate = new Date("2023-01-01");
 
-    beforeAll(async () => {
+    beforeAll(() => {
         prepareDb();
         jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] }).setSystemTime(mockDate);
     });

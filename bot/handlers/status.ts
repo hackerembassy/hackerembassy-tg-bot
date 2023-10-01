@@ -29,8 +29,8 @@ import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
 import HackerEmbassyBot, { BotCustomEvent, BotMessageContextMode } from "../HackerEmbassyBot";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
-const botConfig = config.get("bot") as BotConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+const botConfig = config.get<BotConfig>("bot");
 const statsStartDateString = "2023-01-01";
 
 export default class StatusHandlers {
@@ -104,7 +104,7 @@ export default class StatusHandlers {
             const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`, {
                 timeout: 4000,
             });
-            climateInfo = await response?.json();
+            climateInfo = await response.json();
         } catch (error) {
             logger.error(error);
         }
@@ -118,7 +118,7 @@ export default class StatusHandlers {
     }
 
     static getStatusInlineKeyboard(state: State, mode: BotMessageContextMode) {
-        const inlineKeyboard = state?.open
+        const inlineKeyboard = state.open
             ? [
                   [
                       {
@@ -170,7 +170,7 @@ export default class StatusHandlers {
                 chat_id: resultMessage.chat.id,
                 message_id: resultMessage.message_id,
                 reply_markup: {
-                    inline_keyboard: mode?.static ? [] : statusInlineKeyboard,
+                    inline_keyboard: mode.static ? [] : statusInlineKeyboard,
                 },
             } as TelegramBot.EditMessageTextOptions);
         } catch {
@@ -180,7 +180,6 @@ export default class StatusHandlers {
 
     static async statusHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
-
         const state = StatusRepository.getSpaceLastState();
         const mode = bot.context(msg).mode;
 
@@ -204,7 +203,7 @@ export default class StatusHandlers {
             msg.message_id
         )) as Message;
 
-        if (mode.live && resultMessage) {
+        if (mode.live) {
             bot.addLiveMessage(
                 resultMessage,
                 BotCustomEvent.statusLive,
@@ -563,13 +562,12 @@ export default class StatusHandlers {
                 await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`, {
                     signal: controller.signal,
                 })
-            )?.json();
+            ).json();
             clearTimeout(timeoutId);
 
             const insideusernames = findRecentStates(StatusRepository.getAllUserStates() ?? [])
                 .filter(filterPeopleInside)
-                .filter(filterPeopleInside)
-                ?.map(us => us.username);
+                .map(us => us.username);
             const autousers = UsersRepository.getUsers()?.filter(u => u.autoinside && u.mac) ?? [];
             const selectedautousers = isIn
                 ? autousers.filter(u => u.username && !insideusernames.includes(u.username))
@@ -601,7 +599,7 @@ export default class StatusHandlers {
         }
     }
 
-    static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username = undefined) {
+    static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const selectedUsername = username ?? msg.from?.username;
@@ -638,8 +636,8 @@ export default class StatusHandlers {
     static async statsHandler(
         bot: HackerEmbassyBot,
         msg: Message,
-        fromDateString: string,
-        toDateString: string | number | Date
+        fromDateString?: string,
+        toDateString?: string
     ): Promise<Message | void> {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 

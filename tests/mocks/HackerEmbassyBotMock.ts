@@ -15,7 +15,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
         this.results.push(text);
         await sleep(0);
         // @ts-ignore
-        return Promise.resolve(null);
+        return Promise.resolve({ message_id: 1 });
     }
 
     async processUpdate(update: TelegramBot.Update) {

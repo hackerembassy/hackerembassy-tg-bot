@@ -1,10 +1,12 @@
+import config from "config";
 import TelegramBot from "node-telegram-bot-api";
 
+import { BotConfig } from "../config/schema";
 import UsersRepository from "../repositories/usersRepository";
 import logger from "../services/logger";
 import HackerEmbassyBot from "./HackerEmbassyBot";
 
-const botConfig = require("config").get("bot");
+const botConfig = config.get<BotConfig>("bot");
 
 const defaultCommands = [
     { command: "start", description: "Панель управления" },

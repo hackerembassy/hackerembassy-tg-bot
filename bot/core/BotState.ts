@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "fs
 import { dirname, join } from "path";
 
 import { BotConfig } from "../../config/schema";
+import logger from "../../services/logger";
 import { debounce } from "../../utils/common";
 import HackerEmbassyBot, { BotCustomEvent, BotHandlers, LiveChatHandler } from "./HackerEmbassyBot";
 import { MessageHistoryEntry } from "./MessageHistory";
@@ -20,7 +21,7 @@ export default class BotState {
 
         if (existsSync(this.statepath)) {
             const serializedState = readFileSync(this.statepath).toString();
-            console.log(serializedState);
+            logger.info("Restoring state: " + serializedState);
             const persistedState = JSON.parse(serializedState) as BotState;
 
             this.history = persistedState.history;
@@ -29,8 +30,10 @@ export default class BotState {
         } else {
             this.history = {};
             this.liveChats = [];
+
             mkdirSync(dirname(this.statepath), { recursive: true });
             writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
+            logger.info("Created new state");
         }
     }
 

@@ -125,6 +125,8 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async callbackHandler(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) {
+        bot.answerCallbackQuery(callbackQuery.id);
+
         const msg = callbackQuery.message;
 
         try {
@@ -142,6 +144,7 @@ export default class ServiceHandlers implements BotHandlers {
 
     static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
         const data = callbackQuery.data ? JSON.parse(callbackQuery.data) : undefined;
+
         if (!data) throw Error("Missing calback query data");
 
         msg.from = callbackQuery.from;
@@ -313,8 +316,6 @@ export default class ServiceHandlers implements BotHandlers {
             default:
                 break;
         }
-
-        await bot.answerCallbackQuery(callbackQuery.id);
     }
 
     static async conditionerCallback(bot: HackerEmbassyBot, msg: Message, callback: () => Promise<void>) {

@@ -45,7 +45,7 @@ export default class BasicHandlers {
                               {
                                   text: t("basic.events.opencalendar"),
                                   web_app: {
-                                      url: botConfig.calendar.appLink,
+                                      url: botConfig.calendar.url,
                                   },
                               },
                           ],

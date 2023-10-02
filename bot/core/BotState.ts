@@ -22,7 +22,7 @@ export default class BotState {
         if (existsSync(this.statepath)) {
             try {
                 const serializedState = readFileSync(this.statepath).toString();
-                logger.info("Restoring state: " + serializedState);
+                logger.info(`Restoring state: ${serializedState.substring(0, Math.min(serializedState.length, 150))}...`);
                 const persistedState = JSON.parse(serializedState) as BotState;
 
                 this.history = persistedState.history;

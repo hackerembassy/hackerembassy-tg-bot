@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import logger from "../services/logger";
-import HackerEmbassyBot from "./HackerEmbassyBot";
-import AdminHandlers from "./handlers/admin";
-import BasicHandlers from "./handlers/basic";
-import BirthdayHandlers from "./handlers/birthday";
-import EmbassyHandlers from "./handlers/embassy";
-import FundsHandlers from "./handlers/funds";
-import MemeHandlers from "./handlers/meme";
-import NeedsHandlers from "./handlers/needs";
-import ServiceHandlers from "./handlers/service";
-import StatusHandlers from "./handlers/status";
+import logger from "../../services/logger";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import AdminHandlers from "../handlers/admin";
+import BasicHandlers from "../handlers/basic";
+import BirthdayHandlers from "../handlers/birthday";
+import EmbassyHandlers from "../handlers/embassy";
+import FundsHandlers from "../handlers/funds";
+import MemeHandlers from "../handlers/meme";
+import NeedsHandlers from "../handlers/needs";
+import ServiceHandlers from "../handlers/service";
+import StatusHandlers from "../handlers/status";
 
 class RegexCommander {
     botname: Optional<string>;

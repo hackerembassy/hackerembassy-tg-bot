@@ -1,4 +1,4 @@
-import { IGNORE_UPDATE_TIMEOUT } from "../../bot/HackerEmbassyBot";
+import { IGNORE_UPDATE_TIMEOUT } from "../../bot/core/HackerEmbassyBot";
 import fundsRepository from "../../repositories/fundsRepository";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
 import { createBotMock, createMockMessage, GUEST_USER_NAME, prepareDb } from "../mocks/mockHelpers";

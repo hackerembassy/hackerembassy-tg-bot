@@ -27,7 +27,7 @@ import { sleep } from "../../utils/common";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
-import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/HackerEmbassyBot";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -104,7 +104,7 @@ export default class StatusHandlers implements BotHandlers {
             const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`, {
                 timeout: 4000,
             });
-            climateInfo = await response.json();
+            climateInfo = (await response.json()) as SpaceClimate;
         } catch (error) {
             logger.error(error);
         }

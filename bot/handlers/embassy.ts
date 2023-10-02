@@ -11,7 +11,7 @@ import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
-import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/HackerEmbassyBot";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");

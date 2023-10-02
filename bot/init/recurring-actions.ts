@@ -1,10 +1,10 @@
 import config from "config";
 
-import { BotConfig } from "../config/schema";
-import HackerEmbassyBot, { BotCustomEvent } from "./HackerEmbassyBot";
-import BirthdayHandlers from "./handlers/birthday";
-import EmbassyHandlers from "./handlers/embassy";
-import StatusHandlers from "./handlers/status";
+import { BotConfig } from "../../config/schema";
+import HackerEmbassyBot, { BotCustomEvent } from "../core/HackerEmbassyBot";
+import BirthdayHandlers from "../handlers/birthday";
+import EmbassyHandlers from "../handlers/embassy";
+import StatusHandlers from "../handlers/status";
 
 const botConfig = config.get<BotConfig>("bot");
 

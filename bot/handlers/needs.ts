@@ -4,7 +4,7 @@ import NeedsRepository from "../../repositories/needsRepository";
 import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 
 export default class NeedsHandlers implements BotHandlers {
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {

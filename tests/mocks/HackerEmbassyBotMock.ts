@@ -1,6 +1,6 @@
 import TelegramBot, { ChatId, Message, SendMessageOptions } from "node-telegram-bot-api";
 
-import HackerEmbassyBot from "../../bot/HackerEmbassyBot";
+import HackerEmbassyBot from "../../bot/core/HackerEmbassyBot";
 import { sleep } from "../../utils/common";
 
 export class HackerEmbassyBotMock extends HackerEmbassyBot {

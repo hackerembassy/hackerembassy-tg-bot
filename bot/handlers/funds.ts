@@ -9,8 +9,8 @@ import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { initConvert, parseMoneyValue, prepareCurrency } from "../../utils/currency";
 import { equalsIns } from "../../utils/text";
-import { isPrivateMessage } from "../bot-helpers";
-import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import { isPrivateMessage } from "../helpers";
 
 const CALLBACK_DATA_RESTRICTION = 23;
 

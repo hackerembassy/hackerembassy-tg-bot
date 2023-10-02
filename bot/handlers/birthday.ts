@@ -10,7 +10,7 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");
 

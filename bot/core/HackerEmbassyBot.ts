@@ -19,10 +19,10 @@ import {
 import { EventEmitter, Stream } from "stream";
 import { file } from "tmp-promise";
 
-import { BotConfig } from "../config/schema";
-import logger from "../services/logger";
-import { hasRole } from "../services/usersHelper";
-import { chunkSubstr, sleep } from "../utils/common";
+import { BotConfig } from "../../config/schema";
+import logger from "../../services/logger";
+import { hasRole } from "../../services/usersHelper";
+import { chunkSubstr, sleep } from "../../utils/common";
 import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
 

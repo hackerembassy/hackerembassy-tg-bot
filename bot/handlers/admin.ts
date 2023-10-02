@@ -8,7 +8,7 @@ import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import * as UsersHelper from "../../services/usersHelper";
 import { lastModifiedFilePath } from "../../utils/filesystem";
-import HackerEmbassyBot, { BotCustomEvent, BotHandlers } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotHandlers } from "../core/HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");
 

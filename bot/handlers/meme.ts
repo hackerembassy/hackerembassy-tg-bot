@@ -2,7 +2,7 @@ import { Message } from "node-telegram-bot-api";
 
 import t from "../../services/localization";
 import { getRandomImageFromFolder } from "../../services/media";
-import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 
 export default class MemeHandlers implements BotHandlers {
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {

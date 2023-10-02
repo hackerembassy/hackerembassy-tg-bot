@@ -16,7 +16,7 @@ export interface BotConfig {
     persistedfolderpath: string;
     maxchathistory: number;
     calendar: CalendarConfig;
-    locales: string;
+    locales?: string;
     live: LiveConfig;
 }
 

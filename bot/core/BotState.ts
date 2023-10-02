@@ -2,8 +2,8 @@ import config from "config";
 import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
-import { BotConfig } from "../config/schema";
-import { debounce } from "../utils/common";
+import { BotConfig } from "../../config/schema";
+import { debounce } from "../../utils/common";
 import HackerEmbassyBot, { BotCustomEvent, BotHandlers, LiveChatHandler } from "./HackerEmbassyBot";
 import { MessageHistoryEntry } from "./MessageHistory";
 

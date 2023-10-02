@@ -10,8 +10,8 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import * as CoinsHelper from "../../utils/coins";
-import { isPrivateMessage } from "../bot-helpers";
-import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import { isPrivateMessage } from "../helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 

@@ -5,7 +5,7 @@ import { createLogger, format, transports } from "winston";
 
 import { BotConfig } from "../config/schema";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 const rotatedFile = new transports.DailyRotateFile({
     level: "info",

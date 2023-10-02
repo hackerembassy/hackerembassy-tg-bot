@@ -1,6 +1,6 @@
 import config from "config";
 
-import { BotConfig } from "../config/schema";
+import { BotConfig } from "../../config/schema";
 import BotState from "./BotState";
 
 const botConfig = config.get<BotConfig>("bot");

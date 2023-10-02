@@ -1,4 +1,4 @@
-import { BotRole } from "../bot/HackerEmbassyBot";
+import { BotRole } from "../bot/core/HackerEmbassyBot";
 import User from "../models/User";
 import UsersRepository from "../repositories/usersRepository";
 import { AccountantCommandsList, AdminCommandsList, GeneralCommandsList, MemberCommandsList } from "../resources/commands";
@@ -7,7 +7,7 @@ export function hasRole(username: Optional<string>, ...roles: string[]) {
     if (!username) return false;
     const userRoles = toRolesList(UsersRepository.getUserByName(username)?.roles);
 
-    if (!userRoles) return false;
+    if (userRoles.length === 0) return false;
 
     const intersection = userRoles.filter(r => roles.includes(r));
 
@@ -26,7 +26,7 @@ export function getRoles(user: string | User) {
 
 export function isMember(user: string | User): boolean {
     const userRoles: BotRole[] | string | undefined =
-        user instanceof User ? toRolesList(user?.roles) : UsersRepository.getUserByName(user)?.roles;
+        user instanceof User ? toRolesList(user.roles) : UsersRepository.getUserByName(user)?.roles;
 
     return userRoles?.includes("member") === true;
 }

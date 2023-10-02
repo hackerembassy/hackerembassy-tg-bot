@@ -20,21 +20,28 @@ export default class BotState {
         this.bot = bot;
 
         if (existsSync(this.statepath)) {
-            const serializedState = readFileSync(this.statepath).toString();
-            logger.info("Restoring state: " + serializedState);
-            const persistedState = JSON.parse(serializedState) as BotState;
+            try {
+                const serializedState = readFileSync(this.statepath).toString();
+                logger.info("Restoring state: " + serializedState);
+                const persistedState = JSON.parse(serializedState) as BotState;
 
-            this.history = persistedState.history;
-            this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());
-            this.initLiveChats();
-        } else {
-            this.history = {};
-            this.liveChats = [];
+                this.history = persistedState.history;
+                this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());
+                this.initLiveChats();
 
-            mkdirSync(dirname(this.statepath), { recursive: true });
-            writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
-            logger.info("Created new state");
+                return;
+            } catch (error) {
+                logger.error("Error while restoring state: ");
+                logger.error(error);
+            }
         }
+
+        this.history = {};
+        this.liveChats = [];
+
+        mkdirSync(dirname(this.statepath), { recursive: true });
+        writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
+        logger.info("Created new state");
     }
 
     async initLiveChats() {

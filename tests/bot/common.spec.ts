@@ -1,3 +1,4 @@
+import { IGNORE_UPDATE_TIMEOUT } from "../../bot/core/HackerEmbassyBot";
 import fundsRepository from "../../repositories/fundsRepository";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
 import { createBotMock, createMockMessage, GUEST_USER_NAME, prepareDb } from "../mocks/mockHelpers";
@@ -6,7 +7,7 @@ describe("Bot behavior shared for all commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
     const mockDate = new Date("2023-01-01");
 
-    beforeAll(async () => {
+    beforeAll(() => {
         prepareDb();
         jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] }).setSystemTime(mockDate);
     });
@@ -16,7 +17,7 @@ describe("Bot behavior shared for all commands:", () => {
     test("old messages should be ignored", async () => {
         await botMock.processUpdate(createMockMessage("/status", GUEST_USER_NAME, mockDate.getTime() - 10000));
 
-        await jest.advanceTimersByTimeAsync(botMock.IGNORE_UPDATE_TIMEOUT);
+        await jest.advanceTimersByTimeAsync(IGNORE_UPDATE_TIMEOUT);
 
         expect(botMock.popResults()).toEqual([]);
     });

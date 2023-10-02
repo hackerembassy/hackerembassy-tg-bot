@@ -1,3 +1,6 @@
+// TODO add type checking to request bodies and remove disables below
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { config as envconfig } from "dotenv";
 envconfig();
 import { json } from "body-parser";
@@ -21,8 +24,8 @@ import { sleep } from "./utils/common";
 import { createErrorMiddleware } from "./utils/middleware";
 import { decrypt } from "./utils/security";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
-const botConfig = config.get("bot") as BotConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+const botConfig = config.get<BotConfig>("bot");
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
@@ -54,7 +57,7 @@ app.post("/playinspace", async (req, res, next) => {
     }
 });
 
-app.get("/statusmonitor", async (_, res, next) => {
+app.get("/statusmonitor", (_, res, next) => {
     try {
         res.json(statusMonitor.readNewMessages());
     } catch (error) {
@@ -155,6 +158,7 @@ app.get("/doorbell", async (_, res, next) => {
  */
 app.get("/devices", async (_, res, next) => {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         const luci = new LUCI(`https://${routerip}`, "bot", process.env["LUCITOKEN"]);
         await luci.init();
         luci.autoUpdateToken(1000 * 60 * 30);

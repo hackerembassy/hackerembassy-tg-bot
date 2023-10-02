@@ -7,30 +7,32 @@ import {
     CallbackQuery,
     ChatId,
     default as TelegramBot,
+    EditMessageMediaOptions,
     EditMessageTextOptions,
     InlineKeyboardMarkup,
     InputMedia,
     InputMediaPhoto,
     Message,
+    SendMediaGroupOptions,
     SendMessageOptions,
-    SendPhotoOptions,
 } from "node-telegram-bot-api";
-import { EventEmitter } from "stream";
+import { EventEmitter, Stream } from "stream";
 import { file } from "tmp-promise";
 
-import { BotConfig } from "../config/schema";
-import logger from "../services/logger";
-import { hasRole } from "../services/usersHelper";
-import { chunkSubstr, sleep } from "../utils/common";
+import { BotConfig } from "../../config/schema";
+import logger from "../../services/logger";
+import { hasRole } from "../../services/usersHelper";
+import { chunkSubstr, sleep } from "../../utils/common";
 import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 // Consts
 const maxChunkSize = 3500;
 const messagedelay = 1500;
 const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
+export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
 
 // Types
@@ -44,7 +46,12 @@ export type BotMessageContextMode = {
     static: boolean;
     forward: boolean;
 };
-export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => Promise<any>;
+
+export interface BotHandlers {}
+
+export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => any;
+export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
+
 export enum BotCustomEvent {
     statusLive = "status-live",
     camLive = "cam-live",
@@ -56,6 +63,15 @@ export interface BotMessageContext {
     clear(): void;
     isAdminMode(): boolean;
     isEditing: boolean;
+}
+
+export interface EditMessageMediaOptionsExt extends EditMessageMediaOptions {
+    caption?: string;
+    message_thread_id?: number;
+}
+
+export interface SendMediaGroupOptionsExt extends SendMediaGroupOptions {
+    message_thread_id?: number;
 }
 
 // Helpers
@@ -99,13 +115,23 @@ export type serializedFunction = {
 };
 
 export default class HackerEmbassyBot extends TelegramBot {
-    messageHistory: MessageHistory;
-    Name: string | undefined;
-    CustomEmitter: EventEmitter;
-    botState: BotState;
+    static defaultModes: BotMessageContextMode = {
+        silent: false,
+        mention: false,
+        admin: false,
+        pin: false,
+        live: false,
+        static: false,
+        forward: false,
+    };
 
-    // Seconds from bot api
-    IGNORE_UPDATE_TIMEOUT = 10;
+    public messageHistory: MessageHistory;
+    public Name: Optional<string>;
+    public CustomEmitter: EventEmitter;
+    public botState: BotState;
+
+    private accessTable = new Map<BotHandler, BotRole[]>();
+    private contextMap = new Map();
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
@@ -114,8 +140,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.Name = undefined;
         this.CustomEmitter = new EventEmitter();
     }
-
-    accessTable = new Map();
 
     canUserCall(username: string | undefined, callback: BotHandler): boolean {
         if (!username) return false;
@@ -129,46 +153,32 @@ export default class HackerEmbassyBot extends TelegramBot {
         return true;
     }
 
-    static defaultModes: BotMessageContextMode = {
-        silent: false,
-        mention: false,
-        admin: false,
-        pin: false,
-        live: false,
-        static: false,
-        forward: false,
-    };
-
-    #context = new Map();
-
     context(msg: TelegramBot.Message): BotMessageContext {
         const botthis = this;
 
-        if (!this.#context.has(msg)) {
+        if (!this.contextMap.has(msg)) {
             const newContext: BotMessageContext = {
                 mode: { ...HackerEmbassyBot.defaultModes },
                 messageThreadId: undefined,
                 clear() {
-                    botthis.#context.delete(msg);
+                    botthis.contextMap.delete(msg);
                 },
                 isAdminMode() {
-                    return (this.mode?.admin && !this.mode?.forward) ?? false;
+                    return this.mode.admin && !this.mode.forward;
                 },
                 isEditing: false,
             };
-            this.#context.set(msg, newContext);
+            this.contextMap.set(msg, newContext);
 
             return newContext;
         }
 
-        return this.#context.get(msg) as BotMessageContext;
+        return this.contextMap.get(msg) as BotMessageContext;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    onExt(event: TelegramBot.MessageType | "callback_query", listener: Function): void {
-        const botthis = this;
-        const newListener = async (query: CallbackQuery | Message) => {
-            listener.call(this, botthis, query);
+    onExt(event: TelegramBot.MessageType | "callback_query", listener: BotHandler | BotCallbackHandler): void {
+        const newListener = (query: CallbackQuery | Message) => {
+            listener.bind(this)(this, query as CallbackQuery & Message);
         };
 
         // @ts-ignore
@@ -183,7 +193,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             .replace(/\|$/, ")*");
     }
 
-    async editMessageTextExt(
+    editMessageTextExt(
         text: string,
         msg: TelegramBot.Message,
         options: TelegramBot.EditMessageTextOptions
@@ -204,8 +214,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: TelegramBot.SendPhotoOptions = {},
         fileOptions: TelegramBot.FileOptions = {}
     ): Promise<TelegramBot.Message> {
-        const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
+        const mode = this.context(msg).mode;
+        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
+        const inline_keyboard =
+            mode.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
@@ -215,9 +227,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             {
                 ...options,
                 reply_markup: {
-                    inline_keyboard: this.context(msg).mode?.static
-                        ? []
-                        : (options?.reply_markup as InlineKeyboardMarkup)?.inline_keyboard,
+                    inline_keyboard,
                 },
                 message_thread_id: this.context(msg).messageThreadId,
             },
@@ -233,28 +243,23 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: TelegramBot.ChatId,
         photos: Buffer[] | ArrayBuffer[],
         msg: TelegramBot.Message,
-        options: any = {}
+        options: SendMediaGroupOptionsExt = {}
     ): Promise<TelegramBot.Message> {
-        const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
+        const mode = this.context(msg).mode;
+        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
         const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo)));
         const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
 
-        const message = await super.sendMediaGroup(
-            chatIdToUse,
-            imageOpts as InputMedia[],
-            {
-                ...options,
-                message_thread_id: this.context(msg).messageThreadId,
-            } as any
-        );
+        const message = await super.sendMediaGroup(chatIdToUse, imageOpts as InputMedia[], {
+            ...options,
+            // @ts-ignore
+            message_thread_id: this.context(msg).messageThreadId,
+        });
 
-        if (message) {
-            this.messageHistory.push(chatId, message.message_id);
-        }
+        this.messageHistory.push(chatId, message.message_id);
 
         return Promise.resolve(message);
     }
@@ -262,7 +267,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     async editPhoto(
         photo: Buffer | ArrayBuffer,
         msg: TelegramBot.Message,
-        options: any = {}
+        options: EditMessageMediaOptionsExt = {}
     ): Promise<TelegramBot.Message | boolean> {
         const buffer = photo instanceof Buffer ? photo : Buffer.from(photo);
 
@@ -273,25 +278,27 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         const imageOption = { type: "photo", media: `attach://${path}` } as InputMediaPhoto;
 
-        const inlineKeyboard = this.context(msg).mode?.static ? [] : options.reply_markup.inline_keyboard;
+        const inline_keyboard =
+            this.context(msg).mode.static || !options.reply_markup ? [] : options.reply_markup.inline_keyboard;
 
         let message: Message | boolean = false;
 
         message = await super.editMessageMedia(imageOption, {
             ...options,
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
             chat_id: msg.chat.id,
             message_id: msg.message_id,
+            //@ts-ignore
             message_thread_id: this.context(msg).messageThreadId,
-        } as any);
+        });
 
         if (options.caption) {
-            await super.editMessageCaption(options.caption, {
+            super.editMessageCaption(options.caption, {
                 chat_id: msg.chat.id,
                 message_id: msg.message_id,
-                reply_markup: { inline_keyboard: inlineKeyboard },
+                reply_markup: { inline_keyboard },
             });
         }
 
@@ -313,7 +320,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
-    async setMyCommands(
+    setMyCommands(
         commands: TelegramBot.BotCommand[],
         options: { scope: BotCommandScope; language_code?: string } | undefined = undefined
     ): Promise<boolean> {
@@ -334,8 +341,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         const mode = msg && this.context(msg).mode;
         const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
-        const inline_keyboard = mode?.static ? [] : (options?.reply_markup as InlineKeyboardMarkup)?.inline_keyboard;
-        const message_thread_id = msg ? this.context(msg)?.messageThreadId : undefined;
+        const inline_keyboard =
+            mode?.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
+        const message_thread_id = msg ? this.context(msg).messageThreadId : undefined;
 
         if (!msg || !mode?.silent) {
             const message = await this.sendMessage(chatIdToUse, preparedText, {
@@ -346,24 +354,22 @@ export default class HackerEmbassyBot extends TelegramBot {
                 message_thread_id,
             });
 
-            if (message) {
-                this.messageHistory.push(chatId, message.message_id, text);
+            this.messageHistory.push(chatId, message.message_id, text);
 
-                return Promise.resolve(message);
-            }
+            return Promise.resolve(message);
         }
 
         return Promise.resolve(null);
     }
 
-    async sendChatAction(
+    sendChatAction(
         chatId: TelegramBot.ChatId,
         action: TelegramBot.ChatAction,
         msg: TelegramBot.Message,
         options: TelegramBot.SendChatActionOptions = {}
     ): Promise<boolean> {
-        const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
+        const mode = this.context(msg).mode;
+        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
 
         return super.sendChatAction(chatIdToUse, action, {
             ...options,
@@ -398,7 +404,7 @@ ${chunks[index]}
         }
     }
 
-    async onTextExt(originalRegex: RegExp, callback: BotHandler, restrictions: BotRole[] = []): Promise<void> {
+    onTextExt(originalRegex: RegExp, callback: BotHandler, restrictions: BotRole[] = []): void {
         if (restrictions.length > 0) this.accessTable.set(callback, restrictions);
 
         const regexString = originalRegex.toString();
@@ -410,10 +416,8 @@ ${chunks[index]}
         const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
         const newCallback = async function (msg: TelegramBot.Message, match: Nullable<RegExpExecArray>) {
-            if (!msg) return;
-
             // Skip old updates
-            if (Math.abs(Date.now() / 1000 - msg.date) > botthis.IGNORE_UPDATE_TIMEOUT) return;
+            if (Math.abs(Date.now() / 1000 - msg.date) > IGNORE_UPDATE_TIMEOUT) return;
 
             try {
                 if (!botthis.canUserCall(msg.from?.username, callback)) {
@@ -435,13 +439,13 @@ ${chunks[index]}
                     executedMatch = originalRegex.exec(newCommand);
                 }
 
-                botthis.context(msg).messageThreadId = msg?.is_topic_message ? msg.message_thread_id : undefined;
+                botthis.context(msg).messageThreadId = msg.is_topic_message ? msg.message_thread_id : undefined;
 
                 await callback.call(botthis, botthis, msg, executedMatch);
             } catch (error) {
                 logger.error(error);
             } finally {
-                botthis.context(msg)?.clear();
+                botthis.context(msg).clear();
             }
         };
 
@@ -493,17 +497,18 @@ ${chunks[index]}
                 this.context(msg).isEditing = false;
             }
         } else {
-            return this.sendPhotoExt(chatId, photo as Buffer, msg, options as SendPhotoOptions);
+            return this.sendPhotoExt(chatId, photo as Buffer, msg, options);
         }
 
         return null;
     }
 
-    async sendNotification(message: string, date: string, chat: TelegramBot.ChatId): Promise<void> {
-        const currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
-        if (date !== currentDate) return;
+    // TODO add READ state
+    async sendNotification(message: string, monthDay: number, chat: TelegramBot.ChatId): Promise<void> {
+        const currentDate = new Date().getDate();
+        if (monthDay !== currentDate) return;
 
-        this.sendMessage(chat, message);
+        await this.sendMessage(chat, message);
         logger.info(`Sent a notification to ${chat}: ${message}`);
     }
 
@@ -538,5 +543,68 @@ ${chunks[index]}
             this.CustomEmitter.removeListener(event, handler);
             this.botState.liveChats = this.botState.liveChats.splice(chatRecordIndex, 1);
         }, EDIT_MESSAGE_TIME_LIMIT);
+    }
+
+    /*
+     * Deprecated base TelegramBot methods.
+     * They don't know how to properly handle message context, message modes,
+     * message threads, custom events etc, so use their extended versions outside of this class.
+     */
+
+    /**
+     * @deprecated Do not use directly
+     * @see editMessageTextExt
+     */
+    editMessageText(
+        text: string,
+        options?: TelegramBot.EditMessageTextOptions | undefined
+    ): Promise<boolean | TelegramBot.Message> {
+        return super.editMessageText(text, options);
+    }
+
+    /**
+     * @deprecated Do not use directly
+     * @see sendPhotoExt
+     */
+    sendPhoto(
+        chatId: ChatId,
+        photo: string | Stream | Buffer,
+        options?: TelegramBot.SendPhotoOptions | undefined,
+        fileOptions?: TelegramBot.FileOptions | undefined
+    ): Promise<TelegramBot.Message> {
+        return super.sendPhoto(chatId, photo, options, fileOptions);
+    }
+
+    /**
+     * @deprecated Do not use directly
+     * @see sendMessageExt
+     */
+    sendMessage(
+        chatId: ChatId,
+        text: string,
+        options?: TelegramBot.SendMessageOptions | undefined
+    ): Promise<TelegramBot.Message> {
+        return super.sendMessage(chatId, text, options);
+    }
+
+    /**
+     * @deprecated Do not use directly
+     * @see sendLocationExt
+     */
+    sendLocation(
+        chatId: ChatId,
+        latitude: number,
+        longitude: number,
+        options?: TelegramBot.SendLocationOptions | undefined
+    ): Promise<TelegramBot.Message> {
+        return super.sendLocation(chatId, latitude, longitude, options);
+    }
+
+    /**
+     * @deprecated Do not use directly
+     * @see onTextExt
+     */
+    onText(regexp: RegExp, callback: (msg: TelegramBot.Message, match: RegExpExecArray | null) => void): void {
+        return super.onText(regexp, callback);
     }
 }

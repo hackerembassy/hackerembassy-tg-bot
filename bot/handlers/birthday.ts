@@ -10,15 +10,15 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
 const wishedTodayPath = path.join(__dirname, `../../${botConfig.persistedfolderpath}/wished-today.json`);
 const baseWishesDir = "./resources/wishes";
 
-export default class BirthdayHandlers {
-    static async forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
+export default class BirthdayHandlers implements BotHandlers {
+    static forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
         BirthdayHandlers.sendBirthdayWishes(bot, msg, true);
     }
 
@@ -29,7 +29,7 @@ export default class BirthdayHandlers {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date: string) {
+    static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date?: string) {
         const username = msg.from?.username;
         const formattedUsername = UsersHelper.formatUsername(username, bot.context(msg).mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
@@ -80,8 +80,8 @@ export default class BirthdayHandlers {
         if (wishedAmount !== wishedToday.length) fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
     }
 
-    static isProperFormatDateString(date: string) {
-        return /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date);
+    static isProperFormatDateString(date?: string) {
+        return date ? /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date) : false;
     }
 }
 

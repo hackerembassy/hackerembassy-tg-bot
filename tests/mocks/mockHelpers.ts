@@ -1,7 +1,7 @@
 import nock from "nock";
 import TelegramBot from "node-telegram-bot-api";
 
-import { setRoutes } from "../../bot/bot-routes";
+import { setRoutes } from "../../bot/init/routes";
 import { HackerEmbassyBotMock } from "./HackerEmbassyBotMock";
 
 export const ADMIN_USER_NAME = "adminusername";

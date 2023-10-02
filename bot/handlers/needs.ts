@@ -4,9 +4,9 @@ import NeedsRepository from "../../repositories/needsRepository";
 import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 
-export default class NeedsHandlers {
+export default class NeedsHandlers implements BotHandlers {
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
@@ -41,12 +41,11 @@ export default class NeedsHandlers {
         await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.text ?? "");
     }
 
-    static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
+    static boughtUndoHandler(_: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
 
-        if (need && need?.buyer === msg.from?.username) {
-            NeedsRepository.undoClose(need.id);
-            return true;
+        if (need && need.buyer === msg.from?.username) {
+            return NeedsRepository.undoClose(need.id);
         }
 
         return false;

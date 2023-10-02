@@ -5,7 +5,7 @@ import { ADMIN_USER_NAME, createBotMock, createMockMessage, prepareDb } from "..
 describe("Bot Funds commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
 
-    beforeAll(async () => {
+    beforeAll(() => {
         prepareDb();
         jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
     });

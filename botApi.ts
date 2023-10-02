@@ -16,8 +16,8 @@ import { stripCustomMarkup } from "./utils/common";
 import { createErrorMiddleware, createTokenSecuredMiddleware } from "./utils/middleware";
 import { fetchWithTimeout } from "./utils/network";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
-const apiConfig = config.get("api") as BotApiConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+const apiConfig = config.get<BotApiConfig>("api");
 
 const app = express();
 const port = apiConfig.port;
@@ -41,7 +41,7 @@ app.get("/status", async (_, res) => {
         const allUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
-        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`))?.json();
+        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`)).json();
 
         content = TextGenerators.getStatusMessage(state, inside, going, climateInfo, { mention: true }, false, true);
     }

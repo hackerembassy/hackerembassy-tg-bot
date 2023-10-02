@@ -1,31 +1,46 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import logger from "../services/logger";
-import HackerEmbassyBot from "./HackerEmbassyBot";
-import AdminHandlers from "./handlers/admin";
-import BasicHandlers from "./handlers/basic";
-import BirthdayHandlers from "./handlers/birthday";
-import EmbassyHandlers from "./handlers/embassy";
-import FundsHandlers from "./handlers/funds";
-import MemeHandlers from "./handlers/meme";
-import NeedsHandlers from "./handlers/needs";
-import ServiceHandlers from "./handlers/service";
-import StatusHandlers from "./handlers/status";
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import logger from "../../services/logger";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import AdminHandlers from "../handlers/admin";
+import BasicHandlers from "../handlers/basic";
+import BirthdayHandlers from "../handlers/birthday";
+import EmbassyHandlers from "../handlers/embassy";
+import FundsHandlers from "../handlers/funds";
+import MemeHandlers from "../handlers/meme";
+import NeedsHandlers from "../handlers/needs";
+import ServiceHandlers from "../handlers/service";
+import StatusHandlers from "../handlers/status";
 
 class RegexCommander {
-    botname: string;
+    botname: Optional<string>;
 
-    constructor(botname: string = "") {
+    constructor(botname: Optional<string>) {
         this.botname = botname;
+
+        if (!botname) {
+            logger.error("Running without bot name");
+        }
     }
 
+    /**
+     * Basic command form: /command_name parameters
+     * @param aliases Alternative [command_name]'s
+     * @param params Regex for [parameters]
+     * @param optional Can parameters be omitted
+     * @param flags Regex modifiers for a whole command regex
+     * @returns Regex for yagop-node-telegram bot library to use for choosing a handler
+     */
     command(aliases: string[], params: RegExp | undefined = undefined, optional: boolean = true, flags: string = "i"): RegExp {
-        const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
+        const commandPart = `/(?:${aliases.join("|")})`;
+        const botnamePart = this.botname ? `(?:@${this.botname})?` : "";
         const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
-        return new RegExp(`^${commandPart}${paramsPart}$`, flags);
+
+        return new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, flags);
     }
 }
 
-export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
+export function setRoutes(bot: HackerEmbassyBot): void {
     const rc = new RegexCommander(bot.Name);
 
     // Info
@@ -71,12 +86,10 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         StatusHandlers.goingHandler(bot, msg, match[1])
     );
     bot.onTextExt(rc.command(["notgoing", "notcoming", "notcuming", "ng"]), StatusHandlers.notGoingHandler);
-    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), (bot, msg, match) =>
         StatusHandlers.autoinsideHandler(bot, msg, match[1])
     );
-    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), async (bot, msg, match) =>
-        StatusHandlers.setmacHandler(bot, msg, match[1])
-    );
+    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), (bot, msg, match) => StatusHandlers.setmacHandler(bot, msg, match[1]));
     bot.onTextExt(rc.command(["superstatus", "ss"]), ServiceHandlers.superstatusHandler, ["member"]);
 
     // Stats
@@ -205,10 +218,10 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
         (bot, msg, match) => FundsHandlers.removeFundHandler(bot, msg, match[1]),
         ["accountant"]
     );
-    bot.onTextExt(rc.command(["exportfund"], /(.*\S)/, false), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["exportfund"], /(.*\S)/, false), (bot, msg, match) =>
         FundsHandlers.exportCSVHandler(bot, msg, match[1])
     );
-    bot.onTextExt(rc.command(["exportdonut"], /(.*\S)/, false), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["exportdonut"], /(.*\S)/, false), (bot, msg, match) =>
         FundsHandlers.exportDonutHandler(bot, msg, match[1])
     );
     bot.onTextExt(
@@ -264,9 +277,9 @@ export async function setRoutes(bot: HackerEmbassyBot): Promise<void> {
     bot.onTextExt(rc.command(["bought"], /(.*)/, false), (bot, msg, match) => NeedsHandlers.boughtHandler(bot, msg, match[1]));
 
     // Birthdays
-    bot.onTextExt(rc.command(["birthdays"]), async (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
+    bot.onTextExt(rc.command(["birthdays"]), (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
     bot.onTextExt(rc.command(["forcebirthdaywishes", "fbw"]), BirthdayHandlers.forceBirthdayWishHandler, ["admin"]);
-    bot.onTextExt(rc.command(["mybirthday"], /(.*\S)/), async (bot, msg, match) =>
+    bot.onTextExt(rc.command(["mybirthday"], /(.*\S)/), (bot, msg, match) =>
         BirthdayHandlers.myBirthdayHandler(bot, msg, match[1])
     );
 

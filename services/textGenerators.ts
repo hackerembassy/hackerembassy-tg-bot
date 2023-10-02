@@ -14,9 +14,10 @@ import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./home";
 import t from "./localization";
 import { PrinterStatus } from "./printer3d";
+import { MonitorMessage } from "./statusMonitor";
 import { formatUsername, getRoles } from "./usersHelper";
 
-const printersConfig = config.get("printers") as PrintersConfig;
+const printersConfig = config.get<PrintersConfig>("printers");
 
 type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boolean };
 
@@ -33,8 +34,6 @@ export async function createFundList(
     }
 
     for (const fund of funds) {
-        if (!fund) continue;
-
         const fundDonations =
             donations?.filter(donation => {
                 return donation.fund_id === fund.id;
@@ -204,7 +203,7 @@ export function getResidentsList(residents: Optional<User[]>, mode: { mention: b
     return t("basic.residents", { userList });
 }
 
-export function getMonitorMessagesList(monitorMessages: { level: string; message: string; timestamp: string }[]): string {
+export function getMonitorMessagesList(monitorMessages?: MonitorMessage[]): string {
     return monitorMessages
         ? monitorMessages
               .map(message => `${message.level === "error" ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}`)
@@ -320,7 +319,7 @@ export function getPrintersInfo(): string {
     return t("embassy.printers.help", { anetteApi: printersConfig.anette.apibase, plumbusApi: printersConfig.plumbus.apibase });
 }
 
-export async function getPrinterStatusText(status: PrinterStatus): Promise<string> {
+export function getPrinterStatusText(status: PrinterStatus): string {
     const print_stats = status.print_stats;
     const state = print_stats.state;
     const heater_bed = status.heater_bed;

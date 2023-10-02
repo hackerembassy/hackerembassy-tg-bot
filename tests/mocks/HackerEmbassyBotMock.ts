@@ -1,11 +1,12 @@
 import TelegramBot, { ChatId, Message, SendMessageOptions } from "node-telegram-bot-api";
 
-import HackerEmbassyBot from "../../bot/HackerEmbassyBot";
+import HackerEmbassyBot from "../../bot/core/HackerEmbassyBot";
 import { sleep } from "../../utils/common";
 
 export class HackerEmbassyBotMock extends HackerEmbassyBot {
     constructor(token: string, options: any) {
         super(token, options);
+        this.Name = "HackerEmbassyBotMock";
     }
 
     private results: string[] = [];
@@ -15,7 +16,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
         this.results.push(text);
         await sleep(0);
         // @ts-ignore
-        return Promise.resolve(null);
+        return Promise.resolve({ message_id: 1 });
     }
 
     async processUpdate(update: TelegramBot.Update) {

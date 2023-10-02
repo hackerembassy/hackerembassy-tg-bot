@@ -16,8 +16,13 @@ export interface BotConfig {
     persistedfolderpath: string;
     maxchathistory: number;
     calendar: CalendarConfig;
-    locales: string;
-    liveRefreshInterval: number;
+    locales?: string;
+    live: LiveConfig;
+}
+
+export interface LiveConfig {
+    camRefreshInterval: number;
+    statusRefreshInterval: number;
 }
 
 export interface CalendarConfig {

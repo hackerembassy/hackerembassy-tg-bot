@@ -3,7 +3,7 @@ import config from "config";
 import { EmbassyApiConfig } from "../config/schema";
 import { getFromHass, postToHass } from "../utils/network";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const climateConfig = embassyApiConfig.climate;
 
 export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";

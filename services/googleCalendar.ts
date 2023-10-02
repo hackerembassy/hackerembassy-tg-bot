@@ -6,7 +6,7 @@ import { RRuleSet, rrulestr } from "rrule";
 import { BotConfig } from "../config/schema";
 import logger from "./logger";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 const calendarURL = new URL(botConfig.calendar.url);
 const calendarID: string = calendarURL.searchParams.get("src")!;
 
@@ -81,18 +81,18 @@ function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Ar
     }
 
     const rruleset: RRuleSet = new RRuleSet();
-    const recurrenceRRuleStr = isRecurrenceFieldIllFormed(event.recurrence) ? event.recurrence?.[1] : event.recurrence?.[0];
+    const recurrenceRRuleStr = isRecurrenceFieldIllFormed(event.recurrence) ? event.recurrence[1] : event.recurrence[0];
     rruleset.rrule(
-        rrulestr(recurrenceRRuleStr!, {
+        rrulestr(recurrenceRRuleStr, {
             dtstart: new Date(event.start.dateTime),
             cache: true,
         })
     );
 
     if (isRecurrenceFieldIllFormed(event.recurrence)) {
-        const exdateStr = extractICalDateFromExdate(event.recurrence![0]);
+        const exdateStr = extractICalDateFromExdate(event.recurrence[0]);
         if (!exdateStr) {
-            logger.error(`Got unexpeted recurrence field: ${event.recurrence}`);
+            logger.error(`Got unexpeted recurrence field: ${event.recurrence.toString()}`);
             throw Error("Incorrect RRule format in Calendar!");
         }
         const exDateFormat = "'TZID='z':'yyyyMMdd'T'HHmmss";

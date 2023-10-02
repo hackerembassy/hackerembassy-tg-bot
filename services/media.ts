@@ -5,8 +5,9 @@ import { join } from "path";
 
 import { EmbassyApiConfig } from "../config/schema";
 import { getBufferFromResponse, getFromHass, postToHass } from "../utils/network";
+import logger from "./logger";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
 const doorcamPath = embassyApiConfig.doorcam;
 const webcamPath = embassyApiConfig.webcam;
@@ -29,7 +30,7 @@ export async function getWebcam2Image(): Promise<Buffer> {
 
 export async function getRandomImageFromFolder(folder: string): Promise<Nullable<Buffer>> {
     const files = await fs.readdir(folder);
-    if (!files || files.length === 0) return null;
+    if (files.length === 0) return null;
 
     const fileindex = Math.floor(Math.random() * files.length);
     return await fs.readFile(join(folder, files[fileindex]));
@@ -40,14 +41,14 @@ export async function getRandomImageFromFolder(folder: string): Promise<Nullable
 export async function getImageFromRTSP(url: string, filename: string): Promise<Buffer> {
     const child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
         if (error) {
-            console.log(`error: ${error.message}`);
+            logger.error(`error: ${error.message}`);
             return;
         }
         if (stderr) {
-            console.log(`stderr: ${stderr}`);
+            logger.error(`stderr: ${stderr}`);
             return;
         }
-        console.log(`stdout: ${stdout}`);
+        logger.info(`stdout: ${stdout}`);
     });
 
     await new Promise(resolve => {

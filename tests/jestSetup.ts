@@ -19,7 +19,7 @@ jest.mock("../utils/currency", () => {
 jest.mock("../utils/network", () => {
     return {
         default: jest.fn(),
-        fetchWithTimeout: jest.fn().mockReturnValue(Promise.resolve({})),
+        fetchWithTimeout: jest.fn().mockImplementation(fetchMock),
     };
 });
 

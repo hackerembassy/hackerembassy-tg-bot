@@ -5,7 +5,7 @@ describe("Bot Status commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
 
     beforeAll(() => {
-        fetchMock.mockReject(new Error("Mocked fetch error"));
+        fetchMock.mockReject(new Error("Mocked rejected embassyApi response"));
         prepareDb();
         jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
     });

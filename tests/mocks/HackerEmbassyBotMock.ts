@@ -6,6 +6,7 @@ import { sleep } from "../../utils/common";
 export class HackerEmbassyBotMock extends HackerEmbassyBot {
     constructor(token: string, options: any) {
         super(token, options);
+        this.Name = "HackerEmbassyBotMock";
     }
 
     private results: string[] = [];

@@ -19,7 +19,9 @@ export default class BotState {
         this.bot = bot;
 
         if (existsSync(this.statepath)) {
-            const persistedState = JSON.parse(readFileSync(this.statepath).toString()) as BotState;
+            const serializedState = readFileSync(this.statepath).toString();
+            console.log(serializedState);
+            const persistedState = JSON.parse(serializedState) as BotState;
 
             this.history = persistedState.history;
             this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());

@@ -17,7 +17,12 @@ export interface BotConfig {
     maxchathistory: number;
     calendar: CalendarConfig;
     locales: string;
-    liveRefreshInterval: number;
+    live: LiveConfig;
+}
+
+export interface LiveConfig {
+    camRefreshInterval: number;
+    statusRefreshInterval: number;
 }
 
 export interface CalendarConfig {

@@ -13,6 +13,7 @@ import {
     InputMedia,
     InputMediaPhoto,
     Message,
+    SendMediaGroupOptions,
     SendMessageOptions,
 } from "node-telegram-bot-api";
 import { EventEmitter, Stream } from "stream";
@@ -44,7 +45,12 @@ export type BotMessageContextMode = {
     static: boolean;
     forward: boolean;
 };
+
+export interface BotHandlers {}
+
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => any;
+export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
+
 export enum BotCustomEvent {
     statusLive = "status-live",
     camLive = "cam-live",
@@ -60,6 +66,10 @@ export interface BotMessageContext {
 
 export interface EditMessageMediaOptionsExt extends EditMessageMediaOptions {
     caption?: string;
+    message_thread_id?: number;
+}
+
+export interface SendMediaGroupOptionsExt extends SendMediaGroupOptions {
     message_thread_id?: number;
 }
 
@@ -103,14 +113,26 @@ export type serializedFunction = {
     params: any[];
 };
 
-export default class HackerEmbassyBot extends TelegramBot {
-    messageHistory: MessageHistory;
-    Name: string | undefined;
-    CustomEmitter: EventEmitter;
-    botState: BotState;
+export const IGNORE_UPDATE_TIMEOUT = 10; // Seconds from bot api
 
-    // Seconds from bot api
-    IGNORE_UPDATE_TIMEOUT = 10;
+export default class HackerEmbassyBot extends TelegramBot {
+    static defaultModes: BotMessageContextMode = {
+        silent: false,
+        mention: false,
+        admin: false,
+        pin: false,
+        live: false,
+        static: false,
+        forward: false,
+    };
+
+    public messageHistory: MessageHistory;
+    public Name: Optional<string>;
+    public CustomEmitter: EventEmitter;
+    public botState: BotState;
+
+    private accessTable = new Map<BotHandler, BotRole[]>();
+    private contextMap = new Map();
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
@@ -119,8 +141,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.Name = undefined;
         this.CustomEmitter = new EventEmitter();
     }
-
-    accessTable = new Map();
 
     canUserCall(username: string | undefined, callback: BotHandler): boolean {
         if (!username) return false;
@@ -134,46 +154,32 @@ export default class HackerEmbassyBot extends TelegramBot {
         return true;
     }
 
-    static defaultModes: BotMessageContextMode = {
-        silent: false,
-        mention: false,
-        admin: false,
-        pin: false,
-        live: false,
-        static: false,
-        forward: false,
-    };
-
-    #context = new Map();
-
     context(msg: TelegramBot.Message): BotMessageContext {
         const botthis = this;
 
-        if (!this.#context.has(msg)) {
+        if (!this.contextMap.has(msg)) {
             const newContext: BotMessageContext = {
                 mode: { ...HackerEmbassyBot.defaultModes },
                 messageThreadId: undefined,
                 clear() {
-                    botthis.#context.delete(msg);
+                    botthis.contextMap.delete(msg);
                 },
                 isAdminMode() {
                     return this.mode.admin && !this.mode.forward;
                 },
                 isEditing: false,
             };
-            this.#context.set(msg, newContext);
+            this.contextMap.set(msg, newContext);
 
             return newContext;
         }
 
-        return this.#context.get(msg) as BotMessageContext;
+        return this.contextMap.get(msg) as BotMessageContext;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    onExt(event: TelegramBot.MessageType | "callback_query", listener: Function): void {
-        const botthis = this;
+    onExt(event: TelegramBot.MessageType | "callback_query", listener: BotHandler | BotCallbackHandler): void {
         const newListener = (query: CallbackQuery | Message) => {
-            listener.call(this, botthis, query);
+            listener.bind(this)(this, query as CallbackQuery & Message);
         };
 
         // @ts-ignore
@@ -238,7 +244,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: TelegramBot.ChatId,
         photos: Buffer[] | ArrayBuffer[],
         msg: TelegramBot.Message,
-        options: any = {}
+        options: SendMediaGroupOptionsExt = {}
     ): Promise<TelegramBot.Message> {
         const mode = this.context(msg).mode;
         const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
@@ -250,6 +256,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         const message = await super.sendMediaGroup(chatIdToUse, imageOpts as InputMedia[], {
             ...options,
+            // @ts-ignore
             message_thread_id: this.context(msg).messageThreadId,
         });
 
@@ -411,7 +418,7 @@ ${chunks[index]}
 
         const newCallback = async function (msg: TelegramBot.Message, match: Nullable<RegExpExecArray>) {
             // Skip old updates
-            if (Math.abs(Date.now() / 1000 - msg.date) > botthis.IGNORE_UPDATE_TIMEOUT) return;
+            if (Math.abs(Date.now() / 1000 - msg.date) > IGNORE_UPDATE_TIMEOUT) return;
 
             try {
                 if (!botthis.canUserCall(msg.from?.username, callback)) {
@@ -497,9 +504,10 @@ ${chunks[index]}
         return null;
     }
 
-    async sendNotification(message: string, date: string, chat: TelegramBot.ChatId): Promise<void> {
-        const currentDate = new Date().toLocaleDateString("sv").substring(8, 10);
-        if (date !== currentDate) return;
+    // TODO add READ state
+    async sendNotification(message: string, monthDay: number, chat: TelegramBot.ChatId): Promise<void> {
+        const currentDate = new Date().getDate();
+        if (monthDay !== currentDate) return;
 
         await this.sendMessage(chat, message);
         logger.info(`Sent a notification to ${chat}: ${message}`);

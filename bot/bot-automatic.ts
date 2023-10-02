@@ -10,12 +10,13 @@ const botConfig = config.get<BotConfig>("bot");
 
 export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     EmbassyHandlers.enableStatusMonitor(bot);
+
     setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, null, false), 60 * 60 * 1000);
     setInterval(
         () =>
             bot.sendNotification(
                 `📢 Котики, сегодня надо заплатить за газ и электричество, не забудьте пожалуйста`,
-                "13",
+                13,
                 botConfig.chats.key
             ),
         12 * 60 * 60 * 1000
@@ -24,7 +25,7 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
         () =>
             bot.sendNotification(
                 `📢 Котики, сегодня надо заплатить за интернет 9900 AMD, не забудьте пожалуйста`,
-                "13",
+                13,
                 botConfig.chats.key
             ),
         12 * 60 * 60 * 1000
@@ -33,19 +34,19 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
         () =>
             bot.sendNotification(
                 `📢 Котики, проверьте оплату за газ и электричество, иначе их отключат завтра`,
-                "20",
+                20,
                 botConfig.chats.key
             ),
         12 * 60 * 60 * 1000
     );
     setInterval(
-        () =>
-            bot.sendNotification(`📢 Котики, проверьте оплату за интернет, иначе его отключат завтра`, "18", botConfig.chats.key),
-        43200000
-    ); // 12hr
+        () => bot.sendNotification(`📢 Котики, проверьте оплату за интернет, иначе его отключат завтра`, 18, botConfig.chats.key),
+        12 * 60 * 60 * 1000
+    );
 
     setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
     setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
 
-    setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.liveRefreshInterval);
+    setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
+    setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);
 }

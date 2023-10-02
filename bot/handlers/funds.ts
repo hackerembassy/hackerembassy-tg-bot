@@ -10,14 +10,14 @@ import * as UsersHelper from "../../services/usersHelper";
 import { initConvert, parseMoneyValue, prepareCurrency } from "../../utils/currency";
 import { equalsIns } from "../../utils/text";
 import { isPrivateMessage } from "../bot-helpers";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
 
 const CALLBACK_DATA_RESTRICTION = 23;
 
 // Converter library needs time to initialize all currencies, so we need to init it in advance
 initConvert();
 
-export default class FundsHandlers {
+export default class FundsHandlers implements BotHandlers {
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {
         const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
         const donations = FundsRepository.getDonations();

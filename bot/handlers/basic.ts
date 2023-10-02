@@ -11,11 +11,11 @@ import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import * as CoinsHelper from "../../utils/coins";
 import { isPrivateMessage } from "../bot-helpers";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");
 
-export default class BasicHandlers {
+export default class BasicHandlers implements BotHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = t("basic.help", {
             availableCommands: UsersHelper.getAvailableCommands(msg.from?.username),

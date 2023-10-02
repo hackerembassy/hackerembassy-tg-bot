@@ -27,13 +27,13 @@ import { sleep } from "../../utils/common";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
-import HackerEmbassyBot, { BotCustomEvent, BotMessageContextMode } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../HackerEmbassyBot";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
 const statsStartDateString = "2023-01-01";
 
-export default class StatusHandlers {
+export default class StatusHandlers implements BotHandlers {
     static isStatusError = false;
 
     static async setmacHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {

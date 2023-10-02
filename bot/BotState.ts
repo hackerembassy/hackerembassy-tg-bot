@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 
 import { BotConfig } from "../config/schema";
 import { debounce } from "../utils/common";
-import HackerEmbassyBot, { BotCustomEvent, LiveChatHandler } from "./HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotHandlers, LiveChatHandler } from "./HackerEmbassyBot";
 import { MessageHistoryEntry } from "./MessageHistory";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -19,9 +19,10 @@ export default class BotState {
         this.bot = bot;
 
         if (existsSync(this.statepath)) {
-            const persistedState = JSON.parse(readFileSync(this.statepath).toString());
+            const persistedState = JSON.parse(readFileSync(this.statepath).toString()) as BotState;
+
             this.history = persistedState.history;
-            this.liveChats = (persistedState.liveChats as LiveChatHandler[]).filter(lc => lc.expires > Date.now());
+            this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());
             this.initLiveChats();
         } else {
             this.history = {};
@@ -34,8 +35,9 @@ export default class BotState {
     async initLiveChats() {
         for (let chatRecordIndex: number = 0; chatRecordIndex < this.liveChats.length; chatRecordIndex++) {
             const lc = this.liveChats[chatRecordIndex];
-            const module = (await import(lc.serializationData.module)).default;
-            const restoredHandler = module[lc.serializationData.functionName];
+            const module = ((await import(lc.serializationData.module)) as { default: BotHandlers }).default;
+            const restoredHandler = module[lc.serializationData.functionName as keyof BotHandlers] as AnyFunction;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             lc.handler = () => restoredHandler(this.bot, ...lc.serializationData.params);
             this.bot.CustomEmitter.on(lc.event, lc.handler);
 

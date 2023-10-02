@@ -9,7 +9,7 @@ import RateLimiter from "../../services/RateLimiter";
 import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
 import { setMenu } from "../bot-menu";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
 import { MessageHistoryEntry } from "../MessageHistory";
 import BasicHandlers from "./basic";
 import BirthdayHandlers from "./birthday";
@@ -20,7 +20,7 @@ import StatusHandlers from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
 
-export default class ServiceHandlers {
+export default class ServiceHandlers implements BotHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;

@@ -8,11 +8,11 @@ import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import * as UsersHelper from "../../services/usersHelper";
 import { lastModifiedFilePath } from "../../utils/filesystem";
-import HackerEmbassyBot, { BotCustomEvent } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotHandlers } from "../HackerEmbassyBot";
 
-const botConfig = config.get("bot") as BotConfig;
+const botConfig = config.get<BotConfig>("bot");
 
-export default class AdminHandlers {
+export default class AdminHandlers implements BotHandlers {
     static async forwardHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
         await bot.sendMessageExt(botConfig.chats.main, text, msg);
         await bot.sendMessageExt(msg.chat.id, "Message is forwarded", msg);

@@ -11,12 +11,12 @@ import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
-import HackerEmbassyBot, { BotCustomEvent, BotMessageContextMode } from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../HackerEmbassyBot";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
 
-export default class EmbassyHanlers {
+export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!(await hasDeviceInside(msg.from?.username))) {
             bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
@@ -75,15 +75,15 @@ export default class EmbassyHanlers {
     }
 
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHanlers.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
+        await EmbassyHandlers.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
     }
 
     static async webcam2Handler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHanlers.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
+        await EmbassyHandlers.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
     }
 
     static async doorcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHanlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
+        await EmbassyHandlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
     }
 
     static async getWebcamImage(path: string) {
@@ -98,7 +98,7 @@ export default class EmbassyHanlers {
         sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
 
         try {
-            const webcamImage = await EmbassyHanlers.getWebcamImage(path);
+            const webcamImage = await EmbassyHandlers.getWebcamImage(path);
 
             const webcamInlineKeyboard = mode.static
                 ? []
@@ -127,7 +127,7 @@ export default class EmbassyHanlers {
         try {
             const mode = bot.context(msg).mode;
 
-            const webcamImage = await EmbassyHanlers.getWebcamImage(path);
+            const webcamImage = await EmbassyHandlers.getWebcamImage(path);
 
             const webcamInlineKeyboard = [
                 [
@@ -164,9 +164,9 @@ export default class EmbassyHanlers {
                 bot.addLiveMessage(
                     resultMessage,
                     BotCustomEvent.camLive,
-                    () => EmbassyHanlers.liveWebcamHandler(bot, resultMessage, path, mode),
+                    () => EmbassyHandlers.liveWebcamHandler(bot, resultMessage, path, mode),
                     {
-                        functionName: EmbassyHanlers.liveWebcamHandler.name,
+                        functionName: EmbassyHandlers.liveWebcamHandler.name,
                         module: __filename,
                         params: [resultMessage, path, mode],
                     }
@@ -181,7 +181,7 @@ export default class EmbassyHanlers {
 
     static async monitorHandler(bot: HackerEmbassyBot, msg: Message, notifyEmpty = false) {
         try {
-            const statusMessages = await EmbassyHanlers.queryStatusMonitor();
+            const statusMessages = await EmbassyHandlers.queryStatusMonitor();
 
             if (!notifyEmpty && statusMessages.length === 0) return;
 
@@ -205,7 +205,7 @@ export default class EmbassyHanlers {
     static enableStatusMonitor(bot: HackerEmbassyBot) {
         setInterval(
             () =>
-                EmbassyHanlers.monitorHandler(bot, {
+                EmbassyHandlers.monitorHandler(bot, {
                     chat: {
                         id: botConfig.chats.test,
                         type: "private",
@@ -449,21 +449,21 @@ export default class EmbassyHanlers {
     }
 
     static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
-        await EmbassyHanlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
+        await EmbassyHandlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
     }
 
     static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, diff: number) {
         if (isNaN(diff)) throw Error();
-        await EmbassyHanlers.controlConditioner(bot, msg, "addconditionertemperature", { diff });
+        await EmbassyHandlers.controlConditioner(bot, msg, "addconditionertemperature", { diff });
     }
 
     static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
         if (isNaN(temperature)) throw Error();
-        await EmbassyHanlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
+        await EmbassyHandlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
     }
 
     static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
-        await EmbassyHanlers.controlConditioner(bot, msg, "setconditionermode", { mode });
+        await EmbassyHandlers.controlConditioner(bot, msg, "setconditionermode", { mode });
     }
 
     static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {

@@ -10,14 +10,14 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers } from "../HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");
 
 const wishedTodayPath = path.join(__dirname, `../../${botConfig.persistedfolderpath}/wished-today.json`);
 const baseWishesDir = "./resources/wishes";
 
-export default class BirthdayHandlers {
+export default class BirthdayHandlers implements BotHandlers {
     static forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
         BirthdayHandlers.sendBirthdayWishes(bot, msg, true);
     }

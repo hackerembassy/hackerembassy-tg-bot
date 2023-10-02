@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import logger from "../services/logger";
 import HackerEmbassyBot from "./HackerEmbassyBot";
 import AdminHandlers from "./handlers/admin";
@@ -14,16 +13,30 @@ import ServiceHandlers from "./handlers/service";
 import StatusHandlers from "./handlers/status";
 
 class RegexCommander {
-    botname: string;
+    botname: Optional<string>;
 
-    constructor(botname: string = "") {
+    constructor(botname: Optional<string>) {
         this.botname = botname;
+
+        if (!botname) {
+            logger.error("Running without bot name");
+        }
     }
 
+    /**
+     * Basic command form: /command_name parameters
+     * @param aliases Alternative [command_name]'s
+     * @param params Regex for [parameters]
+     * @param optional Can parameters be omitted
+     * @param flags Regex modifiers for a whole command regex
+     * @returns Regex for yagop-node-telegram bot library to use for choosing a handler
+     */
     command(aliases: string[], params: RegExp | undefined = undefined, optional: boolean = true, flags: string = "i"): RegExp {
-        const commandPart = `/(?:${aliases.join("|")})(?:@${this.botname})?`;
+        const commandPart = `/(?:${aliases.join("|")})`;
+        const botnamePart = this.botname ? "(?:@${this.botname})?" : "";
         const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
-        return new RegExp(`^${commandPart}${paramsPart}$`, flags);
+
+        return new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, flags);
     }
 }
 

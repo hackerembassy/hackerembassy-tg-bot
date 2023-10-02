@@ -32,6 +32,7 @@ const botConfig = config.get<BotConfig>("bot");
 const maxChunkSize = 3500;
 const messagedelay = 1500;
 const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
+export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
 
 // Types
@@ -112,8 +113,6 @@ export type serializedFunction = {
     module: string;
     params: any[];
 };
-
-export const IGNORE_UPDATE_TIMEOUT = 10; // Seconds from bot api
 
 export default class HackerEmbassyBot extends TelegramBot {
     static defaultModes: BotMessageContextMode = {
@@ -296,7 +295,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
 
         if (options.caption) {
-            await super.editMessageCaption(options.caption, {
+            super.editMessageCaption(options.caption, {
                 chat_id: msg.chat.id,
                 message_id: msg.message_id,
                 reply_markup: { inline_keyboard },

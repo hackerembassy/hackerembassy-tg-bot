@@ -223,11 +223,11 @@ export default class EmbassyHandlers implements BotHandlers {
             [
                 {
                     text: t("embassy.printers.anettestatus"),
-                    callback_data: JSON.stringify({ command: "/printerstatus anette" }),
+                    callback_data: JSON.stringify({ command: "/anettestatus" }),
                 },
                 {
                     text: t("embassy.printers.plumbusstatus"),
-                    callback_data: JSON.stringify({ command: "/printerstatus plumbus" }),
+                    callback_data: JSON.stringify({ command: "/plumbusstatus" }),
                 },
             ],
         ];
@@ -278,7 +278,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 [
                     {
                         text: t("embassy.printerstatus.update", { printername }),
-                        callback_data: JSON.stringify({ command: `/printerstatus ${printername}` }),
+                        callback_data: JSON.stringify({ command: `/u${printername}status` }),
                     },
                 ],
             ];

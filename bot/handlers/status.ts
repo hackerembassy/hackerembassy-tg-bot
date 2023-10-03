@@ -604,7 +604,7 @@ export default class StatusHandlers implements BotHandlers {
     static async profileHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
-        const selectedUsername = username ?? msg.from?.username;
+        const selectedUsername = (username ?? msg.from?.username)?.replace("@", "");
         const userStates = selectedUsername ? StatusRepository.getUserStates(selectedUsername) : [];
         const donations = selectedUsername ? fundsRepository.getFundDonationsOf(selectedUsername) : [];
         const donationList = donations ? TextGenerators.generateFundDonationsList(donations) : "";

@@ -9,7 +9,7 @@ import { ElapsedTimeObject, isToday } from "../utils/date";
 import { fetchWithTimeout } from "../utils/network";
 import { equalsIns } from "../utils/text";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
 export type UserStatsTime = { username: string; usertime: ElapsedTimeObject };
 
@@ -60,7 +60,7 @@ export async function hasDeviceInside(username: Optional<string>): Promise<boole
         const response = await fetchWithTimeout(
             `${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`
         );
-        const devices = await response?.json();
+        const devices = await response.json();
 
         const mac = usersRepository.getUserByName(username)?.mac;
 

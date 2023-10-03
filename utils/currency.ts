@@ -5,7 +5,7 @@ import { Convert } from "easy-currencies";
 import { CurrencyConfig } from "../config/schema";
 import logger from "../services/logger";
 
-const currencyConfig = config.get("currency") as CurrencyConfig;
+const currencyConfig = config.get<CurrencyConfig>("currency");
 
 type CurrencySymbol = "$" | "€" | "£" | "֏" | "₽";
 
@@ -71,6 +71,8 @@ export async function initConvert() {
 
 export async function convertCurrency(amount: number, from: string | number, to: string): Promise<Optional<number>> {
     try {
+        if (from === to) return amount;
+
         if (!convert) await initConvert();
 
         if (convert) {
@@ -83,4 +85,13 @@ export async function convertCurrency(amount: number, from: string | number, to:
         logger.error("Error while converting currency", error);
         return undefined;
     }
+}
+
+export async function sumDonations(fundDonations: { value: number; currency: string }[], targetCurrency: string = "AMD") {
+    return await fundDonations.reduce(async (prev, current) => {
+        const newValue = await convertCurrency(current.value, current.currency, targetCurrency);
+        const prevValue = await prev;
+
+        return newValue ? prevValue + newValue : prevValue;
+    }, Promise.resolve(0));
 }

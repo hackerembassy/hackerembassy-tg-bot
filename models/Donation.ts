@@ -16,4 +16,18 @@ class Donation {
     }
 }
 
+export class FundDonation {
+    username: string;
+    value: number;
+    currency: string;
+    name: string;
+
+    constructor({ name, username, value, currency }: FundDonation) {
+        this.name = name;
+        this.username = username;
+        this.value = value;
+        this.currency = currency;
+    }
+}
+
 export default Donation;

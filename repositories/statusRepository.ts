@@ -4,7 +4,7 @@ import BaseRepository from "./baseRepository";
 
 class StatusRepository extends BaseRepository {
     getSpaceLastState(): Nullable<State> {
-        const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as State;
+        const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as Optional<State>;
 
         if (!lastState) return null;
 
@@ -49,7 +49,7 @@ class StatusRepository extends BaseRepository {
                 state.status ? state.status : UserStateType.Outside,
                 state.username,
                 state.date.valueOf(),
-                state.type ?? 0,
+                state.type,
                 state.note
             );
     }

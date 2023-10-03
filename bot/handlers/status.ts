@@ -4,6 +4,7 @@ import TelegramBot, { Message } from "node-telegram-bot-api";
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import State from "../../models/State";
 import { UserStateChangeType, UserStateType } from "../../models/UserState";
+import fundsRepository from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import { createUserStatsDonut } from "../../services/export";
@@ -24,6 +25,7 @@ import {
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
+import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
@@ -597,6 +599,29 @@ export default class StatusHandlers implements BotHandlers {
             StatusHandlers.isStatusError = true;
             logger.error(error);
         }
+    }
+
+    static async profileHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        const selectedUsername = username ?? msg.from?.username;
+        const userStates = selectedUsername ? StatusRepository.getUserStates(selectedUsername) : [];
+        const donations = selectedUsername ? fundsRepository.getFundDonationsOf(selectedUsername) : [];
+        const donationList = donations ? TextGenerators.generateFundDonationsList(donations) : "";
+        const totalDonated = donations ? await sumDonations(donations) : 0;
+
+        const { days, hours, minutes } = getUserTimeDescriptor(userStates);
+
+        const statsText = `${t("status.statsof", {
+            username: UsersHelper.formatUsername(selectedUsername, bot.context(msg).mode),
+        })}: ${days}d, ${hours}h, ${minutes}m\n\n`;
+
+        const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
+            total: totalDonated,
+            currency: "AMD",
+        })}`;
+
+        await bot.sendLongMessage(msg.chat.id, message, msg);
     }
 
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {

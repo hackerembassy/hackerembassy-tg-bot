@@ -1,13 +1,13 @@
 import config from "config";
 
 import { PrintersConfig } from "../config/schema";
-import Donation from "../models/Donation";
+import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
 import User from "../models/User";
 import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
-import { convertCurrency, formatValueForCurrency } from "../utils/currency";
+import { formatValueForCurrency, sumDonations } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, shortDateTimeOptions } from "../utils/date";
 import { toEscapedTelegramMarkdown } from "../utils/text";
 import { HSEvent } from "./googleCalendar";
@@ -38,12 +38,7 @@ export async function createFundList(
             donations?.filter(donation => {
                 return donation.fund_id === fund.id;
             }) ?? [];
-        const sumOfAllDonations = await fundDonations.reduce(async (prev, current) => {
-            const newValue = await convertCurrency(current.value, current.currency, fund.target_currency);
-            const prevValue = await prev;
-
-            return newValue ? prevValue + newValue : prevValue;
-        }, Promise.resolve(0));
+        const sumOfAllDonations = await sumDonations(fundDonations, fund.target_currency);
         const fundStatus = generateFundStatus(fund, sumOfAllDonations, isHistory);
 
         list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${formatValueForCurrency(
@@ -90,6 +85,18 @@ export function generateAdminFundHelp(fund: Fund, isHistory: boolean): string {
     }
 
     return helpList;
+}
+
+export function generateFundDonationsList(fundDonations: FundDonation[]): string {
+    let fundDonationsList = "";
+
+    for (const fundDonation of fundDonations) {
+        fundDonationsList += `${fundDonation.name}: ${formatValueForCurrency(fundDonation.value, fundDonation.currency)} ${
+            fundDonation.currency
+        }\n`;
+    }
+
+    return fundDonationsList;
 }
 
 export function generateDonationsList(

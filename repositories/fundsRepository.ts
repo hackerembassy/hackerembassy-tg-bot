@@ -1,23 +1,23 @@
 import config from "config";
 
 import { CurrencyConfig } from "../config/schema";
-import Donation from "../models/Donation";
+import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import BaseRepository from "./baseRepository";
 
-const currencyConfig = config.get("currency") as CurrencyConfig;
+const currencyConfig = config.get<CurrencyConfig>("currency");
 
 class FundsRepository extends BaseRepository {
     getFunds(): Nullable<Fund[]> {
-        return this.db.prepare("SELECT * FROM funds").all() as Fund[];
+        return this.db.prepare("SELECT * FROM funds").all() as Nullable<Fund[]>;
     }
 
     getFundByName(fundName: string): Nullable<Fund> {
-        return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Fund;
+        return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Nullable<Fund>;
     }
 
     getFundById(id: number): Nullable<Fund> {
-        return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Fund;
+        return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Nullable<Fund>;
     }
 
     getLatestCosts(): Fund | undefined {
@@ -25,7 +25,7 @@ class FundsRepository extends BaseRepository {
     }
 
     getDonations(): Nullable<Donation[]> {
-        return this.db.prepare("SELECT * FROM donations").all() as Donation[];
+        return this.db.prepare("SELECT * FROM donations").all() as Nullable<Donation[]>;
     }
 
     getDonationsForId(fundId: number): Nullable<Donation[]> {
@@ -35,16 +35,24 @@ class FundsRepository extends BaseRepository {
     getDonationsForName(fundName: string): Nullable<Donation[]> {
         return this.db
             .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
-            .all(fundName) as Donation[];
+            .all(fundName) as Nullable<Donation[]>;
+    }
+
+    getFundDonationsOf(username: string): Nullable<FundDonation[]> {
+        return this.db
+            .prepare(
+                "SELECT d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.username = ?"
+            )
+            .all(username) as Nullable<FundDonation[]>;
     }
 
     getDonationById(donationId: number): Nullable<Donation> {
-        return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Donation;
+        return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Nullable<Donation>;
     }
 
     addFund(fundName: string, target: number, currency: string = currencyConfig.default, status: string = "open"): boolean {
         try {
-            if (this.getFundByName(fundName) !== undefined) throw new Error(`Fund ${fundName} already exists`);
+            if (this.getFundByName(fundName)) throw new Error(`Fund ${fundName} already exists`);
 
             if (!currency) throw new Error(`Invalid currency ${currency}`);
 

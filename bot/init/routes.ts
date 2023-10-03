@@ -93,9 +93,15 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(rc.command(["superstatus", "ss"]), ServiceHandlers.superstatusHandler, ["member"]);
 
     // Stats
+    bot.onTextExt(rc.command(["profile", "me"]), (bot, msg) => StatusHandlers.profileHandler(bot, msg));
+    bot.onTextExt(
+        rc.command(["profile"], /(\S+)/, false),
+        (bot, msg, match) => StatusHandlers.profileHandler(bot, msg, match[1]),
+        ["accountant"]
+    );
     bot.onTextExt(rc.command(["mystats"]), (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));
     bot.onTextExt(rc.command(["statsof"], /(\S+)/, false), (bot, msg, match) =>
-        StatusHandlers.statsOfHandler(bot, msg, match[3])
+        StatusHandlers.statsOfHandler(bot, msg, match[1])
     );
     bot.onTextExt(rc.command(["stats"], /(?:from (\S+))?(?: to (\S+))?/), (bot, msg, match) =>
         StatusHandlers.statsHandler(bot, msg, match[1], match[2])

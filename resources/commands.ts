@@ -44,6 +44,7 @@ export const GeneralCommandsList: string = `
 #\`/bought item_name#\` - Отметить что-то купленным из needs
 
 Статистика:
+/me - Твоя статистика донатов и посещений
 /stats - Статистика по времени в спейсе (на основе отметок)
 #\`/stats from YYYY-MM-DD to YYYY-MM-DD#\` - Статистика по времени в спейсе за выбранный период (можно указать только from или to)
 /mystats - Статистика по моему времени в спейсе (на основе отметок)
@@ -114,6 +115,7 @@ export const AccountantCommandsList: string = `
 #\`/changedonation donation_id to donation_value currency_code#\`
 #\`/removedonation donation_id#\` - Удалить донат
 #\`/transferdonation donation_id to username#\` - Передать донат другому бухгалтеру
+#\`/profile username#\` - Статистика посещений и донатов юзера
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead

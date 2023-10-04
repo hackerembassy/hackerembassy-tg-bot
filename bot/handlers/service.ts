@@ -28,7 +28,7 @@ export default class ServiceHandlers implements BotHandlers {
             ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
             : 0;
 
-        if (!orderOfLastMessage || orderOfLastMessage === -1) return;
+        if (orderOfLastMessage === undefined || orderOfLastMessage === null || orderOfLastMessage === -1) return;
 
         let messagesRemained = countToClear;
         while (messagesRemained > 0) {
@@ -48,7 +48,8 @@ export default class ServiceHandlers implements BotHandlers {
             ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
             : 0;
 
-        if (!orderOfLastMessageToEdit || orderOfLastMessageToEdit === -1) return;
+        if (orderOfLastMessageToEdit === undefined || orderOfLastMessageToEdit === null || orderOfLastMessageToEdit === -1)
+            return;
 
         let lastMessageToEdit: Nullable<MessageHistoryEntry>;
         let foundLast = false;

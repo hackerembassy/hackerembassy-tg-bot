@@ -286,7 +286,7 @@ export default class FundsHandlers implements BotHandlers {
         const value = parseMoneyValue(valueString);
         const preparedCurrency = await prepareCurrency(currency);
 
-        const success = preparedCurrency && FundsRepository.updateDonation(donationId, value, preparedCurrency);
+        const success = preparedCurrency && FundsRepository.updateDonationValues(donationId, value, preparedCurrency);
 
         await bot.sendMessageExt(
             msg.chat.id,

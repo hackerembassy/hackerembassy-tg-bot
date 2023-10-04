@@ -38,6 +38,10 @@ class FundsRepository extends BaseRepository {
             .all(fundName) as Nullable<Donation[]>;
     }
 
+    getDonationsOf(username: string): Nullable<Donation[]> {
+        return this.db.prepare("SELECT * FROM donations WHERE username = ?").all(username) as Nullable<Donation[]>;
+    }
+
     getFundDonationsOf(username: string): Nullable<FundDonation[]> {
         return this.db
             .prepare(
@@ -156,12 +160,25 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    updateDonation(donationId: number, value: number, currency: string): boolean {
+    updateDonationValues(donationId: number, value: number, currency: string): boolean {
         try {
             if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
             if (!currency) throw new Error(`Invalid currency ${currency}`);
 
             this.db.prepare("UPDATE donations SET value = ?, currency = ? WHERE id = ?").run(value, currency, donationId);
+
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
+    }
+
+    updateDonation(donation: Donation): boolean {
+        try {
+            this.db
+                .prepare("UPDATE donations SET value = ?, currency = ?, accountant = ?, username = ?, fund_id = ? WHERE id = ?")
+                .run(donation.value, donation.currency, donation.accountant, donation.username, donation.fund_id, donation.id);
 
             return true;
         } catch (error) {

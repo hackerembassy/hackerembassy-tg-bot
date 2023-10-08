@@ -38,6 +38,7 @@ User roles:
 -   admin - manages users
 -   accountant - manages donations and fees
 -   member - a resident of the space, can open and close the space
+-   trusted - a guest of the space, who has gained the resident's trust
 -   default - regular guest, presence in the database is not required
 
 ## Hosting

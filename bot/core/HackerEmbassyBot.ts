@@ -36,7 +36,7 @@ export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
 
 // Types
-export type BotRole = "admin" | "member" | "accountant" | "default";
+export type BotRole = "admin" | "member" | "accountant" | "trusted" | "default";
 export type BotMessageContextMode = {
     silent: boolean;
     mention: boolean;

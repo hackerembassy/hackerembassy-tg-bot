@@ -176,7 +176,9 @@ export function getUserBadges(username: Nullable<string>): string {
     if (!user) return "";
 
     const roles = getRoles(user);
-    const roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}`;
+    const roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${
+        roles.includes("trusted") ? "🎓" : ""
+    }`;
     const customBadge = user.emoji ?? "";
 
     return `${roleBadges}${customBadge}`;

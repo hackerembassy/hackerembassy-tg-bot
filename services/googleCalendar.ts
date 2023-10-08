@@ -137,9 +137,12 @@ function getEventsMap(eventsJson: CalendarListResponse): Map<number, HSEvent> {
     return eventsMap;
 }
 
-export async function getNClosestEventsFromCalendar(numberOfEvents: number): Promise<Nullable<HSEvent[]>> {
+export async function getClosestEventsFromCalendar(
+    numberOfEvents: number,
+    from: Date = new Date()
+): Promise<Nullable<HSEvent[]>> {
     try {
-        const eventsJson = await getEventsJSON(calendarID, numberOfEvents, new Date());
+        const eventsJson = await getEventsJSON(calendarID, numberOfEvents, from);
 
         return eventsJson.items.map((event: HSEventFromJSON) => ({
             summary: event.summary,

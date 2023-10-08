@@ -24,11 +24,11 @@ export const GeneralCommandsList: string = `
 /plumbus - Статус 3D принтера Plumbus
 
 Сборы:
-/funds - Наши открытые сборы
-/costs - Показать сбор на аренду текущего месяца
-/donut - Показать пончиковую диаграмму сбора на аренду текущего месяца
-/fundsall - Все сборы (в том числе архив)
-#\`/fund fund_name#\` - Вывести сбор по имени
+/funds (fs) - Наши открытые сборы
+/costs (cs) - Показать сбор на аренду текущего месяца
+/donut (dt)- Показать пончиковую диаграмму сбора на аренду текущего месяца
+/fundsall (fsa) - Все сборы (в том числе архив)
+#\`/fund fund_name#\` (f) - Вывести сбор по имени
 
 Это другое:
 /birthdays - Кто празднует днюху в этом месяце
@@ -103,18 +103,19 @@ export const AdminCommandsList: string = `
 
 export const AccountantCommandsList: string = `
 Команды бухгалтера:
-#\`/costs donation_value currency_code from telegram_username#\` - Задонатить в последний актуальный сбор на аренду
+#\`/costs donation_value currency_code from telegram_username#\` (cs) - Задонатить в последний актуальный сбор на аренду
 #\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
 #\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
-#\`/exportfund fund_name#\` - Экспортировать донаты сбора как CSV
+#\`/exportfund fund_name#\` (csv) - Экспортировать донаты сбора как CSV
 #\`/exportfonut fund_name#\` - Экспортировать донаты сбора как диаграмму
 #\`/closefund fund_name#\` - Изменить статус сбора на закрытый
 #\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removefund fund_name#\` - Удалить сбор (не надо)
-#\`/adddonation donation_value currency_code from telegram_username to fund_name#\`
+#\`/adddonation donation_value currency_code from telegram_username to fund_name#\` (ad)
 #\`/changedonation donation_id to donation_value currency_code#\`
 #\`/removedonation donation_id#\` - Удалить донат
-#\`/transferdonation donation_id to username#\` - Передать донат другому бухгалтеру
+#\`/transferdonation donation_id to username#\` (td) - Передать донат другому бухгалтеру
+#\`/tocab donation_id#\` - Передать донат Кабу
 #\`/profile username#\` - Статистика посещений и донатов юзера
 
 \\* Statuses: open, closed, postponed

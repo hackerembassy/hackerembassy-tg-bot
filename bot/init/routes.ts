@@ -206,9 +206,9 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     );
 
     // Funds
-    bot.onTextExt(rc.command(["funds"]), FundsHandlers.fundsHandler);
-    bot.onTextExt(rc.command(["fund"], /(.*\S)/, false), (bot, msg, match) => FundsHandlers.fundHandler(bot, msg, match[1]));
-    bot.onTextExt(rc.command(["fundsall", "fundshistory"]), FundsHandlers.fundsallHandler);
+    bot.onTextExt(rc.command(["funds", "fs"]), FundsHandlers.fundsHandler);
+    bot.onTextExt(rc.command(["fund", "f"], /(.*\S)/, false), (bot, msg, match) => FundsHandlers.fundHandler(bot, msg, match[1]));
+    bot.onTextExt(rc.command(["fundsall", "fundshistory", "fsa"]), FundsHandlers.fundsallHandler);
     bot.onTextExt(
         rc.command(["addfund"], /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)/, false),
         (bot, msg, match) => FundsHandlers.addFundHandler(bot, msg, match[1], match[2], match[3]),
@@ -224,7 +224,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         (bot, msg, match) => FundsHandlers.removeFundHandler(bot, msg, match[1]),
         ["accountant"]
     );
-    bot.onTextExt(rc.command(["exportfund"], /(.*\S)/, false), (bot, msg, match) =>
+    bot.onTextExt(rc.command(["exportfund", "csv"], /(.*\S)/, false), (bot, msg, match) =>
         FundsHandlers.exportCSVHandler(bot, msg, match[1])
     );
     bot.onTextExt(rc.command(["exportdonut"], /(.*\S)/, false), (bot, msg, match) =>
@@ -240,7 +240,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         (bot, msg, match) => FundsHandlers.changeFundStatusHandler(bot, msg, match[1], match[2]),
         ["accountant"]
     );
-    bot.onTextExt(rc.command(["showcostsdonut", "costsdonut", "donut"]), (bot, msg) =>
+    bot.onTextExt(rc.command(["showcostsdonut", "costsdonut", "donut", "dt"]), (bot, msg) =>
         FundsHandlers.showCostsDonutHandler(bot, msg)
     );
     bot.onTextExt(
@@ -248,16 +248,16 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         (bot, msg) => FundsHandlers.residentsDonatedHandler(bot, msg),
         ["member", "accountant"]
     );
-    bot.onTextExt(rc.command(["costs", "showcosts"]), (bot, msg) => FundsHandlers.showCostsHandler(bot, msg));
+    bot.onTextExt(rc.command(["costs", "showcosts", "cs"]), (bot, msg) => FundsHandlers.showCostsHandler(bot, msg));
 
     // Donations
     bot.onTextExt(
-        rc.command(["costs"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/, false),
+        rc.command(["costs", "cs", "rent"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/, false),
         (bot, msg, match) => FundsHandlers.costsHandler(bot, msg, match[1], match[2], match[3]),
         ["accountant"]
     );
     bot.onTextExt(
-        rc.command(["adddonation"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/, false),
+        rc.command(["adddonation", "ad"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/, false),
         (bot, msg, match) => FundsHandlers.addDonationHandler(bot, msg, match[1], match[2], match[3], match[4]),
         ["accountant"]
     );
@@ -267,8 +267,13 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         ["accountant"]
     );
     bot.onTextExt(
-        rc.command(["transferdonation"], /(\d+) to (.*\S)/, false),
+        rc.command(["transferdonation", "td"], /(\d+) to (.*\S)/, false),
         (bot, msg, match) => FundsHandlers.transferDonationHandler(bot, msg, match[1], match[2]),
+        ["accountant"]
+    );
+    bot.onTextExt(
+        rc.command(["tocab", "givecab", "tc"], /(\d+)/, false),
+        (bot, msg, match) => FundsHandlers.transferDonationHandler(bot, msg, match[1], "CabiaRangris"),
         ["accountant"]
     );
     bot.onTextExt(

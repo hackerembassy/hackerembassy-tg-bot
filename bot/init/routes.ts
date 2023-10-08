@@ -73,12 +73,12 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(
         rc.command(["inforce", "goin"], /(\S+)/, false),
         (bot, msg, match) => StatusHandlers.inForceHandler(bot, msg, match[1]),
-        ["member"]
+        ["member", "trusted"]
     );
     bot.onTextExt(
         rc.command(["outforce", "gohome"], /(\S+)/, false),
         (bot, msg, match) => StatusHandlers.outForceHandler(bot, msg, match[1]),
-        ["member"]
+        ["member", "trusted"]
     );
     bot.onTextExt(rc.command(["out", "iamleaving"]), StatusHandlers.outHandler);
     bot.onTextExt(rc.command(["evict", "outforceall"]), StatusHandlers.evictHandler, ["member"]);
@@ -115,7 +115,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(
         rc.command(["setemoji", "emoji", "myemoji"], /(.*)/),
         (bot, msg, match) => StatusHandlers.setemojiHandler(bot, msg, match[1]),
-        ["member"]
+        ["member", "trusted"]
     );
 
     // Cams
@@ -147,27 +147,27 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(
         rc.command(["conditioner", "conditionerstate", "midea", "ac", "acstate", "mideastate"]),
         (bot, msg) => EmbassyHandlers.conditionerHandler(bot, msg),
-        ["member"]
+        ["member", "trusted"]
     );
     bot.onTextExt(
         rc.command(["turnonconditioner", "conditioneron", "mideaon", "acon"]),
         (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, true),
-        ["member"]
+        ["member", "trusted"]
     );
     bot.onTextExt(
         rc.command(["turnoffconditioner", "conditioneroff", "mideaoff", "acoff"]),
         (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, false),
-        ["member"]
+        ["member", "trusted"]
     );
     bot.onTextExt(
         rc.command(["setConditionerMode", "conditionermode", "mideamode", "acmode"], /(\S+)/, false),
         (bot, msg, match) => EmbassyHandlers.setConditionerModeHandler(bot, msg, match[1]),
-        ["member"]
+        ["member", "trusted"]
     );
     bot.onTextExt(
         rc.command(["setConditionerTemp", "setConditionerTemperature", "conditionertemp", "mideatemp", "actemp"], /(\d*)/, false),
         (bot, msg, match) => EmbassyHandlers.setConditionerTempHandler(bot, msg, Number(match[1])),
-        ["member"]
+        ["member", "trusted"]
     );
 
     // Monitoring

@@ -52,3 +52,10 @@ export function isToday(someDate: Date): boolean {
         someDate.getFullYear() === today.getFullYear()
     );
 }
+
+export function getToday(): Date {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+
+    return date;
+}

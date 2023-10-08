@@ -55,7 +55,11 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         BasicHandlers.donateCoinHandler(bot, msg, match[1])
     );
     bot.onTextExt(rc.command(["getresidents", "gr"]), BasicHandlers.getResidentsHandler);
-    bot.onTextExt(rc.command(["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"]), BasicHandlers.getEventsHandler);
+    bot.onTextExt(
+        rc.command(["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"]),
+        BasicHandlers.upcomingEventsHandler
+    );
+    bot.onTextExt(rc.command(["todayevents", "today", "te"]), BasicHandlers.todayEventsHandler);
 
     // Panels
     bot.onTextExt(rc.command(["start", "startpanel", "sp"]), BasicHandlers.startPanelHandler);

@@ -312,7 +312,7 @@ export default class BasicHandlers implements BotHandlers {
 
             if (todayEvents.length !== 0) {
                 for (const event of todayEvents) {
-                    messageText += TextGenerators.HSEventToString(event) + "\n\n";
+                    messageText += TextGenerators.HSEventToString(event, true) + "\n\n";
                 }
 
                 messageText += t("basic.events.entrance");

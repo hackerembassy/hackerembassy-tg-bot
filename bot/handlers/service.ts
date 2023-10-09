@@ -126,11 +126,11 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async callbackHandler(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) {
-        bot.answerCallbackQuery(callbackQuery.id);
-
         const msg = callbackQuery.message;
 
         try {
+            await bot.answerCallbackQuery(callbackQuery.id);
+
             if (!msg || !msg.from?.id) throw Error("Message with User id is not found");
 
             bot.context(msg).messageThreadId = msg.message_thread_id;

@@ -362,12 +362,26 @@ export default class ServiceHandlers implements BotHandlers {
         if (!msg.new_chat_members) return;
 
         for (const user of msg.new_chat_members) {
-            if (UsersRepository.getByUserId(user.id) !== null) return await ServiceHandlers.welcomeHandler(bot, msg, user);
-            UsersRepository.addUser(user.username, ["restricted"], user.id);
+            const currentUser = UsersRepository.getByUserId(user.id);
 
-            const newMember = userLink(user);
-            const welcomeText: string = t("service.welcome.confirm", { newMember });
+            if (currentUser === null) {
+                logger.info(
+                    `New user [${user.id}](${user.username}) joined the chat [${msg.chat.id}](${msg.chat.title}) as restricted`
+                );
+                UsersRepository.addUser(user.username, ["restricted"], user.id);
+            } else if (!currentUser.roles.includes("restricted")) {
+                logger.info(
+                    `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${msg.chat.id}](${msg.chat.title})`
+                );
+                return await ServiceHandlers.welcomeHandler(bot, msg, user);
+            } else {
+                console.log(msg.chat);
+                logger.info(
+                    `Restricted user [${user.id}](${user.username}) joined the chat [${msg.chat.id}](${msg.chat.title}) again`
+                );
+            }
 
+            const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
             const inline_keyboard = [
                 [
                     {
@@ -387,6 +401,8 @@ export default class ServiceHandlers implements BotHandlers {
         const user = UsersRepository.getByUserId(tgUser.id);
         if (!user || !user.roles.includes("restricted"))
             throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
+
+        logger.info(`User [${tgUser.id}](${tgUser.username}) passed the verification`);
 
         return UsersRepository.updateUser({ ...user, roles: "default" });
     }

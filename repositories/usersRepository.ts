@@ -35,8 +35,10 @@ class UserRepository extends BaseRepository {
     updateUser(user: User): boolean {
         try {
             this.db
-                .prepare("UPDATE users SET username = ?, roles = ?, userid = ?, mac = ?, birthday = ?, autoinside = ?, emoji = ?")
-                .run(user.username, user.roles, user.userid, user.mac, user.birthday, user.autoinside, user.emoji);
+                .prepare(
+                    "UPDATE users SET username = ?, roles = ?, userid = ?, mac = ?, birthday = ?, autoinside = ?, emoji = ? WHERE id = ?"
+                )
+                .run(user.username, user.roles, user.userid, user.mac, user.birthday, user.autoinside, user.emoji, user.id);
 
             return true;
         } catch (error) {

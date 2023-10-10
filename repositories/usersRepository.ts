@@ -9,12 +9,19 @@ class UserRepository extends BaseRepository {
         return users.filter(user => user).map(user => new User(user as User));
     }
 
-    addUser(username: string, roles: string[] = ["default"]): boolean {
+    addUser(username?: string, roles: string[] = ["default"], userid?: number): boolean {
         try {
-            if (this.getUserByName(username) !== null) return false;
+            // TODO remove username checking when ready
+            if (username === undefined && userid === undefined) return false;
+
+            if ((userid && this.getByUserId(userid) !== null) || (username && this.getUserByName(username) !== null))
+                return false;
+
             const joinedRoles = roles.join("|");
 
-            this.db.prepare("INSERT INTO users (username, roles) VALUES (?, ?)").run(username, joinedRoles);
+            this.db
+                .prepare("INSERT INTO users (username, roles, userid) VALUES (?, ?, ?)")
+                .run(username, joinedRoles, userid ?? null);
 
             return true;
         } catch (error) {
@@ -23,6 +30,20 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    updateUser(user: User): boolean {
+        try {
+            this.db
+                .prepare("UPDATE users SET username = ?, roles = ?, userid = ?, mac = ?, birthday = ?, autoinside = ?, emoji = ?")
+                .run(user.username, user.roles, user.userid, user.mac, user.birthday, user.autoinside, user.emoji);
+
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
+    }
+
+    // TODO rewrite below using only updateUser
     updateRoles(username: string, roles: string[] = ["default"]): boolean {
         try {
             if (this.getUserByName(username) === null) return false;
@@ -58,9 +79,9 @@ class UserRepository extends BaseRepository {
             const newMacs = macs ? macs.split(",").map(mac => mac.toLowerCase().replaceAll("-", ":").trim()) : [];
             const existingRegisteredMacs = this.getAllRegisteredMACs();
             const existingOtherUsersMacs = currentUser
-                ? existingRegisteredMacs.filter(mac => !currentUser?.mac?.split(",").includes(mac))
+                ? existingRegisteredMacs.filter(mac => !currentUser.mac?.split(",").includes(mac))
                 : existingRegisteredMacs;
-            const newMacsString = newMacs?.join(",") ?? null;
+            const newMacsString = newMacs.join(",");
 
             if (anyItemIsInList(newMacs, existingOtherUsersMacs))
                 throw Error(`Mac's [${newMacsString}] already exist in database`);
@@ -143,6 +164,17 @@ class UserRepository extends BaseRepository {
     getUserByName(username: string): Nullable<User> {
         try {
             const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
+
+            return user ? new User(user as User) : null;
+        } catch (error) {
+            this.logger.error(error);
+            return null;
+        }
+    }
+
+    getByUserId(userid: number): Nullable<User> {
+        try {
+            const user = this.db.prepare("SELECT * FROM users WHERE userid = ?").get(userid);
 
             return user ? new User(user as User) : null;
         } catch (error) {

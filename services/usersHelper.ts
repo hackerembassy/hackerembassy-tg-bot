@@ -1,4 +1,4 @@
-import { BotRole } from "../bot/core/HackerEmbassyBot";
+import { BotRole, ITelegramUser } from "../bot/core/HackerEmbassyBot";
 import User from "../models/User";
 import UsersRepository from "../repositories/usersRepository";
 import { AccountantCommandsList, AdminCommandsList, GeneralCommandsList, MemberCommandsList } from "../resources/commands";
@@ -53,4 +53,8 @@ export function formatUsername(username: Optional<string>, mode = { mention: fal
 
     if (mode.mention) return `@${username}`.replaceAll("_", "\\_");
     else return `#[${username}#]#(t.me/${username}#)`;
+}
+
+export function userLink(user: ITelegramUser) {
+    return `#[${user.username ?? user.first_name}#]#(tg://user?id=${user.id}#)`;
 }

@@ -1,5 +1,5 @@
 import config from "config";
-import TelegramBot, { InlineKeyboardButton, Message, User } from "node-telegram-bot-api";
+import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
@@ -7,8 +7,9 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import RateLimiter from "../../services/RateLimiter";
 import * as UsersHelper from "../../services/usersHelper";
+import { userLink } from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers, ITelegramUser } from "../core/HackerEmbassyBot";
 import { MessageHistoryEntry } from "../core/MessageHistory";
 import { setMenu } from "../init/menu";
 import BasicHandlers from "./basic";
@@ -151,6 +152,19 @@ export default class ServiceHandlers implements BotHandlers {
         msg.from = callbackQuery.from;
 
         const isAllowed = bot.canUserCall.bind(bot, msg.from.username);
+
+        if (data.vId && callbackQuery.from.id === data.vId) {
+            const tgUser = (await bot.getChat(data.vId)) as ITelegramUser;
+
+            if (ServiceHandlers.verifyUserHandler(tgUser)) {
+                try {
+                    await bot.deleteMessage(msg.chat.id, msg.message_id);
+                    await ServiceHandlers.welcomeHandler(bot, msg, tgUser);
+                } catch (error) {
+                    logger.error(error);
+                }
+            }
+        }
 
         switch (data.command) {
             case "/in":
@@ -345,32 +359,62 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async newMemberHandler(bot: HackerEmbassyBot, msg: Message) {
-        const botName = (await bot.getMe()).username;
-        const newMembers = msg.new_chat_members?.reduce(
-            (res: string, member: User) =>
-                res +
-                `${member.username ? UsersHelper.formatUsername(member.username, bot.context(msg).mode) : member.first_name} `,
-            ""
-        );
+        if (!msg.new_chat_members) return;
+
+        for (const user of msg.new_chat_members) {
+            if (UsersRepository.getByUserId(user.id) !== null) return await ServiceHandlers.welcomeHandler(bot, msg, user);
+            UsersRepository.addUser(user.username, ["restricted"], user.id);
+
+            const newMember = userLink(user);
+            const welcomeText: string = t("service.welcome.confirm", { newMember });
+
+            const inline_keyboard = [
+                [
+                    {
+                        text: t("service.welcome.captcha"),
+                        callback_data: JSON.stringify({ vId: user.id }),
+                    },
+                ],
+            ];
+
+            await bot.sendMessageExt(msg.chat.id, welcomeText, msg, {
+                reply_markup: { inline_keyboard },
+            });
+        }
+    }
+
+    static verifyUserHandler(tgUser: ITelegramUser) {
+        const user = UsersRepository.getByUserId(tgUser.id);
+        if (!user || !user.roles.includes("restricted"))
+            throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
+
+        return UsersRepository.updateUser({ ...user, roles: "default" });
+    }
+
+    static async welcomeHandler(bot: HackerEmbassyBot, message: Message, tgUser: ITelegramUser) {
+        const newMember = tgUser.username
+            ? UsersHelper.formatUsername(tgUser.username, bot.context(message).mode)
+            : tgUser.first_name;
+        const botName = bot.Name;
 
         let welcomeText: string;
 
-        switch (msg.chat.id) {
+        switch (message.chat.id) {
             case botConfig.chats.offtopic:
-                welcomeText = t("service.welcome.offtopic", { botName, newMembers });
+                welcomeText = t("service.welcome.offtopic", { botName, newMember });
                 break;
             case botConfig.chats.key:
-                welcomeText = t("service.welcome.key", { botName, newMembers });
+                welcomeText = t("service.welcome.key", { botName, newMember });
                 break;
             case botConfig.chats.horny:
-                welcomeText = t("service.welcome.horny", { botName, newMembers });
+                welcomeText = t("service.welcome.horny", { botName, newMember });
                 break;
             case botConfig.chats.main:
             default:
-                welcomeText = t("service.welcome.main", { botName, newMembers });
+                welcomeText = t("service.welcome.main", { botName, newMember });
         }
 
-        bot.sendMessageExt(msg.chat.id, welcomeText, msg);
+        await bot.sendMessageExt(message.chat.id, welcomeText, message);
     }
 
     static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string) {

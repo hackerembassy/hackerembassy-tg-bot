@@ -36,7 +36,7 @@ export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
 
 // Types
-export type BotRole = "admin" | "member" | "accountant" | "trusted" | "default";
+export type BotRole = "admin" | "member" | "accountant" | "trusted" | "default" | "restricted";
 export type BotMessageContextMode = {
     silent: boolean;
     mention: boolean;
@@ -51,6 +51,12 @@ export interface BotHandlers {}
 
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => any;
 export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
+
+export interface ITelegramUser {
+    username?: string;
+    id: number;
+    first_name: string;
+}
 
 export enum BotCustomEvent {
     statusLive = "status-live",

@@ -311,6 +311,16 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         ["admin"]
     );
     bot.onTextExt(
+        rc.command(["restrict"], /(\S+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], "restricted"),
+        ["admin"]
+    );
+    bot.onTextExt(
+        rc.command(["unblock"], /(\S+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], "default"),
+        ["admin"]
+    );
+    bot.onTextExt(
         rc.command(["removeuser"], /(\S+)/, false),
         (bot, msg, match) => AdminHandlers.removeUserHandler(bot, msg, match[1]),
         ["admin"]

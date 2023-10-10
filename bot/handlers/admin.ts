@@ -71,6 +71,19 @@ export default class AdminHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, "Live handlers are removed from this chat", msg);
     }
 
+    static async getRestrictedUsersHandler(bot: HackerEmbassyBot, msg: Message) {
+        const users = UsersRepository.getUsers()?.filter(u => u.roles.includes("restricted"));
+        let userList = "";
+
+        if (users) {
+            for (const user of users) {
+                userList += `${UsersHelper.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
+            }
+        }
+
+        await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);
+    }
+
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers();
         let userList = "";

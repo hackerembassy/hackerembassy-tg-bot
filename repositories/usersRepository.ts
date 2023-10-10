@@ -1,3 +1,5 @@
+import { ChatId } from "node-telegram-bot-api";
+
 import User from "../models/User";
 import { anyItemIsInList } from "../utils/common";
 import BaseRepository from "./baseRepository";
@@ -172,7 +174,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    getByUserId(userid: number): Nullable<User> {
+    getByUserId(userid: number | ChatId): Nullable<User> {
         try {
             const user = this.db.prepare("SELECT * FROM users WHERE userid = ?").get(userid);
 

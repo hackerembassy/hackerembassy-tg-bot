@@ -53,9 +53,9 @@ export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...re
 export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
 
 export interface ITelegramUser {
-    username?: string;
-    id: number;
-    first_name: string;
+    username?: Nullable<string>;
+    id: number | ChatId;
+    first_name?: string;
 }
 
 export enum BotCustomEvent {

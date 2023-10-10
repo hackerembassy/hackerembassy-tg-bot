@@ -300,6 +300,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
 
     // Admin
     bot.onTextExt(rc.command(["getusers", "users", "gu"]), AdminHandlers.getUsersHandler, ["admin"]);
+    bot.onTextExt(rc.command(["getrestrictedusers", "restricted"]), AdminHandlers.getRestrictedUsersHandler, ["admin"]);
     bot.onTextExt(
         rc.command(["adduser"], /(\S+?) as (\S+)/, false),
         (bot, msg, match) => AdminHandlers.addUserHandler(bot, msg, match[1], match[2]),

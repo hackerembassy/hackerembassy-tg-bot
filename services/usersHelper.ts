@@ -56,5 +56,5 @@ export function formatUsername(username: Optional<string>, mode = { mention: fal
 }
 
 export function userLink(user: ITelegramUser) {
-    return `#[${user.username ?? user.first_name}#]#(tg://user?id=${user.id}#)`;
+    return `#[${user.username ?? user.first_name ?? user.id}#]#(tg://user?id=${user.id}#)`;
 }

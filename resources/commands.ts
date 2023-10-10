@@ -92,6 +92,7 @@ export const MemberCommandsList: string = `
 export const AdminCommandsList: string = ` 
 Команды админов:
 /getusers
+/getrestrictedusers
 #\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
 #\`/removeuser telegram_username#\`
 #\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`

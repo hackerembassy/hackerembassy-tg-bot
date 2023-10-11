@@ -165,6 +165,17 @@ class UserRepository extends BaseRepository {
         }
     }
 
+    removeUserById(userid: number): boolean {
+        try {
+            this.db.prepare("DELETE FROM users WHERE userid = ?").run(userid);
+
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
+    }
+
     getUserByName(username: string): Nullable<User> {
         try {
             const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());

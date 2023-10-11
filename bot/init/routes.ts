@@ -326,6 +326,11 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         (bot, msg, match) => AdminHandlers.removeUserHandler(bot, msg, match[1]),
         ["admin"]
     );
+    bot.onTextExt(
+        rc.command(["removeuserbyid"], /(\d+)/, false),
+        (bot, msg, match) => AdminHandlers.removeUserByIdHandler(bot, msg, match[1]),
+        ["admin"]
+    );
     bot.onTextExt(rc.command(["forward"], /(.*)/, false), (bot, msg, match) => AdminHandlers.forwardHandler(bot, msg, match[1]), [
         "admin",
     ]);

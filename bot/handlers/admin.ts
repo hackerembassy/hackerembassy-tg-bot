@@ -90,7 +90,7 @@ export default class AdminHandlers implements BotHandlers {
 
         if (users) {
             for (const user of users) {
-                userList += `> ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
+                userList += `[${user.userid}] ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
     Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
     Autoinside: ${user.autoinside ? "on" : "off"}\n`;
             }
@@ -130,6 +130,13 @@ export default class AdminHandlers implements BotHandlers {
         const text = success
             ? t("admin.removeUser.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) })
             : t("admin.removeUser.fail");
+
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
+
+    static async removeUserByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number) {
+        const success = UsersRepository.removeUserById(userid);
+        const text = success ? t("admin.removeUser.success", { username: `[${userid}]` }) : t("admin.removeUser.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }

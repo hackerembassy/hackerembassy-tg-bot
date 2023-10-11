@@ -28,7 +28,6 @@ export const GeneralCommandsList: string = `
 
 Сборы:
 /funds (fs) - Наши открытые сборы
-/funds (fs) - Наши открытые сборы
 /costs (cs) - Показать сбор на аренду текущего месяца
 /donut (dt)- Показать пончиковую диаграмму сбора на аренду текущего месяца
 /fundsall (fsa) - Все сборы (в том числе архив)
@@ -117,7 +116,7 @@ export const AccountantCommandsList: string = `
 #\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
 #\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
 #\`/exportfund fund_name#\` (csv) - Экспортировать донаты сбора как CSV
-#\`/exportfonut fund_name#\` - Экспортировать донаты сбора как диаграмму
+#\`/exportdonut fund_name#\` - Экспортировать донаты сбора как диаграмму
 #\`/closefund fund_name#\` - Изменить статус сбора на закрытый
 #\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removefund fund_name#\` - Удалить сбор (не надо)

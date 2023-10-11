@@ -6,7 +6,6 @@ import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import RateLimiter from "../../services/RateLimiter";
-import * as UsersHelper from "../../services/usersHelper";
 import { userLink } from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
 import HackerEmbassyBot, { BotHandlers, ITelegramUser } from "../core/HackerEmbassyBot";
@@ -408,9 +407,7 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async welcomeHandler(bot: HackerEmbassyBot, message: Message, tgUser: ITelegramUser) {
-        const newMember = tgUser.username
-            ? UsersHelper.formatUsername(tgUser.username, bot.context(message).mode)
-            : tgUser.first_name;
+        const newMember = userLink(tgUser);
         const botName = bot.Name;
 
         let welcomeText: string;

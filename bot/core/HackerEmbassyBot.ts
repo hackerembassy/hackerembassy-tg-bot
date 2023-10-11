@@ -148,12 +148,12 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     canUserCall(username: string | undefined, callback: BotHandler): boolean {
-        if (!username) return false;
-
         const savedRestrictions = this.accessTable.get(callback);
 
-        if (savedRestrictions !== undefined && !hasRole(username, "admin", ...savedRestrictions)) {
-            return false;
+        if (username) {
+            if (savedRestrictions && !hasRole(username, "admin", ...savedRestrictions)) return false;
+        } else {
+            if (savedRestrictions && !savedRestrictions.includes("default")) return false;
         }
 
         return true;

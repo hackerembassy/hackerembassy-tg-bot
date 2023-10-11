@@ -123,6 +123,15 @@ export default class AdminHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
+    static async updateRolesByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number, rolesString: string) {
+        const roles = rolesString.split("|");
+
+        const success = UsersRepository.updateRolesById(userid, roles);
+        const text = success ? t("admin.updateRoles.success", { username: `[${userid}]`, roles }) : t("admin.updateRoles.fail");
+
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
+
     static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         username = username.replace("@", "");
 

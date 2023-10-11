@@ -317,8 +317,18 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         ["admin"]
     );
     bot.onTextExt(
+        rc.command(["restrictbyid"], /(\d+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesByIdHandler(bot, msg, match[1], "restricted"),
+        ["admin"]
+    );
+    bot.onTextExt(
         rc.command(["unblock"], /(\S+?)/, false),
         (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], "default"),
+        ["admin"]
+    );
+    bot.onTextExt(
+        rc.command(["unblockbyid"], /(\d+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesByIdHandler(bot, msg, match[1], "default"),
         ["admin"]
     );
     bot.onTextExt(

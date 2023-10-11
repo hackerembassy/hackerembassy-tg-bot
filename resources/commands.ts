@@ -98,7 +98,9 @@ export const AdminCommandsList: string = `
 #\`/removeuserbyid telegram_user_id#\`
 #\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
 #\`/restrict telegram_username#\`
+#\`/restrictbyid telegram_user_id#\`
 #\`/unblock telegram_username#\`
+#\`/unblockbyid telegram_user_id#\`
 /forcebirthdaywishes
 #\`/forward some_text#\`
 /getlogs

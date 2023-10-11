@@ -71,13 +71,26 @@ export default class AdminHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, "Live handlers are removed from this chat", msg);
     }
 
+    static async getRestrictedUsersHandler(bot: HackerEmbassyBot, msg: Message) {
+        const users = UsersRepository.getUsers()?.filter(u => u.roles.includes("restricted"));
+        let userList = "";
+
+        if (users) {
+            for (const user of users) {
+                userList += `${UsersHelper.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
+            }
+        }
+
+        await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);
+    }
+
     static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers();
         let userList = "";
 
         if (users) {
             for (const user of users) {
-                userList += `> ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
+                userList += `[${user.userid}] ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
     Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
     Autoinside: ${user.autoinside ? "on" : "off"}\n`;
             }
@@ -110,6 +123,15 @@ export default class AdminHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
+    static async updateRolesByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number, rolesString: string) {
+        const roles = rolesString.split("|");
+
+        const success = UsersRepository.updateRolesById(userid, roles);
+        const text = success ? t("admin.updateRoles.success", { username: `[${userid}]`, roles }) : t("admin.updateRoles.fail");
+
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
+
     static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         username = username.replace("@", "");
 
@@ -117,6 +139,13 @@ export default class AdminHandlers implements BotHandlers {
         const text = success
             ? t("admin.removeUser.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) })
             : t("admin.removeUser.fail");
+
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
+
+    static async removeUserByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number) {
+        const success = UsersRepository.removeUserById(userid);
+        const text = success ? t("admin.removeUser.success", { username: `[${userid}]` }) : t("admin.removeUser.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }

@@ -28,7 +28,6 @@ export const GeneralCommandsList: string = `
 
 Сборы:
 /funds (fs) - Наши открытые сборы
-/funds (fs) - Наши открытые сборы
 /costs (cs) - Показать сбор на аренду текущего месяца
 /donut (dt)- Показать пончиковую диаграмму сбора на аренду текущего месяца
 /fundsall (fsa) - Все сборы (в том числе архив)
@@ -92,9 +91,15 @@ export const MemberCommandsList: string = `
 export const AdminCommandsList: string = ` 
 Команды админов:
 /getusers
+/getrestrictedusers
 #\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
 #\`/removeuser telegram_username#\`
+#\`/removeuserbyid telegram_user_id#\`
 #\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
+#\`/restrict telegram_username#\`
+#\`/restrictbyid telegram_user_id#\`
+#\`/unblock telegram_username#\`
+#\`/unblockbyid telegram_user_id#\`
 /forcebirthdaywishes
 #\`/forward some_text#\`
 /getlogs
@@ -111,7 +116,7 @@ export const AccountantCommandsList: string = `
 #\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
 #\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
 #\`/exportfund fund_name#\` (csv) - Экспортировать донаты сбора как CSV
-#\`/exportfonut fund_name#\` - Экспортировать донаты сбора как диаграмму
+#\`/exportdonut fund_name#\` - Экспортировать донаты сбора как диаграмму
 #\`/closefund fund_name#\` - Изменить статус сбора на закрытый
 #\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removefund fund_name#\` - Удалить сбор (не надо)

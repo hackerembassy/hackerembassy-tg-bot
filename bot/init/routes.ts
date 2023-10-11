@@ -300,6 +300,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
 
     // Admin
     bot.onTextExt(rc.command(["getusers", "users", "gu"]), AdminHandlers.getUsersHandler, ["admin"]);
+    bot.onTextExt(rc.command(["getrestrictedusers", "restricted"]), AdminHandlers.getRestrictedUsersHandler, ["admin"]);
     bot.onTextExt(
         rc.command(["adduser"], /(\S+?) as (\S+)/, false),
         (bot, msg, match) => AdminHandlers.addUserHandler(bot, msg, match[1], match[2]),
@@ -311,8 +312,33 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         ["admin"]
     );
     bot.onTextExt(
+        rc.command(["restrict"], /(\S+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], "restricted"),
+        ["admin"]
+    );
+    bot.onTextExt(
+        rc.command(["restrictbyid"], /(\d+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesByIdHandler(bot, msg, match[1], "restricted"),
+        ["admin"]
+    );
+    bot.onTextExt(
+        rc.command(["unblock"], /(\S+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], "default"),
+        ["admin"]
+    );
+    bot.onTextExt(
+        rc.command(["unblockbyid"], /(\d+?)/, false),
+        (bot, msg, match) => AdminHandlers.updateRolesByIdHandler(bot, msg, match[1], "default"),
+        ["admin"]
+    );
+    bot.onTextExt(
         rc.command(["removeuser"], /(\S+)/, false),
         (bot, msg, match) => AdminHandlers.removeUserHandler(bot, msg, match[1]),
+        ["admin"]
+    );
+    bot.onTextExt(
+        rc.command(["removeuserbyid"], /(\d+)/, false),
+        (bot, msg, match) => AdminHandlers.removeUserByIdHandler(bot, msg, match[1]),
         ["admin"]
     );
     bot.onTextExt(rc.command(["forward"], /(.*)/, false), (bot, msg, match) => AdminHandlers.forwardHandler(bot, msg, match[1]), [

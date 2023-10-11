@@ -36,7 +36,7 @@ export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
 
 // Types
-export type BotRole = "admin" | "member" | "accountant" | "trusted" | "default";
+export type BotRole = "admin" | "member" | "accountant" | "trusted" | "default" | "restricted";
 export type BotMessageContextMode = {
     silent: boolean;
     mention: boolean;
@@ -51,6 +51,12 @@ export interface BotHandlers {}
 
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => any;
 export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
+
+export interface ITelegramUser {
+    username?: Nullable<string>;
+    id: number | ChatId;
+    first_name?: string;
+}
 
 export enum BotCustomEvent {
     statusLive = "status-live",
@@ -142,12 +148,12 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     canUserCall(username: string | undefined, callback: BotHandler): boolean {
-        if (!username) return false;
-
         const savedRestrictions = this.accessTable.get(callback);
 
-        if (savedRestrictions !== undefined && !hasRole(username, "admin", ...savedRestrictions)) {
-            return false;
+        if (username) {
+            if (savedRestrictions && !hasRole(username, "admin", ...savedRestrictions)) return false;
+        } else {
+            if (savedRestrictions && !savedRestrictions.includes("default")) return false;
         }
 
         return true;

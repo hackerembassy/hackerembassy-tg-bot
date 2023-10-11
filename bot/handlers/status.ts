@@ -341,11 +341,14 @@ export default class StatusHandlers implements BotHandlers {
 
     static async outHandler(bot: HackerEmbassyBot, msg: Message) {
         const eventDate = new Date();
-        const gotOut = msg.from?.username ? StatusHandlers.LetOut(msg.from.username, eventDate) : false;
+        const usernameOrFirstname = msg.from?.username ?? msg.from?.first_name;
+        const gotOut = usernameOrFirstname ? StatusHandlers.LetOut(usernameOrFirstname, eventDate) : false;
         let message: string;
 
         if (gotOut) {
-            message = t("status.out.gotout", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) });
+            message = t("status.out.gotout", {
+                username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+            });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.out.shouldnot");

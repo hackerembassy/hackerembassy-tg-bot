@@ -28,9 +28,9 @@ function importUsers(fromFile: string) {
             usersUpdatedCount++;
             console.log(`! User ${existingUser.username} exists, updating userid from ${existingUser.userid} to ${fuser.id}`);
 
-            //usersRepository.updateUser({ ...existingUser, userid: fuser.id });
+            usersRepository.updateUser({ ...existingUser, userid: fuser.id });
         } else {
-            //usersRepository.addUser(fuser.username, ["default"], fuser.id);
+            usersRepository.addUser(fuser.username, ["default"], fuser.id);
             usersCreatedCount++;
             console.log(
                 `+ User ${fuser.username} does not exist, adding user with username ${fuser.username} and userid ${fuser.id}`

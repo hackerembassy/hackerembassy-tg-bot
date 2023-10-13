@@ -351,24 +351,31 @@ export default class ServiceHandlers implements BotHandlers {
                 await MemeHandlers.randomRoosterHandler(bot, msg);
                 break;
             case "/moan":
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3");
                 break;
             case "/fart":
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, "https://www.tones7.com/media/farts.mp3");
                 break;
             case "/adler":
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3");
                 break;
             case "/rickroll":
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3");
                 break;
             case "/rzd":
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3");
                 break;
             case "/rfoxed":
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rfoxed.mp3");
                 break;
             case "/nani":
+                bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/nani.mp3");
                 break;
             default:

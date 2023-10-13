@@ -35,6 +35,9 @@ export async function getRandomImageFromFolder(folder: string): Promise<Nullable
     const fileindex = Math.floor(Math.random() * files.length);
     return await fs.readFile(join(folder, files[fileindex]));
 }
+export async function getImageFromPath(path: string): Promise<Nullable<Buffer>> {
+    return await fs.readFile(path);
+}
 
 /** @deprecated Use HASS */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

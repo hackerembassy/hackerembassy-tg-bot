@@ -362,6 +362,9 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         rc.command(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"]),
         MemeHandlers.randomCabHandler
     );
+    bot.onTextExt(rc.command(["syrniki", "pidarasi"]), (bot, msg) =>
+        MemeHandlers.imageHandler(bot, msg, "./resources/images/memes/syrniki.jpeg")
+    );
 
     // Chat control
     bot.onTextExt(rc.command(["clear"], /(\d*)/, true), (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[1]), [

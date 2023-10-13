@@ -145,6 +145,7 @@ basic:
             doorcam: 📹 Вход
             superstatus: 🩻 Суперстатус
             conditioner: ❄️ Кондей
+            meme: 🔫 Мемошная
             back: ↩️ Назад
     info:
         text: |
@@ -156,6 +157,22 @@ basic:
             location: 🗺 Как найти
             donate: 🎁 Как задонатить
             residents: 👩‍💻 Наши резиденты
+            back: ↩️ Назад
+    meme:
+        text: |
+            🔫 Мемошная панель
+        buttons:
+            moan: 😮 Moan
+            fart: 💩 Fart
+            adler: 🤤 Adler
+            rickroll: 🕺 Rickroll
+            rzd: 🚇 Rzd
+            rfoxed: 🦊 Rfoxed
+            nani: 💥 Nani
+            cat: 🐱 Cat
+            dog: 🐶 Dog
+            cab: 🥷 Cab
+            cock: 🐔 Cock
             back: ↩️ Назад
 admin:
     addUser:

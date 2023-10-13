@@ -15,6 +15,7 @@ import BasicHandlers from "./basic";
 import BirthdayHandlers from "./birthday";
 import EmbassyHandlers from "./embassy";
 import FundsHandlers from "./funds";
+import MemeHandlers from "./meme";
 import NeedsHandlers from "./needs";
 import StatusHandlers from "./status";
 
@@ -222,6 +223,12 @@ export default class ServiceHandlers implements BotHandlers {
                     await BasicHandlers.controlPanelHandler(bot, msg);
                 }
                 break;
+            case "/memepanel":
+                if (isAllowed(BasicHandlers.memePanelHandler)) {
+                    bot.context(msg).isEditing = true;
+                    await BasicHandlers.memePanelHandler(bot, msg);
+                }
+                break;
             case "/conditioner":
                 if (isAllowed(EmbassyHandlers.conditionerHandler)) {
                     bot.context(msg).isEditing = true;
@@ -330,6 +337,39 @@ export default class ServiceHandlers implements BotHandlers {
                 if (NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
                     await bot.deleteMessage(msg.chat.id, msg.message_id);
                 }
+                break;
+            case "/randomcat":
+                await MemeHandlers.randomCatHandler(bot, msg);
+                break;
+            case "/randomdog":
+                await MemeHandlers.randomDogHandler(bot, msg);
+                break;
+            case "/randomcab":
+                await MemeHandlers.randomCabHandler(bot, msg);
+                break;
+            case "/randomcock":
+                await MemeHandlers.randomRoosterHandler(bot, msg);
+                break;
+            case "/moan":
+                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3");
+                break;
+            case "/fart":
+                await EmbassyHandlers.playinspaceHandler(bot, msg, "https://www.tones7.com/media/farts.mp3");
+                break;
+            case "/adler":
+                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3");
+                break;
+            case "/rickroll":
+                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3");
+                break;
+            case "/rzd":
+                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3");
+                break;
+            case "/rfoxed":
+                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rfoxed.mp3");
+                break;
+            case "/nani":
+                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/nani.mp3");
                 break;
             default:
                 break;

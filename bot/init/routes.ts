@@ -65,6 +65,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(rc.command(["start", "startpanel", "sp"]), BasicHandlers.startPanelHandler);
     bot.onTextExt(rc.command(["infopanel", "ip"]), BasicHandlers.infoPanelHandler);
     bot.onTextExt(rc.command(["controlpanel", "cp"]), BasicHandlers.controlPanelHandler, ["member"]);
+    bot.onTextExt(rc.command(["memepanel", "meme", "memes", "mp"]), BasicHandlers.memePanelHandler, ["member"]);
 
     // Issues
     bot.onTextExt(rc.command(["issue"], /(.*)/), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));
@@ -131,7 +132,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(rc.command(["allcams", "cams", "allcums", "cums", "allc"]), EmbassyHandlers.allCamsHandler, ["member"]);
 
     // Sensors
-    bot.onTextExt(rc.command(["climate"]), EmbassyHandlers.climateHandler);
+    bot.onTextExt(rc.command(["climate", "temp"]), EmbassyHandlers.climateHandler);
 
     // Printers
     bot.onTextExt(rc.command(["printers"]), EmbassyHandlers.printersHandler);
@@ -367,7 +368,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         "member",
     ]);
     bot.onTextExt(
-        rc.command(["combine"], /(\d*)/, true),
+        rc.command(["combine", "squash"], /(\d*)/, true),
         (bot, msg, match) => ServiceHandlers.combineHandler(bot, msg, match[1]),
         ["member"]
     );

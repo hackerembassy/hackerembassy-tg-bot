@@ -186,6 +186,10 @@ export default class BasicHandlers implements BotHandlers {
                     text: t("basic.control.buttons.doorbell"),
                     callback_data: JSON.stringify({ command: "/doorbell" }),
                 },
+                {
+                    text: t("basic.control.buttons.conditioner"),
+                    callback_data: JSON.stringify({ command: "/conditioner" }),
+                },
             ],
             [
                 {
@@ -209,8 +213,8 @@ export default class BasicHandlers implements BotHandlers {
             ],
             [
                 {
-                    text: t("basic.control.buttons.conditioner"),
-                    callback_data: JSON.stringify({ command: "/conditioner" }),
+                    text: t("basic.control.buttons.meme"),
+                    callback_data: JSON.stringify({ command: "/memepanel" }),
                 },
                 {
                     text: t("basic.control.buttons.back"),
@@ -269,6 +273,79 @@ export default class BasicHandlers implements BotHandlers {
         await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.info.text"),
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard: inlineKeyboard,
+                },
+            },
+            msg.message_id
+        );
+    }
+
+    static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
+        const inlineKeyboard = [
+            [
+                {
+                    text: t("basic.meme.buttons.moan"),
+                    callback_data: JSON.stringify({ command: "/moan" }),
+                },
+                {
+                    text: t("basic.meme.buttons.fart"),
+                    callback_data: JSON.stringify({ command: "/fart" }),
+                },
+                {
+                    text: t("basic.meme.buttons.adler"),
+                    callback_data: JSON.stringify({ command: "/adler" }),
+                },
+            ],
+            [
+                {
+                    text: t("basic.meme.buttons.rickroll"),
+                    callback_data: JSON.stringify({ command: "/rickroll" }),
+                },
+                {
+                    text: t("basic.meme.buttons.rzd"),
+                    callback_data: JSON.stringify({ command: "/rzd" }),
+                },
+                {
+                    text: t("basic.meme.buttons.rfoxed"),
+                    callback_data: JSON.stringify({ command: "/rfoxed" }),
+                },
+                {
+                    text: t("basic.meme.buttons.nani"),
+                    callback_data: JSON.stringify({ command: "/nani" }),
+                },
+            ],
+            [
+                {
+                    text: t("basic.meme.buttons.cat"),
+                    callback_data: JSON.stringify({ command: "/randomcat" }),
+                },
+                {
+                    text: t("basic.meme.buttons.dog"),
+                    callback_data: JSON.stringify({ command: "/randomdog" }),
+                },
+                {
+                    text: t("basic.meme.buttons.cab"),
+                    callback_data: JSON.stringify({ command: "/randomcab" }),
+                },
+                {
+                    text: t("basic.meme.buttons.cock"),
+                    callback_data: JSON.stringify({ command: "/randomcock" }),
+                },
+            ],
+            [
+                {
+                    text: t("basic.meme.buttons.back"),
+                    callback_data: JSON.stringify({ command: "/controlpanel" }),
+                },
+            ],
+        ];
+
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            t("basic.meme.text"),
             msg,
             {
                 reply_markup: {

@@ -2,12 +2,15 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
+import statusRepository from "../../repositories/statusRepository";
+import usersRepository from "../../repositories/usersRepository";
 import { ConditionerMode, ConditionerStatus } from "../../services/home";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
-import { hasDeviceInside } from "../../services/statusHelper";
+import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
+import { hasRole } from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
 import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
@@ -313,6 +316,36 @@ export default class EmbassyHandlers implements BotHandlers {
         await this.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3", true);
         await sleep(7000);
         await this.sayinspaceHandler(bot, msg, text);
+    }
+
+    static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
+        const residents = usersRepository.getUsers()?.filter(u => hasRole(u.username, "member"));
+        const recentUserStates = findRecentStates(statusRepository.getAllUserStates() ?? []);
+        const residentsInside = recentUserStates
+            .filter(filterPeopleInside)
+            .filter(insider => residents?.find(r => r.username === insider.username));
+
+        const text =
+            residentsInside.length > 0
+                ? t("embassy.knock.knock", {
+                      residentsInside: residentsInside.reduce((acc, resident) => (acc += `@${resident.username} `), ""),
+                  })
+                : t("embassy.knock.noresidents");
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+
+        if (residentsInside.length > 0) {
+            bot.context(msg).mode.silent = true;
+
+            await this.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/knock.mp3", true);
+            await sleep(9000);
+            await this.sayinspaceHandler(
+                bot,
+                msg,
+                `Тук-тук резиденты, к вам хочет зайти ${
+                    msg.from?.username ?? msg.from?.first_name
+                }. Ответьте ему в главном чатике.`
+            );
+        }
     }
 
     static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {

@@ -96,6 +96,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     );
     bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), (bot, msg, match) => StatusHandlers.setmacHandler(bot, msg, match[1]));
     bot.onTextExt(rc.command(["superstatus", "ss"]), ServiceHandlers.superstatusHandler, ["member"]);
+    bot.onTextExt(rc.command(["knock", "knockknock", "tuktuk", "tuk"]), (bot, msg) => EmbassyHandlers.knockHandler(bot, msg));
 
     // Stats
     bot.onTextExt(rc.command(["profile", "me"]), (bot, msg) => StatusHandlers.profileHandler(bot, msg));
@@ -293,9 +294,9 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(rc.command(["bought"], /(.*)/, false), (bot, msg, match) => NeedsHandlers.boughtHandler(bot, msg, match[1]));
 
     // Birthdays
-    bot.onTextExt(rc.command(["birthdays"]), (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
+    bot.onTextExt(rc.command(["birthdays", "birthday"]), (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
     bot.onTextExt(rc.command(["forcebirthdaywishes", "fbw"]), BirthdayHandlers.forceBirthdayWishHandler, ["admin"]);
-    bot.onTextExt(rc.command(["mybirthday"], /(.*\S)/), (bot, msg, match) =>
+    bot.onTextExt(rc.command(["mybirthday", "mybday", "bday"], /(.*\S)/), (bot, msg, match) =>
         BirthdayHandlers.myBirthdayHandler(bot, msg, match[1])
     );
 

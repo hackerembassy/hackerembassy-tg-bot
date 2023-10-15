@@ -13,7 +13,7 @@ import { MessageHistoryEntry } from "../core/MessageHistory";
 import { setMenu } from "../init/menu";
 import BasicHandlers from "./basic";
 import BirthdayHandlers from "./birthday";
-import EmbassyHandlers from "./embassy";
+import EmbassyHandlers, { embassyBase } from "./embassy";
 import FundsHandlers from "./funds";
 import MemeHandlers from "./meme";
 import NeedsHandlers from "./needs";
@@ -360,23 +360,23 @@ export default class ServiceHandlers implements BotHandlers {
                 break;
             case "/adler":
                 bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3");
+                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/adler.mp3`);
                 break;
             case "/rickroll":
                 bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3");
+                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rickroll.mp3`);
                 break;
             case "/rzd":
                 bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3");
+                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`);
                 break;
             case "/rfoxed":
                 bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rfoxed.mp3");
+                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rfoxed.mp3`);
                 break;
             case "/nani":
                 bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/nani.mp3");
+                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/nani.mp3`);
                 break;
             default:
                 break;

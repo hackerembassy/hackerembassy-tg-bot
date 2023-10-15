@@ -18,6 +18,7 @@ import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } 
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
+export const embassyBase = `${embassyApiConfig.host}:${embassyApiConfig.port}`;
 
 export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -33,7 +34,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const token = await encrypt(unlockKey);
 
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/unlock`, {
+            const response = await fetchWithTimeout(`${embassyBase}/unlock`, {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json",
@@ -58,9 +59,7 @@ export default class EmbassyHandlers implements BotHandlers {
         try {
             const camsPaths = ["webcam", "webcam2", "doorcam"];
 
-            const camResponses = await Promise.allSettled(
-                camsPaths.map(path => fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`))
-            );
+            const camResponses = await Promise.allSettled(camsPaths.map(path => fetchWithTimeout(`${embassyBase}/${path}`)));
 
             const images: ArrayBuffer[] = await Promise.all(
                 filterFulfilled(camResponses)
@@ -90,9 +89,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async getWebcamImage(path: string) {
-        const response = await (
-            await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
-        ).arrayBuffer();
+        const response = await (await fetchWithTimeout(`${embassyBase}/${path}`)).arrayBuffer();
 
         return Buffer.from(response);
     }
@@ -202,7 +199,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async queryStatusMonitor() {
-        return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`)).json();
+        return await (await fetchWithTimeout(`${embassyBase}/statusmonitor`)).json();
     }
 
     static enableStatusMonitor(bot: HackerEmbassyBot) {
@@ -248,7 +245,7 @@ export default class EmbassyHandlers implements BotHandlers {
         let message = t("embassy.climate.nodata");
 
         try {
-            const climateResponse = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
+            const climateResponse = await fetchWithTimeout(`${embassyBase}/climate`);
             const climateInfo = climateResponse.status === 200 ? await climateResponse.json() : null;
             if (climateInfo) {
                 message = t("embassy.climate.data", { climateInfo });
@@ -269,7 +266,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             const { status, thumbnailBuffer, cam }: PrinterStatusResponse = await (
-                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
+                await fetchWithTimeout(`${embassyBase}/printer?printername=${printername}`)
             ).json();
 
             if (!status || status.error) throw Error();
@@ -302,7 +299,7 @@ export default class EmbassyHandlers implements BotHandlers {
         let text = t("embassy.doorbell.success");
 
         try {
-            const status = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`)).json();
+            const status = await (await fetchWithTimeout(`${embassyBase}/doorbell`)).json();
             if (!status || status.error) throw Error();
         } catch (error) {
             logger.error(error);
@@ -313,7 +310,8 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        await this.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3", true);
+        embassyApiConfig.host;
+        await this.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`, true);
         await sleep(7000);
         await this.sayinspaceHandler(bot, msg, text);
     }
@@ -336,7 +334,7 @@ export default class EmbassyHandlers implements BotHandlers {
         if (residentsInside.length > 0) {
             bot.context(msg).mode.silent = true;
 
-            await this.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/knock.mp3", true);
+            await this.playinspaceHandler(bot, msg, `${embassyBase}/knock.mp3`, true);
             await sleep(9000);
             await this.sayinspaceHandler(
                 bot,
@@ -357,7 +355,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/sayinspace`, {
+            const response = await fetchWithTimeout(`${embassyBase}/sayinspace`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -383,7 +381,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/playinspace`, {
+            const response = await fetchWithTimeout(`${embassyBase}/playinspace`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -459,7 +457,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             const conditionerStatus: Optional<ConditionerStatus> = await (
-                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/conditionerstate`)
+                await fetchWithTimeout(`${embassyBase}/conditionerstate`)
             ).json();
             if (!conditionerStatus || conditionerStatus.error) throw Error();
 
@@ -505,7 +503,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             const status = await (
-                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${endpoint}`, {
+                await fetchWithTimeout(`${embassyBase}/${endpoint}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

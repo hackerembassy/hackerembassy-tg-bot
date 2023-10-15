@@ -5,7 +5,7 @@ import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import AdminHandlers from "../handlers/admin";
 import BasicHandlers from "../handlers/basic";
 import BirthdayHandlers from "../handlers/birthday";
-import EmbassyHandlers from "../handlers/embassy";
+import EmbassyHandlers, { embassyBase } from "../handlers/embassy";
 import FundsHandlers from "../handlers/funds";
 import MemeHandlers from "../handlers/meme";
 import NeedsHandlers from "../handlers/needs";
@@ -196,19 +196,15 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         EmbassyHandlers.playinspaceHandler(bot, msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3")
     );
     bot.onTextExt(rc.command(["rickroll", "nevergonnagiveyouup"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rickroll.mp3")
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rickroll.mp3`)
     );
-    bot.onTextExt(rc.command(["rzd"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3")
-    );
-    bot.onTextExt(rc.command(["adler"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/adler.mp3")
-    );
+    bot.onTextExt(rc.command(["rzd"]), (bot, msg) => EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`));
+    bot.onTextExt(rc.command(["adler"]), (bot, msg) => EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/adler.mp3`));
     bot.onTextExt(rc.command(["rfoxed", "rf0x1d"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rfoxed.mp3")
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rfoxed.mp3`)
     );
     bot.onTextExt(rc.command(["nani", "omaewamoushindeiru"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/nani.mp3")
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/nani.mp3`)
     );
 
     // Funds

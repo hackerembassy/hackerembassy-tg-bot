@@ -108,7 +108,7 @@ export const AdminCommandsList: string = `
 /cleanstate
 /stoplive
 
-\\* Roles: admin, accountant, member, default
+\\* Roles: admin, accountant, member, trusted, default
 `;
 
 export const AccountantCommandsList: string = `

@@ -630,7 +630,7 @@ export default class StatusHandlers implements BotHandlers {
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
-        const selectedUsername = username ?? msg.from?.username;
+        const selectedUsername = (username ?? msg.from?.username)?.replace("@", "");
         const userStates = selectedUsername ? StatusRepository.getUserStates(selectedUsername) : [];
 
         const { days, hours, minutes } = getUserTimeDescriptor(userStates);

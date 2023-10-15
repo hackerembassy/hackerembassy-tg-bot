@@ -29,11 +29,11 @@ app.use(json());
 app.use(createErrorMiddleware(logger));
 
 // Routes
-app.get("/commands", (_, res) => {
+app.get("/text/commands", (_, res) => {
     res.send(ApiCommandsList);
 });
 
-app.get("/status", async (_, res) => {
+app.get("/text/status", async (_, res) => {
     const state = StatusRepository.getSpaceLastState();
     let content = `🔐 Статус спейса неопределен`;
 
@@ -128,17 +128,17 @@ app.post("/api/close", tokenHassSecured, (_, res) => {
     return res.send({ message: "Success" });
 });
 
-app.get("/join", (_, res) => {
+app.get("/text/join", (_, res) => {
     const message = TextGenerators.getJoinText(true);
     res.send(message);
 });
 
-app.get("/events", (_, res) => {
+app.get("/text/events", (_, res) => {
     const message = TextGenerators.getEventsText(true);
     res.send(message);
 });
 
-app.get("/funds", async (_, res) => {
+app.get("/text/funds", async (_, res) => {
     const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
     const donations = FundsRepository.getDonations();
 
@@ -151,7 +151,7 @@ app.get("/funds", async (_, res) => {
     res.send(message);
 });
 
-app.get("/donate", (_, res) => {
+app.get("/text/donate", (_, res) => {
     const accountants = UsersRepository.getUsersByRole("accountant");
     const message = TextGenerators.getDonateText(accountants, true);
     res.send(message);

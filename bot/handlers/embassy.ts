@@ -310,7 +310,6 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        embassyApiConfig.host;
         await this.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`, true);
         await sleep(7000);
         await this.sayinspaceHandler(bot, msg, text);

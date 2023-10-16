@@ -298,6 +298,10 @@ export default class BasicHandlers implements BotHandlers {
                     text: t("basic.meme.buttons.adler"),
                     callback_data: JSON.stringify({ command: "/adler" }),
                 },
+                {
+                    text: t("basic.meme.buttons.rzd"),
+                    callback_data: JSON.stringify({ command: "/rzd" }),
+                },
             ],
             [
                 {
@@ -305,8 +309,8 @@ export default class BasicHandlers implements BotHandlers {
                     callback_data: JSON.stringify({ command: "/rickroll" }),
                 },
                 {
-                    text: t("basic.meme.buttons.rzd"),
-                    callback_data: JSON.stringify({ command: "/rzd" }),
+                    text: t("basic.meme.buttons.zhuchok"),
+                    callback_data: JSON.stringify({ command: "/zhuchok" }),
                 },
                 {
                     text: t("basic.meme.buttons.rfoxed"),

@@ -374,6 +374,10 @@ export default class ServiceHandlers implements BotHandlers {
                 bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rfoxed.mp3`);
                 break;
+            case "/zhuchok":
+                bot.context(msg).mode.silent = true;
+                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/zhuchok.mp3`);
+                break;
             case "/nani":
                 bot.context(msg).mode.silent = true;
                 await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/nani.mp3`);

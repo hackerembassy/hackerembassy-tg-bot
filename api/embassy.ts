@@ -1,8 +1,6 @@
 // TODO add type checking to request bodies and remove disables below
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { config as envconfig } from "dotenv";
-envconfig();
 import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
@@ -13,25 +11,23 @@ import { LUCI } from "luci-rpc";
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 
-import { BotConfig, EmbassyApiConfig } from "./config/schema";
-import { conditioner, getClimate } from "./services/home";
-import logger from "./services/logger";
-import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "./services/media";
-import { unlock } from "./services/mqtt";
-import printer3d from "./services/printer3d";
-import * as statusMonitor from "./services/statusMonitor";
-import { sleep } from "./utils/common";
-import { createErrorMiddleware } from "./utils/middleware";
-import { decrypt } from "./utils/security";
+import { EmbassyApiConfig } from "../config/schema";
+import { conditioner, getClimate } from "../services/home";
+import logger from "../services/logger";
+import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "../services/media";
+import { unlock } from "../services/mqtt";
+import printer3d from "../services/printer3d";
+import * as statusMonitor from "../services/statusMonitor";
+import { sleep } from "../utils/common";
+import { createErrorMiddleware } from "../utils/middleware";
+import { decrypt } from "../utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
-const botConfig = config.get<BotConfig>("bot");
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
 
 statusMonitor.startMonitoring();
-process.env.TZ = botConfig.timezone;
 
 const app = express();
 app.use(cors());

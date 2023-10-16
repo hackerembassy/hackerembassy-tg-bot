@@ -2,19 +2,22 @@ import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
 import express from "express";
+import fs from "fs";
+import path from "path";
+import swaggerUi from "swagger-ui-express";
 
-import StatusHandlers from "./bot/handlers/status";
-import { BotApiConfig, EmbassyApiConfig } from "./config/schema";
-import FundsRepository from "./repositories/fundsRepository";
-import StatusRepository from "./repositories/statusRepository";
-import UsersRepository from "./repositories/usersRepository";
-import { ApiCommandsList } from "./resources/commands";
-import logger from "./services/logger";
-import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "./services/statusHelper";
-import * as TextGenerators from "./services/textGenerators";
-import { stripCustomMarkup } from "./utils/common";
-import { createErrorMiddleware, createTokenSecuredMiddleware } from "./utils/middleware";
-import { fetchWithTimeout } from "./utils/network";
+import StatusHandlers from "../bot/handlers/status";
+import { BotApiConfig, EmbassyApiConfig } from "../config/schema";
+import FundsRepository from "../repositories/fundsRepository";
+import StatusRepository from "../repositories/statusRepository";
+import UsersRepository from "../repositories/usersRepository";
+import { ApiCommandsList } from "../resources/commands";
+import logger from "../services/logger";
+import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "../services/statusHelper";
+import * as TextGenerators from "../services/textGenerators";
+import { stripCustomMarkup } from "../utils/common";
+import { createErrorMiddleware, createTokenSecuredMiddleware } from "../utils/middleware";
+import { fetchWithTimeout } from "../utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const apiConfig = config.get<BotApiConfig>("api");
@@ -28,12 +31,21 @@ app.use(cors());
 app.use(json());
 app.use(createErrorMiddleware(logger));
 
+// Add Swagger if exists
+try {
+    const swaggerFile = fs.readFileSync(path.resolve(__dirname, "swagger-schema.json"));
+    const swaggerDocument = JSON.parse(swaggerFile.toString());
+    app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+} catch (error) {
+    logger.error(error);
+}
+
 // Routes
-app.get("/commands", (_, res) => {
+app.get("/text/commands", (_, res) => {
     res.send(ApiCommandsList);
 });
 
-app.get("/status", async (_, res) => {
+app.get("/text/status", async (_, res) => {
     const state = StatusRepository.getSpaceLastState();
     let content = `🔐 Статус спейса неопределен`;
 
@@ -98,17 +110,24 @@ app.get("/api/insidecount", (_, res) => {
 });
 
 app.post("/api/setgoing", tokenGuestSecured, (req, res) => {
+    /*  #swagger.requestBody = {
+                required: true,
+                content: {
+                    "application/json": {
+                        schema: { $ref : '#/definitions/going' }  
+                    }
+                }
+            
+        } */
     try {
-        if (typeof req.body.username !== "string" || typeof req.body.isgoing !== "boolean") {
+        const body = req.body as { username: string; isgoing: boolean; message?: string };
+
+        if (typeof body.username !== "string" || typeof body.isgoing !== "boolean") {
             res.status(400).send({ error: "Missing or incorrect parameters" });
             return;
         }
 
-        StatusHandlers.setGoingState(
-            req.body.username as string,
-            req.body.isgoing as boolean,
-            req.body.message as string | undefined
-        );
+        StatusHandlers.setGoingState(body.username, body.isgoing, body.message);
 
         res.json({ message: "Success" });
     } catch (error) {
@@ -117,28 +136,46 @@ app.post("/api/setgoing", tokenGuestSecured, (req, res) => {
 });
 
 app.post("/api/open", tokenHassSecured, (_, res) => {
+    /*  #swagger.requestBody = {
+                required: true,
+                content: {
+                    "application/json": {
+                        schema: { $ref : '#/definitions/withHassToken' }  
+                    }
+                }
+            
+        } */
     openSpace("hass");
 
     return res.send({ message: "Success" });
 });
 
 app.post("/api/close", tokenHassSecured, (_, res) => {
+    /*  #swagger.requestBody = {
+                required: true,
+                content: {
+                    "application/json": {
+                        schema: { $ref : '#/definitions/withHassToken' }  
+                    }
+                }
+            
+        } */
     closeSpace("hass", { evict: true });
 
     return res.send({ message: "Success" });
 });
 
-app.get("/join", (_, res) => {
+app.get("/text/join", (_, res) => {
     const message = TextGenerators.getJoinText(true);
     res.send(message);
 });
 
-app.get("/events", (_, res) => {
+app.get("/text/events", (_, res) => {
     const message = TextGenerators.getEventsText(true);
     res.send(message);
 });
 
-app.get("/funds", async (_, res) => {
+app.get("/text/funds", async (_, res) => {
     const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
     const donations = FundsRepository.getDonations();
 
@@ -151,7 +188,7 @@ app.get("/funds", async (_, res) => {
     res.send(message);
 });
 
-app.get("/donate", (_, res) => {
+app.get("/text/donate", (_, res) => {
     const accountants = UsersRepository.getUsersByRole("accountant");
     const message = TextGenerators.getDonateText(accountants, true);
     res.send(message);

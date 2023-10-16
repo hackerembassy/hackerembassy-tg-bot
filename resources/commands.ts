@@ -149,4 +149,6 @@ export const ApiCommandsList: string = `
 -donate - Как задонатить
 -funds - Наши открытые сборы
 -events - Мероприятия у нас
+-upcoming - Ближайшие мероприятия
+-today - Мероприятия сегодня
 `;

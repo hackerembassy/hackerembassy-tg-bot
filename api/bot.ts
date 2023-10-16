@@ -7,20 +7,23 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 
 import StatusHandlers from "../bot/handlers/status";
-import { BotApiConfig, EmbassyApiConfig } from "../config/schema";
+import { BotApiConfig, BotConfig, EmbassyApiConfig } from "../config/schema";
 import FundsRepository from "../repositories/fundsRepository";
 import StatusRepository from "../repositories/statusRepository";
 import UsersRepository from "../repositories/usersRepository";
 import { ApiCommandsList } from "../resources/commands";
+import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
 import logger from "../services/logger";
 import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "../services/statusHelper";
 import * as TextGenerators from "../services/textGenerators";
+import { getEventsList } from "../services/textGenerators";
 import { stripCustomMarkup } from "../utils/common";
 import { createErrorMiddleware, createTokenSecuredMiddleware } from "../utils/middleware";
 import { fetchWithTimeout } from "../utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const apiConfig = config.get<BotApiConfig>("api");
+const botConfig = config.get<BotConfig>("bot");
 
 const app = express();
 const port = apiConfig.port;
@@ -173,6 +176,17 @@ app.get("/text/join", (_, res) => {
 app.get("/text/events", (_, res) => {
     const message = TextGenerators.getEventsText(true);
     res.send(message);
+});
+
+app.get("/text/upcoming", async (_, res) => {
+    const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad);
+    const messageText = getEventsList(events);
+    res.send(messageText);
+});
+
+app.get("/text/today", async (_, res) => {
+    const messageText = TextGenerators.getTodayEventsText(await getTodayEvents());
+    res.send(messageText);
 });
 
 app.get("/text/funds", async (_, res) => {

@@ -415,3 +415,21 @@ export function HSEventToString(event: HSEvent, timeOnly: boolean = false): stri
 
     return result;
 }
+
+export function getEventsList(events: HSEvent[]): string {
+    return events.map(event => HSEventToString(event)).join("\n\n");
+}
+
+export function getTodayEventsText(todayEvents: HSEvent[]): string {
+    let messageText = "";
+
+    if (todayEvents.length !== 0) {
+        messageText += t("basic.events.today") + "\n";
+        messageText += getEventsList(todayEvents);
+        messageText += t("basic.events.entrance");
+    } else {
+        messageText += t("basic.events.notoday");
+    }
+
+    return messageText;
+}

@@ -155,6 +155,26 @@
         }
       }
     },
+    "/text/upcoming": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/text/today": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/text/funds": {
       "get": {
         "description": "",

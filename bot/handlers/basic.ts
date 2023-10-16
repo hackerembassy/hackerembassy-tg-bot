@@ -4,13 +4,13 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import * as Commands from "../../resources/commands";
-import { getClosestEventsFromCalendar } from "../../services/googleCalendar";
+import { getClosestEventsFromCalendar, getTodayEvents } from "../../services/googleCalendar";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
+import { getEventsList } from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import * as CoinsHelper from "../../utils/coins";
-import { getToday } from "../../utils/date";
 import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 import { isPrivateMessage } from "../helpers";
 
@@ -361,12 +361,7 @@ export default class BasicHandlers implements BotHandlers {
 
         try {
             const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad);
-
-            if (!events || events.length === 0) throw new Error();
-
-            for (const event of events) {
-                messageText += TextGenerators.HSEventToString(event) + "\n\n";
-            }
+            messageText += getEventsList(events);
         } catch (error) {
             messageText = t("basic.events.error");
             logger.error(error);
@@ -376,26 +371,10 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async todayEventsHandler(bot: HackerEmbassyBot, msg: Message) {
-        let messageText: string = t("basic.events.today") + "\n";
+        let messageText: string = "";
 
         try {
-            const todayDate = getToday();
-            const tomorrowDate = new Date(getToday().setDate(todayDate.getDate() + 1));
-            const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad, todayDate);
-
-            if (!events || events.length === 0) throw new Error();
-
-            const todayEvents = events.filter(e => e.start < tomorrowDate);
-
-            if (todayEvents.length !== 0) {
-                for (const event of todayEvents) {
-                    messageText += TextGenerators.HSEventToString(event, true) + "\n\n";
-                }
-
-                messageText += t("basic.events.entrance");
-            } else {
-                messageText = t("basic.events.notoday");
-            }
+            messageText = TextGenerators.getTodayEventsText(await getTodayEvents());
         } catch (error) {
             messageText = t("basic.events.error");
             logger.error(error);

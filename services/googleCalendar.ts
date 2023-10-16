@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import { RRuleSet, rrulestr } from "rrule";
 
 import { BotConfig } from "../config/schema";
+import { getToday } from "../utils/date";
 import logger from "./logger";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -137,21 +138,21 @@ function getEventsMap(eventsJson: CalendarListResponse): Map<number, HSEvent> {
     return eventsMap;
 }
 
-export async function getClosestEventsFromCalendar(
-    numberOfEvents: number,
-    from: Date = new Date()
-): Promise<Nullable<HSEvent[]>> {
-    try {
-        const eventsJson = await getEventsJSON(calendarID, numberOfEvents, from);
+export async function getClosestEventsFromCalendar(numberOfEvents: number, from: Date = new Date()): Promise<HSEvent[]> {
+    const eventsJson = await getEventsJSON(calendarID, numberOfEvents, from);
 
-        return eventsJson.items.map((event: HSEventFromJSON) => ({
-            summary: event.summary,
-            description: event.description,
-            start: new Date(event.start.dateTime),
-            end: new Date(event.end.dateTime),
-        }));
-    } catch (error) {
-        logger.error(error);
-        return null;
-    }
+    return eventsJson.items.map((event: HSEventFromJSON) => ({
+        summary: event.summary,
+        description: event.description,
+        start: new Date(event.start.dateTime),
+        end: new Date(event.end.dateTime),
+    }));
+}
+
+export async function getTodayEvents(): Promise<HSEvent[]> {
+    const todayDate = getToday();
+    const tomorrowDate = new Date(getToday().setDate(todayDate.getDate() + 1));
+    const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad, todayDate);
+
+    return events.filter(e => e.start < tomorrowDate);
 }

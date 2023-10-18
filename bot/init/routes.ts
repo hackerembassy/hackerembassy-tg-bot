@@ -43,6 +43,10 @@ class RegexCommander {
 export function setRoutes(bot: HackerEmbassyBot): void {
     const rc = new RegexCommander(bot.Name);
 
+    // Callbacks and events
+    bot.onExt("new_chat_members", ServiceHandlers.newMemberHandler); // Should be the first to catch spammers
+    bot.onExt("callback_query", ServiceHandlers.callbackHandler);
+
     // Info
     bot.onTextExt(rc.command(["help"]), BasicHandlers.helpHandler);
     bot.onTextExt(rc.command(["about"]), BasicHandlers.aboutHandler);
@@ -377,10 +381,6 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     );
     bot.onTextExt(rc.command(["enableresidentmenu", "residentmenu"]), ServiceHandlers.residentMenuHandler, ["member"]);
     bot.onTextExt(rc.command(["chatid"]), ServiceHandlers.chatidHandler, ["admin"]);
-
-    // Callbacks and events
-    bot.onExt("callback_query", ServiceHandlers.callbackHandler);
-    bot.onExt("new_chat_members", ServiceHandlers.newMemberHandler);
 
     // Errors
     bot.on("error", error => {

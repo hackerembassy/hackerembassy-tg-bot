@@ -17,12 +17,14 @@ class Donation {
 }
 
 export class FundDonation {
+    id: number;
     username: string;
     value: number;
     currency: string;
     name: string;
 
-    constructor({ name, username, value, currency }: FundDonation) {
+    constructor({ name, username, value, currency, id }: FundDonation) {
+        this.id = id;
         this.name = name;
         this.username = username;
         this.value = value;

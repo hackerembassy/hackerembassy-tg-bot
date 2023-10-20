@@ -286,8 +286,18 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         ["accountant"]
     );
     bot.onTextExt(
+        rc.command(["tocaball", "givecaball", "givecaballmymoney", "tca"], /(.*)/, true),
+        (bot, msg, match) => FundsHandlers.transferAllToHandler(bot, msg, "CabiaRangris", match[1]),
+        ["accountant"]
+    );
+    bot.onTextExt(
         rc.command(["changedonation"], /(\d+) to (\S+)\s?(\D*?)/, false),
         (bot, msg, match) => FundsHandlers.changeDonationHandler(bot, msg, match[1], match[2], match[3]),
+        ["accountant"]
+    );
+    bot.onTextExt(
+        rc.command(["debt", "mymoney"], /(\S+)/, true),
+        (bot, msg, match) => FundsHandlers.debtHandler(bot, msg, match[1]),
         ["accountant"]
     );
 

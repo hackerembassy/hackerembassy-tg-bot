@@ -87,13 +87,17 @@ export function generateAdminFundHelp(fund: Fund, isHistory: boolean): string {
     return helpList;
 }
 
-export function generateFundDonationsList(fundDonations: FundDonation[]): string {
+export function generateFundDonationsList(fundDonations: FundDonation[], forAccountant: boolean = false): string {
     let fundDonationsList = "";
 
     for (const fundDonation of fundDonations) {
-        fundDonationsList += `${fundDonation.name}: ${formatValueForCurrency(fundDonation.value, fundDonation.currency)} ${
+        const donationIdPart = forAccountant ? `[id:${fundDonation.id}] ` : "";
+        const fundNamePart = forAccountant ? `#\`${fundDonation.name}#\`` : fundDonation.name;
+
+        fundDonationsList += `${donationIdPart}${fundNamePart}: ${formatValueForCurrency(
+            fundDonation.value,
             fundDonation.currency
-        }\n`;
+        )} ${fundDonation.currency}\n`;
     }
 
     return fundDonationsList;

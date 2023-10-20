@@ -7,7 +7,7 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
-import { initConvert, parseMoneyValue, prepareCurrency } from "../../utils/currency";
+import { initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 import { isPrivateMessage } from "../helpers";
@@ -293,6 +293,39 @@ export default class FundsHandlers implements BotHandlers {
             success ? t("funds.changedonation.success", { donationId }) : t("funds.changedonation.fail"),
             msg
         );
+    }
+
+    static async debtHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        const selectedUsername = (username ?? msg.from?.username)?.replace("@", "");
+        const donations = selectedUsername ? FundsRepository.getFundDonationsHeldBy(selectedUsername) : [];
+        const donationList = donations ? TextGenerators.generateFundDonationsList(donations, true) : "";
+        const totalDonated = donations ? await sumDonations(donations) : 0;
+        const formattedUsername = UsersHelper.formatUsername(selectedUsername, bot.context(msg).mode);
+
+        const message =
+            donationList.length > 0
+                ? t("funds.debt.text", { donationList, username: formattedUsername, total: totalDonated, currency: "AMD" })
+                : t("funds.debt.empty");
+
+        await bot.sendLongMessage(msg.chat.id, message, msg);
+    }
+
+    static async transferAllToHandler(bot: HackerEmbassyBot, msg: Message, username: string, fundName?: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        const selectedUsername = msg.from?.username?.replace("@", "");
+        const donations = selectedUsername ? FundsRepository.getFundDonationsHeldBy(selectedUsername, fundName) : [];
+
+        if (!donations || donations.length === 0) {
+            await bot.sendMessageExt(msg.chat.id, t("funds.transferdonation.nothing"), msg);
+            return;
+        }
+
+        for (const donation of donations) {
+            await FundsHandlers.transferDonationHandler(bot, msg, donation.id, username);
+        }
     }
 
     static async exportCSVHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {

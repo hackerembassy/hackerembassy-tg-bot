@@ -126,7 +126,9 @@ export const AccountantCommandsList: string = `
 #\`/removedonation donation_id#\` - Удалить донат
 #\`/transferdonation donation_id to username#\` (td) - Передать донат другому бухгалтеру
 #\`/tocab donation_id#\` - Передать донат Кабу
-#\`/profile username#\` - Статистика посещений и донатов юзера
+#\`/tocaball fund_name#\` - Передать все свои донаты Кабу, опционально можно указать конкретный сбор
+#\`/profile username#\` - Статистика посещениий и донатов юзера
+#\`/debt username#\` - Сколько донатов числится на юзере (без параметра - на тебе)
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead

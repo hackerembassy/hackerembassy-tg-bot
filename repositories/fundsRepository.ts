@@ -45,9 +45,26 @@ class FundsRepository extends BaseRepository {
     getFundDonationsOf(username: string): Nullable<FundDonation[]> {
         return this.db
             .prepare(
-                "SELECT d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.username = ?"
+                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.username = ?"
             )
             .all(username) as Nullable<FundDonation[]>;
+    }
+
+    // TODO there should be a better way
+    getFundDonationsHeldBy(accountant: string, fundName?: string): Nullable<FundDonation[]> {
+        return (
+            fundName && fundName.length > 0
+                ? this.db
+                      .prepare(
+                          "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.accountant = ? AND f.name = ?"
+                      )
+                      .all(accountant, fundName)
+                : this.db
+                      .prepare(
+                          "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.accountant = ?"
+                      )
+                      .all(accountant)
+        ) as Nullable<FundDonation[]>;
     }
 
     getDonationById(donationId: number): Nullable<Donation> {

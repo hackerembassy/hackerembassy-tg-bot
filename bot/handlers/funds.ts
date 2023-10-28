@@ -12,7 +12,7 @@ import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 import { isPrivateMessage } from "../helpers";
 
-const CALLBACK_DATA_RESTRICTION = 23;
+const CALLBACK_DATA_RESTRICTION = 21;
 
 // Converter library needs time to initialize all currencies, so we need to init it in advance
 initConvert();

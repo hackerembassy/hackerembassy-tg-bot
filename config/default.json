@@ -27,7 +27,8 @@
             "url": "https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan&hl=en",
             "appLink": "https://t.me/HackerEmbassyBot/calendar",
             "upcomingToLoad": 5
-        }
+        },
+        "debug": true
     },
     "printers": {
         "anette": {
@@ -80,7 +81,7 @@
                 "humidity": "http://hass:8123/api/states/sensor.atc_9ba1_humidity"
             }
         },
-        "hostsToMonitor": ["192.168.1.2", "jigglypuff.lan", "minimi.lan"]
+        "hostsToMonitor": ["192.168.1.2", "hass.lan"]
     },
     "currency": {
         "default": "AMD",

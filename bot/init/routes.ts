@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import config from "config";
+
+import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import AdminHandlers from "../handlers/admin";
@@ -11,6 +14,8 @@ import MemeHandlers from "../handlers/meme";
 import NeedsHandlers from "../handlers/needs";
 import ServiceHandlers from "../handlers/service";
 import StatusHandlers from "../handlers/status";
+
+const botConfig = config.get<BotConfig>("bot");
 
 class RegexCommander {
     botname: Optional<string>;
@@ -396,4 +401,17 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.on("error", error => {
         logger.error(error);
     });
+
+    // Debug logging
+    if (botConfig.debug) {
+        logger.debug("[debug] routes are added");
+
+        bot.on("chat_member", member => {
+            logger.debug(`chat_member: ${JSON.stringify(member)}`);
+        });
+
+        bot.on("message", (message, metadata) => {
+            logger.debug(`message: ${JSON.stringify(message)};\nmetadata: ${JSON.stringify(metadata)}`);
+        });
+    }
 }

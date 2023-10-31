@@ -7,8 +7,10 @@ import { BotConfig } from "../config/schema";
 
 const botConfig = config.get<BotConfig>("bot");
 
+const logLevel = botConfig.debug ? "debug" : "info";
+
 const rotatedFile = new transports.DailyRotateFile({
-    level: "info",
+    level: logLevel,
     filename: `${botConfig.logfolderpath}/%DATE%.log`,
     datePattern: "YYYY-MM-DD",
     zippedArchive: true,
@@ -17,7 +19,7 @@ const rotatedFile = new transports.DailyRotateFile({
 });
 
 const logger = createLogger({
-    level: "info",
+    level: logLevel,
     format: format.combine(
         format.timestamp({
             format: "YYYY-MM-DD HH:mm:ss",

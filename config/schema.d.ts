@@ -18,6 +18,7 @@ export interface BotConfig {
     calendar: CalendarConfig;
     locales?: string;
     live: LiveConfig;
+    debug: boolean;
 }
 
 export interface LiveConfig {

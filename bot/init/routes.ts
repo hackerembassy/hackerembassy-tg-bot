@@ -258,7 +258,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         FundsHandlers.showCostsDonutHandler(bot, msg)
     );
     bot.onTextExt(
-        rc.command(["residentscosts", "residentsdonated", "residentcosts"]),
+        rc.command(["residentscosts", "residentsdonated", "residentcosts", "rcosts"]),
         (bot, msg) => FundsHandlers.residentsDonatedHandler(bot, msg),
         ["member", "accountant"]
     );
@@ -381,7 +381,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         rc.command(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"]),
         MemeHandlers.randomCabHandler
     );
-    bot.onTextExt(rc.command(["syrniki", "pidarasi"]), (bot, msg) =>
+    bot.onTextExt(rc.command(["syrniki", "pidarasi", "pidorasi"]), (bot, msg) =>
         MemeHandlers.imageHandler(bot, msg, "./resources/images/memes/syrniki.jpeg")
     );
 
@@ -390,7 +390,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         "member",
     ]);
     bot.onTextExt(
-        rc.command(["combine", "squash"], /(\d*)/, true),
+        rc.command(["combine", "squash", "sq"], /(\d*)/, true),
         (bot, msg, match) => ServiceHandlers.combineHandler(bot, msg, match[1]),
         ["member"]
     );

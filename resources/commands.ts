@@ -76,13 +76,13 @@ export const MemberCommandsList: string = `
 /doorbell (db) - Позвонить в дверной звонок
 /unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (default n = 1)
-/combine n - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
+/combine n (sq n) - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
 /setemoji - Поставить себе эмодзи в боте
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
 #\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
 /evict - Очистить список отметившихся внутри
-/residentsdonated - Кто из резидентов уже задонатил в этом месяце
+/residentsdonated (rcosts) - Кто из резидентов уже задонатил в этом месяце
 /mideaon - Врубить кондей
 /mideaoff - Вырубить кондей
 /mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")

@@ -49,8 +49,8 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     const rc = new RegexCommander(bot.Name);
 
     // Callbacks and events
-    bot.onExt("new_chat_members", ServiceHandlers.newMemberHandler); // Should be the first to catch spammers
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);
+    bot.onExt("chat_member", ServiceHandlers.newMemberHandler);
 
     // Info
     bot.onTextExt(rc.command(["help"]), BasicHandlers.helpHandler);
@@ -397,11 +397,6 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(rc.command(["enableresidentmenu", "residentmenu"]), ServiceHandlers.residentMenuHandler, ["member"]);
     bot.onTextExt(rc.command(["chatid"]), ServiceHandlers.chatidHandler, ["admin"]);
 
-    // Errors
-    bot.on("error", error => {
-        logger.error(error);
-    });
-
     // Debug logging
     if (botConfig.debug) {
         logger.debug("[debug] routes are added");
@@ -414,4 +409,9 @@ export function setRoutes(bot: HackerEmbassyBot): void {
             logger.debug(`message: ${JSON.stringify(message)};\nmetadata: ${JSON.stringify(metadata)}`);
         });
     }
+
+    // Errors
+    bot.on("error", error => {
+        logger.error(error);
+    });
 }

@@ -1,5 +1,5 @@
 import config from "config";
-import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
+import TelegramBot, { ChatMemberUpdated, InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
@@ -159,7 +159,7 @@ export default class ServiceHandlers implements BotHandlers {
             if (ServiceHandlers.verifyUserHandler(tgUser)) {
                 try {
                     await bot.deleteMessage(msg.chat.id, msg.message_id);
-                    await ServiceHandlers.welcomeHandler(bot, msg, tgUser);
+                    await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
                 } catch (error) {
                     logger.error(error);
                 }
@@ -408,43 +408,41 @@ export default class ServiceHandlers implements BotHandlers {
         );
     }
 
-    static async newMemberHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (!msg.new_chat_members) return;
-
-        for (const user of msg.new_chat_members) {
-            const currentUser = UsersRepository.getByUserId(user.id);
-
-            if (currentUser === null) {
-                logger.info(
-                    `New user [${user.id}](${user.username}) joined the chat [${msg.chat.id}](${msg.chat.title}) as restricted`
-                );
-                UsersRepository.addUser(user.username, ["restricted"], user.id);
-            } else if (!currentUser.roles.includes("restricted")) {
-                logger.info(
-                    `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${msg.chat.id}](${msg.chat.title})`
-                );
-                return await ServiceHandlers.welcomeHandler(bot, msg, user);
-            } else {
-                console.log(msg.chat);
-                logger.info(
-                    `Restricted user [${user.id}](${user.username}) joined the chat [${msg.chat.id}](${msg.chat.title}) again`
-                );
-            }
-
-            const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
-            const inline_keyboard = [
-                [
-                    {
-                        text: t("service.welcome.captcha"),
-                        callback_data: JSON.stringify({ vId: user.id }),
-                    },
-                ],
-            ];
-
-            await bot.sendMessageExt(msg.chat.id, welcomeText, msg, {
-                reply_markup: { inline_keyboard },
-            });
+    static async newMemberHandler(bot: HackerEmbassyBot, memberUpdated: ChatMemberUpdated) {
+        if (!(memberUpdated.old_chat_member.status === "left" && memberUpdated.new_chat_member.status === "member")) {
+            return;
         }
+
+        const user = memberUpdated.new_chat_member.user;
+        const chat = memberUpdated.chat;
+
+        const currentUser = UsersRepository.getByUserId(user.id);
+
+        if (currentUser === null) {
+            logger.info(`New user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
+            UsersRepository.addUser(user.username, ["restricted"], user.id);
+        } else if (!currentUser.roles.includes("restricted")) {
+            logger.info(
+                `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
+            );
+            return await ServiceHandlers.welcomeHandler(bot, chat, user);
+        } else {
+            logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
+        }
+
+        const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
+        const inline_keyboard = [
+            [
+                {
+                    text: t("service.welcome.captcha"),
+                    callback_data: JSON.stringify({ vId: user.id }),
+                },
+            ],
+        ];
+
+        await bot.sendMessageExt(chat.id, welcomeText, null, {
+            reply_markup: { inline_keyboard },
+        });
     }
 
     static verifyUserHandler(tgUser: ITelegramUser) {
@@ -457,13 +455,13 @@ export default class ServiceHandlers implements BotHandlers {
         return UsersRepository.updateUser({ ...user, roles: "default" });
     }
 
-    static async welcomeHandler(bot: HackerEmbassyBot, message: Message, tgUser: ITelegramUser) {
+    static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser) {
         const newMember = userLink(tgUser);
         const botName = bot.Name;
 
         let welcomeText: string;
 
-        switch (message.chat.id) {
+        switch (chat.id) {
             case botConfig.chats.offtopic:
                 welcomeText = t("service.welcome.offtopic", { botName, newMember });
                 break;
@@ -478,7 +476,7 @@ export default class ServiceHandlers implements BotHandlers {
                 welcomeText = t("service.welcome.main", { botName, newMember });
         }
 
-        await bot.sendMessageExt(message.chat.id, welcomeText, message);
+        await bot.sendMessageExt(chat.id, welcomeText, null);
     }
 
     static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string) {

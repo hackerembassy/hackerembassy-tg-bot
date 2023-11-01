@@ -292,7 +292,6 @@ const shortMonthNames: string[] = [
     "birthday.months.august",
     "birthday.months.september",
     "birthday.months.october",
-    "birthday.months.october",
     "birthday.months.november",
     "birthday.months.december",
 ];

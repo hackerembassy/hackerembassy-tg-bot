@@ -6,6 +6,7 @@ import {
     BotCommandScope,
     CallbackQuery,
     ChatId,
+    ChatMemberUpdated,
     default as TelegramBot,
     EditMessageMediaOptions,
     EditMessageTextOptions,
@@ -51,6 +52,7 @@ export interface BotHandlers {}
 
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => any;
 export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
+export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: TelegramBot.ChatMemberUpdated) => any;
 
 export interface ITelegramUser {
     username?: Nullable<string>;
@@ -182,9 +184,12 @@ export default class HackerEmbassyBot extends TelegramBot {
         return this.contextMap.get(msg) as BotMessageContext;
     }
 
-    onExt(event: TelegramBot.MessageType | "callback_query", listener: BotHandler | BotCallbackHandler): void {
+    onExt(
+        event: TelegramBot.MessageType | "callback_query" | "chat_member",
+        listener: BotHandler | BotCallbackHandler | ChatMemberHandler
+    ): void {
         const newListener = (query: CallbackQuery | Message) => {
-            listener.bind(this)(this, query as CallbackQuery & Message);
+            listener.bind(this)(this, query as CallbackQuery & Message & ChatMemberUpdated);
         };
 
         // @ts-ignore

@@ -8,7 +8,7 @@ import logger from "../../services/logger";
 import RateLimiter from "../../services/RateLimiter";
 import { userLink } from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, { BotHandlers, ITelegramUser } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot, { BotHandlers, FULL_PERMISSIONS, ITelegramUser, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
 import { MessageHistoryEntry } from "../core/MessageHistory";
 import { setMenu } from "../init/menu";
 import BasicHandlers from "./basic";
@@ -158,6 +158,10 @@ export default class ServiceHandlers implements BotHandlers {
 
             if (ServiceHandlers.verifyUserHandler(tgUser)) {
                 try {
+                    botConfig.moderatedChats.forEach(chatId =>
+                        bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
+                    );
+
                     await bot.deleteMessage(msg.chat.id, msg.message_id);
                     await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
                 } catch (error) {
@@ -416,17 +420,23 @@ export default class ServiceHandlers implements BotHandlers {
         const user = memberUpdated.new_chat_member.user;
         const chat = memberUpdated.chat;
 
+        if (!botConfig.moderatedChats.includes(chat.id)) {
+            return await ServiceHandlers.welcomeHandler(bot, chat, user);
+        }
+
         const currentUser = UsersRepository.getByUserId(user.id);
 
         if (currentUser === null) {
-            logger.info(`New user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
             UsersRepository.addUser(user.username, ["restricted"], user.id);
+            bot.restrictChatMember(chat.id, user.id, RESTRICTED_PERMISSIONS);
+            logger.info(`New user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
         } else if (!currentUser.roles.includes("restricted")) {
             logger.info(
                 `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
             );
             return await ServiceHandlers.welcomeHandler(bot, chat, user);
         } else {
+            bot.restrictChatMember(chat.id, user.id, RESTRICTED_PERMISSIONS);
             logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 

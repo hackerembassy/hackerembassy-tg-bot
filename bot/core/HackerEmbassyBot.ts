@@ -82,6 +82,40 @@ export interface SendMediaGroupOptionsExt extends SendMediaGroupOptions {
     message_thread_id?: number;
 }
 
+export const RESTRICTED_PERMISSIONS = {
+    can_send_messages: false,
+    can_send_audios: false,
+    can_send_documents: false,
+    can_send_photos: false,
+    can_send_videos: false,
+    can_send_video_notes: false,
+    can_send_voice_notes: false,
+    can_send_polls: false,
+    can_send_other_messages: false,
+    can_add_web_page_previews: false,
+    can_change_info: false,
+    can_invite_users: false,
+    can_pin_messages: false,
+    can_manage_topics: false,
+};
+
+export const FULL_PERMISSIONS = {
+    can_send_messages: true,
+    can_send_audios: true,
+    can_send_documents: true,
+    can_send_photos: true,
+    can_send_videos: true,
+    can_send_video_notes: true,
+    can_send_voice_notes: true,
+    can_send_polls: true,
+    can_send_other_messages: true,
+    can_add_web_page_previews: true,
+    can_change_info: true,
+    can_invite_users: true,
+    can_pin_messages: true,
+    can_manage_topics: true,
+};
+
 // Helpers
 
 /**
@@ -554,6 +588,19 @@ ${chunks[index]}
             this.CustomEmitter.removeListener(event, handler);
             this.botState.liveChats = this.botState.liveChats.splice(chatRecordIndex, 1);
         }, EDIT_MESSAGE_TIME_LIMIT);
+    }
+
+    //@ts-ignore
+    restrictChatMember(
+        chatId: ChatId,
+        userId: number,
+        options: TelegramBot.ChatPermissions & {
+            until_date?: number | undefined;
+            use_independent_chat_permissions?: boolean | undefined;
+        }
+    ) {
+        //@ts-ignore
+        return super.restrictChatMember(chatId, userId, options);
     }
 
     /*

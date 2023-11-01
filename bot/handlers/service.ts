@@ -457,8 +457,13 @@ export default class ServiceHandlers implements BotHandlers {
 
     static verifyUserHandler(tgUser: ITelegramUser) {
         const user = UsersRepository.getByUserId(tgUser.id);
-        if (!user || !user.roles.includes("restricted"))
-            throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
+
+        if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
+
+        if (!user.roles.includes("restricted")) {
+            logger.info(`User [${tgUser.id}](${tgUser.username}) was already verified`);
+            return true;
+        }
 
         logger.info(`User [${tgUser.id}](${tgUser.username}) passed the verification`);
 

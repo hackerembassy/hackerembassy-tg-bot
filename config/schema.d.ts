@@ -19,6 +19,7 @@ export interface BotConfig {
     locales?: string;
     live: LiveConfig;
     debug: boolean;
+    moderatedChats: number[];
 }
 
 export interface LiveConfig {

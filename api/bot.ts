@@ -208,6 +208,14 @@ app.get("/text/donate", (_, res) => {
     res.send(message);
 });
 
+app.get("/healthcheck", (_, res, next) => {
+    try {
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.listen(port);
 
 logger.info(`Bot Api is ready to accept requests`);

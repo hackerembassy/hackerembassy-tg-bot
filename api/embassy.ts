@@ -61,6 +61,14 @@ app.get("/statusmonitor", (_, res, next) => {
     }
 });
 
+app.get("/healthcheck", (_, res, next) => {
+    try {
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.get("/doorcam", async (_, res, next) => {
     try {
         res.send(await getDoorcamImage());

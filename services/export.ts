@@ -136,7 +136,7 @@ export async function createUserStatsDonut(
         userTimes.map(ut => ut.username),
         userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
         `${t("status.stats.hoursinspace", dateBoundaries)}`,
-        { height: 1500, width: 2000 }
+        { height: 1500, width: 2500 }
     ).toBinary();
 }
 

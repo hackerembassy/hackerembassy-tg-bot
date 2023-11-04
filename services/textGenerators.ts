@@ -428,7 +428,7 @@ export function getTodayEventsText(todayEvents: HSEvent[]): string {
 
     if (todayEvents.length !== 0) {
         messageText += t("basic.events.today") + "\n";
-        messageText += getEventsList(todayEvents);
+        messageText += getEventsList(todayEvents) + "\n\n";
         messageText += t("basic.events.entrance");
     } else {
         messageText += t("basic.events.notoday");

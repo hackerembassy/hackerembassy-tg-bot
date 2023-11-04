@@ -690,7 +690,7 @@ export default class StatusHandlers implements BotHandlers {
         const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod);
         const statsDonut = await createUserStatsDonut(userTimes, dateBoundaries);
 
-        await bot.sendMessageExt(msg.chat.id, statsText, msg);
+        await bot.sendLongMessage(msg.chat.id, statsText, msg);
         await bot.sendPhotoExt(msg.chat.id, statsDonut, msg);
     }
 }

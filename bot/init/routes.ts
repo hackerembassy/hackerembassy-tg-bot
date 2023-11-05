@@ -74,7 +74,7 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(rc.command(["start", "startpanel", "sp"]), BasicHandlers.startPanelHandler);
     bot.onTextExt(rc.command(["infopanel", "ip"]), BasicHandlers.infoPanelHandler);
     bot.onTextExt(rc.command(["controlpanel", "cp"]), BasicHandlers.controlPanelHandler, ["member"]);
-    bot.onTextExt(rc.command(["memepanel", "meme", "memes", "mp"]), BasicHandlers.memePanelHandler, ["member"]);
+    bot.onTextExt(rc.command(["memepanel", "meme", "memes", "mp"]), BasicHandlers.memePanelHandler, ["member", "trusted"]);
 
     // Issues
     bot.onTextExt(rc.command(["issue"], /(.*)/), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));

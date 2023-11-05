@@ -57,6 +57,7 @@ export interface PrinterEndpoint {
 }
 
 export interface EmbassyApiConfig {
+    devices: DevicesConfig;
     timeout: number;
     port: number;
     queryMonitorInterval: number;
@@ -77,6 +78,15 @@ export interface EmbassyApiConfig {
     doorbellpath: string;
     climate: ClimateConfig;
     hostsToMonitor?: string[] | null;
+}
+
+export interface DevicesConfig {
+    [key: string]: DeviceDescriptor | undefined;
+}
+
+export interface DeviceDescriptor {
+    host: string;
+    mac: string;
 }
 
 export interface ClimateConfig {

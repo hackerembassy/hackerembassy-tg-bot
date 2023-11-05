@@ -42,6 +42,12 @@
         }
     },
     "embassy-api": {
+        "devices": {
+            "gaming": {
+                "host": "gayming.lan",
+                "mac": "2C:F0:5D:94:72:AA"
+            }
+        },
         "timeout": 7000,
         "port": 8001,
         "queryMonitorInterval": 60000,

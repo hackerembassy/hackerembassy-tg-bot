@@ -144,6 +144,13 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     // Sensors
     bot.onTextExt(rc.command(["climate", "temp"]), EmbassyHandlers.climateHandler);
 
+    // Devices
+    bot.onTextExt(
+        rc.command(["gaymingup", "gamingup", "wolgaming", "gaming up", "gayming up"]),
+        (bot, msg) => EmbassyHandlers.wakeHandler(bot, msg, "gaming"),
+        ["member"]
+    );
+
     // Printers
     bot.onTextExt(rc.command(["printers"]), EmbassyHandlers.printersHandler);
     bot.onTextExt(rc.command(["anette", "anettestatus"]), (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "anette"));

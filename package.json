@@ -62,7 +62,8 @@
         "tmp-promise": "^3.0.3",
         "ts-node": "^10.9.1",
         "winston": "^3.8.2",
-        "winston-daily-rotate-file": "^4.7.1"
+        "winston-daily-rotate-file": "^4.7.1",
+        "wol": "^1.0.7"
     },
     "devDependencies": {
         "@jest/globals": "^29.6.4",
@@ -79,6 +80,7 @@
         "@types/ping": "^0.4.1",
         "@types/rrule": "^2.2.9",
         "@types/swagger-ui-express": "^4.1.4",
+        "@types/wol": "^1.0.3",
         "@typescript-eslint/eslint-plugin": "^6.4.1",
         "@typescript-eslint/parser": "^6.4.1",
         "eslint": "^8.42.0",

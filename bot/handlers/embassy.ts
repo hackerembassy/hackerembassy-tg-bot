@@ -309,6 +309,28 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    static async wakeHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+        let text = t("embassy.wake.success");
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/wake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ device }),
+                timeout: 15000,
+            });
+
+            if (response.status !== 200) throw Error();
+        } catch (error) {
+            logger.error(error);
+            text = t("embassy.wake.fail");
+        } finally {
+            await bot.sendMessageExt(msg.chat.id, text, msg);
+        }
+    }
+
     static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
         await this.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`, true);
         await sleep(7000);

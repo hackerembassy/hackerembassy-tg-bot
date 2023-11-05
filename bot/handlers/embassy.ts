@@ -313,6 +313,8 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async wakeHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
         try {
             const response = await fetchWithTimeout(`${embassyBase}/wake`, {
                 method: "POST",
@@ -325,11 +327,48 @@ export default class EmbassyHandlers implements BotHandlers {
 
             if (!response.ok) throw Error();
 
-            await bot.sendMessageExt(msg.chat.id, t("embassy.wake.success"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.wake.success"), msg);
         } catch (error) {
             logger.error(error);
 
-            await bot.sendMessageExt(msg.chat.id, t("embassy.wake.fail"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.wake.fail"), msg);
+        }
+    }
+
+    static async deviceHelpHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string) {
+        try {
+            const device = embassyApiConfig.devices[deviceName];
+
+            if (!device) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.help", { deviceName }), msg);
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.notfound"), msg);
+        }
+    }
+
+    static async shutdownHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/shutdown`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ device }),
+                timeout: 15000,
+            });
+
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.shutdown.success"), msg);
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.shutdown.fail"), msg);
         }
     }
 
@@ -352,13 +391,17 @@ export default class EmbassyHandlers implements BotHandlers {
 
             await bot.sendMessageExt(
                 msg.chat.id,
-                raw ? body.output : body.alive ? t("embassy.alive.up", { time: body.time }) : t("embassy.alive.down"),
+                raw
+                    ? body.output
+                    : body.alive
+                    ? t("embassy.device.alive.up", { time: body.time })
+                    : t("embassy.device.alive.down"),
                 msg
             );
         } catch (error) {
             logger.error(error);
 
-            await bot.sendMessageExt(msg.chat.id, t("embassy.alive.fail"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.alive.fail"), msg);
         }
     }
 

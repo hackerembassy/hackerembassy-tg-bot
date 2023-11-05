@@ -45,7 +45,8 @@
         "devices": {
             "gaming": {
                 "host": "gayming.lan",
-                "mac": "2C:F0:5D:94:72:AA"
+                "mac": "2C:F0:5D:94:72:AA",
+                "os": "windows"
             }
         },
         "timeout": 7000,

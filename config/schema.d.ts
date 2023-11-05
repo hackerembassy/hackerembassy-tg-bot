@@ -87,6 +87,7 @@ export interface DevicesConfig {
 export interface DeviceDescriptor {
     host: string;
     mac: string;
+    os?: "windows" | "linux" | "macos";
 }
 
 export interface ClimateConfig {

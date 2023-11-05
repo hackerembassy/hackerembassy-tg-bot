@@ -88,6 +88,7 @@ export const MemberCommandsList: string = `
 /mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
 /gamingup - Включить игровой сервер
+/gamingstatus - Статус игрового сервера
 `;
 
 export const AdminCommandsList: string = ` 

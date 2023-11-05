@@ -1,5 +1,6 @@
 import config from "config";
 import { default as fetch } from "node-fetch";
+import { promise } from "ping";
 import wol from "wol";
 
 import { EmbassyApiConfig } from "../config/schema";
@@ -67,4 +68,12 @@ export function filterFulfilled<T>(results: PromiseSettledResult<T>[]): PromiseF
 
 export async function wakeOnLan(mac: string) {
     return await wol.wake(mac);
+}
+
+export async function isAlive(host: string) {
+    const probingResult = await promise.probe(host, {
+        timeout: 5,
+    });
+
+    return probingResult.alive;
 }

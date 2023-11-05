@@ -53,11 +53,13 @@ async function pingInternalDevices(): Promise<void> {
     }
 }
 
+/** @deprecated */
 export function startMonitoring(): void {
     logger.info("Device monitoring started");
     setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }
 
+/** @deprecated */
 export function readNewMessages(): MonitorMessage[] {
     const unreadMessages = [];
 

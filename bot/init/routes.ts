@@ -150,6 +150,11 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         (bot, msg) => EmbassyHandlers.wakeHandler(bot, msg, "gaming"),
         ["member"]
     );
+    bot.onTextExt(
+        rc.command(["gaymingstatus", "gamingstatus", "gaming status", "gayming status"]),
+        (bot, msg) => EmbassyHandlers.aliveHandler(bot, msg, "gaming"),
+        ["member"]
+    );
 
     // Printers
     bot.onTextExt(rc.command(["printers"]), EmbassyHandlers.printersHandler);

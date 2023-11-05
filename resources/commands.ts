@@ -89,8 +89,7 @@ export const MemberCommandsList: string = `
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
 #\`/probe host#\` - Проверить доступность хоста
 #\`/ping host#\` - Пропинговать хост
-/gamingup - Включить игровой сервер
-/gamingstatus - Статус игрового сервера
+/gaming - Управление игровым сервером
 `;
 
 export const AdminCommandsList: string = ` 

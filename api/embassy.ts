@@ -115,6 +115,33 @@ app.post("/wake", async (req, res, next) => {
     }
 });
 
+app.post("/shutdown", async (req, res, next) => {
+    try {
+        const device = req.body.device as string;
+        const host = embassyApiConfig.devices[device]?.host;
+
+        if (!host) {
+            res.sendStatus(400);
+            return;
+        }
+
+        const os = embassyApiConfig.devices[device]?.os;
+        const command = os === "windows" ? "shutdown /s" : "shutdown now";
+        const ssh = new NodeSSH();
+        await ssh.connect({
+            host,
+            username: process.env["GAMINGUSER"],
+            password: process.env["GAMINGPASSWORD"],
+        });
+        await ssh.exec(command, [""]);
+        ssh.dispose();
+
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.post("/ping", async (req, res, next) => {
     try {
         const device = req.body.device as string;

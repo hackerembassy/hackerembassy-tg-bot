@@ -146,8 +146,18 @@ export function setRoutes(bot: HackerEmbassyBot): void {
 
     // Devices
     bot.onTextExt(
+        rc.command(["gayming", "gaming", "gayminghelp", "gaminghelp", "gaming help", "gayming help"]),
+        (bot, msg) => EmbassyHandlers.deviceHelpHandler(bot, msg, "gaming"),
+        ["member"]
+    );
+    bot.onTextExt(
         rc.command(["gaymingup", "gamingup", "wolgaming", "gaming up", "gayming up"]),
         (bot, msg) => EmbassyHandlers.wakeHandler(bot, msg, "gaming"),
+        ["member"]
+    );
+    bot.onTextExt(
+        rc.command(["gaymingdown", "gamingdown", "gaming shutdown", "gayming shutdown", "gaming down", "gayming down"]),
+        (bot, msg) => EmbassyHandlers.shutdownHandler(bot, msg, "gaming"),
         ["member"]
     );
     bot.onTextExt(
@@ -155,6 +165,8 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         (bot, msg) => EmbassyHandlers.pingHandler(bot, msg, "gaming"),
         ["member"]
     );
+
+    // Network utils
     bot.onTextExt(
         rc.command(["isalive", "alive", "probe"], /(\S+)/, false),
         (bot, msg, match) => EmbassyHandlers.pingHandler(bot, msg, match[1]),

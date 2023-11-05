@@ -421,7 +421,7 @@ export default class EmbassyHandlers implements BotHandlers {
         const text =
             residentsInside.length > 0
                 ? t("embassy.knock.knock", {
-                      residentsInside: residentsInside.reduce((acc, resident) => (acc += `@${resident.username} `), ""),
+                      residentsInside: residentsInside.reduce((acc, resident) => acc + `@${resident.username} `, ""),
                   })
                 : t("embassy.knock.noresidents");
         await bot.sendMessageExt(msg.chat.id, text, msg);

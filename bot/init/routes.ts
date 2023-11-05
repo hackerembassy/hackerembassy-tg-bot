@@ -219,9 +219,6 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         ["member", "trusted"]
     );
 
-    // Monitoring
-    bot.onTextExt(rc.command(["monitor"]), (bot, msg) => EmbassyHandlers.monitorHandler(bot, msg, false));
-
     // Sounds
     bot.onTextExt(rc.command(["sayinspace", "say"], /(.*)/, true, "ims"), (bot, msg, match) =>
         EmbassyHandlers.sayinspaceHandler(bot, msg, match[1])

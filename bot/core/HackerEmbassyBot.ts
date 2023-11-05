@@ -186,13 +186,11 @@ export default class HackerEmbassyBot extends TelegramBot {
     canUserCall(username: string | undefined, callback: BotHandler): boolean {
         const savedRestrictions = this.accessTable.get(callback);
 
-        if (username) {
-            if (savedRestrictions && !hasRole(username, "admin", ...savedRestrictions)) return false;
-        } else {
-            if (savedRestrictions && !savedRestrictions.includes("default")) return false;
-        }
+        if (!savedRestrictions) return true;
 
-        return true;
+        if (username) return hasRole(username, "admin", ...savedRestrictions);
+
+        return savedRestrictions.includes("default");
     }
 
     context(msg: TelegramBot.Message): BotMessageContext {
@@ -595,8 +593,8 @@ ${chunks[index]}
         chatId: ChatId,
         userId: number,
         options: TelegramBot.ChatPermissions & {
-            until_date?: number | undefined;
-            use_independent_chat_permissions?: boolean | undefined;
+            until_date?: number;
+            use_independent_chat_permissions?: boolean;
         }
     ) {
         //@ts-ignore

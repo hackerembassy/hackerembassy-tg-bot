@@ -20,6 +20,7 @@ import printer3d from "../services/printer3d";
 import * as statusMonitor from "../services/statusMonitor";
 import { sleep } from "../utils/common";
 import { createErrorMiddleware } from "../utils/middleware";
+import { wakeOnLan } from "../utils/network";
 import { decrypt } from "../utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -96,6 +97,20 @@ app.get("/webcam", async (_, res, next) => {
 app.get("/webcam2", async (_, res, next) => {
     try {
         res.send(await getWebcam2Image());
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/wake", async (req, res, next) => {
+    try {
+        const device = req.body.device as string;
+        const mac = embassyApiConfig.devices[device]?.mac;
+
+        if (mac && (await wakeOnLan(mac))) {
+            logger.info(`Woke up ${mac}`);
+            res.send({ message: "Magic packet sent" });
+        } else res.sendStatus(400);
     } catch (error) {
         next(error);
     }

@@ -1,5 +1,6 @@
 import config from "config";
 import { default as fetch } from "node-fetch";
+import wol from "wol";
 
 import { EmbassyApiConfig } from "../config/schema";
 
@@ -62,4 +63,8 @@ export async function getBufferFromResponse(response: Response): Promise<Buffer>
 
 export function filterFulfilled<T>(results: PromiseSettledResult<T>[]): PromiseFulfilledResult<T>[] {
     return results.filter(result => result.status === "fulfilled") as PromiseFulfilledResult<T>[];
+}
+
+export async function wakeOnLan(mac: string) {
+    return await wol.wake(mac);
 }

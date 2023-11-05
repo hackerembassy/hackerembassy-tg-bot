@@ -20,15 +20,13 @@ import printer3d from "../services/printer3d";
 import * as statusMonitor from "../services/statusMonitor";
 import { sleep } from "../utils/common";
 import { createErrorMiddleware } from "../utils/middleware";
-import { wakeOnLan } from "../utils/network";
+import { isAlive, wakeOnLan } from "../utils/network";
 import { decrypt } from "../utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
-
-statusMonitor.startMonitoring();
 
 const app = express();
 app.use(cors());
@@ -54,6 +52,7 @@ app.post("/playinspace", async (req, res, next) => {
     }
 });
 
+/** @deprecated */
 app.get("/statusmonitor", (_, res, next) => {
     try {
         res.json(statusMonitor.readNewMessages());
@@ -110,6 +109,19 @@ app.post("/wake", async (req, res, next) => {
         if (mac && (await wakeOnLan(mac))) {
             logger.info(`Woke up ${mac}`);
             res.send({ message: "Magic packet sent" });
+        } else res.sendStatus(400);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/isalive", async (req, res, next) => {
+    try {
+        const device = req.body.device as string;
+        const host = embassyApiConfig.devices[device]?.host;
+
+        if (host) {
+            res.send({ alive: await isAlive(host) });
         } else res.sendStatus(400);
     } catch (error) {
         next(error);

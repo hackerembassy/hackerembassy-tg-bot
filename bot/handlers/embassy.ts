@@ -4,7 +4,7 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import statusRepository from "../../repositories/statusRepository";
 import usersRepository from "../../repositories/usersRepository";
-import { ConditionerMode, ConditionerStatus } from "../../services/home";
+import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/home";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
@@ -43,7 +43,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 body: JSON.stringify({ token, from: msg.from?.username }),
             });
 
-            if (response.status === 200) {
+            if (response.ok) {
                 logger.info(`${msg.from?.username} opened the door`);
                 await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
             } else throw Error("Request error");
@@ -63,7 +63,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const images: ArrayBuffer[] = await Promise.all(
                 filterFulfilled(camResponses)
-                    .filter(result => result.value.status === 200)
+                    .filter(result => result.value.ok)
                     .map(result => result.value.arrayBuffer())
             );
 
@@ -179,6 +179,7 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    /** @deprecated */
     static async monitorHandler(bot: HackerEmbassyBot, msg: Message, notifyEmpty = false) {
         try {
             const statusMessages = await EmbassyHandlers.queryStatusMonitor();
@@ -202,6 +203,7 @@ export default class EmbassyHandlers implements BotHandlers {
         return await (await fetchWithTimeout(`${embassyBase}/statusmonitor`)).json();
     }
 
+    /** @deprecated */
     static enableStatusMonitor(bot: HackerEmbassyBot) {
         setInterval(
             () =>
@@ -246,13 +248,14 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             const climateResponse = await fetchWithTimeout(`${embassyBase}/climate`);
-            const climateInfo = climateResponse.status === 200 ? await climateResponse.json() : null;
-            if (climateInfo) {
-                message = t("embassy.climate.data", { climateInfo });
 
-                if (msg.chat.id === botConfig.chats.horny) {
-                    message += t("embassy.climate.secretdata", { climateInfo });
-                }
+            if (!climateResponse.ok) throw Error();
+
+            const climateInfo = (await climateResponse.json()) as SpaceClimate;
+            message = t("embassy.climate.data", { climateInfo });
+
+            if (msg.chat.id === botConfig.chats.horny) {
+                message += t("embassy.climate.secretdata", { climateInfo });
             }
         } catch (error) {
             logger.error(error);
@@ -265,11 +268,11 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const { status, thumbnailBuffer, cam }: PrinterStatusResponse = await (
-                await fetchWithTimeout(`${embassyBase}/printer?printername=${printername}`)
-            ).json();
+            const response = await fetchWithTimeout(`${embassyBase}/printer?printername=${printername}`);
 
-            if (!status || status.error) throw Error();
+            if (!response.ok) throw Error();
+
+            const { status, thumbnailBuffer, cam } = (await response.json()) as PrinterStatusResponse;
 
             if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
 
@@ -296,22 +299,19 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async doorbellHandler(bot: HackerEmbassyBot, msg: Message) {
-        let text = t("embassy.doorbell.success");
-
         try {
-            const status = await (await fetchWithTimeout(`${embassyBase}/doorbell`)).json();
-            if (!status || status.error) throw Error();
+            const response = await fetchWithTimeout(`${embassyBase}/doorbell`);
+
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.doorbell.success"), msg);
         } catch (error) {
             logger.error(error);
-            text = t("embassy.doorbell.fail");
-        } finally {
-            await bot.sendMessageExt(msg.chat.id, text, msg);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.doorbell.fail"), msg);
         }
     }
 
     static async wakeHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
-        let text = t("embassy.wake.success");
-
         try {
             const response = await fetchWithTimeout(`${embassyBase}/wake`, {
                 method: "POST",
@@ -322,12 +322,38 @@ export default class EmbassyHandlers implements BotHandlers {
                 timeout: 15000,
             });
 
-            if (response.status !== 200) throw Error();
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.wake.success"), msg);
         } catch (error) {
             logger.error(error);
-            text = t("embassy.wake.fail");
-        } finally {
-            await bot.sendMessageExt(msg.chat.id, text, msg);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.wake.fail"), msg);
+        }
+    }
+
+    static async aliveHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/isalive`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ device }),
+                timeout: 15000,
+            });
+
+            if (!response.ok) throw Error();
+
+            const body = (await response.json()) as { alive: boolean };
+
+            await bot.sendMessageExt(msg.chat.id, body.alive ? t("embassy.alive.up") : t("embassy.alive.down"), msg);
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.alive.fail"), msg);
         }
     }
 
@@ -385,7 +411,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 timeout: 15000,
             });
 
-            if (response.status === 200) await bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
+            if (response.ok) await bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
             else throw Error("Failed to say in space");
         } catch (error) {
             logger.error(error);
@@ -411,8 +437,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 timeout: 15000,
             });
 
-            if (response.status === 200)
-                !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg));
+            if (response.ok) !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg));
             else throw Error("Failed to play in space");
         } catch (error) {
             logger.error(error);
@@ -477,10 +502,10 @@ export default class EmbassyHandlers implements BotHandlers {
         ];
 
         try {
-            const conditionerStatus: Optional<ConditionerStatus> = await (
-                await fetchWithTimeout(`${embassyBase}/conditionerstate`)
-            ).json();
-            if (!conditionerStatus || conditionerStatus.error) throw Error();
+            const response = await fetchWithTimeout(`${embassyBase}/conditionerstate`);
+            if (!response.ok) throw Error();
+
+            const conditionerStatus = (await response.json()) as ConditionerStatus;
 
             text = t("embassy.conditioner.status", { conditionerStatus });
         } catch (error) {
@@ -520,25 +545,23 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
-        let text = t("embassy.conditioner.success");
 
         try {
-            const status = await (
-                await fetchWithTimeout(`${embassyBase}/${endpoint}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(body),
-                })
-            ).json();
+            const response = await fetchWithTimeout(`${embassyBase}/${endpoint}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(body),
+            });
 
-            if (!status || status.error) throw Error();
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.conditioner.success"), msg);
         } catch (error) {
             logger.error(error);
-            text = t("embassy.conditioner.fail");
-        } finally {
-            await bot.sendMessageExt(msg.chat.id, text, msg);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.conditioner.fail"), msg);
         }
     }
 }

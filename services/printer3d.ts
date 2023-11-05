@@ -28,7 +28,7 @@ export type PrinterStatus = {
 };
 
 export type PrinterStatusResponse = {
-    status?: PrinterStatus;
+    status: PrinterStatus;
     thumbnailBuffer: Nullable<Buffer>;
     cam: Nullable<Buffer>;
 };

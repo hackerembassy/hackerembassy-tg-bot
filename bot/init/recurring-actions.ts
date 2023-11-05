@@ -3,14 +3,11 @@ import config from "config";
 import { BotConfig } from "../../config/schema";
 import HackerEmbassyBot, { BotCustomEvent } from "../core/HackerEmbassyBot";
 import BirthdayHandlers from "../handlers/birthday";
-import EmbassyHandlers from "../handlers/embassy";
 import StatusHandlers from "../handlers/status";
 
 const botConfig = config.get<BotConfig>("bot");
 
 export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
-    EmbassyHandlers.enableStatusMonitor(bot);
-
     setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, null, false), 60 * 60 * 1000);
     setInterval(
         () =>

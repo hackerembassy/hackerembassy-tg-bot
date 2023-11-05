@@ -87,6 +87,8 @@ export const MemberCommandsList: string = `
 /mideaoff - Вырубить кондей
 /mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
+#\`/probe host#\` - Проверить доступность хоста
+#\`/ping host#\` - Пропинговать хост
 /gamingup - Включить игровой сервер
 /gamingstatus - Статус игрового сервера
 `;

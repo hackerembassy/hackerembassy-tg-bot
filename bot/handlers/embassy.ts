@@ -1,5 +1,6 @@
 import config from "config";
 import { Message } from "node-telegram-bot-api";
+import { PingResponse } from "ping";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import statusRepository from "../../repositories/statusRepository";
@@ -332,11 +333,11 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async aliveHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+    static async pingHandler(bot: HackerEmbassyBot, msg: Message, device: string, raw: boolean = false) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/isalive`, {
+            const response = await fetchWithTimeout(`${embassyBase}/ping`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -347,9 +348,13 @@ export default class EmbassyHandlers implements BotHandlers {
 
             if (!response.ok) throw Error();
 
-            const body = (await response.json()) as { alive: boolean };
+            const body = (await response.json()) as PingResponse;
 
-            await bot.sendMessageExt(msg.chat.id, body.alive ? t("embassy.alive.up") : t("embassy.alive.down"), msg);
+            await bot.sendMessageExt(
+                msg.chat.id,
+                raw ? body.output : body.alive ? t("embassy.alive.up", { time: body.time }) : t("embassy.alive.down"),
+                msg
+            );
         } catch (error) {
             logger.error(error);
 

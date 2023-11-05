@@ -70,10 +70,11 @@ export async function wakeOnLan(mac: string) {
     return await wol.wake(mac);
 }
 
-export async function isAlive(host: string) {
+export async function ping(host: string) {
     const probingResult = await promise.probe(host, {
         timeout: 5,
+        min_reply: 4,
     });
 
-    return probingResult.alive;
+    return probingResult;
 }

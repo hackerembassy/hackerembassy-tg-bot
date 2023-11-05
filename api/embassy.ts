@@ -20,7 +20,7 @@ import printer3d from "../services/printer3d";
 import * as statusMonitor from "../services/statusMonitor";
 import { sleep } from "../utils/common";
 import { createErrorMiddleware } from "../utils/middleware";
-import { isAlive, wakeOnLan } from "../utils/network";
+import { ping, wakeOnLan } from "../utils/network";
 import { decrypt } from "../utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -115,13 +115,13 @@ app.post("/wake", async (req, res, next) => {
     }
 });
 
-app.post("/isalive", async (req, res, next) => {
+app.post("/ping", async (req, res, next) => {
     try {
         const device = req.body.device as string;
-        const host = embassyApiConfig.devices[device]?.host;
+        const host = embassyApiConfig.devices[device]?.host ?? device;
 
         if (host) {
-            res.send({ alive: await isAlive(host) });
+            res.send(await ping(host));
         } else res.sendStatus(400);
     } catch (error) {
         next(error);

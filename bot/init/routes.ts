@@ -152,7 +152,17 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     );
     bot.onTextExt(
         rc.command(["gaymingstatus", "gamingstatus", "gaming status", "gayming status"]),
-        (bot, msg) => EmbassyHandlers.aliveHandler(bot, msg, "gaming"),
+        (bot, msg) => EmbassyHandlers.pingHandler(bot, msg, "gaming"),
+        ["member"]
+    );
+    bot.onTextExt(
+        rc.command(["isalive", "alive", "probe"], /(\S+)/, false),
+        (bot, msg, match) => EmbassyHandlers.pingHandler(bot, msg, match[1]),
+        ["member"]
+    );
+    bot.onTextExt(
+        rc.command(["ping"], /(\S+)/, false),
+        (bot, msg, match) => EmbassyHandlers.pingHandler(bot, msg, match[1], true),
         ["member"]
     );
 

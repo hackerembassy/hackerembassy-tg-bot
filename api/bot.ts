@@ -33,6 +33,7 @@ const tokenGuestSecured = createTokenSecuredMiddleware(logger, process.env["GUES
 app.use(cors());
 app.use(json());
 app.use(createErrorMiddleware(logger));
+app.use("/static", express.static(path.join(__dirname, botConfig.static)));
 
 // Add Swagger if exists
 try {
@@ -95,6 +96,70 @@ app.get("/api/status", (_, res) => {
         changedBy: status.changedby,
         inside,
         planningToGo,
+    });
+});
+
+app.get("/api/space", (_, res) => {
+    const status = StatusRepository.getSpaceLastState();
+    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
+
+    const inside = recentUserStates.filter(filterPeopleInside);
+
+    res.json({
+        api: "0.13",
+        api_compatibility: ["14"],
+        space: "Hacker Embassy",
+        logo: "https://gateway.hackerembassy.site/static/hackemlogo.jpg",
+        url: "https://hackerembassy.site/",
+        location: {
+            address: "Pushkina str. 38/18, Yerevan, Armenia",
+            lon: 44.51338,
+            lat: 40.18258,
+            timezone: "Asia/Yerevan",
+        },
+        contact: {
+            email: "hacker.embassy@proton.me",
+            matrix: "#hacker-embassy:matrix.org",
+            telegram: "@hacker_embassy",
+        },
+        issue_report_channels: ["email"],
+        state: {
+            open: !!status?.open,
+            message: status?.open ? "open for public" : "closed for public",
+            trigger_person: status?.changedby,
+        },
+        sensors: {
+            people_now_present: [{ value: inside.length }],
+        },
+        projects: ["https://github.com/hackerembassy"],
+        feeds: {
+            calendar: {
+                type: "ical",
+                url: "https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics",
+            },
+        },
+        links: [
+            {
+                name: "Wiki",
+                url: "https://wiki.hackerembassy.site/ru/home",
+            },
+            {
+                name: "Status of public services",
+                url: "https://uptime.hackem.cc/status/external",
+            },
+            {
+                name: "Instagram",
+                url: "https://www.instagram.com/hackerembassy",
+            },
+        ],
+        membership_plans: [
+            {
+                name: "Membership",
+                value: 100,
+                currency: "USD",
+                billing_interval: "monthly",
+            },
+        ],
     });
 });
 

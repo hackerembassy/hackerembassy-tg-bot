@@ -20,6 +20,7 @@ export interface BotConfig {
     live: LiveConfig;
     debug: boolean;
     moderatedChats: number[];
+    static: string;
 }
 
 export interface LiveConfig {

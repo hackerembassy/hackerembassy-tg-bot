@@ -46,6 +46,16 @@
         }
       }
     },
+    "/api/space": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/inside": {
       "get": {
         "description": "",

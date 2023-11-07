@@ -1,7 +1,7 @@
 # Hacker Embassy Telegram Bot
 
-[![Up](https://uptime.hackem.cc/api/badge/7/status)]((https://uptime.hackem.cc/api/badge/7/status))
-[![Ping](https://uptime.hackem.cc/api/badge/7/ping)]((https://uptime.hackem.cc/api/badge/7/ping))
+[![Up](https://uptime.hackem.cc/api/badge/7/status)](<(https://uptime.hackem.cc/api/badge/7/status)>)
+[![Ping](https://uptime.hackem.cc/api/badge/7/ping)](<(https://uptime.hackem.cc/api/badge/7/ping)>)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=bugs)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
@@ -32,7 +32,6 @@ This bot is built to handle various tasks related to managing our hackerspace. I
 -   Generating space attendance stats with infographics
 -   Waking up, shutting down and probing internal devices
 -   Antispam in our public chats
-
 
 An sqlite database is used to store data in the file ./data/db/data.db.
 Test file with the correct schema ./data/sample.db.
@@ -106,8 +105,8 @@ WIFIUSER - Keenetic router username
 WIFIPASSWORD - Keenetic router user password  
 GAMINGUSER - Gaming server username  
 GAMINGPASSWORD - Gaming server user password  
-HASSTOKEN - Home Assistant API token
-HACKERGOOGLEAPIKEY - Google Calendar API token
+HASSTOKEN - Home Assistant API token  
+HACKERGOOGLEAPIKEY - Google Calendar API token  
 SONAR_TOKEN - Sonar Cloud analysis token
 
 ## Additional notes

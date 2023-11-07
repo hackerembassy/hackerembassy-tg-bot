@@ -1,5 +1,7 @@
-# Hacker Embassy telegram-bot
+# Hacker Embassy Telegram Bot
 
+[![Up](https://uptime.hackem.cc/api/badge/7/status)]((https://uptime.hackem.cc/api/badge/7/status))
+[![Ping](https://uptime.hackem.cc/api/badge/7/ping)]((https://uptime.hackem.cc/api/badge/7/ping))
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=bugs)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=hackerembassy_hackerembassy-tg-bot&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=hackerembassy_hackerembassy-tg-bot)
@@ -20,14 +22,17 @@ This bot is built to handle various tasks related to managing our hackerspace. I
 -   Access to security cameras
 -   Reporting climate data for all floors of the space
 -   Remote door lock access - if someone knocks when no one is around, the bot will alert the chat group and snap a photo
--   Offering an API for some commands for the space's website and Home Assistant
+-   Offering an API for some commands for the space's website, Home Assistant, and SpaceApi
 -   Quick inline response buttons
 -   Automatically recording participant entry and exit via the wifi network
 -   Keeping track of birthdays and automatically sending birthday congrats
 -   Sending utilities and internet bill reminders
 -   Sending random photos of cats, dogs, and Cab
 -   The ability to send sounds and text messages to the speakers in the space
--   Generating space attendance stats with infographics.
+-   Generating space attendance stats with infographics
+-   Waking up, shutting down and probing internal devices
+-   Antispam in our public chats
+
 
 An sqlite database is used to store data in the file ./data/db/data.db.
 Test file with the correct schema ./data/sample.db.
@@ -99,6 +104,8 @@ MQTTUSER - Broker username
 MQTTPASSWORD - Broker password  
 WIFIUSER - Keenetic router username  
 WIFIPASSWORD - Keenetic router user password  
+GAMINGUSER - Gaming server username  
+GAMINGPASSWORD - Gaming server user password  
 HASSTOKEN - Home Assistant API token
 HACKERGOOGLEAPIKEY - Google Calendar API token
 SONAR_TOKEN - Sonar Cloud analysis token

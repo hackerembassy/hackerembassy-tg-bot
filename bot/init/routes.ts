@@ -249,6 +249,12 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     bot.onTextExt(rc.command(["zhuchok", "zhenya", "anya", "zhanya"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/zhuchok.mp3`)
     );
+    bot.onTextExt(rc.command(["badum", "badumtss"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/badumtss.mp3`)
+    );
+    bot.onTextExt(rc.command(["sad", "sadtrombone"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/sad.mp3`)
+    );
 
     // Funds
     bot.onTextExt(rc.command(["funds", "fs"]), FundsHandlers.fundsHandler);

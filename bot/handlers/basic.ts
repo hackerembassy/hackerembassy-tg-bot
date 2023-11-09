@@ -341,6 +341,16 @@ export default class BasicHandlers implements BotHandlers {
             ],
             [
                 {
+                    text: t("basic.meme.buttons.sad"),
+                    callback_data: JSON.stringify({ command: "/sad" }),
+                },
+                {
+                    text: t("basic.meme.buttons.badumtss"),
+                    callback_data: JSON.stringify({ command: "/badumtss" }),
+                },
+            ],
+            [
+                {
                     text: t("basic.meme.buttons.back"),
                     callback_data: JSON.stringify({ command: "/controlpanel" }),
                 },

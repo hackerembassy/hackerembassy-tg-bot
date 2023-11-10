@@ -355,44 +355,18 @@ export default class ServiceHandlers implements BotHandlers {
                 await MemeHandlers.randomRoosterHandler(bot, msg);
                 break;
             case "/moan":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3");
-                break;
             case "/fart":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, "https://www.tones7.com/media/farts.mp3");
-                break;
             case "/adler":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/adler.mp3`);
-                break;
             case "/rickroll":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rickroll.mp3`);
-                break;
             case "/rzd":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`);
-                break;
             case "/rfoxed":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rfoxed.mp3`);
-                break;
             case "/zhuchok":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/zhuchok.mp3`);
-                break;
             case "/nani":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/nani.mp3`);
-                break;
             case "/sad":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/sad.mp3`);
-                break;
             case "/badumtss":
+            case "/dushno":
                 bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/badumtss.mp3`);
+                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}${data.command}.mp3`);
                 break;
             default:
                 break;

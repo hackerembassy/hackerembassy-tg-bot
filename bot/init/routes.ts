@@ -230,10 +230,10 @@ export function setRoutes(bot: HackerEmbassyBot): void {
         EmbassyHandlers.playinspaceHandler(bot, msg, match[1])
     );
     bot.onTextExt(rc.command(["fartinspace", "fart"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, "https://www.tones7.com/media/farts.mp3")
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/fart.mp3`)
     );
     bot.onTextExt(rc.command(["moaninspace", "moan"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, "http://soundjax.com/reddo/24227%5EMOAN.mp3")
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/moan.mp3`)
     );
     bot.onTextExt(rc.command(["rickroll", "nevergonnagiveyouup"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rickroll.mp3`)
@@ -254,6 +254,9 @@ export function setRoutes(bot: HackerEmbassyBot): void {
     );
     bot.onTextExt(rc.command(["sad", "sadtrombone"]), (bot, msg) =>
         EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/sad.mp3`)
+    );
+    bot.onTextExt(rc.command(["dushno", "openwindow"]), (bot, msg) =>
+        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/dushno.mp3`)
     );
 
     // Funds

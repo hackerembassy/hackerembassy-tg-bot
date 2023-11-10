@@ -242,7 +242,7 @@ embassy:
     climate:
         data: |
             🌦 Климат в спейсе:
-            Первый этаж 🌡️ {{climateInfo.firstFloor.temperature}}ºC 💦 {{climateInfo.firstFloor.humidity}}%
+            Первый этаж 🌡️ {{climateInfo.firstFloor.temperature}}ºC 💦 {{climateInfo.firstFloor.humidity}}% 💨 {{climateInfo.firstFloor.co2}}ppm
             Второй этаж 🌡️ {{climateInfo.secondFloor.temperature}}ºC 💦 {{climateInfo.secondFloor.humidity}}%
         secretdata: |
             Оргийная 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%

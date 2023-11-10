@@ -110,6 +110,7 @@ export interface ConditionerConfig {
 export interface RoomClimate {
     temperature: string;
     humidity: string;
+    co2?: string;
 }
 
 export interface CurrencyConfig {

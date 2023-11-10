@@ -44,6 +44,7 @@ export type Context = {
 interface FloorClimate {
     temperature: number | "?";
     humidity: number | "?";
+    co2?: number | "?";
 }
 
 export interface SpaceClimate {
@@ -57,6 +58,7 @@ export async function getClimate(): Promise<Nullable<SpaceClimate>> {
         const queries = [
             (await getFromHass(climateConfig.first_floor.temperature)).json(),
             (await getFromHass(climateConfig.first_floor.humidity)).json(),
+            (await getFromHass(climateConfig.first_floor.co2!)).json(),
             (await getFromHass(climateConfig.second_floor.temperature)).json(),
             (await getFromHass(climateConfig.second_floor.humidity)).json(),
             (await getFromHass(climateConfig.bedroom.temperature)).json(),
@@ -69,14 +71,15 @@ export async function getClimate(): Promise<Nullable<SpaceClimate>> {
             firstFloor: {
                 temperature: getValueOrDefault(climateValues[0]),
                 humidity: getValueOrDefault(climateValues[1]),
+                co2: getValueOrDefault(climateValues[2]),
             },
             secondFloor: {
-                temperature: getValueOrDefault(climateValues[2]),
-                humidity: getValueOrDefault(climateValues[3]),
+                temperature: getValueOrDefault(climateValues[3]),
+                humidity: getValueOrDefault(climateValues[4]),
             },
             bedroom: {
-                temperature: getValueOrDefault(climateValues[4]),
-                humidity: getValueOrDefault(climateValues[5]),
+                temperature: getValueOrDefault(climateValues[5]),
+                humidity: getValueOrDefault(climateValues[6]),
             },
         };
     } catch {

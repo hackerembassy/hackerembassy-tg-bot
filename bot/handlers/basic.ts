@@ -348,6 +348,10 @@ export default class BasicHandlers implements BotHandlers {
                     text: t("basic.meme.buttons.badumtss"),
                     callback_data: JSON.stringify({ command: "/badumtss" }),
                 },
+                {
+                    text: t("basic.meme.buttons.dushno"),
+                    callback_data: JSON.stringify({ command: "/dushno" }),
+                },
             ],
             [
                 {

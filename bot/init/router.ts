@@ -56,7 +56,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["knock", "knockknock", "tuktuk", "tuk"], EmbassyHandlers.knockHandler);
 
     // Stats
-    bot.addRoute(["profile", "me"], StatusHandlers.profileHandler);
+    bot.addRoute(["me"], StatusHandlers.profileHandler);
     bot.addRoute(["profile"], StatusHandlers.profileHandler, /(\S+)/, match => [match[1]], ["accountant"]);
     bot.addRoute(["mystats"], StatusHandlers.statsOfHandler);
     bot.addRoute(["statsof"], StatusHandlers.statsOfHandler, /(\S+)/, match => [match[1]]);
@@ -171,7 +171,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
 
     // Sounds
     bot.addRoute(["sayinspace", "say"], EmbassyHandlers.sayinspaceHandler, /(.*)/ims, match => [match[1]]);
-    bot.addRoute(["rzd", "announce"], EmbassyHandlers.announceHandler, /(.*)/ims, match => [match[1]]);
+    bot.addRoute(["announce"], EmbassyHandlers.announceHandler, /(.*)/ims, match => [match[1]]);
     bot.addRoute(["playinspace", "play"], EmbassyHandlers.playinspaceHandler, /(.*)/ims, match => [match[1]]);
     bot.addRoute(["fartinspace", "fart"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/fart.mp3`);
     bot.addRoute(["moaninspace", "moan"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/moan.mp3`);
@@ -232,7 +232,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         null,
         ["member", "accountant"]
     );
-    bot.addRoute(["costs", "showcosts", "cs"], FundsHandlers.showCostsHandler);
+    bot.addRoute(["showcosts", "scs"], FundsHandlers.showCostsHandler);
 
     // Donations
     bot.addRoute(

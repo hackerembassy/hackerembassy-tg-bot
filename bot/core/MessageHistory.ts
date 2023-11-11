@@ -2,14 +2,9 @@ import config from "config";
 
 import { BotConfig } from "../../config/schema";
 import BotState from "./BotState";
+import { MessageHistoryEntry } from "./types";
 
 const botConfig = config.get<BotConfig>("bot");
-
-export type MessageHistoryEntry = {
-    messageId: number;
-    text?: string;
-    datetime: number;
-};
 
 export default class MessageHistory {
     botState: BotState;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import logger from "../../services/logger";
-import { OptionalParam } from "../../utils/regexp";
+import { OptionalParam } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import AdminHandlers from "../handlers/admin";
 import BasicHandlers from "../handlers/basic";

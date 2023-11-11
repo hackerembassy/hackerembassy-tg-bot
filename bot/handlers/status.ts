@@ -8,7 +8,7 @@ import fundsRepository from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import { createUserStatsDonut } from "../../services/export";
-import { SpaceClimate } from "../../services/home";
+import { SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import {
@@ -23,13 +23,14 @@ import {
     openSpace,
 } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
 import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
-import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
+import * as helpers from "../helpers";
 import { InlineButton } from "../helpers";
 import { Flags } from "./service";
 
@@ -46,19 +47,19 @@ export default class StatusHandlers implements BotHandlers {
         if (!cmd || cmd === "help") {
             message = t("status.mac.help");
         } else if (cmd && username && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-            message = t("status.mac.set", { cmd, username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.mac.set", { cmd, username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "remove" && username) {
             UsersRepository.setMACs(username, null);
             UsersRepository.setAutoinside(username, false);
-            message = t("status.mac.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.mac.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "status") {
             const usermac = username ? UsersRepository.getUserByName(username)?.mac : undefined;
             if (usermac)
                 message = t("status.mac.isset", {
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                     usermac,
                 });
-            else message = t("status.mac.isnotset", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            else message = t("status.mac.isnotset", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -78,20 +79,20 @@ export default class StatusHandlers implements BotHandlers {
             else if (UsersRepository.setAutoinside(username, true))
                 message = t("status.autoinside.set", {
                     usermac,
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
         } else if (cmd === "disable" && username) {
             UsersRepository.setAutoinside(username, false);
-            message = t("status.autoinside.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.autoinside.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "status") {
             if (userautoinside)
                 message = t("status.autoinside.isset", {
                     usermac,
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
             else
                 message = t("status.autoinside.isnotset", {
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
         }
 
@@ -215,7 +216,7 @@ export default class StatusHandlers implements BotHandlers {
 
         await bot.sendMessageExt(
             msg.chat.id,
-            t("status.open", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) }),
+            t("status.open", { username: helpers.formatUsername(msg.from?.username, bot.context(msg).mode) }),
             msg,
             {
                 reply_markup: {
@@ -233,7 +234,7 @@ export default class StatusHandlers implements BotHandlers {
 
         await bot.sendMessageExt(
             msg.chat.id,
-            t("status.close", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) }),
+            t("status.close", { username: helpers.formatUsername(msg.from?.username, bot.context(msg).mode) }),
             msg,
             {
                 reply_markup: {
@@ -258,7 +259,7 @@ export default class StatusHandlers implements BotHandlers {
         let message: string;
 
         if (gotIn) {
-            message = t("status.in.gotin", { username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
+            message = t("status.in.gotin", { username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.in.notready");
@@ -286,7 +287,7 @@ export default class StatusHandlers implements BotHandlers {
 
         if (gotOut) {
             message = t("status.out.gotout", {
-                username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+                username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
             });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
@@ -317,8 +318,8 @@ export default class StatusHandlers implements BotHandlers {
 
         if (gotIn) {
             message = t("status.inforce.gotin", {
-                memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
-                username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                memberusername: helpers.formatUsername(msg.from?.username, bot.context(msg).mode),
+                username: helpers.formatUsername(username, bot.context(msg).mode),
             });
 
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
@@ -338,8 +339,8 @@ export default class StatusHandlers implements BotHandlers {
 
         if (gotOut) {
             message = t("status.outforce.gotout", {
-                memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
-                username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                memberusername: helpers.formatUsername(msg.from?.username, bot.context(msg).mode),
+                username: helpers.formatUsername(username, bot.context(msg).mode),
             });
 
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
@@ -354,7 +355,7 @@ export default class StatusHandlers implements BotHandlers {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
 
-        if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
+        if (!state?.open && !helpers.hasRole(username, "member") && !force) return false;
 
         const userstate = {
             id: 0,
@@ -410,7 +411,7 @@ export default class StatusHandlers implements BotHandlers {
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.going", {
-            username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+            username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
             note,
         });
 
@@ -434,7 +435,7 @@ export default class StatusHandlers implements BotHandlers {
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.notgoing", {
-            username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+            username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
         });
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -446,19 +447,19 @@ export default class StatusHandlers implements BotHandlers {
         if (!emoji || emoji === "help" || !username) {
             message = t("status.emoji.help");
         } else if (emoji && isEmoji(emoji) && UsersRepository.setEmoji(username, emoji)) {
-            message = t("status.emoji.set", { emoji, username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.emoji.set", { emoji, username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (emoji === "remove") {
             UsersRepository.setEmoji(username, null);
-            message = t("status.emoji.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.emoji.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (emoji === "status") {
             const emoji = UsersRepository.getUserByName(username)?.emoji;
 
             if (emoji)
                 message = t("status.emoji.isset", {
                     emoji,
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
-            else message = t("status.emoji.isnotset", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            else message = t("status.emoji.isnotset", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -521,7 +522,7 @@ export default class StatusHandlers implements BotHandlers {
         const { days, hours, minutes } = getUserTimeDescriptor(userStates);
 
         const statsText = `${t("status.statsof", {
-            username: UsersHelper.formatUsername(selectedUsername, bot.context(msg).mode),
+            username: helpers.formatUsername(selectedUsername, bot.context(msg).mode),
         })}: ${days}d, ${hours}h, ${minutes}m\n\n`;
 
         const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
@@ -542,7 +543,7 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(
             msg.chat.id,
             `${t("status.statsof", {
-                username: UsersHelper.formatUsername(selectedUsername, bot.context(msg).mode),
+                username: helpers.formatUsername(selectedUsername, bot.context(msg).mode),
             })}: ${days}d, ${hours}h, ${minutes}m\n\n${t("status.stats.tryautoinside")}`,
             msg
         );

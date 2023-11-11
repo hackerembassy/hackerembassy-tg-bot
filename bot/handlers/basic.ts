@@ -9,9 +9,10 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { getEventsList } from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
 import * as CoinsHelper from "../../utils/coins";
-import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotHandlers } from "../core/types";
+import * as helpers from "../helpers";
 import { InlineButton, isPrivateMessage } from "../helpers";
 import { Flags } from "./service";
 
@@ -20,7 +21,7 @@ const botConfig = config.get<BotConfig>("bot");
 export default class BasicHandlers implements BotHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = t("basic.help", {
-            availableCommands: UsersHelper.getAvailableCommands(msg.from?.username),
+            availableCommands: helpers.getAvailableCommands(msg.from?.username),
             globalModifiers: Commands.GlobalModifiers,
         });
 
@@ -107,7 +108,7 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers()?.filter(u => UsersHelper.hasRole(u.username, "member"));
+        const users = UsersRepository.getUsers()?.filter(u => helpers.hasRole(u.username, "member"));
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
         await bot.sendLongMessage(msg.chat.id, message, msg);

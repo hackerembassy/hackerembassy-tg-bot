@@ -8,13 +8,11 @@ import {
     ChatId,
     ChatMemberUpdated,
     default as TelegramBot,
-    EditMessageMediaOptions,
     EditMessageTextOptions,
     InlineKeyboardMarkup,
     InputMedia,
     InputMediaPhoto,
     Message,
-    SendMediaGroupOptions,
     SendMessageOptions,
 } from "node-telegram-bot-api";
 import { EventEmitter, Stream } from "stream";
@@ -22,11 +20,25 @@ import { file } from "tmp-promise";
 
 import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
-import { hasRole } from "../../services/usersHelper";
 import { chunkSubstr, sleep } from "../../utils/common";
-import { OptionalRegExp } from "../../utils/regexp";
+import { OptionalRegExp } from "../../utils/text";
+import { hasRole, prepareMessageForMarkdown } from "../helpers";
 import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
+import {
+    BotCallbackHandler,
+    BotCustomEvent,
+    BotHandler,
+    BotMessageContext,
+    BotMessageContextMode,
+    BotRole,
+    BotRoute,
+    ChatMemberHandler,
+    EditMessageMediaOptionsExt,
+    MatchMapperFunction,
+    SendMediaGroupOptionsExt,
+    SerializedFunction,
+} from "./types";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -36,53 +48,6 @@ const messagedelay = 1500;
 const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
 export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
-
-// Types
-export type BotRole = "admin" | "member" | "accountant" | "trusted" | "default" | "restricted";
-export type BotMessageContextMode = {
-    silent: boolean;
-    mention: boolean;
-    admin: boolean;
-    pin: boolean;
-    live: boolean;
-    static: boolean;
-    forward: boolean;
-};
-
-export interface BotHandlers {}
-
-export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => any;
-export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
-export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: TelegramBot.ChatMemberUpdated) => any;
-
-export interface ITelegramUser {
-    username?: Nullable<string>;
-    id: number | ChatId;
-    first_name?: string;
-}
-
-export enum BotCustomEvent {
-    statusLive = "status-live",
-    camLive = "cam-live",
-}
-
-export interface BotMessageContext {
-    mode: BotMessageContextMode;
-    messageThreadId: number | undefined;
-    clear(): void;
-    isAdminMode(): boolean;
-    isEditing: boolean;
-    isButtonResponse: boolean;
-}
-
-export interface EditMessageMediaOptionsExt extends EditMessageMediaOptions {
-    caption?: string;
-    message_thread_id?: number;
-}
-
-export interface SendMediaGroupOptionsExt extends SendMediaGroupOptions {
-    message_thread_id?: number;
-}
 
 export const RESTRICTED_PERMISSIONS = {
     can_send_messages: false,
@@ -116,56 +81,6 @@ export const FULL_PERMISSIONS = {
     can_invite_users: true,
     can_pin_messages: true,
     can_manage_topics: true,
-};
-
-// Helpers
-
-/**
- * Bot uses MarkdownV2 by default, because it's needed for almost every command.
- * But we still want to be able to use markdown special symbols as regular symbols in some cases.
- * To allow this we prefix these symbols with # when we need them to be used as markup.
- * @param message where functional markup symbols are escaped with #
- * @returns string where these are converted to a usual Markdownv2 format
- */
-function prepareMessageForMarkdown(message: string): string {
-    return message
-        .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
-        .replaceAll(/#([_*[\]()~`>+\-=|{}.!])/g, "$1")
-        .replaceAll(/#/g, "")
-        .replaceAll("\\u0023", "\\#");
-}
-
-function prepareOptionsForMarkdown(
-    options: SendMessageOptions | EditMessageTextOptions
-): TelegramBot.SendMessageOptions | TelegramBot.EditMessageTextOptions {
-    options.parse_mode = "MarkdownV2";
-    options.disable_web_page_preview = true;
-
-    return options;
-}
-
-export type LiveChatHandler = {
-    chatId: ChatId;
-    expires: number;
-    handler: (...args: any[]) => void;
-    event: BotCustomEvent;
-    serializationData: SerializedFunction;
-};
-
-export type SerializedFunction = {
-    functionName: string;
-    module: string;
-    params: any[];
-};
-
-export type MatchMapperFunction = (match: RegExpExecArray) => any[];
-
-export type BotRoute = {
-    regex: RegExp;
-    handler: BotHandler;
-    restrictions: BotRole[];
-    paramMapper: Nullable<MatchMapperFunction>;
-    optional: boolean;
 };
 
 export default class HackerEmbassyBot extends TelegramBot {
@@ -255,7 +170,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: TelegramBot.EditMessageTextOptions
     ): Promise<boolean | TelegramBot.Message> {
         text = prepareMessageForMarkdown(text);
-        options = prepareOptionsForMarkdown({
+        options = this.prepareOptionsForMarkdown({
             ...options,
             message_thread_id: this.context(msg).messageThreadId,
         }) as EditMessageTextOptions;
@@ -397,7 +312,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: TelegramBot.SendMessageOptions = {}
     ): Promise<Nullable<TelegramBot.Message>> {
         const preparedText = prepareMessageForMarkdown(text);
-        options = prepareOptionsForMarkdown({ ...options });
+        options = this.prepareOptionsForMarkdown({ ...options });
 
         const mode = msg && this.context(msg).mode;
         const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
@@ -551,16 +466,6 @@ ${chunks[index]}
         }
     }
 
-    private createRegex(aliases: string[], paramRegex: Nullable<RegExp>, optional: boolean = false) {
-        const commandPart = `/(?:${aliases.join("|")})`;
-        const botnamePart = this.Name ? `(?:@${this.Name})?` : "";
-
-        let paramsPart = "";
-        if (paramRegex) paramsPart = optional ? paramRegex.source : ` ${paramRegex.source}`;
-
-        return new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, paramRegex?.flags);
-    }
-
     async sendOrEditMessage(
         chatId: number,
         text: string,
@@ -665,6 +570,25 @@ ${chunks[index]}
     ) {
         //@ts-ignore
         return super.restrictChatMember(chatId, userId, options);
+    }
+
+    private createRegex(aliases: string[], paramRegex: Nullable<RegExp>, optional: boolean = false) {
+        const commandPart = `/(?:${aliases.join("|")})`;
+        const botnamePart = this.Name ? `(?:@${this.Name})?` : "";
+
+        let paramsPart = "";
+        if (paramRegex) paramsPart = optional ? paramRegex.source : ` ${paramRegex.source}`;
+
+        return new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, paramRegex?.flags);
+    }
+
+    private prepareOptionsForMarkdown(
+        options: SendMessageOptions | EditMessageTextOptions
+    ): TelegramBot.SendMessageOptions | TelegramBot.EditMessageTextOptions {
+        options.parse_mode = "MarkdownV2";
+        options.disable_web_page_preview = true;
+
+        return options;
     }
 
     /*

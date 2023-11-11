@@ -6,9 +6,10 @@ import path from "path";
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
-import * as UsersHelper from "../../services/usersHelper";
 import { lastModifiedFilePath } from "../../utils/filesystem";
-import HackerEmbassyBot, { BotCustomEvent, BotHandlers } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotCustomEvent, BotHandlers } from "../core/types";
+import * as helpers from "../helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -77,7 +78,7 @@ export default class AdminHandlers implements BotHandlers {
 
         if (users) {
             for (const user of users) {
-                userList += `${UsersHelper.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
+                userList += `${helpers.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
             }
         }
 
@@ -90,7 +91,7 @@ export default class AdminHandlers implements BotHandlers {
 
         if (users) {
             for (const user of users) {
-                userList += `[${user.userid}] ${UsersHelper.formatUsername(user.username, bot.context(msg).mode)}
+                userList += `[${user.userid}] ${helpers.formatUsername(user.username, bot.context(msg).mode)}
     Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
     Autoinside: ${user.autoinside ? "on" : "off"}\n`;
             }
@@ -105,7 +106,7 @@ export default class AdminHandlers implements BotHandlers {
 
         const success = UsersRepository.addUser(username, roles);
         const text = success
-            ? t("admin.addUser.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode), roles })
+            ? t("admin.addUser.success", { username: helpers.formatUsername(username, bot.context(msg).mode), roles })
             : t("admin.addUser.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
@@ -117,7 +118,7 @@ export default class AdminHandlers implements BotHandlers {
 
         const success = UsersRepository.updateRoles(username, roles);
         const text = success
-            ? t("admin.updateRoles.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode), roles })
+            ? t("admin.updateRoles.success", { username: helpers.formatUsername(username, bot.context(msg).mode), roles })
             : t("admin.updateRoles.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
@@ -137,7 +138,7 @@ export default class AdminHandlers implements BotHandlers {
 
         const success = UsersRepository.removeUser(username);
         const text = success
-            ? t("admin.removeUser.success", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) })
+            ? t("admin.removeUser.success", { username: helpers.formatUsername(username, bot.context(msg).mode) })
             : t("admin.removeUser.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);

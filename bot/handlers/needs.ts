@@ -3,8 +3,9 @@ import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 import NeedsRepository from "../../repositories/needsRepository";
 import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
-import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotHandlers } from "../core/types";
+import * as helpers from "../helpers";
 import { InlineButton } from "../helpers";
 import { Flags } from "./service";
 
@@ -29,7 +30,7 @@ export default class NeedsHandlers implements BotHandlers {
         await bot.sendMessageExt(
             msg.chat.id,
             success
-                ? t("needs.buy.success", { username: UsersHelper.formatUsername(requester, bot.context(msg).mode), item })
+                ? t("needs.buy.success", { username: helpers.formatUsername(requester, bot.context(msg).mode), item })
                 : t("needs.buy.fail"),
             msg
         );
@@ -64,7 +65,7 @@ export default class NeedsHandlers implements BotHandlers {
         NeedsRepository.closeNeed(item, buyer, new Date());
 
         const successText = t("needs.bought.success", {
-            username: UsersHelper.formatUsername(buyer, bot.context(msg).mode),
+            username: helpers.formatUsername(buyer, bot.context(msg).mode),
             item,
         });
         const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", Flags.Simple, { params: need.id })]];

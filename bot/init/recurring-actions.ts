@@ -1,7 +1,8 @@
 import config from "config";
 
 import { BotConfig } from "../../config/schema";
-import HackerEmbassyBot, { BotCustomEvent } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotCustomEvent } from "../core/types";
 import BirthdayHandlers from "../handlers/birthday";
 import StatusHandlers from "../handlers/status";
 

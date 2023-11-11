@@ -1,5 +1,6 @@
 import config from "config";
 
+import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "../bot/helpers";
 import { PrintersConfig } from "../config/schema";
 import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
@@ -9,13 +10,11 @@ import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, onlyTimeOptions, shortDateTimeOptions } from "../utils/date";
-import { toEscapedTelegramMarkdown } from "../utils/text";
 import { HSEvent } from "./googleCalendar";
-import { SpaceClimate } from "./home";
+import { SpaceClimate } from "./hass";
 import t from "./localization";
 import { PrinterStatus } from "./printer3d";
 import { MonitorMessage } from "./statusMonitor";
-import { formatUsername, getRoles } from "./usersHelper";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 

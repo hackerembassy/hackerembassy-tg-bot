@@ -290,6 +290,10 @@ export default class HackerEmbassyBot extends TelegramBot {
             fileOptions
         );
 
+        if (mode.pin) {
+            this.tryPinChatMessage(message, msg.from?.username);
+        }
+
         this.messageHistory.push(chatId, message.message_id);
 
         return Promise.resolve(message);
@@ -410,12 +414,26 @@ export default class HackerEmbassyBot extends TelegramBot {
                 message_thread_id,
             });
 
+            if (mode?.pin) {
+                this.tryPinChatMessage(message, msg?.from?.username);
+            }
+
             this.messageHistory.push(chatId, message.message_id, text);
 
             return Promise.resolve(message);
         }
 
         return Promise.resolve(null);
+    }
+
+    tryPinChatMessage(message: TelegramBot.Message, username?: string) {
+        try {
+            if (username && hasRole(username, "admin", "member")) {
+                this.pinChatMessage(message.chat.id, message.message_id, { disable_notification: true });
+            }
+        } catch (e) {
+            logger.error(e);
+        }
     }
 
     sendChatAction(
@@ -460,7 +478,7 @@ ${chunks[index]}
         }
     }
 
-    routeMessage(message: TelegramBot.Message) {
+    async routeMessage(message: TelegramBot.Message) {
         try {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
@@ -468,7 +486,9 @@ ${chunks[index]}
             const text = message.text;
             if (!text) return;
 
-            const command = text.split(" ")[0].slice(1);
+            const fullCommand = text.split(" ")[0];
+            const command = fullCommand.split("@")[0].slice(1);
+
             const route = this.routeMap.get(command);
             if (!route) return;
 
@@ -494,14 +514,14 @@ ${chunks[index]}
                 const matchedParams = match ? route.paramMapper(match) : null;
 
                 if (matchedParams) {
-                    route.handler(this, message, ...matchedParams);
+                    await route.handler(this, message, ...matchedParams);
                     return;
                 } else if (!route.optional) {
                     return;
                 }
             }
 
-            route.handler(this, message);
+            await route.handler(this, message);
         } catch (error) {
             logger.error(error);
         } finally {

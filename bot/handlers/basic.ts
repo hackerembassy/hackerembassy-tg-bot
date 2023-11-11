@@ -12,7 +12,8 @@ import { getEventsList } from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import * as CoinsHelper from "../../utils/coins";
 import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
-import { isPrivateMessage } from "../helpers";
+import { InlineButton, isPrivateMessage } from "../helpers";
+import { Flags } from "./service";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -114,52 +115,17 @@ export default class BasicHandlers implements BotHandlers {
 
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
+            [InlineButton(t("basic.start.buttons.status"), "/status")],
+            [InlineButton(t("basic.start.buttons.events"), "/events"), InlineButton(t("basic.start.buttons.funds"), "/funds")],
             [
-                {
-                    text: t("basic.start.buttons.status"),
-                    callback_data: JSON.stringify({ command: "/status" }),
-                },
+                InlineButton(t("basic.start.buttons.control"), "/controlpanel", Flags.Editing),
+                InlineButton(t("basic.start.buttons.info"), "/infopanel", Flags.Editing),
             ],
             [
-                {
-                    text: t("basic.start.buttons.events"),
-                    callback_data: JSON.stringify({ command: "/events" }),
-                },
-                {
-                    text: t("basic.start.buttons.funds"),
-                    callback_data: JSON.stringify({ command: "/funds" }),
-                },
+                InlineButton(t("basic.start.buttons.birthdays"), "/birthdays"),
+                InlineButton(t("basic.start.buttons.needs"), "/needs"),
             ],
-            [
-                {
-                    text: t("basic.start.buttons.control"),
-                    callback_data: JSON.stringify({ command: "/controlpanel" }),
-                },
-                {
-                    text: t("basic.start.buttons.info"),
-                    callback_data: JSON.stringify({ command: "/infopanel" }),
-                },
-            ],
-            [
-                {
-                    text: t("basic.start.buttons.birthdays"),
-                    callback_data: JSON.stringify({ command: "/birthdays" }),
-                },
-                {
-                    text: t("basic.start.buttons.needs"),
-                    callback_data: JSON.stringify({ command: "/needs" }),
-                },
-            ],
-            [
-                {
-                    text: t("basic.start.buttons.printers"),
-                    callback_data: JSON.stringify({ command: "/printers" }),
-                },
-                {
-                    text: t("basic.start.buttons.help"),
-                    callback_data: JSON.stringify({ command: "/help" }),
-                },
-            ],
+            [InlineButton(t("basic.start.buttons.printers"), "/printers"), InlineButton(t("basic.start.buttons.help"), "/help")],
         ];
 
         await bot.sendOrEditMessage(
@@ -178,48 +144,19 @@ export default class BasicHandlers implements BotHandlers {
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [
-                {
-                    text: t("basic.control.buttons.unlock"),
-                    callback_data: JSON.stringify({ command: "/unlock" }),
-                },
-                {
-                    text: t("basic.control.buttons.doorbell"),
-                    callback_data: JSON.stringify({ command: "/doorbell" }),
-                },
-                {
-                    text: t("basic.control.buttons.conditioner"),
-                    callback_data: JSON.stringify({ command: "/conditioner" }),
-                },
+                InlineButton(t("basic.control.buttons.unlock"), "/unlock"),
+                InlineButton(t("basic.control.buttons.doorbell"), "/doorbell"),
+                InlineButton(t("basic.control.buttons.conditioner"), "/conditioner", Flags.Editing),
             ],
             [
-                {
-                    text: t("basic.control.buttons.webcam"),
-                    callback_data: JSON.stringify({ command: "/webcam" }),
-                },
-                {
-                    text: t("basic.control.buttons.webcam2"),
-                    callback_data: JSON.stringify({ command: "/webcam2" }),
-                },
-                {
-                    text: t("basic.control.buttons.doorcam"),
-                    callback_data: JSON.stringify({ command: "/doorcam" }),
-                },
+                InlineButton(t("basic.control.buttons.webcam"), "/webcam"),
+                InlineButton(t("basic.control.buttons.webcam2"), "/webcam2"),
+                InlineButton(t("basic.control.buttons.doorcam"), "/doorcam"),
             ],
+            [InlineButton(t("basic.control.buttons.superstatus"), "/superstatus")],
             [
-                {
-                    text: t("basic.control.buttons.superstatus"),
-                    callback_data: JSON.stringify({ command: "/superstatus" }),
-                },
-            ],
-            [
-                {
-                    text: t("basic.control.buttons.meme"),
-                    callback_data: JSON.stringify({ command: "/memepanel" }),
-                },
-                {
-                    text: t("basic.control.buttons.back"),
-                    callback_data: JSON.stringify({ command: "/startpanel" }),
-                },
+                InlineButton(t("basic.control.buttons.meme"), "/memepanel", Flags.Editing),
+                InlineButton(t("basic.control.buttons.back"), "/startpanel", Flags.Editing),
             ],
         ];
 
@@ -238,35 +175,14 @@ export default class BasicHandlers implements BotHandlers {
 
     static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
+            [InlineButton(t("basic.info.buttons.about"), "/about"), InlineButton(t("basic.info.buttons.join"), "/join")],
             [
-                {
-                    text: t("basic.info.buttons.about"),
-                    callback_data: JSON.stringify({ command: "/about" }),
-                },
-                {
-                    text: t("basic.info.buttons.join"),
-                    callback_data: JSON.stringify({ command: "/join" }),
-                },
+                InlineButton(t("basic.info.buttons.location"), "/location"),
+                InlineButton(t("basic.info.buttons.donate"), "/donate"),
             ],
             [
-                {
-                    text: t("basic.info.buttons.location"),
-                    callback_data: JSON.stringify({ command: "/location" }),
-                },
-                {
-                    text: t("basic.info.buttons.donate"),
-                    callback_data: JSON.stringify({ command: "/donate" }),
-                },
-            ],
-            [
-                {
-                    text: t("basic.info.buttons.residents"),
-                    callback_data: JSON.stringify({ command: "/getresidents" }),
-                },
-                {
-                    text: t("basic.info.buttons.back"),
-                    callback_data: JSON.stringify({ command: "/startpanel" }),
-                },
+                InlineButton(t("basic.info.buttons.residents"), "/getresidents"),
+                InlineButton(t("basic.info.buttons.back"), "/startpanel", Flags.Editing),
             ],
         ];
 
@@ -286,79 +202,29 @@ export default class BasicHandlers implements BotHandlers {
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inlineKeyboard = [
             [
-                {
-                    text: t("basic.meme.buttons.moan"),
-                    callback_data: JSON.stringify({ command: "/moan" }),
-                },
-                {
-                    text: t("basic.meme.buttons.fart"),
-                    callback_data: JSON.stringify({ command: "/fart" }),
-                },
-                {
-                    text: t("basic.meme.buttons.adler"),
-                    callback_data: JSON.stringify({ command: "/adler" }),
-                },
-                {
-                    text: t("basic.meme.buttons.rzd"),
-                    callback_data: JSON.stringify({ command: "/rzd" }),
-                },
+                InlineButton(t("basic.meme.buttons.moan"), "/moan"),
+                InlineButton(t("basic.meme.buttons.fart"), "/fart"),
+                InlineButton(t("basic.meme.buttons.adler"), "/adler"),
+                InlineButton(t("basic.meme.buttons.rzd"), "/rzd"),
             ],
             [
-                {
-                    text: t("basic.meme.buttons.rickroll"),
-                    callback_data: JSON.stringify({ command: "/rickroll" }),
-                },
-                {
-                    text: t("basic.meme.buttons.zhuchok"),
-                    callback_data: JSON.stringify({ command: "/zhuchok" }),
-                },
-                {
-                    text: t("basic.meme.buttons.rfoxed"),
-                    callback_data: JSON.stringify({ command: "/rfoxed" }),
-                },
-                {
-                    text: t("basic.meme.buttons.nani"),
-                    callback_data: JSON.stringify({ command: "/nani" }),
-                },
+                InlineButton(t("basic.meme.buttons.rickroll"), "/rickroll"),
+                InlineButton(t("basic.meme.buttons.zhuchok"), "/zhuchok"),
+                InlineButton(t("basic.meme.buttons.rfoxed"), "/rfoxed"),
+                InlineButton(t("basic.meme.buttons.nani"), "/nani"),
             ],
             [
-                {
-                    text: t("basic.meme.buttons.cat"),
-                    callback_data: JSON.stringify({ command: "/randomcat" }),
-                },
-                {
-                    text: t("basic.meme.buttons.dog"),
-                    callback_data: JSON.stringify({ command: "/randomdog" }),
-                },
-                {
-                    text: t("basic.meme.buttons.cab"),
-                    callback_data: JSON.stringify({ command: "/randomcab" }),
-                },
-                {
-                    text: t("basic.meme.buttons.cock"),
-                    callback_data: JSON.stringify({ command: "/randomcock" }),
-                },
+                InlineButton(t("basic.meme.buttons.cat"), "/cat"),
+                InlineButton(t("basic.meme.buttons.dog"), "/dog"),
+                InlineButton(t("basic.meme.buttons.cab"), "/cab"),
+                InlineButton(t("basic.meme.buttons.cock"), "/cock"),
             ],
             [
-                {
-                    text: t("basic.meme.buttons.sad"),
-                    callback_data: JSON.stringify({ command: "/sad" }),
-                },
-                {
-                    text: t("basic.meme.buttons.badumtss"),
-                    callback_data: JSON.stringify({ command: "/badumtss" }),
-                },
-                {
-                    text: t("basic.meme.buttons.dushno"),
-                    callback_data: JSON.stringify({ command: "/dushno" }),
-                },
+                InlineButton(t("basic.meme.buttons.sad"), "/sad"),
+                InlineButton(t("basic.meme.buttons.badumtss"), "/badumtss"),
+                InlineButton(t("basic.meme.buttons.dushno"), "/dushno"),
             ],
-            [
-                {
-                    text: t("basic.meme.buttons.back"),
-                    callback_data: JSON.stringify({ command: "/controlpanel" }),
-                },
-            ],
+            [InlineButton(t("basic.meme.buttons.back"), "/controlpanel", Flags.Editing)],
         ];
 
         await bot.sendOrEditMessage(

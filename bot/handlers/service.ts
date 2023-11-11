@@ -19,9 +19,9 @@ import StatusHandlers from "./status";
 const botConfig = config.get<BotConfig>("bot");
 
 type CallbackData = {
-    flags?: Flags;
+    fs?: Flags;
     vId?: number;
-    command?: string;
+    cmd?: string;
     id: number;
     diff?: number;
     mode?: ConditionerMode;
@@ -169,7 +169,7 @@ export default class ServiceHandlers implements BotHandlers {
             return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
         }
 
-        const command = data.command?.slice(1);
+        const command = data.cmd?.slice(1);
         if (!command) throw Error("Missing calback command");
 
         const route = bot.routeMap.get(command);
@@ -180,9 +180,9 @@ export default class ServiceHandlers implements BotHandlers {
 
         if (!bot.canUserCall(msg.from.username, command)) return;
 
-        if (data.flags !== undefined) {
-            if (data.flags & Flags.Silent) bot.context(msg).mode.silent = true;
-            if (data.flags & Flags.Editing) bot.context(msg).isEditing = true;
+        if (data.fs !== undefined) {
+            if (data.fs & Flags.Silent) bot.context(msg).mode.silent = true;
+            if (data.fs & Flags.Editing) bot.context(msg).isEditing = true;
         }
 
         await handler.call(bot, bot, msg, ...params);
@@ -196,7 +196,7 @@ export default class ServiceHandlers implements BotHandlers {
     ) {
         const additionalParams: any[] = [];
 
-        switch (data.command) {
+        switch (data.cmd) {
             case "/ef":
                 additionalParams.push(data.fn!);
                 break;
@@ -246,7 +246,7 @@ export default class ServiceHandlers implements BotHandlers {
             case "/sad":
             case "/badumtss":
             case "/dushno":
-                additionalParams.push(`${embassyBase}${data.command}.mp3`);
+                additionalParams.push(`${embassyBase}${data.cmd}.mp3`);
                 break;
             default:
                 break;

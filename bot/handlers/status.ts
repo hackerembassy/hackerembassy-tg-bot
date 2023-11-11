@@ -98,7 +98,7 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async getStatusMessage(state: State, mode: BotMessageContextMode, withSecretData: boolean) {
+    static async getStatusMessage(state: State, mode: BotMessageContextMode, short: boolean, withSecretData: boolean) {
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
@@ -113,7 +113,11 @@ export default class StatusHandlers implements BotHandlers {
             logger.error(error);
         }
 
-        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, withSecretData);
+        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, {
+            short,
+            withSecrets: withSecretData,
+            isApi: false,
+        });
 
         if (StatusHandlers.isStatusError)
             statusMessage = mode.pin ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
@@ -121,27 +125,32 @@ export default class StatusHandlers implements BotHandlers {
         return statusMessage;
     }
 
-    static getStatusInlineKeyboard(state: State, mode: BotMessageContextMode) {
+    static getStatusInlineKeyboard(state: State, short: boolean) {
         const inlineKeyboard = state.open
-            ? [[InlineButton(t("status.buttons.in"), "/in"), InlineButton(t("status.buttons.out"), "/out")]]
+            ? [[InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]]
             : [];
 
         inlineKeyboard.push(
-            [InlineButton(t("status.buttons.going"), "/going"), InlineButton(t("status.buttons.notgoing"), "/notgoing")],
+            [InlineButton(t("status.buttons.going"), "going"), InlineButton(t("status.buttons.notgoing"), "notgoing")],
             [
-                InlineButton(t("status.buttons.refresh"), "/status", Flags.Editing, { pin: mode.pin }),
-                InlineButton(state.open ? t("status.buttons.close") : t("status.buttons.open"), state.open ? "/close" : "/open"),
+                InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short }),
+                InlineButton(state.open ? t("status.buttons.close") : t("status.buttons.open"), state.open ? "close" : "open"),
             ]
         );
 
         return inlineKeyboard;
     }
 
-    static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, mode: BotMessageContextMode) {
+    static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, short: boolean, mode: BotMessageContextMode) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
-        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, resultMessage.chat.id === botConfig.chats.horny);
-        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+        const statusMessage = await StatusHandlers.getStatusMessage(
+            state,
+            mode,
+            short,
+            resultMessage.chat.id === botConfig.chats.horny
+        );
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
 
         try {
             await bot.editMessageTextExt(statusMessage, resultMessage, {
@@ -156,7 +165,7 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
-    static async statusHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
         const state = StatusRepository.getSpaceLastState();
         const mode = bot.context(msg).mode;
@@ -166,8 +175,8 @@ export default class StatusHandlers implements BotHandlers {
             return;
         }
 
-        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, msg.chat.id === botConfig.chats.horny);
-        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, short, msg.chat.id === botConfig.chats.horny);
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
             msg.chat.id,
@@ -185,7 +194,7 @@ export default class StatusHandlers implements BotHandlers {
             bot.addLiveMessage(
                 resultMessage,
                 BotCustomEvent.statusLive,
-                () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode),
+                () => StatusHandlers.liveStatusHandler(bot, resultMessage, short, mode),
                 {
                     functionName: StatusHandlers.liveStatusHandler.name,
                     module: __filename,
@@ -200,8 +209,8 @@ export default class StatusHandlers implements BotHandlers {
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [
-            [InlineButton(t("status.buttons.in"), "/in"), InlineButton(t("status.buttons.reclose"), "/close")],
-            [InlineButton(t("status.buttons.whoinside"), "/status")],
+            [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.reclose"), "close")],
+            [InlineButton(t("status.buttons.whoinside"), "status")],
         ];
 
         await bot.sendMessageExt(
@@ -220,7 +229,7 @@ export default class StatusHandlers implements BotHandlers {
         closeSpace(msg.from?.username, { evict: true });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
-        const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "/open")]];
+        const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "open")]];
 
         await bot.sendMessageExt(
             msg.chat.id,
@@ -257,10 +266,10 @@ export default class StatusHandlers implements BotHandlers {
 
         const inline_keyboard = gotIn
             ? [
-                  [InlineButton(t("status.buttons.inandin"), "/in"), InlineButton(t("status.buttons.inandout"), "/out")],
-                  [InlineButton(t("status.buttons.whoinside"), "/status")],
+                  [InlineButton(t("status.buttons.inandin"), "in"), InlineButton(t("status.buttons.inandout"), "out")],
+                  [InlineButton(t("status.buttons.whoinside"), "status")],
               ]
-            : [[InlineButton(t("status.buttons.repeat"), "/in"), InlineButton(t("status.buttons.open"), "/open")]];
+            : [[InlineButton(t("status.buttons.repeat"), "in"), InlineButton(t("status.buttons.open"), "open")]];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
@@ -286,10 +295,10 @@ export default class StatusHandlers implements BotHandlers {
 
         const inline_keyboard = gotOut
             ? [
-                  [InlineButton(t("status.buttons.outandout"), "/out"), InlineButton(t("status.buttons.outandin"), "/in")],
-                  [InlineButton(t("status.buttons.whoinside"), "/status")],
+                  [InlineButton(t("status.buttons.outandout"), "out"), InlineButton(t("status.buttons.outandin"), "in")],
+                  [InlineButton(t("status.buttons.whoinside"), "status")],
               ]
-            : [[InlineButton(t("status.buttons.repeat"), "/out"), InlineButton(t("status.buttons.open"), "/open")]];
+            : [[InlineButton(t("status.buttons.repeat"), "out"), InlineButton(t("status.buttons.open"), "open")]];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
@@ -406,7 +415,7 @@ export default class StatusHandlers implements BotHandlers {
         });
 
         const inline_keyboard = [
-            [InlineButton(t("status.buttons.andgoing"), "/going"), InlineButton(t("status.buttons.whoelse"), "/status")],
+            [InlineButton(t("status.buttons.andgoing"), "going"), InlineButton(t("status.buttons.whoelse"), "status")],
         ];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {

@@ -3,7 +3,6 @@ import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import { ConditionerMode } from "../../services/home";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import RateLimiter from "../../services/RateLimiter";
@@ -13,7 +12,7 @@ import HackerEmbassyBot, { BotHandlers, FULL_PERMISSIONS, ITelegramUser, RESTRIC
 import { MessageHistoryEntry } from "../core/MessageHistory";
 import { InlineButton } from "../helpers";
 import { setMenu } from "../init/menu";
-import EmbassyHandlers, { embassyBase } from "./embassy";
+import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -22,12 +21,8 @@ type CallbackData = {
     fs?: Flags;
     vId?: number;
     cmd?: string;
-    id: number;
-    diff?: number;
-    mode?: ConditionerMode;
-    edit?: boolean;
-    fn?: string;
-    pin?: boolean;
+
+    params?: any;
 };
 
 export enum Flags {
@@ -169,7 +164,7 @@ export default class ServiceHandlers implements BotHandlers {
             return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
         }
 
-        const command = data.cmd?.slice(1);
+        const command = data.cmd;
         if (!command) throw Error("Missing calback command");
 
         const route = bot.routeMap.get(command);
@@ -186,72 +181,13 @@ export default class ServiceHandlers implements BotHandlers {
             if (data.fs & Flags.Editing) bot.context(msg).isEditing = true;
         }
 
-        const params: any[] = ServiceHandlers.getParams(bot, msg, data, callbackQuery);
+        const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [bot, msg];
 
-        await handler.call(bot, bot, msg, ...params);
-    }
-
-    private static getParams(
-        bot: HackerEmbassyBot,
-        msg: TelegramBot.Message,
-        data: CallbackData,
-        callbackQuery: TelegramBot.CallbackQuery
-    ) {
-        const additionalParams: any[] = [];
-
-        switch (data.cmd) {
-            case "/ef":
-                additionalParams.push(data.fn!);
-                break;
-            case "/ed":
-                additionalParams.push(data.fn!);
-                break;
-            case "/boughtbutton":
-                additionalParams.push(data.id);
-                additionalParams.push(callbackQuery.data!);
-                break;
-            case "/boughtundo":
-                additionalParams.push(data.id);
-                break;
-            case "/status":
-                bot.context(msg).mode.pin = data.pin!;
-                break;
-            case "/anettestatus":
-                additionalParams.push("anette");
-                break;
-            case "/plumbusstatus":
-                additionalParams.push("plumbus");
-                break;
-            case "/turnonconditioner":
-                additionalParams.push(true);
-                break;
-            case "/turnoffconditioner":
-                additionalParams.push(false);
-                break;
-            case "/addconditionertemp":
-                additionalParams.push(data.diff);
-                break;
-            case "/setconditionermode":
-                additionalParams.push(data.mode!);
-                break;
-            case "/moan":
-            case "/fart":
-            case "/adler":
-            case "/rickroll":
-            case "/rzd":
-            case "/rfoxed":
-            case "/zhuchok":
-            case "/nani":
-            case "/sad":
-            case "/badumtss":
-            case "/dushno":
-                additionalParams.push(`${embassyBase}${data.cmd}.mp3`);
-                break;
-            default:
-                break;
+        if (data.params !== undefined) {
+            params.push(data.params);
         }
 
-        return additionalParams;
+        await handler.apply(bot, params);
     }
 
     private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {
@@ -321,7 +257,7 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
-        const inline_keyboard = [[InlineButton(t("service.welcome.captcha"), "/bought", Flags.Simple, { vId: user.id })]];
+        const inline_keyboard = [[InlineButton(t("service.welcome.captcha"), undefined, Flags.Simple, { vId: user.id })]];
 
         await bot.sendMessageExt(chat.id, welcomeText, null, {
             reply_markup: { inline_keyboard },

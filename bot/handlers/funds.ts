@@ -48,8 +48,8 @@ export default class FundsHandlers implements BotHandlers {
             fundName.length < CALLBACK_DATA_RESTRICTION
                 ? [
                       [
-                          InlineButton(t("funds.fund.buttons.csv"), "/ef", undefined, { fn: fundName }),
-                          InlineButton(t("funds.fund.buttons.donut"), "/ed", undefined, { fn: fundName }),
+                          InlineButton(t("funds.fund.buttons.csv"), "ef", undefined, { params: fundName }),
+                          InlineButton(t("funds.fund.buttons.donut"), "ed", undefined, { params: fundName }),
                       ],
                   ]
                 : [];

@@ -128,18 +128,21 @@ export function getStatusMessage(
     inside: UserState[],
     going: UserState[],
     climateInfo: Nullable<SpaceClimate>,
-    mode: { mention: boolean; pin?: boolean },
-    withSecrets = false,
-    isApi = false
+    mode: { mention: boolean },
+    options: {
+        short: boolean;
+        withSecrets: boolean;
+        isApi: boolean;
+    }
 ): string {
-    let stateText = t(mode.pin ? "status.status.state_pin" : "status.status.state", {
+    let stateText = t(options.short ? "status.status.state_pin" : "status.status.state", {
         stateEmoji: state.open ? "🔓" : "🔒",
         state: state.open ? t("status.status.opened") : t("status.status.closed"),
         stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
-        changedBy: formatUsername(state.changedby, mode, isApi),
+        changedBy: formatUsername(state.changedby, mode, options.isApi),
     });
 
-    if (mode.pin) {
+    if (options.short) {
         stateText += "  ";
         stateText +=
             inside.length > 0
@@ -153,19 +156,21 @@ export function getStatusMessage(
     stateText +=
         inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {
-        stateText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
+        stateText += `${formatUsername(userStatus.username, mode, options.isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
     stateText += going.length > 0 ? `\n${t("status.status.going", { count: going.length })}` : "";
     for (const userStatus of going) {
-        stateText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
+        stateText += `${formatUsername(userStatus.username, mode, options.isApi)} ${getUserBadges(userStatus.username)} ${
             userStatus.note ? `(${userStatus.note})` : ""
         }\n`;
     }
     stateText += climateInfo
-        ? `\n${t("embassy.climate.data", { climateInfo })}${withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""}`
+        ? `\n${t("embassy.climate.data", { climateInfo })}${
+              options.withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""
+          }`
         : "";
     stateText += "\n";
-    stateText += !isApi
+    stateText += !options.isApi
         ? t("status.status.updated", {
               updatedDate: new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21),
           })

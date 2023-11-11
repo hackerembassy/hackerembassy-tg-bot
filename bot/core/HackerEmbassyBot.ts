@@ -513,7 +513,7 @@ ${chunks[index]}
         aliases: string[],
         handler: BotHandler,
         paramRegex: Nullable<RegExp> = null,
-        paramMapper: Nullable<AnyFunction> = null,
+        paramMapper: Nullable<MatchMapperFunction> = null,
         restrictions: BotRole[] = []
     ): void {
         const optional = paramRegex instanceof OptionalRegExp;

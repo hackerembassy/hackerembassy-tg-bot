@@ -3,6 +3,7 @@ import TelegramBot, { ChatMemberUpdated, InlineKeyboardButton, Message } from "n
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
+import { ConditionerMode } from "../../services/home";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import RateLimiter from "../../services/RateLimiter";
@@ -21,7 +22,91 @@ import StatusHandlers from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
 
+type CallbackData = {
+    flags?: Flags;
+    vId?: number;
+    command?: string;
+    id: number;
+    diff?: number;
+    mode?: ConditionerMode;
+    edit?: boolean;
+    fn?: string;
+};
+
+export enum Flags {
+    Simple = 0,
+    Restricted = 1 << 0, // 0001
+    Editing = 1 << 1, // 0010
+    Silent = 1 << 2, // 0100
+    Pin = 1 << 3, // 1000
+    All = ~(~0 << 4), // 1111
+}
+
 export default class ServiceHandlers implements BotHandlers {
+    //@ts-ignore
+    static routeMap: Map<string, any> = new Map([
+        ["/in", StatusHandlers.inHandler],
+        ["/out", StatusHandlers.inHandler],
+        ["/going", StatusHandlers.goingHandler],
+        ["/notgoing", StatusHandlers.notGoingHandler],
+        ["/status", StatusHandlers.statusHandler],
+        ["/birthdays", BirthdayHandlers.birthdayHandler],
+        ["/needs", NeedsHandlers.needsHandler],
+        ["/funds", FundsHandlers.fundsHandler],
+        ["/about", BasicHandlers.aboutHandler],
+        ["/help", BasicHandlers.helpHandler],
+        ["/donate", BasicHandlers.donateHandler],
+        ["/join", BasicHandlers.joinHandler],
+        ["/events", BasicHandlers.eventsHandler],
+        ["/location", BasicHandlers.locationHandler],
+        ["/getresidents", BasicHandlers.getResidentsHandler],
+        ["/ef", FundsHandlers.exportCSVHandler],
+        ["/ed", FundsHandlers.exportDonutHandler],
+        ["/removeButtons", ServiceHandlers.removeButtons],
+        ["/printers", EmbassyHandlers.printersHandler],
+        ["/randomcat", MemeHandlers.randomCatHandler],
+        ["/randomdog", MemeHandlers.randomDogHandler],
+        ["/randomcab", MemeHandlers.randomCabHandler],
+        ["/randomcock", MemeHandlers.randomRoosterHandler],
+        ["/open", StatusHandlers.openHandler],
+        ["/close", StatusHandlers.closeHandler],
+        ["/ustatus", StatusHandlers.statusHandler],
+        ["/s_ustatus", StatusHandlers.statusHandler],
+        ["/superstatus", ServiceHandlers.superstatusHandler],
+        ["/startpanel", BasicHandlers.startPanelHandler],
+        ["/infopanel", BasicHandlers.infoPanelHandler],
+        ["/controlpanel", BasicHandlers.controlPanelHandler],
+        ["/memepanel", BasicHandlers.memePanelHandler],
+        ["/conditioner", EmbassyHandlers.conditionerHandler],
+        ["/unlock", EmbassyHandlers.unlockHandler],
+        ["/doorbell", EmbassyHandlers.doorbellHandler],
+        ["/webcam", EmbassyHandlers.webcamHandler],
+        ["/webcam2", EmbassyHandlers.webcam2Handler],
+        ["/doorcam", EmbassyHandlers.doorcamHandler],
+        ["/uanettestatus", EmbassyHandlers.printerStatusHandler],
+        ["/anettestatus", EmbassyHandlers.printerStatusHandler],
+        ["/uplumbusstatus", EmbassyHandlers.printerStatusHandler],
+        ["/plumbusstatus", EmbassyHandlers.printerStatusHandler],
+        ["/uconditioner", EmbassyHandlers.conditionerHandler],
+        ["/turnconditioneron", EmbassyHandlers.turnConditionerHandler],
+        ["/turnconditioneroff", EmbassyHandlers.turnConditionerHandler],
+        ["/addconditionertemp", EmbassyHandlers.turnConditionerHandler],
+        ["/setconditionermode", EmbassyHandlers.turnConditionerHandler],
+        ["/bought", ServiceHandlers.boughtButtonHandler],
+        ["/bought_undo", NeedsHandlers.boughtUndoHandler],
+        ["/moan", EmbassyHandlers.playinspaceHandler],
+        ["/fart", EmbassyHandlers.playinspaceHandler],
+        ["/adler", EmbassyHandlers.playinspaceHandler],
+        ["/rickroll", EmbassyHandlers.playinspaceHandler],
+        ["/rzd", EmbassyHandlers.playinspaceHandler],
+        ["/rfoxed", EmbassyHandlers.playinspaceHandler],
+        ["/zhuchok", EmbassyHandlers.playinspaceHandler],
+        ["/nani", EmbassyHandlers.playinspaceHandler],
+        ["/sad", EmbassyHandlers.playinspaceHandler],
+        ["/badumtss", EmbassyHandlers.playinspaceHandler],
+        ["/dushno", EmbassyHandlers.playinspaceHandler],
+    ]);
+
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
@@ -145,214 +230,90 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
-        const data = callbackQuery.data ? JSON.parse(callbackQuery.data) : undefined;
+        const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
 
         if (!data) throw Error("Missing calback query data");
 
         msg.from = callbackQuery.from;
-
         const isAllowed = bot.canUserCall.bind(bot, msg.from.username);
 
         if (data.vId && callbackQuery.from.id === data.vId) {
-            const tgUser = (await bot.getChat(data.vId)) as ITelegramUser;
-
-            if (ServiceHandlers.verifyUserHandler(tgUser)) {
-                try {
-                    botConfig.moderatedChats.forEach(chatId =>
-                        bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
-                    );
-
-                    await bot.deleteMessage(msg.chat.id, msg.message_id);
-                    await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
-                } catch (error) {
-                    logger.error(error);
-                }
-            }
+            return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
         }
 
+        const handler = this.routeMap.get(data.command!) as AnyFunction;
+        const params: any[] = ServiceHandlers.getParams(bot, msg, data, callbackQuery);
+
+        if (data.flags !== undefined) {
+            if (data.flags & Flags.Silent) bot.context(msg).mode.silent = true;
+            if (data.flags & Flags.Editing) bot.context(msg).isEditing = true;
+            if (data.flags & Flags.Restricted && !isAllowed(handler)) return;
+        }
+
+        await handler.apply(params);
+    }
+
+    private static getParams(
+        bot: HackerEmbassyBot,
+        msg: TelegramBot.Message,
+        data: CallbackData,
+        callbackQuery: TelegramBot.CallbackQuery
+    ) {
+        const params: any[] = [bot, msg];
+
         switch (data.command) {
-            case "/in":
-                await StatusHandlers.inHandler(bot, msg);
-                break;
-            case "/out":
-                await StatusHandlers.outHandler(bot, msg);
-                break;
-            case "/going":
-                await StatusHandlers.goingHandler(bot, msg);
-                break;
-            case "/notgoing":
-                await StatusHandlers.notGoingHandler(bot, msg);
-                break;
-            case "/open":
-                if (isAllowed(StatusHandlers.openHandler)) await StatusHandlers.openHandler(bot, msg);
-                break;
-            case "/close":
-                if (isAllowed(StatusHandlers.closeHandler)) await StatusHandlers.closeHandler(bot, msg);
-                break;
-            case "/status":
-                await StatusHandlers.statusHandler(bot, msg);
-                break;
-            case "/ustatus":
-                bot.context(msg).isEditing = true;
-                await StatusHandlers.statusHandler(bot, msg);
-                break;
-            case "/s_ustatus":
-                bot.context(msg).isEditing = true;
-                bot.context(msg).mode.pin = true;
-                await StatusHandlers.statusHandler(bot, msg);
-                break;
-            case "/superstatus":
-                if (isAllowed(ServiceHandlers.superstatusHandler)) await ServiceHandlers.superstatusHandler(bot, msg);
-                break;
-            case "/birthdays":
-                await BirthdayHandlers.birthdayHandler(bot, msg);
-                break;
-            case "/needs":
-                await NeedsHandlers.needsHandler(bot, msg);
-                break;
-            case "/funds":
-                await FundsHandlers.fundsHandler(bot, msg);
-                break;
-            case "/startpanel":
-                bot.context(msg).isEditing = true;
-                await BasicHandlers.startPanelHandler(bot, msg);
-                break;
-            case "/infopanel":
-                bot.context(msg).isEditing = true;
-                await BasicHandlers.infoPanelHandler(bot, msg);
-                break;
-            case "/controlpanel":
-                if (isAllowed(BasicHandlers.controlPanelHandler)) {
-                    bot.context(msg).isEditing = true;
-                    await BasicHandlers.controlPanelHandler(bot, msg);
-                }
-                break;
-            case "/memepanel":
-                if (isAllowed(BasicHandlers.memePanelHandler)) {
-                    bot.context(msg).isEditing = true;
-                    await BasicHandlers.memePanelHandler(bot, msg);
-                }
-                break;
-            case "/conditioner":
-                if (isAllowed(EmbassyHandlers.conditionerHandler)) {
-                    bot.context(msg).isEditing = true;
-                    await EmbassyHandlers.conditionerHandler(bot, msg);
-                }
-                break;
-            case "/about":
-                await BasicHandlers.aboutHandler(bot, msg);
-                break;
-            case "/help":
-                await BasicHandlers.helpHandler(bot, msg);
-                break;
-            case "/donate":
-                await BasicHandlers.donateHandler(bot, msg);
-                break;
-            case "/join":
-                await BasicHandlers.joinHandler(bot, msg);
-                break;
-            case "/events":
-                await BasicHandlers.eventsHandler(bot, msg);
-                break;
-            case "/location":
-                await BasicHandlers.locationHandler(bot, msg);
-                break;
-            case "/getresidents":
-                await BasicHandlers.getResidentsHandler(bot, msg);
-                break;
             case "/ef":
-                await FundsHandlers.exportCSVHandler(bot, msg, data.opt[0]);
+                params.push(data.fn!);
                 break;
             case "/ed":
-                await FundsHandlers.exportDonutHandler(bot, msg, data.opt[0]);
+                params.push(data.fn!);
                 break;
-            case "/unlock":
-                if (isAllowed(EmbassyHandlers.unlockHandler)) await EmbassyHandlers.unlockHandler(bot, msg);
+            case "/bought":
+                params.push(callbackQuery.data!);
                 break;
-            case "/doorbell":
-                if (isAllowed(EmbassyHandlers.doorbellHandler)) await EmbassyHandlers.doorbellHandler(bot, msg);
+            case "/s_ustatus":
+                bot.context(msg).mode.pin = true;
                 break;
             case "/webcam":
                 bot.context(msg).isEditing = data.edit ?? false;
-                if (isAllowed(EmbassyHandlers.webcamHandler)) await EmbassyHandlers.webcamHandler(bot, msg);
                 break;
             case "/webcam2":
                 bot.context(msg).isEditing = data.edit ?? false;
-                if (isAllowed(EmbassyHandlers.webcam2Handler)) await EmbassyHandlers.webcam2Handler(bot, msg);
                 break;
             case "/doorcam":
                 bot.context(msg).isEditing = data.edit ?? false;
-                if (isAllowed(EmbassyHandlers.doorcamHandler)) await EmbassyHandlers.doorcamHandler(bot, msg);
-                break;
-            case "/removeButtons":
-                await ServiceHandlers.removeButtons(bot, msg);
-                break;
-            case "/printers":
-                await EmbassyHandlers.printersHandler(bot, msg);
                 break;
             case "/uanettestatus":
-                bot.context(msg).isEditing = true;
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "anette");
+                params.push("anette");
                 break;
             case "/anettestatus":
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "anette");
+                params.push("anette");
                 break;
             case "/uplumbusstatus":
-                bot.context(msg).isEditing = true;
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus");
+                params.push("plumbus");
                 break;
             case "/plumbusstatus":
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus");
-                break;
-            case "/uconditioner":
-                bot.context(msg).isEditing = true;
-                if (isAllowed(EmbassyHandlers.conditionerHandler)) await EmbassyHandlers.conditionerHandler(bot, msg);
+                params.push("plumbus");
                 break;
             case "/turnconditioneron":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.turnConditionerHandler(bot, msg, true);
-                    });
+                params.push(async () => {
+                    await EmbassyHandlers.turnConditionerHandler(bot, msg, true);
+                });
                 break;
             case "/turnconditioneroff":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.turnConditionerHandler(bot, msg, false);
-                    });
+                params.push(async () => {
+                    await EmbassyHandlers.turnConditionerHandler(bot, msg, false);
+                });
                 break;
             case "/addconditionertemp":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff);
-                    });
+                params.push(async () => {
+                    await EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff!);
+                });
                 break;
             case "/setconditionermode":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode);
-                    });
-                break;
-            case "/bought":
-                await ServiceHandlers.boughtButtonHandler(bot, msg, data.id, data);
-                break;
-            case "/bought_undo":
-                if (NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
-                    await bot.deleteMessage(msg.chat.id, msg.message_id);
-                }
-                break;
-            case "/randomcat":
-                await MemeHandlers.randomCatHandler(bot, msg);
-                break;
-            case "/randomdog":
-                await MemeHandlers.randomDogHandler(bot, msg);
-                break;
-            case "/randomcab":
-                await MemeHandlers.randomCabHandler(bot, msg);
-                break;
-            case "/randomcock":
-                await MemeHandlers.randomRoosterHandler(bot, msg);
+                params.push(async () => {
+                    await EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode!);
+                });
                 break;
             case "/moan":
             case "/fart":
@@ -365,11 +326,29 @@ export default class ServiceHandlers implements BotHandlers {
             case "/sad":
             case "/badumtss":
             case "/dushno":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}${data.command}.mp3`);
+                params.push(`${embassyBase}${data.command}.mp3`);
                 break;
             default:
                 break;
+        }
+
+        return params;
+    }
+
+    private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {
+        const tgUser = (await bot.getChat(vId)) as ITelegramUser;
+
+        if (this.verifyAndAddUser(tgUser)) {
+            try {
+                botConfig.moderatedChats.forEach(chatId =>
+                    bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
+                );
+
+                await bot.deleteMessage(msg.chat.id, msg.message_id);
+                await this.welcomeHandler(bot, msg.chat, tgUser);
+            } catch (error) {
+                logger.error(error);
+            }
         }
     }
 
@@ -437,7 +416,7 @@ export default class ServiceHandlers implements BotHandlers {
         });
     }
 
-    static verifyUserHandler(tgUser: ITelegramUser) {
+    static verifyAndAddUser(tgUser: ITelegramUser) {
         const user = UsersRepository.getByUserId(tgUser.id);
 
         if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
@@ -476,7 +455,7 @@ export default class ServiceHandlers implements BotHandlers {
         await bot.sendMessageExt(chat.id, welcomeText, null);
     }
 
-    static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string) {
+    static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string): Promise<void> {
         await NeedsHandlers.boughtByIdHandler(bot, message, id);
 
         if (!message.reply_markup) return;

@@ -41,14 +41,12 @@ export default class NeedsHandlers implements BotHandlers {
         await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.text ?? "");
     }
 
-    static boughtUndoHandler(_: HackerEmbassyBot, msg: Message, id: number) {
+    static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
 
-        if (need && need.buyer === msg.from?.username) {
-            return NeedsRepository.undoClose(need.id);
+        if (need && need.buyer === msg.from?.username && NeedsRepository.undoClose(need.id)) {
+            await bot.deleteMessage(msg.chat.id, msg.message_id);
         }
-
-        return false;
     }
 
     static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item: string) {

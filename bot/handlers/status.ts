@@ -30,6 +30,7 @@ import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
 import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/HackerEmbassyBot";
+import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -153,7 +154,9 @@ export default class StatusHandlers implements BotHandlers {
                 },
                 {
                     text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
-                    callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
+                    callback_data: state.open
+                        ? JSON.stringify({ flags: Flags.Restricted, command: "/close" })
+                        : JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
                 },
             ]
         );
@@ -231,7 +234,7 @@ export default class StatusHandlers implements BotHandlers {
                 },
                 {
                     text: t("status.buttons.reclose"),
-                    callback_data: JSON.stringify({ command: "/close" }),
+                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/close" }),
                 },
             ],
             [
@@ -262,7 +265,7 @@ export default class StatusHandlers implements BotHandlers {
             [
                 {
                     text: t("status.buttons.reopen"),
-                    callback_data: JSON.stringify({ command: "/open" }),
+                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
                 },
             ],
         ];
@@ -327,7 +330,7 @@ export default class StatusHandlers implements BotHandlers {
                       },
                       {
                           text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ command: "/open" }),
+                          callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
                       },
                   ],
               ];
@@ -381,7 +384,7 @@ export default class StatusHandlers implements BotHandlers {
                       },
                       {
                           text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ command: "/open" }),
+                          callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
                       },
                   ],
               ];

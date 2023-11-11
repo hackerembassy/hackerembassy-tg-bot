@@ -52,14 +52,14 @@ export default class FundsHandlers implements BotHandlers {
                               text: t("funds.fund.buttons.csv"),
                               callback_data: JSON.stringify({
                                   command: "/ef",
-                                  opt: [fundName],
+                                  fn: fundName,
                               }),
                           },
                           {
                               text: t("funds.fund.buttons.donut"),
                               callback_data: JSON.stringify({
                                   command: "/ed",
-                                  opt: [fundName],
+                                  fn: fundName,
                               }),
                           },
                       ],

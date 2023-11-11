@@ -239,7 +239,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         null,
         ["member", "accountant"]
     );
-    bot.addRoute(["showcosts", "scs"], FundsHandlers.showCostsHandler);
+    bot.addRoute(["showcosts", "scosts", "scs"], FundsHandlers.showCostsHandler);
 
     // Donations
     bot.addRoute(

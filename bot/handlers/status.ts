@@ -150,13 +150,11 @@ export default class StatusHandlers implements BotHandlers {
             [
                 {
                     text: t("status.buttons.refresh"),
-                    callback_data: JSON.stringify({ command: mode.pin ? "/s_ustatus" : "/ustatus" }),
+                    callback_data: JSON.stringify({ pin: mode.pin, command: "/status", flags: Flags.Editing }),
                 },
                 {
                     text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
-                    callback_data: state.open
-                        ? JSON.stringify({ flags: Flags.Restricted, command: "/close" })
-                        : JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
+                    callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
                 },
             ]
         );
@@ -234,7 +232,7 @@ export default class StatusHandlers implements BotHandlers {
                 },
                 {
                     text: t("status.buttons.reclose"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/close" }),
+                    callback_data: JSON.stringify({ command: "/close" }),
                 },
             ],
             [
@@ -265,7 +263,7 @@ export default class StatusHandlers implements BotHandlers {
             [
                 {
                     text: t("status.buttons.reopen"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
+                    callback_data: JSON.stringify({ command: "/open" }),
                 },
             ],
         ];
@@ -330,7 +328,7 @@ export default class StatusHandlers implements BotHandlers {
                       },
                       {
                           text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
+                          callback_data: JSON.stringify({ command: "/open" }),
                       },
                   ],
               ];
@@ -384,7 +382,7 @@ export default class StatusHandlers implements BotHandlers {
                       },
                       {
                           text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/open" }),
+                          callback_data: JSON.stringify({ command: "/open" }),
                       },
                   ],
               ];

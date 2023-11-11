@@ -16,8 +16,6 @@ import EmbassyHandlers, { embassyBase } from "./embassy";
 import NeedsHandlers from "./needs";
 import StatusHandlers from "./status";
 
-console.log(StatusHandlers);
-
 const botConfig = config.get<BotConfig>("bot");
 
 type CallbackData = {
@@ -29,82 +27,16 @@ type CallbackData = {
     mode?: ConditionerMode;
     edit?: boolean;
     fn?: string;
+    pin?: boolean;
 };
 
 export enum Flags {
     Simple = 0,
-    Restricted = 1 << 0, // 0001
-    Editing = 1 << 1, // 0010
-    Silent = 1 << 2, // 0100
-    Pin = 1 << 3, // 1000
-    All = ~(~0 << 4), // 1111
+    Editing = 1 << 0, // 01
+    Silent = 1 << 1, // 10
 }
 
 export default class ServiceHandlers implements BotHandlers {
-    //@ts-ignore
-    static routeMap: Map<string, any> = new Map([
-        // ["/in", StatusHandlers.inHandler],
-        // ["/out", StatusHandlers.inHandler],
-        // ["/going", StatusHandlers.goingHandler],
-        // ["/notgoing", StatusHandlers.notGoingHandler],
-        // ["/status", StatusHandlers.statusHandler],
-        // ["/birthdays", BirthdayHandlers.birthdayHandler],
-        // ["/needs", NeedsHandlers.needsHandler],
-        // ["/funds", FundsHandlers.fundsHandler],
-        // ["/about", BasicHandlers.aboutHandler],
-        // ["/help", BasicHandlers.helpHandler],
-        // ["/donate", BasicHandlers.donateHandler],
-        // ["/join", BasicHandlers.joinHandler],
-        // ["/events", BasicHandlers.eventsHandler],
-        // ["/location", BasicHandlers.locationHandler],
-        // ["/getresidents", BasicHandlers.getResidentsHandler],
-        // ["/ef", FundsHandlers.exportCSVHandler],
-        // ["/ed", FundsHandlers.exportDonutHandler],
-        // ["/removeButtons", ServiceHandlers.removeButtons],
-        // ["/printers", EmbassyHandlers.printersHandler],
-        // ["/randomcat", MemeHandlers.randomCatHandler],
-        // ["/randomdog", MemeHandlers.randomDogHandler],
-        // ["/randomcab", MemeHandlers.randomCabHandler],
-        // ["/randomcock", MemeHandlers.randomRoosterHandler],
-        // ["/open", StatusHandlers.openHandler],
-        // ["/close", StatusHandlers.closeHandler],
-        // ["/ustatus", StatusHandlers.statusHandler],
-        // ["/s_ustatus", StatusHandlers.statusHandler],
-        // ["/superstatus", ServiceHandlers.superstatusHandler],
-        // ["/startpanel", BasicHandlers.startPanelHandler],
-        // ["/infopanel", BasicHandlers.infoPanelHandler],
-        // ["/controlpanel", BasicHandlers.controlPanelHandler],
-        // ["/memepanel", BasicHandlers.memePanelHandler],
-        // ["/conditioner", EmbassyHandlers.conditionerHandler],
-        // ["/unlock", EmbassyHandlers.unlockHandler],
-        // ["/doorbell", EmbassyHandlers.doorbellHandler],
-        // ["/webcam", EmbassyHandlers.webcamHandler],
-        // ["/webcam2", EmbassyHandlers.webcam2Handler],
-        // ["/doorcam", EmbassyHandlers.doorcamHandler],
-        // ["/uanettestatus", EmbassyHandlers.printerStatusHandler],
-        // ["/anettestatus", EmbassyHandlers.printerStatusHandler],
-        // ["/uplumbusstatus", EmbassyHandlers.printerStatusHandler],
-        // ["/plumbusstatus", EmbassyHandlers.printerStatusHandler],
-        // ["/uconditioner", EmbassyHandlers.conditionerHandler],
-        // ["/turnconditioneron", EmbassyHandlers.turnConditionerHandler],
-        // ["/turnconditioneroff", EmbassyHandlers.turnConditionerHandler],
-        // ["/addconditionertemp", EmbassyHandlers.turnConditionerHandler],
-        // ["/setconditionermode", EmbassyHandlers.turnConditionerHandler],
-        // ["/bought", ServiceHandlers.boughtButtonHandler],
-        // ["/bought_undo", NeedsHandlers.boughtUndoHandler],
-        // ["/moan", EmbassyHandlers.playinspaceHandler],
-        // ["/fart", EmbassyHandlers.playinspaceHandler],
-        // ["/adler", EmbassyHandlers.playinspaceHandler],
-        // ["/rickroll", EmbassyHandlers.playinspaceHandler],
-        // ["/rzd", EmbassyHandlers.playinspaceHandler],
-        // ["/rfoxed", EmbassyHandlers.playinspaceHandler],
-        // ["/zhuchok", EmbassyHandlers.playinspaceHandler],
-        // ["/nani", EmbassyHandlers.playinspaceHandler],
-        // ["/sad", EmbassyHandlers.playinspaceHandler],
-        // ["/badumtss", EmbassyHandlers.playinspaceHandler],
-        // ["/dushno", EmbassyHandlers.playinspaceHandler],
-    ]);
-
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
@@ -274,36 +206,21 @@ export default class ServiceHandlers implements BotHandlers {
             case "/bought":
                 additionalParams.push(callbackQuery.data!);
                 break;
-            case "/s_ustatus":
-                bot.context(msg).mode.pin = true;
-                break;
-            case "/webcam":
-                bot.context(msg).isEditing = data.edit ?? false;
-                break;
-            case "/webcam2":
-                bot.context(msg).isEditing = data.edit ?? false;
-                break;
-            case "/doorcam":
-                bot.context(msg).isEditing = data.edit ?? false;
-                break;
-            case "/uanettestatus":
-                additionalParams.push("anette");
+            case "/status":
+                bot.context(msg).mode.pin = data.pin!;
                 break;
             case "/anettestatus":
                 additionalParams.push("anette");
                 break;
-            case "/uplumbusstatus":
-                additionalParams.push("plumbus");
-                break;
             case "/plumbusstatus":
                 additionalParams.push("plumbus");
                 break;
-            case "/turnconditioneron":
+            case "/turnonconditioner":
                 additionalParams.push(async () => {
                     await EmbassyHandlers.turnConditionerHandler(bot, msg, true);
                 });
                 break;
-            case "/turnconditioneroff":
+            case "/turnoffconditioner":
                 additionalParams.push(async () => {
                     await EmbassyHandlers.turnConditionerHandler(bot, msg, false);
                 });

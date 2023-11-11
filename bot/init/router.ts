@@ -155,15 +155,22 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         ["member", "trusted"]
     );
     bot.addRoute(
-        ["setConditionerMode", "conditionermode", "mideamode", "acmode"],
+        ["setconditionermode", "conditionermode", "mideamode", "acmode"],
         EmbassyHandlers.setConditionerModeHandler,
         /(\S+)/,
         match => [match[1]],
         ["member", "trusted"]
     );
     bot.addRoute(
-        ["setConditionerTemp", "setConditionerTemperature", "conditionertemp", "mideatemp", "actemp"],
+        ["setconditionertemp", "setconditionertemperature", "conditionertemp", "mideatemp", "actemp"],
         EmbassyHandlers.setConditionerTempHandler,
+        /(\d*)/,
+        match => [Number(match[1])],
+        ["member", "trusted"]
+    );
+    bot.addRoute(
+        ["addconditionertemp", "addconditionertemperature", "addmideatemp", "addactemp"],
+        EmbassyHandlers.addConditionerTempHandler,
         /(\d*)/,
         match => [Number(match[1])],
         ["member", "trusted"]
@@ -214,8 +221,8 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         ["accountant"]
     );
     bot.addRoute(["removefund"], FundsHandlers.removeFundHandler, /(.*\S)/, match => [match[1]], ["accountant"]);
-    bot.addRoute(["exportfund", "csv"], FundsHandlers.exportCSVHandler, /(.*\S)/, match => [match[1]]);
-    bot.addRoute(["exportdonut"], FundsHandlers.exportDonutHandler, /(.*\S)/, match => [match[1]]);
+    bot.addRoute(["exportfund", "csv", "ef"], FundsHandlers.exportCSVHandler, /(.*\S)/, match => [match[1]]);
+    bot.addRoute(["exportdonut", "donut", "ed"], FundsHandlers.exportDonutHandler, /(.*\S)/, match => [match[1]]);
     bot.addRoute(["closefund"], FundsHandlers.closeFundHandler, /(.*\S)/, match => [match[1]], ["accountant"]);
     bot.addRoute(
         ["changefundstatus"],
@@ -224,7 +231,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1], match[2]],
         ["accountant"]
     );
-    bot.addRoute(["showcostsdonut", "costsdonut", "donut", "dt"], FundsHandlers.showCostsDonutHandler);
+    bot.addRoute(["showcostsdonut", "costsdonut"], FundsHandlers.showCostsDonutHandler);
     bot.addRoute(
         ["residentscosts", "residentsdonated", "residentcosts", "rcosts"],
         FundsHandlers.residentsDonatedHandler,

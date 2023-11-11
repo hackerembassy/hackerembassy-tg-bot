@@ -16,6 +16,7 @@ import { sleep } from "../../utils/common";
 import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/HackerEmbassyBot";
+import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -107,7 +108,7 @@ export default class EmbassyHandlers implements BotHandlers {
                       [
                           {
                               text: t("status.buttons.refresh"),
-                              callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
+                              callback_data: JSON.stringify({ command: `/${path}`, flags: Flags.Editing }),
                           },
                       ],
                   ];
@@ -134,7 +135,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 [
                     {
                         text: t("status.buttons.refresh"),
-                        callback_data: JSON.stringify({ command: `/${path}`, edit: true }),
+                        callback_data: JSON.stringify({ command: `/${path}`, flags: Flags.Editing }),
                     },
                     {
                         text: t("status.buttons.save"),
@@ -502,11 +503,11 @@ export default class EmbassyHandlers implements BotHandlers {
             [
                 {
                     text: t("embassy.conditioner.buttons.turnon"),
-                    callback_data: JSON.stringify({ command: "/turnconditioneron" }),
+                    callback_data: JSON.stringify({ command: "/turnonconditioner" }),
                 },
                 {
                     text: t("embassy.conditioner.buttons.turnoff"),
-                    callback_data: JSON.stringify({ command: "/turnconditioneroff" }),
+                    callback_data: JSON.stringify({ command: "/turnoffconditioner" }),
                 },
             ],
             [
@@ -540,7 +541,7 @@ export default class EmbassyHandlers implements BotHandlers {
             [
                 {
                     text: t("status.buttons.refresh"),
-                    callback_data: JSON.stringify({ command: "/uconditioner" }),
+                    callback_data: JSON.stringify({ command: "/conditioner", flags: Flags.Editing }),
                 },
                 {
                     text: t("basic.control.buttons.back"),

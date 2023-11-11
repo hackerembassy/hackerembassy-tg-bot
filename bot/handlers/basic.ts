@@ -13,7 +13,6 @@ import * as UsersHelper from "../../services/usersHelper";
 import * as CoinsHelper from "../../utils/coins";
 import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
 import { isPrivateMessage } from "../helpers";
-import { Flags } from "./service";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -134,7 +133,7 @@ export default class BasicHandlers implements BotHandlers {
             [
                 {
                     text: t("basic.start.buttons.control"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/controlpanel" }),
+                    callback_data: JSON.stringify({ command: "/controlpanel" }),
                 },
                 {
                     text: t("basic.start.buttons.info"),
@@ -181,41 +180,41 @@ export default class BasicHandlers implements BotHandlers {
             [
                 {
                     text: t("basic.control.buttons.unlock"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/unlock" }),
+                    callback_data: JSON.stringify({ command: "/unlock" }),
                 },
                 {
                     text: t("basic.control.buttons.doorbell"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/doorbell" }),
+                    callback_data: JSON.stringify({ command: "/doorbell" }),
                 },
                 {
                     text: t("basic.control.buttons.conditioner"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/conditioner" }),
+                    callback_data: JSON.stringify({ command: "/conditioner" }),
                 },
             ],
             [
                 {
                     text: t("basic.control.buttons.webcam"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/webcam" }),
+                    callback_data: JSON.stringify({ command: "/webcam" }),
                 },
                 {
                     text: t("basic.control.buttons.webcam2"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/webcam2" }),
+                    callback_data: JSON.stringify({ command: "/webcam2" }),
                 },
                 {
                     text: t("basic.control.buttons.doorcam"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/doorcam" }),
+                    callback_data: JSON.stringify({ command: "/doorcam" }),
                 },
             ],
             [
                 {
                     text: t("basic.control.buttons.superstatus"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/superstatus" }),
+                    callback_data: JSON.stringify({ command: "/superstatus" }),
                 },
             ],
             [
                 {
                     text: t("basic.control.buttons.meme"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/memepanel" }),
+                    callback_data: JSON.stringify({ command: "/memepanel" }),
                 },
                 {
                     text: t("basic.control.buttons.back"),
@@ -357,7 +356,7 @@ export default class BasicHandlers implements BotHandlers {
             [
                 {
                     text: t("basic.meme.buttons.back"),
-                    callback_data: JSON.stringify({ flags: Flags.Restricted, command: "/controlpanel" }),
+                    callback_data: JSON.stringify({ command: "/controlpanel" }),
                 },
             ],
         ];

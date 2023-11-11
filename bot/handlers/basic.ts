@@ -202,16 +202,16 @@ export default class BasicHandlers implements BotHandlers {
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
-                InlineButton(t("basic.meme.buttons.moan"), "/moan"),
-                InlineButton(t("basic.meme.buttons.fart"), "/fart"),
-                InlineButton(t("basic.meme.buttons.adler"), "/adler"),
-                InlineButton(t("basic.meme.buttons.rzd"), "/rzd"),
+                InlineButton(t("basic.meme.buttons.moan"), "/moan", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.fart"), "/fart", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.adler"), "/adler", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.rzd"), "/rzd", Flags.Silent),
             ],
             [
-                InlineButton(t("basic.meme.buttons.rickroll"), "/rickroll"),
-                InlineButton(t("basic.meme.buttons.zhuchok"), "/zhuchok"),
-                InlineButton(t("basic.meme.buttons.rfoxed"), "/rfoxed"),
-                InlineButton(t("basic.meme.buttons.nani"), "/nani"),
+                InlineButton(t("basic.meme.buttons.rickroll"), "/rickroll", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.zhuchok"), "/zhuchok", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.rfoxed"), "/rfoxed", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.nani"), "/nani", Flags.Silent),
             ],
             [
                 InlineButton(t("basic.meme.buttons.cat"), "/cat"),
@@ -220,9 +220,9 @@ export default class BasicHandlers implements BotHandlers {
                 InlineButton(t("basic.meme.buttons.cock"), "/cock"),
             ],
             [
-                InlineButton(t("basic.meme.buttons.sad"), "/sad"),
-                InlineButton(t("basic.meme.buttons.badumtss"), "/badumtss"),
-                InlineButton(t("basic.meme.buttons.dushno"), "/dushno"),
+                InlineButton(t("basic.meme.buttons.sad"), "/sad", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.badumtss"), "/badumtss", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.dushno"), "/dushno", Flags.Silent),
             ],
             [InlineButton(t("basic.meme.buttons.back"), "/controlpanel", Flags.Editing)],
         ];

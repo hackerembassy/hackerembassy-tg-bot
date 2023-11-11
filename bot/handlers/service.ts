@@ -229,26 +229,31 @@ export default class ServiceHandlers implements BotHandlers {
 
     static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
         const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
-
         if (!data) throw Error("Missing calback query data");
 
         msg.from = callbackQuery.from;
-        const isAllowed = bot.canUserCall.bind(bot, msg.from.username);
 
         if (data.vId && callbackQuery.from.id === data.vId) {
             return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
         }
 
-        const handler = this.routeMap.get(data.command!) as AnyFunction;
+        const command = data.command?.slice(1);
+        if (!command) throw Error("Missing calback command");
+
+        const route = bot.routeMap.get(command);
+        if (!route) throw Error("Calback route does not exist");
+
+        const handler = route.handler;
         const params: any[] = ServiceHandlers.getParams(bot, msg, data, callbackQuery);
+
+        if (!bot.canUserCall(msg.from.username, command)) return;
 
         if (data.flags !== undefined) {
             if (data.flags & Flags.Silent) bot.context(msg).mode.silent = true;
             if (data.flags & Flags.Editing) bot.context(msg).isEditing = true;
-            if (data.flags & Flags.Restricted && !isAllowed(handler)) return;
         }
 
-        await handler.apply(params);
+        await handler.call(bot, bot, msg, ...params);
     }
 
     private static getParams(
@@ -257,17 +262,17 @@ export default class ServiceHandlers implements BotHandlers {
         data: CallbackData,
         callbackQuery: TelegramBot.CallbackQuery
     ) {
-        const params: any[] = [bot, msg];
+        const additionalParams: any[] = [];
 
         switch (data.command) {
             case "/ef":
-                params.push(data.fn!);
+                additionalParams.push(data.fn!);
                 break;
             case "/ed":
-                params.push(data.fn!);
+                additionalParams.push(data.fn!);
                 break;
             case "/bought":
-                params.push(callbackQuery.data!);
+                additionalParams.push(callbackQuery.data!);
                 break;
             case "/s_ustatus":
                 bot.context(msg).mode.pin = true;
@@ -282,34 +287,34 @@ export default class ServiceHandlers implements BotHandlers {
                 bot.context(msg).isEditing = data.edit ?? false;
                 break;
             case "/uanettestatus":
-                params.push("anette");
+                additionalParams.push("anette");
                 break;
             case "/anettestatus":
-                params.push("anette");
+                additionalParams.push("anette");
                 break;
             case "/uplumbusstatus":
-                params.push("plumbus");
+                additionalParams.push("plumbus");
                 break;
             case "/plumbusstatus":
-                params.push("plumbus");
+                additionalParams.push("plumbus");
                 break;
             case "/turnconditioneron":
-                params.push(async () => {
+                additionalParams.push(async () => {
                     await EmbassyHandlers.turnConditionerHandler(bot, msg, true);
                 });
                 break;
             case "/turnconditioneroff":
-                params.push(async () => {
+                additionalParams.push(async () => {
                     await EmbassyHandlers.turnConditionerHandler(bot, msg, false);
                 });
                 break;
             case "/addconditionertemp":
-                params.push(async () => {
+                additionalParams.push(async () => {
                     await EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff!);
                 });
                 break;
             case "/setconditionermode":
-                params.push(async () => {
+                additionalParams.push(async () => {
                     await EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode!);
                 });
                 break;
@@ -324,13 +329,13 @@ export default class ServiceHandlers implements BotHandlers {
             case "/sad":
             case "/badumtss":
             case "/dushno":
-                params.push(`${embassyBase}${data.command}.mp3`);
+                additionalParams.push(`${embassyBase}${data.command}.mp3`);
                 break;
             default:
                 break;
         }
 
-        return params;
+        return additionalParams;
     }
 
     private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {

@@ -24,6 +24,7 @@ import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
 import { hasRole } from "../../services/usersHelper";
 import { chunkSubstr, sleep } from "../../utils/common";
+import { OptionalRegExp } from "../../utils/regexp";
 import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
 
@@ -147,13 +148,23 @@ export type LiveChatHandler = {
     expires: number;
     handler: (...args: any[]) => void;
     event: BotCustomEvent;
-    serializationData: serializedFunction;
+    serializationData: SerializedFunction;
 };
 
-export type serializedFunction = {
+export type SerializedFunction = {
     functionName: string;
     module: string;
     params: any[];
+};
+
+export type MatchMapperFunction = (match: RegExpExecArray) => any[];
+
+export type BotRoute = {
+    regex: RegExp;
+    handler: BotHandler;
+    restrictions: BotRole[];
+    paramMapper: Nullable<MatchMapperFunction>;
+    optional: boolean;
 };
 
 export default class HackerEmbassyBot extends TelegramBot {
@@ -171,8 +182,8 @@ export default class HackerEmbassyBot extends TelegramBot {
     public Name: Optional<string>;
     public CustomEmitter: EventEmitter;
     public botState: BotState;
+    public routeMap = new Map<string, BotRoute>();
 
-    private accessTable = new Map<BotHandler, BotRole[]>();
     private contextMap = new Map();
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
@@ -183,8 +194,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.CustomEmitter = new EventEmitter();
     }
 
-    canUserCall(username: string | undefined, callback: BotHandler): boolean {
-        const savedRestrictions = this.accessTable.get(callback);
+    canUserCall(username: string | undefined, command: string): boolean {
+        const savedRestrictions = this.routeMap.get(command)?.restrictions;
 
         if (!savedRestrictions) return true;
 
@@ -447,67 +458,85 @@ ${chunks[index]}
         }
     }
 
+    routeMessage(message: TelegramBot.Message) {
+        try {
+            // Skip old updates
+            if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
+
+            const text = message.text;
+            if (!text) return;
+
+            const command = text.split(" ")[0].slice(1);
+            const route = this.routeMap.get(command);
+            if (!route) return;
+
+            // check restritions
+            if (route.restrictions.length > 0 && !this.canUserCall(message.from?.username, command)) {
+                this.sendMessageExt(message.chat.id, t("admin.messages.restricted"), message);
+                return;
+            }
+
+            // parse global modifiers
+            let textToMatch = text;
+
+            for (const key of Object.keys(this.context(message).mode)) {
+                if (textToMatch.includes(`-${key}`)) this.context(message).mode[key as keyof BotMessageContextMode] = true;
+                textToMatch = textToMatch.replace(` -${key}`, "");
+            }
+
+            this.context(message).messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
+
+            // call with or without params
+            if (route.paramMapper) {
+                const match = route.regex.exec(textToMatch);
+                const matchedParams = match ? route.paramMapper(match) : null;
+
+                if (matchedParams) {
+                    route.handler(this, message, ...matchedParams);
+                    return;
+                } else if (!route.optional) {
+                    return;
+                }
+            }
+
+            route.handler(this, message);
+        } catch (error) {
+            logger.error(error);
+        } finally {
+            this.context(message).clear();
+        }
+    }
+
     addRoute(
         aliases: string[],
         handler: BotHandler,
-        paramRegex?: Nullable<RegExp>,
-        paramMapper?: Nullable<AnyFunction>,
+        paramRegex: Nullable<RegExp> = null,
+        paramMapper: Nullable<AnyFunction> = null,
         restrictions: BotRole[] = []
     ): void {
-        if (restrictions.length > 0) this.accessTable.set(handler, restrictions);
+        const optional = paramRegex instanceof OptionalRegExp;
 
-        const botthis = this;
-
-        const commandPart = `/(?:${aliases.join("|")})`;
-        const botnamePart = this.Name ? `(?:@${this.Name})?` : "";
-        const paramsPart = paramRegex ? paramRegex.source : "";
-
-        const fullRegex = new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, paramRegex?.flags);
-        const regexString = fullRegex.toString();
-
-        console.log(regexString);
-
-        const endOfBodyIndex = regexString.lastIndexOf("/");
-        const regexBody = regexString.substring(1, endOfBodyIndex);
-        const regexParams = regexString.substring(endOfBodyIndex + 1);
-
-        const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
-
-        const newCallback = async function (msg: TelegramBot.Message, match: Nullable<RegExpExecArray>) {
-            // Skip old updates
-            if (Math.abs(Date.now() / 1000 - msg.date) > IGNORE_UPDATE_TIMEOUT) return;
-
-            try {
-                if (!botthis.canUserCall(msg.from?.username, handler)) {
-                    await botthis.sendMessageExt(msg.chat.id, t("admin.messages.restricted"), msg);
-
-                    return;
-                }
-
-                let executedMatch: Nullable<RegExpExecArray> = null;
-
-                if (match !== null) {
-                    let newCommand = match[0];
-
-                    for (const key of Object.keys(botthis.context(msg).mode)) {
-                        newCommand = newCommand.replace(` -${key}`, "");
-                        if (match[0].includes(`-${key}`)) botthis.context(msg).mode[key as keyof BotMessageContextMode] = true;
-                    }
-
-                    executedMatch = fullRegex.exec(newCommand);
-                }
-
-                botthis.context(msg).messageThreadId = msg.is_topic_message ? msg.message_thread_id : undefined;
-
-                await handler.call(botthis, botthis, msg, paramMapper ? paramMapper(executedMatch) : executedMatch);
-            } catch (error) {
-                logger.error(error);
-            } finally {
-                botthis.context(msg).clear();
-            }
+        const botRoute = {
+            regex: this.createRegex(aliases, paramRegex, optional),
+            handler,
+            restrictions,
+            paramMapper,
+            optional,
         };
 
-        super.onText(newRegexp, newCallback);
+        for (const alias of aliases) {
+            this.routeMap.set(alias, botRoute);
+        }
+    }
+
+    private createRegex(aliases: string[], paramRegex: Nullable<RegExp>, optional: boolean = false) {
+        const commandPart = `/(?:${aliases.join("|")})`;
+        const botnamePart = this.Name ? `(?:@${this.Name})?` : "";
+
+        let paramsPart = "";
+        if (paramRegex) paramsPart = optional ? paramRegex.source : ` ${paramRegex.source}`;
+
+        return new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, paramRegex?.flags);
     }
 
     async sendOrEditMessage(
@@ -574,7 +603,7 @@ ${chunks[index]}
         liveMessage: Message,
         event: BotCustomEvent,
         handler: (...args: any[]) => Promise<void>,
-        serializationData: serializedFunction
+        serializationData: SerializedFunction
     ) {
         const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id && cr.event === event);
         if (chatRecordIndex !== -1) this.CustomEmitter.removeListener(event, this.botState.liveChats[chatRecordIndex].handler);

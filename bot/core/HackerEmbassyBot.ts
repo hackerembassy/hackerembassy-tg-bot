@@ -447,14 +447,29 @@ ${chunks[index]}
         }
     }
 
-    onTextExt(originalRegex: RegExp, callback: BotHandler, restrictions: BotRole[] = []): void {
-        if (restrictions.length > 0) this.accessTable.set(callback, restrictions);
+    addRoute(
+        aliases: string[],
+        handler: BotHandler,
+        paramRegex?: Nullable<RegExp>,
+        paramMapper?: Nullable<AnyFunction>,
+        restrictions: BotRole[] = []
+    ): void {
+        if (restrictions.length > 0) this.accessTable.set(handler, restrictions);
 
-        const regexString = originalRegex.toString();
+        const botthis = this;
+
+        const commandPart = `/(?:${aliases.join("|")})`;
+        const botnamePart = this.Name ? `(?:@${this.Name})?` : "";
+        const paramsPart = paramRegex ? paramRegex.source : "";
+
+        const fullRegex = new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, paramRegex?.flags);
+        const regexString = fullRegex.toString();
+
+        console.log(regexString);
+
         const endOfBodyIndex = regexString.lastIndexOf("/");
         const regexBody = regexString.substring(1, endOfBodyIndex);
         const regexParams = regexString.substring(endOfBodyIndex + 1);
-        const botthis = this;
 
         const newRegexp = new RegExp(regexBody.replace("$", `${botthis.addedModifiersString}$`), regexParams);
 
@@ -463,7 +478,7 @@ ${chunks[index]}
             if (Math.abs(Date.now() / 1000 - msg.date) > IGNORE_UPDATE_TIMEOUT) return;
 
             try {
-                if (!botthis.canUserCall(msg.from?.username, callback)) {
+                if (!botthis.canUserCall(msg.from?.username, handler)) {
                     await botthis.sendMessageExt(msg.chat.id, t("admin.messages.restricted"), msg);
 
                     return;
@@ -479,12 +494,12 @@ ${chunks[index]}
                         if (match[0].includes(`-${key}`)) botthis.context(msg).mode[key as keyof BotMessageContextMode] = true;
                     }
 
-                    executedMatch = originalRegex.exec(newCommand);
+                    executedMatch = fullRegex.exec(newCommand);
                 }
 
                 botthis.context(msg).messageThreadId = msg.is_topic_message ? msg.message_thread_id : undefined;
 
-                await callback.call(botthis, botthis, msg, executedMatch);
+                await handler.call(botthis, botthis, msg, paramMapper ? paramMapper(executedMatch) : executedMatch);
             } catch (error) {
                 logger.error(error);
             } finally {
@@ -658,7 +673,7 @@ ${chunks[index]}
 
     /**
      * @deprecated Do not use directly
-     * @see onTextExt
+     * @see addRoute
      */
     onText(regexp: RegExp, callback: (msg: TelegramBot.Message, match: RegExpExecArray | null) => void): void {
         return super.onText(regexp, callback);

@@ -17,425 +17,323 @@ import StatusHandlers from "../handlers/status";
 
 const botConfig = config.get<BotConfig>("bot");
 
-class RegexCommander {
-    botname: Optional<string>;
-
-    constructor(botname: Optional<string>) {
-        this.botname = botname;
-
-        if (!botname) {
-            logger.error("Running without bot name");
-        }
-    }
-
-    /**
-     * Basic command form: /command_name parameters
-     * @param aliases Alternative [command_name]'s
-     * @param params Regex for [parameters]
-     * @param optional Can parameters be omitted
-     * @param flags Regex modifiers for a whole command regex
-     * @returns Regex for yagop-node-telegram bot library to use for choosing a handler
-     */
-    command(aliases: string[], params: RegExp | undefined = undefined, optional: boolean = true, flags: string = "i"): RegExp {
-        const commandPart = `/(?:${aliases.join("|")})`;
-        const botnamePart = this.botname ? `(?:@${this.botname})?` : "";
-        const paramsPart = params ? (optional ? `(?: ${params.source})?` : ` ${params.source}`) : "";
-
-        return new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, flags);
-    }
+function OptionalParam(paramregex: RegExp) {
+    return new RegExp(`(?: ${paramregex.source})?`, paramregex.flags);
 }
 
 export function setRoutes(bot: HackerEmbassyBot): void {
-    const rc = new RegexCommander(bot.Name);
-
     // Callbacks and events
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);
     bot.onExt("chat_member", ServiceHandlers.newMemberHandler);
 
     // Info
-    bot.onTextExt(rc.command(["help"]), BasicHandlers.helpHandler);
-    bot.onTextExt(rc.command(["about"]), BasicHandlers.aboutHandler);
-    bot.onTextExt(rc.command(["join"]), BasicHandlers.joinHandler);
-    bot.onTextExt(rc.command(["events"]), BasicHandlers.eventsHandler);
-    bot.onTextExt(rc.command(["donate"]), BasicHandlers.donateHandler);
-    bot.onTextExt(rc.command(["location", "where"]), BasicHandlers.locationHandler);
-    bot.onTextExt(rc.command(["donatecash", "donatecard"]), BasicHandlers.donateCardHandler);
-    bot.onTextExt(rc.command(["donatecrypto"], /(btc|eth|usdc|usdt)/, false), (bot, msg, match) =>
-        BasicHandlers.donateCoinHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["getresidents", "gr"]), BasicHandlers.getResidentsHandler);
-    bot.onTextExt(
-        rc.command(["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"]),
-        BasicHandlers.upcomingEventsHandler
-    );
-    bot.onTextExt(rc.command(["todayevents", "today", "te"]), BasicHandlers.todayEventsHandler);
+    bot.addRoute(["help"], BasicHandlers.helpHandler);
+    bot.addRoute(["about"], BasicHandlers.aboutHandler);
+    bot.addRoute(["join"], BasicHandlers.joinHandler);
+    bot.addRoute(["events"], BasicHandlers.eventsHandler);
+    bot.addRoute(["donate"], BasicHandlers.donateHandler);
+    bot.addRoute(["location", "where"], BasicHandlers.locationHandler);
+    bot.addRoute(["donatecash", "donatecard"], BasicHandlers.donateCardHandler);
+
+    bot.addRoute(["donatecrypto"], BasicHandlers.donateCoinHandler, /(btc|eth|usdc|usdt)/, match => match[1]);
+
+    bot.addRoute(["getresidents", "gr"], BasicHandlers.getResidentsHandler);
+    bot.addRoute(["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"], BasicHandlers.upcomingEventsHandler);
+    bot.addRoute(["todayevents", "today", "te"], BasicHandlers.todayEventsHandler);
 
     // Panels
-    bot.onTextExt(rc.command(["start", "startpanel", "sp"]), BasicHandlers.startPanelHandler);
-    bot.onTextExt(rc.command(["infopanel", "ip"]), BasicHandlers.infoPanelHandler);
-    bot.onTextExt(rc.command(["controlpanel", "cp"]), BasicHandlers.controlPanelHandler, ["member"]);
-    bot.onTextExt(rc.command(["memepanel", "meme", "memes", "mp"]), BasicHandlers.memePanelHandler, ["member", "trusted"]);
+    bot.addRoute(["start", "startpanel", "sp"], BasicHandlers.startPanelHandler);
+    bot.addRoute(["infopanel", "ip"], BasicHandlers.infoPanelHandler);
+    bot.addRoute(["controlpanel", "cp"], BasicHandlers.controlPanelHandler, null, null, ["member"]);
+    bot.addRoute(["memepanel", "meme", "memes", "mp"], BasicHandlers.memePanelHandler, null, null, ["member", "trusted"]);
 
     // Issues
-    bot.onTextExt(rc.command(["issue"], /(.*)/), (bot, msg, match) => BasicHandlers.issueHandler(bot, msg, match[1]));
+    bot.addRoute(["issue"], BasicHandlers.issueHandler, /(.*)/, match => match[1]);
 
     // Status
-    bot.onTextExt(rc.command(["status", "s"]), (bot, msg) => StatusHandlers.statusHandler(bot, msg));
-    bot.onTextExt(rc.command(["in", "iaminside"]), StatusHandlers.inHandler);
-    bot.onTextExt(rc.command(["open", "o"]), StatusHandlers.openHandler, ["member"]);
-    bot.onTextExt(rc.command(["close", "c"]), StatusHandlers.closeHandler, ["member"]);
-    bot.onTextExt(
-        rc.command(["inforce", "goin"], /(\S+)/, false),
-        (bot, msg, match) => StatusHandlers.inForceHandler(bot, msg, match[1]),
-        ["member", "trusted"]
-    );
-    bot.onTextExt(
-        rc.command(["outforce", "gohome"], /(\S+)/, false),
-        (bot, msg, match) => StatusHandlers.outForceHandler(bot, msg, match[1]),
-        ["member", "trusted"]
-    );
-    bot.onTextExt(rc.command(["out", "iamleaving"]), StatusHandlers.outHandler);
-    bot.onTextExt(rc.command(["evict", "outforceall"]), StatusHandlers.evictHandler, ["member"]);
-    bot.onTextExt(rc.command(["going", "coming", "cuming", "g"], /(.*)/), (bot, msg, match) =>
-        StatusHandlers.goingHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["notgoing", "notcoming", "notcuming", "ng"]), StatusHandlers.notGoingHandler);
-    bot.onTextExt(rc.command(["autoinside"], /(.*\S)/), (bot, msg, match) =>
-        StatusHandlers.autoinsideHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["setmac"], /(?:(.*\S))/), (bot, msg, match) => StatusHandlers.setmacHandler(bot, msg, match[1]));
-    bot.onTextExt(rc.command(["superstatus", "ss"]), ServiceHandlers.superstatusHandler, ["member"]);
-    bot.onTextExt(rc.command(["knock", "knockknock", "tuktuk", "tuk"]), (bot, msg) => EmbassyHandlers.knockHandler(bot, msg));
+    bot.addRoute(["status", "s"], StatusHandlers.statusHandler);
+    bot.addRoute(["in", "iaminside"], StatusHandlers.inHandler);
+    bot.addRoute(["open", "o"], StatusHandlers.openHandler, null, null, ["member"]);
+    bot.addRoute(["close", "c"], StatusHandlers.closeHandler, null, null, ["member"]);
+    bot.addRoute(["inforce", "goin"], StatusHandlers.inForceHandler, /(\S+)/, match => [match[1]], ["member", "trusted"]);
+    bot.addRoute(["outforce", "gohome"], StatusHandlers.outForceHandler, /(\S+)/, match => [match[1]], ["member", "trusted"]);
+    bot.addRoute(["out", "iamleaving"], StatusHandlers.outHandler);
+    bot.addRoute(["evict", "outforceall"], StatusHandlers.evictHandler, null, null, ["member"]);
+    bot.addRoute(["going", "coming", "cuming", "g"], StatusHandlers.goingHandler, OptionalParam(/(.*)/), match => match[1]);
+    bot.addRoute(["notgoing", "notcoming", "notcuming", "ng"], StatusHandlers.notGoingHandler);
+    bot.addRoute(["autoinside"], StatusHandlers.autoinsideHandler, /(.*\S)/, match => match[1]);
+    bot.addRoute(["setmac"], StatusHandlers.setmacHandler, /(?:(.*\S))/, match => match[1]);
+    bot.addRoute(["superstatus", "ss"], ServiceHandlers.superstatusHandler, null, null, ["member"]);
+    bot.addRoute(["knock", "knockknock", "tuktuk", "tuk"], EmbassyHandlers.knockHandler);
 
     // Stats
-    bot.onTextExt(rc.command(["profile", "me"]), (bot, msg) => StatusHandlers.profileHandler(bot, msg));
-    bot.onTextExt(
-        rc.command(["profile"], /(\S+)/, false),
-        (bot, msg, match) => StatusHandlers.profileHandler(bot, msg, match[1]),
-        ["accountant"]
-    );
-    bot.onTextExt(rc.command(["mystats"]), (bot, msg) => StatusHandlers.statsOfHandler(bot, msg));
-    bot.onTextExt(rc.command(["statsof"], /(\S+)/, false), (bot, msg, match) =>
-        StatusHandlers.statsOfHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["stats"], /(?:from (\S+))?(?: to (\S+))?/), (bot, msg, match) =>
-        StatusHandlers.statsHandler(bot, msg, match[1], match[2])
-    );
-    bot.onTextExt(rc.command(["month", "statsmonth", "monthstats"]), (bot, msg) => StatusHandlers.statsMonthHandler(bot, msg));
-    bot.onTextExt(rc.command(["lastmonth", "statslastmonth", "lastmonthstats"]), (bot, msg) =>
-        StatusHandlers.statsMonthHandler(bot, msg, new Date().getMonth() - 1)
-    );
+    bot.addRoute(["profile", "me"], StatusHandlers.profileHandler);
+    bot.addRoute(["profile"], StatusHandlers.profileHandler, /(\S+)/, match => [match[1]], ["accountant"]);
+    bot.addRoute(["mystats"], StatusHandlers.statsOfHandler);
+    bot.addRoute(["statsof"], StatusHandlers.statsOfHandler, /(\S+)/, match => match[1]);
+    bot.addRoute(["stats"], StatusHandlers.statsHandler, /(?:from (\S+))?(?: to (\S+))?/, match => [match[1], match[2]]);
+    bot.addRoute(["month", "statsmonth", "monthstats"], StatusHandlers.statsMonthHandler);
+    bot.addRoute(["lastmonth", "statslastmonth", "lastmonthstats"], StatusHandlers.statsMonthHandler, null, () => [
+        new Date().getMonth() - 1,
+    ]);
 
     // Emoji
-    bot.onTextExt(
-        rc.command(["setemoji", "emoji", "myemoji"], /(.*)/),
-        (bot, msg, match) => StatusHandlers.setemojiHandler(bot, msg, match[1]),
-        ["member", "trusted"]
-    );
+    bot.addRoute(["setemoji", "emoji", "myemoji"], StatusHandlers.setemojiHandler, /(.*)/, match => [match[1]], [
+        "member",
+        "trusted",
+    ]);
 
     // Cams
-    bot.onTextExt(rc.command(["webcam", "webcum", "cam", "cum", "firstfloor", "ff"]), EmbassyHandlers.webcamHandler, ["member"]);
-    bot.onTextExt(rc.command(["webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"]), EmbassyHandlers.webcam2Handler, [
+    bot.addRoute(["webcam", "webcum", "cam", "cum", "firstfloor", "ff"], EmbassyHandlers.webcamHandler, null, null, ["member"]);
+    bot.addRoute(["webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"], EmbassyHandlers.webcam2Handler, null, null, [
         "member",
     ]);
-    bot.onTextExt(rc.command(["doorcam", "doorcum", "dc"]), EmbassyHandlers.doorcamHandler, ["member"]);
-    bot.onTextExt(rc.command(["allcams", "cams", "allcums", "cums", "allc"]), EmbassyHandlers.allCamsHandler, ["member"]);
+    bot.addRoute(["doorcam", "doorcum", "dc"], EmbassyHandlers.doorcamHandler, null, null, ["member"]);
+    bot.addRoute(["allcams", "cams", "allcums", "cums", "allc"], EmbassyHandlers.allCamsHandler, null, null, ["member"]);
 
     // Sensors
-    bot.onTextExt(rc.command(["climate", "temp"]), EmbassyHandlers.climateHandler);
+    bot.addRoute(["climate", "temp"], EmbassyHandlers.climateHandler);
 
     // Devices
-    bot.onTextExt(
-        rc.command(["gayming", "gaming", "gayminghelp", "gaminghelp", "gaming help", "gayming help"]),
-        (bot, msg) => EmbassyHandlers.deviceHelpHandler(bot, msg, "gaming"),
+    bot.addRoute(
+        ["gayming", "gaming", "gayminghelp", "gaminghelp", "gaming help", "gayming help"],
+        EmbassyHandlers.deviceHelpHandler,
+        null,
+        () => ["gaming"],
         ["member"]
     );
-    bot.onTextExt(
-        rc.command(["gaymingup", "gamingup", "wolgaming", "gaming up", "gayming up"]),
-        (bot, msg) => EmbassyHandlers.wakeHandler(bot, msg, "gaming"),
+    bot.addRoute(
+        ["gaymingup", "gamingup", "wolgaming", "gaming up", "gayming up"],
+        EmbassyHandlers.wakeHandler,
+        null,
+        () => ["gaming"],
         ["member"]
     );
-    bot.onTextExt(
-        rc.command(["gaymingdown", "gamingdown", "gaming shutdown", "gayming shutdown", "gaming down", "gayming down"]),
-        (bot, msg) => EmbassyHandlers.shutdownHandler(bot, msg, "gaming"),
+    bot.addRoute(
+        ["gaymingdown", "gamingdown", "gaming shutdown", "gayming shutdown", "gaming down", "gayming down"],
+        EmbassyHandlers.shutdownHandler,
+        null,
+        () => ["gaming"],
         ["member"]
     );
-    bot.onTextExt(
-        rc.command(["gaymingstatus", "gamingstatus", "gaming status", "gayming status"]),
-        (bot, msg) => EmbassyHandlers.pingHandler(bot, msg, "gaming"),
+    bot.addRoute(
+        ["gaymingstatus", "gamingstatus", "gaming status", "gayming status"],
+        EmbassyHandlers.pingHandler,
+        null,
+        () => ["gaming"],
         ["member"]
     );
 
     // Network utils
-    bot.onTextExt(
-        rc.command(["isalive", "alive", "probe"], /(\S+)/, false),
-        (bot, msg, match) => EmbassyHandlers.pingHandler(bot, msg, match[1]),
-        ["member"]
-    );
-    bot.onTextExt(
-        rc.command(["ping"], /(\S+)/, false),
-        (bot, msg, match) => EmbassyHandlers.pingHandler(bot, msg, match[1], true),
-        ["member"]
-    );
+    bot.addRoute(["isalive", "alive", "probe"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1]], ["member"]);
+    bot.addRoute(["ping"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1], true], ["member"]);
 
     // Printers
-    bot.onTextExt(rc.command(["printers"]), EmbassyHandlers.printersHandler);
-    bot.onTextExt(rc.command(["anette", "anettestatus"]), (bot, msg) => EmbassyHandlers.printerStatusHandler(bot, msg, "anette"));
-    bot.onTextExt(rc.command(["plumbus", "plumbusstatus"]), (bot, msg) =>
-        EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus")
-    );
-    bot.onTextExt(rc.command(["printerstatus"], /(.*\S)/, false), (bot, msg, match) =>
-        EmbassyHandlers.printerStatusHandler(bot, msg, match[1])
-    );
+    bot.addRoute(["printers"], EmbassyHandlers.printersHandler);
+    bot.addRoute(["anette", "anettestatus"], EmbassyHandlers.printerStatusHandler, null, () => "anette");
+    bot.addRoute(["plumbus", "plumbusstatus"], EmbassyHandlers.printerStatusHandler, null, () => "plumbus");
+    bot.addRoute(["printerstatus"], EmbassyHandlers.printerStatusHandler, /(.*\S)/, match => match[1]);
 
     // Door
-    bot.onTextExt(rc.command(["unlock", "u"]), EmbassyHandlers.unlockHandler, ["member"]);
-    bot.onTextExt(rc.command(["doorbell", "db"]), EmbassyHandlers.doorbellHandler, ["member"]);
+    bot.addRoute(["unlock", "u"], EmbassyHandlers.unlockHandler, null, null, ["member"]);
+    bot.addRoute(["doorbell", "db"], EmbassyHandlers.doorbellHandler, null, null, ["member"]);
 
     // Conditioner
-    bot.onTextExt(
-        rc.command(["conditioner", "conditionerstate", "midea", "ac", "acstate", "mideastate"]),
-        (bot, msg) => EmbassyHandlers.conditionerHandler(bot, msg),
+    bot.addRoute(
+        ["conditioner", "conditionerstate", "midea", "ac", "acstate", "mideastate"],
+        EmbassyHandlers.conditionerHandler,
+        null,
+        null,
         ["member", "trusted"]
     );
-    bot.onTextExt(
-        rc.command(["turnonconditioner", "conditioneron", "mideaon", "acon"]),
-        (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, true),
+    bot.addRoute(
+        ["turnonconditioner", "conditioneron", "mideaon", "acon"],
+        EmbassyHandlers.turnConditionerHandler,
+        null,
+
+        () => [true],
         ["member", "trusted"]
     );
-    bot.onTextExt(
-        rc.command(["turnoffconditioner", "conditioneroff", "mideaoff", "acoff"]),
-        (bot, msg) => EmbassyHandlers.turnConditionerHandler(bot, msg, false),
+    bot.addRoute(
+        ["turnoffconditioner", "conditioneroff", "mideaoff", "acoff"],
+        EmbassyHandlers.turnConditionerHandler,
+        null,
+
+        () => [false],
         ["member", "trusted"]
     );
-    bot.onTextExt(
-        rc.command(["setConditionerMode", "conditionermode", "mideamode", "acmode"], /(\S+)/, false),
-        (bot, msg, match) => EmbassyHandlers.setConditionerModeHandler(bot, msg, match[1]),
+    bot.addRoute(
+        ["setConditionerMode", "conditionermode", "mideamode", "acmode"],
+        EmbassyHandlers.setConditionerModeHandler,
+        /(\S+)/,
+        match => [match[1]],
         ["member", "trusted"]
     );
-    bot.onTextExt(
-        rc.command(["setConditionerTemp", "setConditionerTemperature", "conditionertemp", "mideatemp", "actemp"], /(\d*)/, false),
-        (bot, msg, match) => EmbassyHandlers.setConditionerTempHandler(bot, msg, Number(match[1])),
+    bot.addRoute(
+        ["setConditionerTemp", "setConditionerTemperature", "conditionertemp", "mideatemp", "actemp"],
+        EmbassyHandlers.setConditionerTempHandler,
+        /(\d*)/,
+        match => [Number(match[1])],
         ["member", "trusted"]
     );
 
     // Sounds
-    bot.onTextExt(rc.command(["sayinspace", "say"], /(.*)/, true, "ims"), (bot, msg, match) =>
-        EmbassyHandlers.sayinspaceHandler(bot, msg, match[1])
+    bot.addRoute(["sayinspace", "say"], EmbassyHandlers.sayinspaceHandler, /(.*)/ims, match => match[1]);
+    bot.addRoute(["rzd", "announce"], EmbassyHandlers.announceHandler, /(.*)/ims, match => match[1]);
+    bot.addRoute(["playinspace", "play"], EmbassyHandlers.playinspaceHandler, /(.*)/ims, match => match[1]);
+    bot.addRoute(["fartinspace", "fart"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/fart.mp3`);
+    bot.addRoute(["moaninspace", "moan"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/moan.mp3`);
+    bot.addRoute(
+        ["rickroll", "nevergonnagiveyouup"],
+        EmbassyHandlers.playinspaceHandler,
+        null,
+        () => `${embassyBase}/rickroll.mp3`
     );
-    bot.onTextExt(rc.command(["rzd", "announce"], /(.*)/, false, "ims"), (bot, msg, match) =>
-        EmbassyHandlers.announceHandler(bot, msg, match[1])
+    bot.addRoute(["rzd"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/rzd.mp3`);
+    bot.addRoute(["adler"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/adler.mp3`);
+    bot.addRoute(["rfoxed", "rf0x1d"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/rfoxed.mp3`);
+    bot.addRoute(["nani", "omaewamoushindeiru"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/nani.mp3`);
+    bot.addRoute(
+        ["zhuchok", "zhenya", "anya", "zhanya"],
+        EmbassyHandlers.playinspaceHandler,
+        null,
+        () => `${embassyBase}/zhuchok.mp3`
     );
-    bot.onTextExt(rc.command(["playinspace", "play"], /(.*)/, true, "ims"), (bot, msg, match) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["fartinspace", "fart"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/fart.mp3`)
-    );
-    bot.onTextExt(rc.command(["moaninspace", "moan"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/moan.mp3`)
-    );
-    bot.onTextExt(rc.command(["rickroll", "nevergonnagiveyouup"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rickroll.mp3`)
-    );
-    bot.onTextExt(rc.command(["rzd"]), (bot, msg) => EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`));
-    bot.onTextExt(rc.command(["adler"]), (bot, msg) => EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/adler.mp3`));
-    bot.onTextExt(rc.command(["rfoxed", "rf0x1d"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rfoxed.mp3`)
-    );
-    bot.onTextExt(rc.command(["nani", "omaewamoushindeiru"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/nani.mp3`)
-    );
-    bot.onTextExt(rc.command(["zhuchok", "zhenya", "anya", "zhanya"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/zhuchok.mp3`)
-    );
-    bot.onTextExt(rc.command(["badum", "badumtss"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/badumtss.mp3`)
-    );
-    bot.onTextExt(rc.command(["sad", "sadtrombone"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/sad.mp3`)
-    );
-    bot.onTextExt(rc.command(["dushno", "openwindow"]), (bot, msg) =>
-        EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/dushno.mp3`)
-    );
+    bot.addRoute(["badum", "badumtss"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/badumtss.mp3`);
+    bot.addRoute(["sad", "sadtrombone"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/sad.mp3`);
+    bot.addRoute(["dushno", "openwindow"], EmbassyHandlers.playinspaceHandler, null, () => `${embassyBase}/dushno.mp3`);
 
     // Funds
-    bot.onTextExt(rc.command(["funds", "fs"]), FundsHandlers.fundsHandler);
-    bot.onTextExt(rc.command(["fund", "f"], /(.*\S)/, false), (bot, msg, match) => FundsHandlers.fundHandler(bot, msg, match[1]));
-    bot.onTextExt(rc.command(["fundsall", "fundshistory", "fsa"]), FundsHandlers.fundsallHandler);
-    bot.onTextExt(
-        rc.command(["addfund"], /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)/, false),
-        (bot, msg, match) => FundsHandlers.addFundHandler(bot, msg, match[1], match[2], match[3]),
+    bot.addRoute(["funds", "fs"], FundsHandlers.fundsHandler);
+    bot.addRoute(["fund", "f"], FundsHandlers.fundHandler, /(.*\S)/, match => match[1]);
+    bot.addRoute(["fundsall", "fundshistory", "fsa"], FundsHandlers.fundsallHandler);
+    bot.addRoute(
+        ["addfund"],
+        FundsHandlers.addFundHandler,
+        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)/,
+        match => [match[1], match[2], match[3]],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["updatefund"], /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/, false),
-        (bot, msg, match) => FundsHandlers.updateFundHandler(bot, msg, match[1], match[2], match[3], match[4]),
+    bot.addRoute(
+        ["updatefund"],
+        FundsHandlers.updateFundHandler,
+        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/,
+        match => [match[1], match[2], match[3], match[4]],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["removefund"], /(.*\S)/, false),
-        (bot, msg, match) => FundsHandlers.removeFundHandler(bot, msg, match[1]),
+    bot.addRoute(["removefund"], FundsHandlers.removeFundHandler, /(.*\S)/, match => [match[1]], ["accountant"]);
+    bot.addRoute(["exportfund", "csv"], FundsHandlers.exportCSVHandler, /(.*\S)/, match => match[1]);
+    bot.addRoute(["exportdonut"], FundsHandlers.exportDonutHandler, /(.*\S)/, match => match[1]);
+    bot.addRoute(["closefund"], FundsHandlers.closeFundHandler, /(.*\S)/, match => [match[1]], ["accountant"]);
+    bot.addRoute(
+        ["changefundstatus"],
+        FundsHandlers.changeFundStatusHandler,
+        /of (.*\S) to (.*\S)/,
+        match => [match[1], match[2]],
         ["accountant"]
     );
-    bot.onTextExt(rc.command(["exportfund", "csv"], /(.*\S)/, false), (bot, msg, match) =>
-        FundsHandlers.exportCSVHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(rc.command(["exportdonut"], /(.*\S)/, false), (bot, msg, match) =>
-        FundsHandlers.exportDonutHandler(bot, msg, match[1])
-    );
-    bot.onTextExt(
-        rc.command(["closefund"], /(.*\S)/, false),
-        (bot, msg, match) => FundsHandlers.closeFundHandler(bot, msg, match[1]),
-        ["accountant"]
-    );
-    bot.onTextExt(
-        rc.command(["changefundstatus"], /of (.*\S) to (.*\S)/, false),
-        (bot, msg, match) => FundsHandlers.changeFundStatusHandler(bot, msg, match[1], match[2]),
-        ["accountant"]
-    );
-    bot.onTextExt(rc.command(["showcostsdonut", "costsdonut", "donut", "dt"]), (bot, msg) =>
-        FundsHandlers.showCostsDonutHandler(bot, msg)
-    );
-    bot.onTextExt(
-        rc.command(["residentscosts", "residentsdonated", "residentcosts", "rcosts"]),
-        (bot, msg) => FundsHandlers.residentsDonatedHandler(bot, msg),
+    bot.addRoute(["showcostsdonut", "costsdonut", "donut", "dt"], FundsHandlers.showCostsDonutHandler);
+    bot.addRoute(
+        ["residentscosts", "residentsdonated", "residentcosts", "rcosts"],
+        FundsHandlers.residentsDonatedHandler,
+        null,
+        null,
         ["member", "accountant"]
     );
-    bot.onTextExt(rc.command(["costs", "showcosts", "cs"]), (bot, msg) => FundsHandlers.showCostsHandler(bot, msg));
+    bot.addRoute(["costs", "showcosts", "cs"], FundsHandlers.showCostsHandler);
 
     // Donations
-    bot.onTextExt(
-        rc.command(["costs", "cs", "rent"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/, false),
-        (bot, msg, match) => FundsHandlers.costsHandler(bot, msg, match[1], match[2], match[3]),
+    bot.addRoute(
+        ["costs", "cs", "rent"],
+        FundsHandlers.costsHandler,
+        /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/,
+        match => [match[1], match[2], match[3]],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["adddonation", "ad"], /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/, false),
-        (bot, msg, match) => FundsHandlers.addDonationHandler(bot, msg, match[1], match[2], match[3], match[4]),
+    bot.addRoute(
+        ["adddonation", "ad"],
+        FundsHandlers.addDonationHandler,
+        /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/,
+        match => [match[1], match[2], match[3], match[4]],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["removedonation"], /(\d+)/, false),
-        (bot, msg, match) => FundsHandlers.removeDonationHandler(bot, msg, match[1]),
+    bot.addRoute(["removedonation"], FundsHandlers.removeDonationHandler, /(\d+)/, match => [match[1]], ["accountant"]);
+    bot.addRoute(
+        ["transferdonation", "td"],
+        FundsHandlers.transferDonationHandler,
+        /(\d+) to (.*\S)/,
+        match => [match[1], match[2]],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["transferdonation", "td"], /(\d+) to (.*\S)/, false),
-        (bot, msg, match) => FundsHandlers.transferDonationHandler(bot, msg, match[1], match[2]),
+    bot.addRoute(
+        ["tocab", "givecab", "tc"],
+        FundsHandlers.transferDonationHandler,
+        /(\d+)/,
+        match => [match[1], "CabiaRangris"],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["tocab", "givecab", "tc"], /(\d+)/, false),
-        (bot, msg, match) => FundsHandlers.transferDonationHandler(bot, msg, match[1], "CabiaRangris"),
+    bot.addRoute(
+        ["tocaball", "givecaball", "givecaballmymoney", "tca"],
+        FundsHandlers.transferAllToHandler,
+        /(.*)/,
+        match => ["CabiaRangris", match[1]],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["tocaball", "givecaball", "givecaballmymoney", "tca"], /(.*)/, true),
-        (bot, msg, match) => FundsHandlers.transferAllToHandler(bot, msg, "CabiaRangris", match[1]),
+    bot.addRoute(
+        ["changedonation"],
+        FundsHandlers.changeDonationHandler,
+        /(\d+) to (\S+)\s?(\D*?)/,
+        match => [match[1], match[2], match[3]],
         ["accountant"]
     );
-    bot.onTextExt(
-        rc.command(["changedonation"], /(\d+) to (\S+)\s?(\D*?)/, false),
-        (bot, msg, match) => FundsHandlers.changeDonationHandler(bot, msg, match[1], match[2], match[3]),
-        ["accountant"]
-    );
-    bot.onTextExt(
-        rc.command(["debt", "mymoney"], /(\S+)/, true),
-        (bot, msg, match) => FundsHandlers.debtHandler(bot, msg, match[1]),
-        ["accountant"]
-    );
+    bot.addRoute(["debt", "mymoney"], FundsHandlers.debtHandler, /(\S+)/, match => [match[1]], ["accountant"]);
 
     // Needs
-    bot.onTextExt(rc.command(["needs"]), NeedsHandlers.needsHandler);
-    bot.onTextExt(rc.command(["buy", "need"], /(.*)/, false), (bot, msg, match) => NeedsHandlers.buyHandler(bot, msg, match[1]));
-    bot.onTextExt(rc.command(["bought"], /(.*)/, false), (bot, msg, match) => NeedsHandlers.boughtHandler(bot, msg, match[1]));
+    bot.addRoute(["needs"], NeedsHandlers.needsHandler);
+    bot.addRoute(["buy", "need"], NeedsHandlers.buyHandler, /(.*)/, match => match[1]);
+    bot.addRoute(["bought"], NeedsHandlers.boughtHandler, /(.*)/, match => match[1]);
 
     // Birthdays
-    bot.onTextExt(rc.command(["birthdays", "birthday"]), (bot, msg) => BirthdayHandlers.birthdayHandler(bot, msg));
-    bot.onTextExt(rc.command(["forcebirthdaywishes", "fbw"]), BirthdayHandlers.forceBirthdayWishHandler, ["admin"]);
-    bot.onTextExt(rc.command(["mybirthday", "mybday", "bday"], /(.*\S)/), (bot, msg, match) =>
-        BirthdayHandlers.myBirthdayHandler(bot, msg, match[1])
-    );
+    bot.addRoute(["birthdays", "birthday"], BirthdayHandlers.birthdayHandler);
+    bot.addRoute(["forcebirthdaywishes", "fbw"], BirthdayHandlers.forceBirthdayWishHandler, null, null, ["admin"]);
+    bot.addRoute(["mybirthday", "mybday", "bday"], BirthdayHandlers.myBirthdayHandler, /(.*\S)/, match => match[1]);
 
     // Admin
-    bot.onTextExt(rc.command(["getusers", "users", "gu"]), AdminHandlers.getUsersHandler, ["admin"]);
-    bot.onTextExt(rc.command(["getrestrictedusers", "restricted"]), AdminHandlers.getRestrictedUsersHandler, ["admin"]);
-    bot.onTextExt(
-        rc.command(["adduser"], /(\S+?) as (\S+)/, false),
-        (bot, msg, match) => AdminHandlers.addUserHandler(bot, msg, match[1], match[2]),
-        ["admin"]
-    );
-    bot.onTextExt(
-        rc.command(["updateroles"], /of (\S+?) to (\S+)/, false),
-        (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], match[2]),
-        ["admin"]
-    );
-    bot.onTextExt(
-        rc.command(["restrict"], /(\S+?)/, false),
-        (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], "restricted"),
-        ["admin"]
-    );
-    bot.onTextExt(
-        rc.command(["restrictbyid"], /(\d+?)/, false),
-        (bot, msg, match) => AdminHandlers.updateRolesByIdHandler(bot, msg, match[1], "restricted"),
-        ["admin"]
-    );
-    bot.onTextExt(
-        rc.command(["unblock"], /(\S+?)/, false),
-        (bot, msg, match) => AdminHandlers.updateRolesHandler(bot, msg, match[1], "default"),
-        ["admin"]
-    );
-    bot.onTextExt(
-        rc.command(["unblockbyid"], /(\d+?)/, false),
-        (bot, msg, match) => AdminHandlers.updateRolesByIdHandler(bot, msg, match[1], "default"),
-        ["admin"]
-    );
-    bot.onTextExt(
-        rc.command(["removeuser"], /(\S+)/, false),
-        (bot, msg, match) => AdminHandlers.removeUserHandler(bot, msg, match[1]),
-        ["admin"]
-    );
-    bot.onTextExt(
-        rc.command(["removeuserbyid"], /(\d+)/, false),
-        (bot, msg, match) => AdminHandlers.removeUserByIdHandler(bot, msg, match[1]),
-        ["admin"]
-    );
-    bot.onTextExt(rc.command(["forward"], /(.*)/, false), (bot, msg, match) => AdminHandlers.forwardHandler(bot, msg, match[1]), [
+    bot.addRoute(["getusers", "users", "gu"], AdminHandlers.getUsersHandler, null, null, ["admin"]);
+    bot.addRoute(["getrestrictedusers", "restricted"], AdminHandlers.getRestrictedUsersHandler, null, null, ["admin"]);
+    bot.addRoute(["adduser"], AdminHandlers.addUserHandler, /(\S+?) as (\S+)/, match => [match[1], match[2]], ["admin"]);
+    bot.addRoute(["updateroles"], AdminHandlers.updateRolesHandler, /of (\S+?) to (\S+)/, match => [match[1], match[2]], [
         "admin",
     ]);
-    bot.onTextExt(rc.command(["getlogs", "logs", "log"]), AdminHandlers.getLogHandler, ["admin"]);
-    bot.onTextExt(rc.command(["getstate", "state"]), AdminHandlers.getStateHandler, ["admin"]);
-    bot.onTextExt(rc.command(["cleanstate"]), AdminHandlers.cleanStateHandler, ["admin"]);
-    bot.onTextExt(
-        rc.command(["stoplive", "cleanlive"], /(\S+)/),
-        (bot, msg, match) => AdminHandlers.stopLiveHandler(bot, msg, match[1]),
-        ["admin"]
-    );
+    bot.addRoute(["restrict"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "restricted"], ["admin"]);
+    bot.addRoute(["restrictbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "restricted"], ["admin"]);
+    bot.addRoute(["unblock"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "default"], ["admin"]);
+    bot.addRoute(["unblockbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "default"], ["admin"]);
+    bot.addRoute(["removeuser"], AdminHandlers.removeUserHandler, /(\S+)/, match => [match[1]], ["admin"]);
+    bot.addRoute(["removeuserbyid"], AdminHandlers.removeUserByIdHandler, /(\d+)/, match => [match[1]], ["admin"]);
+    bot.addRoute(["forward"], AdminHandlers.forwardHandler, /(.*)/, match => [match[1]], ["admin"]);
+    bot.addRoute(["getlogs", "logs", "log"], AdminHandlers.getLogHandler, null, null, ["admin"]);
+    bot.addRoute(["getstate", "state"], AdminHandlers.getStateHandler, null, null, ["admin"]);
+    bot.addRoute(["cleanstate"], AdminHandlers.cleanStateHandler, null, null, ["admin"]);
+    bot.addRoute(["stoplive", "cleanlive"], AdminHandlers.stopLiveHandler, /(\S+)/, match => [match[1]], ["admin"]);
 
     // Memes
-    bot.onTextExt(rc.command(["randomdog", "dog"]), MemeHandlers.randomDogHandler);
-    bot.onTextExt(rc.command(["randomcat", "cat"]), MemeHandlers.randomCatHandler);
-    bot.onTextExt(rc.command(["randomcock", "cock"]), MemeHandlers.randomRoosterHandler);
-    bot.onTextExt(
-        rc.command(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"]),
-        MemeHandlers.randomCabHandler
-    );
-    bot.onTextExt(rc.command(["syrniki", "pidarasi", "pidorasi"]), (bot, msg) =>
-        MemeHandlers.imageHandler(bot, msg, "./resources/images/memes/syrniki.jpeg")
+    bot.addRoute(["randomdog", "dog"], MemeHandlers.randomDogHandler);
+    bot.addRoute(["randomcat", "cat"], MemeHandlers.randomCatHandler);
+    bot.addRoute(["randomcock", "cock"], MemeHandlers.randomRoosterHandler);
+    bot.addRoute(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"], MemeHandlers.randomCabHandler);
+    bot.addRoute(
+        ["syrniki", "pidarasi", "pidorasi"],
+        MemeHandlers.imageHandler,
+        null,
+        () => "./resources/images/memes/syrniki.jpeg"
     );
 
     // Chat control
-    bot.onTextExt(rc.command(["clear"], /(\d*)/, true), (bot, msg, match) => ServiceHandlers.clearHandler(bot, msg, match[1]), [
-        "member",
-    ]);
-    bot.onTextExt(
-        rc.command(["combine", "squash", "sq"], /(\d*)/, true),
-        (bot, msg, match) => ServiceHandlers.combineHandler(bot, msg, match[1]),
-        ["member"]
-    );
-    bot.onTextExt(rc.command(["enableresidentmenu", "residentmenu"]), ServiceHandlers.residentMenuHandler, ["member"]);
-    bot.onTextExt(rc.command(["chatid"]), ServiceHandlers.chatidHandler, ["admin"]);
+    bot.addRoute(["clear"], ServiceHandlers.clearHandler, /(\d*)/, match => [match[1]], ["member"]);
+    bot.addRoute(["combine", "squash", "sq"], ServiceHandlers.combineHandler, /(\d*)/, match => [match[1]], ["member"]);
+    bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, ["member"]);
+    bot.addRoute(["chatid"], ServiceHandlers.chatidHandler, null, null, ["admin"]);
 
     // Debug logging
     if (botConfig.debug) {

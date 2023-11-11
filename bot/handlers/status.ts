@@ -30,6 +30,7 @@ import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
 import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/HackerEmbassyBot";
+import { InlineButton } from "../helpers";
 import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -122,40 +123,14 @@ export default class StatusHandlers implements BotHandlers {
 
     static getStatusInlineKeyboard(state: State, mode: BotMessageContextMode) {
         const inlineKeyboard = state.open
-            ? [
-                  [
-                      {
-                          text: t("status.buttons.in"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                      {
-                          text: t("status.buttons.out"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                  ],
-              ]
+            ? [[InlineButton(t("status.buttons.in"), "/in"), InlineButton(t("status.buttons.out"), "/out")]]
             : [];
 
         inlineKeyboard.push(
+            [InlineButton(t("status.buttons.going"), "/going"), InlineButton(t("status.buttons.notgoing"), "/notgoing")],
             [
-                {
-                    text: t("status.buttons.going"),
-                    callback_data: JSON.stringify({ command: "/going" }),
-                },
-                {
-                    text: t("status.buttons.notgoing"),
-                    callback_data: JSON.stringify({ command: "/notgoing" }),
-                },
-            ],
-            [
-                {
-                    text: t("status.buttons.refresh"),
-                    callback_data: JSON.stringify({ pin: mode.pin, command: "/status", flags: Flags.Editing }),
-                },
-                {
-                    text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
-                    callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
-                },
+                InlineButton(t("status.buttons.refresh"), "/status", Flags.Editing, { pin: mode.pin }),
+                InlineButton(state.open ? t("status.buttons.close") : t("status.buttons.open"), state.open ? "/close" : "/open"),
             ]
         );
 
@@ -166,14 +141,14 @@ export default class StatusHandlers implements BotHandlers {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
         const statusMessage = await StatusHandlers.getStatusMessage(state, mode, resultMessage.chat.id === botConfig.chats.horny);
-        const statusInlineKeyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
 
         try {
             await bot.editMessageTextExt(statusMessage, resultMessage, {
                 chat_id: resultMessage.chat.id,
                 message_id: resultMessage.message_id,
                 reply_markup: {
-                    inline_keyboard: mode.static ? [] : statusInlineKeyboard,
+                    inline_keyboard: mode.static ? [] : inline_keyboard,
                 },
             } as TelegramBot.EditMessageTextOptions);
         } catch {
@@ -192,7 +167,7 @@ export default class StatusHandlers implements BotHandlers {
         }
 
         const statusMessage = await StatusHandlers.getStatusMessage(state, mode, msg.chat.id === botConfig.chats.horny);
-        const statusInlineKeyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
 
         const resultMessage = (await bot.sendOrEditMessage(
             msg.chat.id,
@@ -200,7 +175,7 @@ export default class StatusHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: statusInlineKeyboard,
+                    inline_keyboard,
                 },
             },
             msg.message_id
@@ -224,23 +199,9 @@ export default class StatusHandlers implements BotHandlers {
         openSpace(msg.from?.username, { checkOpener: true });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
-        const inlineKeyboard = [
-            [
-                {
-                    text: t("status.buttons.in"),
-                    callback_data: JSON.stringify({ command: "/in" }),
-                },
-                {
-                    text: t("status.buttons.reclose"),
-                    callback_data: JSON.stringify({ command: "/close" }),
-                },
-            ],
-            [
-                {
-                    text: t("status.buttons.whoinside"),
-                    callback_data: JSON.stringify({ command: "/status" }),
-                },
-            ],
+        const inline_keyboard = [
+            [InlineButton(t("status.buttons.in"), "/in"), InlineButton(t("status.buttons.reclose"), "/close")],
+            [InlineButton(t("status.buttons.whoinside"), "/status")],
         ];
 
         await bot.sendMessageExt(
@@ -249,7 +210,7 @@ export default class StatusHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             }
         );
@@ -259,14 +220,7 @@ export default class StatusHandlers implements BotHandlers {
         closeSpace(msg.from?.username, { evict: true });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
-        const inlineKeyboard = [
-            [
-                {
-                    text: t("status.buttons.reopen"),
-                    callback_data: JSON.stringify({ command: "/open" }),
-                },
-            ],
-        ];
+        const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "/open")]];
 
         await bot.sendMessageExt(
             msg.chat.id,
@@ -274,7 +228,7 @@ export default class StatusHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             }
         );
@@ -301,41 +255,16 @@ export default class StatusHandlers implements BotHandlers {
             message = t("status.in.notready");
         }
 
-        const inlineKeyboard = gotIn
+        const inline_keyboard = gotIn
             ? [
-                  [
-                      {
-                          text: t("status.buttons.inandin"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                      {
-                          text: t("status.buttons.inandout"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                  ],
-                  [
-                      {
-                          text: t("status.buttons.whoinside"),
-                          callback_data: JSON.stringify({ command: "/status" }),
-                      },
-                  ],
+                  [InlineButton(t("status.buttons.inandin"), "/in"), InlineButton(t("status.buttons.inandout"), "/out")],
+                  [InlineButton(t("status.buttons.whoinside"), "/status")],
               ]
-            : [
-                  [
-                      {
-                          text: t("status.buttons.repeat"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                      {
-                          text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ command: "/open" }),
-                      },
-                  ],
-              ];
+            : [[InlineButton(t("status.buttons.repeat"), "/in"), InlineButton(t("status.buttons.open"), "/open")]];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }
@@ -355,41 +284,16 @@ export default class StatusHandlers implements BotHandlers {
             message = t("status.out.shouldnot");
         }
 
-        const inlineKeyboard = gotOut
+        const inline_keyboard = gotOut
             ? [
-                  [
-                      {
-                          text: t("status.buttons.outandout"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                      {
-                          text: t("status.buttons.outandin"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                  ],
-                  [
-                      {
-                          text: t("status.buttons.whoinside"),
-                          callback_data: JSON.stringify({ command: "/status" }),
-                      },
-                  ],
+                  [InlineButton(t("status.buttons.outandout"), "/out"), InlineButton(t("status.buttons.outandin"), "/in")],
+                  [InlineButton(t("status.buttons.whoinside"), "/status")],
               ]
-            : [
-                  [
-                      {
-                          text: t("status.buttons.repeat"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                      {
-                          text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ command: "/open" }),
-                      },
-                  ],
-              ];
+            : [[InlineButton(t("status.buttons.repeat"), "/out"), InlineButton(t("status.buttons.open"), "/open")]];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }
@@ -501,22 +405,13 @@ export default class StatusHandlers implements BotHandlers {
             note,
         });
 
-        const inlineKeyboard = [
-            [
-                {
-                    text: t("status.buttons.andgoing"),
-                    callback_data: JSON.stringify({ command: "/going" }),
-                },
-                {
-                    text: t("status.buttons.whoelse"),
-                    callback_data: JSON.stringify({ command: "/status" }),
-                },
-            ],
+        const inline_keyboard = [
+            [InlineButton(t("status.buttons.andgoing"), "/going"), InlineButton(t("status.buttons.whoelse"), "/status")],
         ];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }

@@ -72,6 +72,7 @@ export interface BotMessageContext {
     clear(): void;
     isAdminMode(): boolean;
     isEditing: boolean;
+    isButtonResponse: boolean;
 }
 
 export interface EditMessageMediaOptionsExt extends EditMessageMediaOptions {
@@ -218,6 +219,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                     return this.mode.admin && !this.mode.forward;
                 },
                 isEditing: false,
+                isButtonResponse: false,
             };
             this.contextMap.set(msg, newContext);
 

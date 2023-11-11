@@ -10,7 +10,7 @@ import * as UsersHelper from "../../services/usersHelper";
 import { initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
-import { isPrivateMessage } from "../helpers";
+import { InlineButton, isPrivateMessage } from "../helpers";
 
 const CALLBACK_DATA_RESTRICTION = 21;
 
@@ -44,24 +44,12 @@ export default class FundsHandlers implements BotHandlers {
             (isPrivateMessage(msg, bot.context(msg)) || bot.context(msg).isAdminMode());
 
         // telegram callback_data is restricted to 64 bytes
-        const inlineKeyboard =
+        const inline_keyboard =
             fundName.length < CALLBACK_DATA_RESTRICTION
                 ? [
                       [
-                          {
-                              text: t("funds.fund.buttons.csv"),
-                              callback_data: JSON.stringify({
-                                  command: "/ef",
-                                  fn: fundName,
-                              }),
-                          },
-                          {
-                              text: t("funds.fund.buttons.donut"),
-                              callback_data: JSON.stringify({
-                                  command: "/ed",
-                                  fn: fundName,
-                              }),
-                          },
+                          InlineButton(t("funds.fund.buttons.csv"), "/ef", undefined, { fn: fundName }),
+                          InlineButton(t("funds.fund.buttons.donut"), "/ed", undefined, { fn: fundName }),
                       ],
                   ]
                 : [];
@@ -70,7 +58,7 @@ export default class FundsHandlers implements BotHandlers {
 
         await bot.sendMessageExt(msg.chat.id, t("funds.fund.text", { fundlist }), msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }

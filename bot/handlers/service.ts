@@ -1,5 +1,5 @@
 import config from "config";
-import TelegramBot, { ChatMemberUpdated, InlineKeyboardButton, Message } from "node-telegram-bot-api";
+import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
@@ -11,9 +11,9 @@ import { userLink } from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
 import HackerEmbassyBot, { BotHandlers, FULL_PERMISSIONS, ITelegramUser, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
 import { MessageHistoryEntry } from "../core/MessageHistory";
+import { InlineButton } from "../helpers";
 import { setMenu } from "../init/menu";
 import EmbassyHandlers, { embassyBase } from "./embassy";
-import NeedsHandlers from "./needs";
 import StatusHandlers from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -173,17 +173,20 @@ export default class ServiceHandlers implements BotHandlers {
         if (!command) throw Error("Missing calback command");
 
         const route = bot.routeMap.get(command);
-        if (!route) throw Error("Calback route does not exist");
+        if (!route) throw Error(`Calback route for ${command} does not exist`);
 
         const handler = route.handler;
-        const params: any[] = ServiceHandlers.getParams(bot, msg, data, callbackQuery);
 
         if (!bot.canUserCall(msg.from.username, command)) return;
+
+        bot.context(msg).isButtonResponse = true;
 
         if (data.fs !== undefined) {
             if (data.fs & Flags.Silent) bot.context(msg).mode.silent = true;
             if (data.fs & Flags.Editing) bot.context(msg).isEditing = true;
         }
+
+        const params: any[] = ServiceHandlers.getParams(bot, msg, data, callbackQuery);
 
         await handler.call(bot, bot, msg, ...params);
     }
@@ -203,8 +206,12 @@ export default class ServiceHandlers implements BotHandlers {
             case "/ed":
                 additionalParams.push(data.fn!);
                 break;
-            case "/bought":
+            case "/boughtbutton":
+                additionalParams.push(data.id);
                 additionalParams.push(callbackQuery.data!);
+                break;
+            case "/boughtundo":
+                additionalParams.push(data.id);
                 break;
             case "/status":
                 bot.context(msg).mode.pin = data.pin!;
@@ -216,24 +223,16 @@ export default class ServiceHandlers implements BotHandlers {
                 additionalParams.push("plumbus");
                 break;
             case "/turnonconditioner":
-                additionalParams.push(async () => {
-                    await EmbassyHandlers.turnConditionerHandler(bot, msg, true);
-                });
+                additionalParams.push(true);
                 break;
             case "/turnoffconditioner":
-                additionalParams.push(async () => {
-                    await EmbassyHandlers.turnConditionerHandler(bot, msg, false);
-                });
+                additionalParams.push(false);
                 break;
             case "/addconditionertemp":
-                additionalParams.push(async () => {
-                    await EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff!);
-                });
+                additionalParams.push(data.diff);
                 break;
             case "/setconditionermode":
-                additionalParams.push(async () => {
-                    await EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode!);
-                });
+                additionalParams.push(data.mode!);
                 break;
             case "/moan":
             case "/fart":
@@ -322,14 +321,7 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
-        const inline_keyboard = [
-            [
-                {
-                    text: t("service.welcome.captcha"),
-                    callback_data: JSON.stringify({ vId: user.id }),
-                },
-            ],
-        ];
+        const inline_keyboard = [[InlineButton(t("service.welcome.captcha"), "/bought", Flags.Simple, { vId: user.id })]];
 
         await bot.sendMessageExt(chat.id, welcomeText, null, {
             reply_markup: { inline_keyboard },
@@ -373,25 +365,5 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         await bot.sendMessageExt(chat.id, welcomeText, null);
-    }
-
-    static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string): Promise<void> {
-        await NeedsHandlers.boughtByIdHandler(bot, message, id);
-
-        if (!message.reply_markup) return;
-
-        const new_keyboard = message.reply_markup.inline_keyboard.filter(
-            (button: InlineKeyboardButton[]) => button[0].callback_data !== data
-        );
-
-        if (new_keyboard.length !== message.reply_markup.inline_keyboard.length) {
-            await bot.editMessageReplyMarkup(
-                { inline_keyboard: new_keyboard },
-                {
-                    chat_id: message.chat.id,
-                    message_id: message.message_id,
-                }
-            );
-        }
     }
 }

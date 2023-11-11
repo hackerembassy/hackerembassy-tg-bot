@@ -291,6 +291,8 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["needs"], NeedsHandlers.needsHandler);
     bot.addRoute(["buy", "need"], NeedsHandlers.buyHandler, /(.*)/, match => [match[1]]);
     bot.addRoute(["bought"], NeedsHandlers.boughtHandler, /(.*)/, match => [match[1]]);
+    bot.addRoute(["boughtbutton"], NeedsHandlers.boughtButtonHandler, null, match => [match[1]]); // button
+    bot.addRoute(["boughtundo"], NeedsHandlers.boughtUndoHandler, /(\d+)/, match => [match[1]]); // button
 
     // Birthdays
     bot.addRoute(["birthdays", "birthday"], BirthdayHandlers.birthdayHandler);
@@ -339,6 +341,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     ]);
     bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, ["member"]);
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler, null, null, ["admin"]);
+    bot.addRoute(["removebuttons"], ServiceHandlers.removeButtons, null, null, ["member"]);
 }
 
 export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {

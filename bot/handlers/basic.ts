@@ -114,7 +114,7 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
-        const inlineKeyboard = [
+        const inline_keyboard = [
             [InlineButton(t("basic.start.buttons.status"), "/status")],
             [InlineButton(t("basic.start.buttons.events"), "/events"), InlineButton(t("basic.start.buttons.funds"), "/funds")],
             [
@@ -134,7 +134,7 @@ export default class BasicHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             },
             msg.message_id
@@ -142,7 +142,7 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
-        const inlineKeyboard = [
+        const inline_keyboard = [
             [
                 InlineButton(t("basic.control.buttons.unlock"), "/unlock"),
                 InlineButton(t("basic.control.buttons.doorbell"), "/doorbell"),
@@ -166,7 +166,7 @@ export default class BasicHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             },
             msg.message_id
@@ -174,7 +174,7 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
-        const inlineKeyboard = [
+        const inline_keyboard = [
             [InlineButton(t("basic.info.buttons.about"), "/about"), InlineButton(t("basic.info.buttons.join"), "/join")],
             [
                 InlineButton(t("basic.info.buttons.location"), "/location"),
@@ -192,7 +192,7 @@ export default class BasicHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             },
             msg.message_id
@@ -200,7 +200,7 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
-        const inlineKeyboard = [
+        const inline_keyboard = [
             [
                 InlineButton(t("basic.meme.buttons.moan"), "/moan"),
                 InlineButton(t("basic.meme.buttons.fart"), "/fart"),
@@ -233,7 +233,7 @@ export default class BasicHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             },
             msg.message_id

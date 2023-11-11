@@ -1,22 +1,20 @@
-import { Message } from "node-telegram-bot-api";
+import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import NeedsRepository from "../../repositories/needsRepository";
 import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import * as UsersHelper from "../../services/usersHelper";
 import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import { InlineButton } from "../helpers";
+import { Flags } from "./service";
 
 export default class NeedsHandlers implements BotHandlers {
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
+
         const inline_keyboard = needs
-            ? needs.map(need => [
-                  {
-                      text: need.text,
-                      callback_data: JSON.stringify({ command: "/bought", id: need.id }),
-                  },
-              ])
+            ? needs.map(need => [InlineButton(need.text, "/boughtbutton", Flags.Simple, { id: need.id })])
             : [];
 
         await bot.sendMessageExt(msg.chat.id, text, msg, {
@@ -69,17 +67,30 @@ export default class NeedsHandlers implements BotHandlers {
             username: UsersHelper.formatUsername(buyer, bot.context(msg).mode),
             item,
         });
-        const inline_keyboard = [
-            [
-                {
-                    text: t("needs.bought.undo"),
-                    callback_data: JSON.stringify({ command: "/bought_undo", id: need.id }),
-                },
-            ],
-        ];
+        const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "/boughtundo", Flags.Simple, { id: need.id })]];
 
         await bot.sendMessageExt(msg.chat.id, successText, msg, {
             reply_markup: { inline_keyboard },
         });
+    }
+
+    static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string): Promise<void> {
+        await NeedsHandlers.boughtByIdHandler(bot, message, id);
+
+        if (!message.reply_markup) return;
+
+        const new_keyboard = message.reply_markup.inline_keyboard.filter(
+            (button: InlineKeyboardButton[]) => button[0].callback_data !== data
+        );
+
+        if (new_keyboard.length !== message.reply_markup.inline_keyboard.length) {
+            await bot.editMessageReplyMarkup(
+                { inline_keyboard: new_keyboard },
+                {
+                    chat_id: message.chat.id,
+                    message_id: message.message_id,
+                }
+            );
+        }
     }
 }

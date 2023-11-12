@@ -4,17 +4,22 @@ export const GeneralCommandsList: string = `
 /help - Помощь
 /about - О спейсе и боте
 /join - Как присоединиться к нам
-/events - Наши мероприятия
 /donate - Как задонатить
 /location - Как нас найти
 /getresidents - Наши резиденты, можно к ним обратиться по любым спейсовским вопросам
 
+Мероприятия:
+/events - О наших мероприятиях
+/upcoming - Ближайшие мероприятия
+/today - Сегодняшние мероприятия
+
 Статус:
-/status (s) - Статус спейса и кто отметился внутри
+/status (s) - Статус спейса и кто отметился внутри (поддерживаются модификаторы -short, -live, -mention)
 /in - Отметиться находящимся в спейсе
 /out - Отметиться ушедшим из спейса
 /going (g) - Планирую сегодня в спейс (можно после пробела указать когда, например #\`/going наверное около 20:00#\`)
 /notgoing (ng) - Больше не планирую сегодня в спейс
+/knock - Постучать в спейс и тегнуть резидентов внутри
 /climate - Климат в спейсе
 
 Принтеры:
@@ -23,11 +28,11 @@ export const GeneralCommandsList: string = `
 /plumbus - Статус 3D принтера Plumbus
 
 Сборы:
-/funds - Наши открытые сборы
-/costs - Показать сбор на аренду текущего месяца
-/donut - Показать пончиковую диаграмму сбора на аренду текущего месяца
-/fundsall - Все сборы (в том числе архив)
-#\`/fund fund_name#\` - Вывести сбор по имени
+/funds (fs) - Наши открытые сборы
+/showcosts (scs) - Показать сбор на аренду текущего месяца
+/donut (dt)- Показать пончиковую диаграмму сбора на аренду текущего месяца
+/fundsall (fsa) - Все сборы (в том числе архив)
+#\`/fund fund_name#\` (f) - Вывести сбор по имени
 
 Это другое:
 /birthdays - Кто празднует днюху в этом месяце
@@ -43,6 +48,7 @@ export const GeneralCommandsList: string = `
 #\`/bought item_name#\` - Отметить что-то купленным из needs
 
 Статистика:
+/me - Твоя статистика донатов и посещений
 /stats - Статистика по времени в спейсе (на основе отметок)
 #\`/stats from YYYY-MM-DD to YYYY-MM-DD#\` - Статистика по времени в спейсе за выбранный период (можно указать только from или to)
 /mystats - Статистика по моему времени в спейсе (на основе отметок)
@@ -66,45 +72,66 @@ export const MemberCommandsList: string = `
 /firstfloor (ff) - Глянуть камеру первого этажа
 /secondfloor (sf) - Глянуть камеру второго этажа
 /doorcam (dc) - Глянуть камеру снаружи
+/allcams (ac) - Глянуть все камеры
 /doorbell (db) - Позвонить в дверной звонок
 /unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
 /clear n - Удалить последние n ответов бота из чата (default n = 1)
-/combine n - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
+/combine n (sq n) - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
 /setemoji - Поставить себе эмодзи в боте
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
 #\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
 /evict - Очистить список отметившихся внутри
-/residentsdonated - Кто из резидентов уже задонатил в этом месяце
+/residentsdonated (rcosts) - Кто из резидентов уже задонатил в этом месяце
+/mideaon - Врубить кондей
+/mideaoff - Вырубить кондей
+/mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+/mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
+#\`/probe host#\` - Проверить доступность хоста
+#\`/ping host#\` - Пропинговать хост
+/gaming - Управление игровым сервером
 `;
 
 export const AdminCommandsList: string = ` 
 Команды админов:
 /getusers
+/getrestrictedusers
 #\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
 #\`/removeuser telegram_username#\`
+#\`/removeuserbyid telegram_user_id#\`
 #\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
+#\`/restrict telegram_username#\`
+#\`/restrictbyid telegram_user_id#\`
+#\`/unblock telegram_username#\`
+#\`/unblockbyid telegram_user_id#\`
 /forcebirthdaywishes
 #\`/forward some_text#\`
 /getlogs
+/getstate
+/cleanstate
+/stoplive
 
-\\* Roles: admin, accountant, member, default
+\\* Roles: admin, accountant, member, trusted, default
 `;
 
 export const AccountantCommandsList: string = `
 Команды бухгалтера:
-#\`/costs donation_value currency_code from telegram_username#\` - Задонатить в последний актуальный сбор на аренду
+#\`/costs donation_value currency_code from telegram_username#\` (cs) - Задонатить в последний актуальный сбор на аренду
 #\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
 #\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
-#\`/exportfund fund_name#\` - Экспортировать донаты сбора как CSV
-#\`/exportfonut fund_name#\` - Экспортировать донаты сбора как диаграмму
+#\`/exportfund fund_name#\` (csv) - Экспортировать донаты сбора как CSV
+#\`/exportdonut fund_name#\` - Экспортировать донаты сбора как диаграмму
 #\`/closefund fund_name#\` - Изменить статус сбора на закрытый
 #\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removefund fund_name#\` - Удалить сбор (не надо)
-#\`/adddonation donation_value currency_code from telegram_username to fund_name#\`
+#\`/adddonation donation_value currency_code from telegram_username to fund_name#\` (ad)
 #\`/changedonation donation_id to donation_value currency_code#\`
 #\`/removedonation donation_id#\` - Удалить донат
-#\`/transferdonation donation_id to username#\` - Передать донат другому бухгалтеру
+#\`/transferdonation donation_id to username#\` (td) - Передать донат другому бухгалтеру
+#\`/tocab donation_id#\` - Передать донат Кабу
+#\`/tocaball fund_name#\` - Передать все свои донаты Кабу, опционально можно указать конкретный сбор
+#\`/profile username#\` - Статистика посещениий и донатов юзера
+#\`/debt username#\` - Сколько донатов числится на юзере (без параметра - на тебе)
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead
@@ -114,7 +141,11 @@ export const GlobalModifiers: string = `
 Эти модификаторы можно добавить в конце любой команды:
 #\`-silent#\` - Команда выполнится без вывода ответа
 #\`-mention#\` - Пользователь будет упомянут с уведомлением
+#\`-static#\` - Вывод команды без кнопок
+#\`-pin#\` - Вывод команды для закрепа (если поддерживается)
+#\`-live#\` - Текст команды будет обновляться (если поддерживается)
 #\`-admin#\` - Вспомогательные команды выведутся для админа и бухгалтера и в публичном чате
+#\`-forward#\` - Сообщение будет переадресовано в главный чат
 `;
 
 export const ApiCommandsList: string = `
@@ -123,4 +154,6 @@ export const ApiCommandsList: string = `
 -donate - Как задонатить
 -funds - Наши открытые сборы
 -events - Мероприятия у нас
+-upcoming - Ближайшие мероприятия
+-today - Мероприятия сегодня
 `;

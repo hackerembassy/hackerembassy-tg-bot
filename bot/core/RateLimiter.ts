@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import config from "config";
 
-import { BotConfig } from "../config/schema";
+import { BotConfig } from "../../config/schema";
 
-const botConfig = config.get("bot") as BotConfig;
-const DEFAULT_RATE_LIMIT = botConfig.rateLimit ?? 500;
+const botConfig = config.get<BotConfig>("bot");
+const DEFAULT_RATE_LIMIT = botConfig.rateLimit;
 
 export default class RateLimiter {
     static #debounceTimerIds = new Map();

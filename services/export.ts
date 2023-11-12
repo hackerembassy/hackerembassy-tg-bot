@@ -3,8 +3,10 @@ import { writeToBuffer } from "@fast-csv/format";
 import ChartJsImage from "chartjs-to-image";
 
 import FundsRepository from "../repositories/fundsRepository";
+import { onlyUniqueInsFilter } from "../utils/common";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { DateBoundary } from "../utils/date";
+import { equalsIns } from "../utils/text";
 import t from "./localization";
 
 interface SimplifiedDonation {
@@ -20,11 +22,11 @@ type ChartLabel = {
 };
 
 export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDonation[] {
-    const uniqueUsernames = [...new Set(donations.map(d => d.username))];
+    const uniqueUsernames = donations.map(d => d.username).filter(onlyUniqueInsFilter);
     const combinedDonations = [];
 
     for (const username of uniqueUsernames) {
-        const userDonations = donations.filter(d => d.username === username);
+        const userDonations = donations.filter(d => equalsIns(d.username, username));
         const userCombinedDonation = userDonations.reduce((acc, curr) => acc + curr.donation, 0);
         combinedDonations.push({ username, donation: userCombinedDonation });
     }
@@ -134,7 +136,7 @@ export async function createUserStatsDonut(
         userTimes.map(ut => ut.username),
         userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
         `${t("status.stats.hoursinspace", dateBoundaries)}`,
-        { height: 1500, width: 2000 }
+        { height: 1500, width: 2500 }
     ).toBinary();
 }
 

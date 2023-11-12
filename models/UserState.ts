@@ -18,7 +18,7 @@ class UserState {
     status: UserStateType;
     date: number | Date;
     type: UserStateChangeType;
-    note: string | null;
+    note: Nullable<string>;
 
     constructor({ id = 0, username, status, date, type = 0, note = null }: UserState) {
         this.id = id;

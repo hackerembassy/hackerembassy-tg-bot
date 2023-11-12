@@ -2,15 +2,15 @@ import Need from "../models/Need";
 import BaseRepository from "./baseRepository";
 
 class NeedsRepository extends BaseRepository {
-    getNeedById(id: number): Need | null {
+    getNeedById(id: number): Nullable<Need> {
         return this.db.prepare("SELECT * FROM needs WHERE id = ?").get(id) as Need;
     }
 
-    getOpenNeedByText(text: string): Need | null {
+    getOpenNeedByText(text: string): Nullable<Need> {
         return this.db.prepare("SELECT * FROM needs WHERE text = ? AND buyer IS NULL LIMIT 1").get(text) as Need;
     }
 
-    getOpenNeeds(): Need[] | null {
+    getOpenNeeds(): Nullable<Need[]> {
         return this.db.prepare("SELECT * FROM needs WHERE buyer IS NULL ORDER BY id ASC").all() as Need[];
     }
 

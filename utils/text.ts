@@ -3,3 +3,13 @@ export function isEmoji(message: string): boolean {
         message
     );
 }
+
+export function equalsIns(str1: Nullable<string>, str2: Nullable<string>): boolean {
+    return str1?.toLowerCase() === str2?.toLowerCase();
+}
+
+export class OptionalRegExp extends RegExp {}
+
+export function OptionalParam(paramregex: RegExp) {
+    return new OptionalRegExp(`(?: ${paramregex.source})?`, paramregex.flags);
+}

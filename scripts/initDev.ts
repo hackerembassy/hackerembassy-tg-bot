@@ -3,8 +3,6 @@ import { existsSync, mkdirSync, promises, renameSync, writeFileSync } from "fs";
 // @ts-ignore
 import { createInterface } from "readline/promises";
 
-import UsersRepository from "../repositories/usersRepository";
-
 (async function initScript() {
     console.log(
         "[DEV] Preparing bot before the first launch.\n ! You need to have ssh-keygen installed in PATH to succesfully generate keys for embassy API"
@@ -15,6 +13,8 @@ import UsersRepository from "../repositories/usersRepository";
         mkdirSync("./data/db", { recursive: true });
     }
     await promises.copyFile("./data/sample.db", "./data/db/data.db");
+
+    const UsersRepository = (await import("../repositories/usersRepository")).default;
 
     // Read dev telegram username
     const rl = createInterface({
@@ -43,6 +43,7 @@ MQTTPASSWORD="replace_with_mqtt_password"
 WIFIUSER="replace_with_wifi_user"
 WIFIPASSWORD="replace_with_wifi_password"
 HASSTOKEN="replace_with_hass_token"
+HACKERGOOGLEAPIKEY="replace_with_google_api_key"
 `;
 
     writeFileSync(".env", envData);

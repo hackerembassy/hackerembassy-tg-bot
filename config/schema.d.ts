@@ -4,6 +4,7 @@ export interface Config {
     embassyApi: EmbassyApiConfig;
     currency: CurrencyConfig;
     api: BotApiConfig;
+    network: NetworkConfig;
 }
 
 export interface BotConfig {
@@ -15,9 +16,23 @@ export interface BotConfig {
     logfolderpath: string;
     persistedfolderpath: string;
     maxchathistory: number;
-    calendarUrl: string;
-    calendarAppLink: string;
-    locales: string;
+    calendar: CalendarConfig;
+    locales?: string;
+    live: LiveConfig;
+    debug: boolean;
+    moderatedChats: number[];
+    static: string;
+}
+
+export interface LiveConfig {
+    camRefreshInterval: number;
+    statusRefreshInterval: number;
+}
+
+export interface CalendarConfig {
+    url: string;
+    appLink: string;
+    upcomingToLoad: number;
 }
 
 export interface ChatsConfig {
@@ -44,7 +59,7 @@ export interface PrinterEndpoint {
 }
 
 export interface EmbassyApiConfig {
-    timeout: number;
+    devices: DevicesConfig;
     port: number;
     queryMonitorInterval: number;
     statusCheckInterval: number;
@@ -66,15 +81,40 @@ export interface EmbassyApiConfig {
     hostsToMonitor?: string[] | null;
 }
 
+export interface NetworkConfig {
+    timeout: number;
+}
+
+export interface DevicesConfig {
+    [key: string]: DeviceDescriptor | undefined;
+}
+
+export interface DeviceDescriptor {
+    host: string;
+    mac: string;
+    os?: "windows" | "linux" | "macos";
+}
+
 export interface ClimateConfig {
     first_floor: RoomClimate;
     second_floor: RoomClimate;
     bedroom: RoomClimate;
+    conditioner: ConditionerConfig;
+}
+
+export interface ConditionerConfig {
+    entityId: string;
+    statePath: string;
+    turnOnPath: string;
+    turnOffPath: string;
+    setModePath: string;
+    setTemperaturePath: string;
 }
 
 export interface RoomClimate {
     temperature: string;
     humidity: string;
+    co2?: string;
 }
 
 export interface CurrencyConfig {

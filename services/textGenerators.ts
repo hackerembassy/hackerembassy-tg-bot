@@ -1,26 +1,28 @@
 import config from "config";
 
+import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "../bot/helpers";
 import { PrintersConfig } from "../config/schema";
-import Donation from "../models/Donation";
+import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
 import User from "../models/User";
 import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
-import { convertCurrency, formatValueForCurrency } from "../utils/currency";
-import { convertMinutesToHours, DateBoundary, ElapsedTimeObject } from "../utils/date";
-import { SpaceClimate } from "./home";
+import { formatValueForCurrency, sumDonations } from "../utils/currency";
+import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, onlyTimeOptions, shortDateTimeOptions } from "../utils/date";
+import { HSEvent } from "./googleCalendar";
+import { SpaceClimate } from "./hass";
 import t from "./localization";
 import { PrinterStatus } from "./printer3d";
-import { formatUsername, getRoles } from "./usersHelper";
+import { MonitorMessage } from "./statusMonitor";
 
-const printersConfig = config.get("printers") as PrintersConfig;
+const printersConfig = config.get<PrintersConfig>("printers");
 
 type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boolean };
 
 export async function createFundList(
-    funds: Fund[] | null | undefined,
-    donations: Donation[] | null,
+    funds: Optional<Fund[]>,
+    donations: Nullable<Donation[]>,
     { showAdmin = false, isHistory = false, isApi = false }: FundListOptions,
     mode = { mention: false }
 ): Promise<string> {
@@ -31,18 +33,11 @@ export async function createFundList(
     }
 
     for (const fund of funds) {
-        if (!fund) continue;
-
         const fundDonations =
             donations?.filter(donation => {
                 return donation.fund_id === fund.id;
             }) ?? [];
-        const sumOfAllDonations = await fundDonations.reduce(async (prev, current) => {
-            const newValue = await convertCurrency(current.value, current.currency, fund.target_currency);
-            const prevValue = await prev;
-
-            return newValue ? prevValue + newValue : prevValue;
-        }, Promise.resolve(0));
+        const sumOfAllDonations = await sumDonations(fundDonations, fund.target_currency);
         const fundStatus = generateFundStatus(fund, sumOfAllDonations, isHistory);
 
         list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${formatValueForCurrency(
@@ -91,6 +86,22 @@ export function generateAdminFundHelp(fund: Fund, isHistory: boolean): string {
     return helpList;
 }
 
+export function generateFundDonationsList(fundDonations: FundDonation[], forAccountant: boolean = false): string {
+    let fundDonationsList = "";
+
+    for (const fundDonation of fundDonations) {
+        const donationIdPart = forAccountant ? `[id:${fundDonation.id}] ` : "";
+        const fundNamePart = forAccountant ? `#\`${fundDonation.name}#\`` : fundDonation.name;
+
+        fundDonationsList += `${donationIdPart}${fundNamePart}: ${formatValueForCurrency(
+            fundDonation.value,
+            fundDonation.currency
+        )} ${fundDonation.currency}\n`;
+    }
+
+    return fundDonationsList;
+}
+
 export function generateDonationsList(
     fundDonations: Donation[],
     options: { showAdmin?: boolean; isApi?: boolean },
@@ -115,51 +126,67 @@ export function getStatusMessage(
     state: { open: boolean; changedby: string },
     inside: UserState[],
     going: UserState[],
-    climateInfo: SpaceClimate | null,
+    climateInfo: Nullable<SpaceClimate>,
     mode: { mention: boolean },
-    withSecrets = false,
-    isApi = false
+    options: {
+        short: boolean;
+        withSecrets: boolean;
+        isApi: boolean;
+    }
 ): string {
-    const stateFullText = t("status.status.state", {
+    let stateText = t(options.short ? "status.status.state_pin" : "status.status.state", {
         stateEmoji: state.open ? "🔓" : "🔒",
         state: state.open ? t("status.status.opened") : t("status.status.closed"),
         stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
-        changedBy: formatUsername(state.changedby, mode, isApi),
+        changedBy: formatUsername(state.changedby, mode, options.isApi),
     });
 
-    let insideText = inside.length > 0 ? t("status.status.insidechecked") : t("status.status.nooneinside") + "\n";
-    for (const userStatus of inside) {
-        insideText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
+    if (options.short) {
+        stateText += "  ";
+        stateText +=
+            inside.length > 0
+                ? t("status.status.insidechecked_pin", { count: inside.length })
+                : t("status.status.nooneinside_pin");
+        stateText += "  ";
+        stateText += going.length > 0 ? `${t("status.status.going_pin", { count: going.length })}` : "";
+        stateText += "\n ";
     }
-
-    let goingText = going.length > 0 ? `\n${t("status.status.going")}` : "";
+    stateText += "\n";
+    stateText +=
+        inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
+    for (const userStatus of inside) {
+        stateText += `${formatUsername(userStatus.username, mode, options.isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
+    }
+    stateText += going.length > 0 ? `\n${t("status.status.going", { count: going.length })}` : "";
     for (const userStatus of going) {
-        goingText += `${formatUsername(userStatus.username, mode, isApi)} ${getUserBadges(userStatus.username)} ${
+        stateText += `${formatUsername(userStatus.username, mode, options.isApi)} ${getUserBadges(userStatus.username)} ${
             userStatus.note ? `(${userStatus.note})` : ""
         }\n`;
     }
-
-    const climateText = climateInfo
-        ? `\n${t("embassy.climate.data", { climateInfo })}${withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""}`
+    stateText += climateInfo
+        ? `\n${t("embassy.climate.data", { climateInfo })}${
+              options.withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""
+          }`
         : "";
-
-    const updateText = !isApi
-        ? `⏱ ${t("status.status.updated")} ${new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21)}\n`
+    stateText += "\n";
+    stateText += !options.isApi
+        ? t("status.status.updated", {
+              updatedDate: new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21),
+          })
         : "";
-
-    return `${stateFullText}
-${insideText}${goingText}${climateText}
-${updateText}`;
+    return stateText;
 }
 
-export function getUserBadges(username: string | null): string {
+export function getUserBadges(username: Nullable<string>): string {
     if (!username) return "";
 
     const user = usersRepository.getUserByName(username);
     if (!user) return "";
 
     const roles = getRoles(user);
-    const roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}`;
+    const roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${
+        roles.includes("trusted") ? "🎓" : ""
+    }`;
     const customBadge = user.emoji ?? "";
 
     return `${roleBadges}${customBadge}`;
@@ -172,7 +199,7 @@ export function getUserBadgesWithStatus(userStatus: UserState): string {
     return `${autoBadge}${userBadges}`;
 }
 
-export function getAccountsList(accountants: User[] | undefined | null, mode: { mention: boolean }, isApi = false): string {
+export function getAccountsList(accountants: Optional<User[]>, mode: { mention: boolean }, isApi = false): string {
     return accountants
         ? accountants.reduce(
               (list, user) => `${list}${formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
@@ -181,7 +208,7 @@ export function getAccountsList(accountants: User[] | undefined | null, mode: { 
         : "";
 }
 
-export function getResidentsList(residents: User[] | undefined | null, mode: { mention: boolean }): string {
+export function getResidentsList(residents: Optional<User[]>, mode: { mention: boolean }): string {
     let userList = "";
 
     if (!residents) return userList;
@@ -193,7 +220,7 @@ export function getResidentsList(residents: User[] | undefined | null, mode: { m
     return t("basic.residents", { userList });
 }
 
-export function getMonitorMessagesList(monitorMessages: { level: string; message: string; timestamp: string }[]): string {
+export function getMonitorMessagesList(monitorMessages?: MonitorMessage[]): string {
     return monitorMessages
         ? monitorMessages
               .map(message => `${message.level === "error" ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}`)
@@ -201,7 +228,7 @@ export function getMonitorMessagesList(monitorMessages: { level: string; message
         : "";
 }
 
-export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): string {
+export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }): string {
     let message = `${t("needs.buy.nothing")}\n`;
     const areNeedsProvided = needs && needs.length > 0;
 
@@ -220,7 +247,7 @@ export function getNeedsList(needs: Need[] | null, mode: { mention: boolean }): 
     return message;
 }
 
-export function getDonateText(accountants: User[] | null, isApi: boolean = false): string {
+export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = false): string {
     const cryptoCommands = !isApi
         ? `#\`/donatecrypto btc#\`
   #\`/donatecrypto eth#\`
@@ -269,12 +296,11 @@ const shortMonthNames: string[] = [
     "birthday.months.august",
     "birthday.months.september",
     "birthday.months.october",
-    "birthday.months.october",
     "birthday.months.november",
     "birthday.months.december",
 ];
 
-export function getBirthdaysList(birthdayUsers: User[] | null | undefined, mode: { mention: boolean }): string {
+export function getBirthdaysList(birthdayUsers: Nullable<User[]> | undefined, mode: { mention: boolean }): string {
     let message = t("birthday.nextbirthdays");
     let usersList = `\n${t("birthday.noone")}\n`;
 
@@ -309,7 +335,7 @@ export function getPrintersInfo(): string {
     return t("embassy.printers.help", { anetteApi: printersConfig.anette.apibase, plumbusApi: printersConfig.plumbus.apibase });
 }
 
-export async function getPrinterStatusText(status: PrinterStatus): Promise<string> {
+export function getPrinterStatusText(status: PrinterStatus): string {
     const print_stats = status.print_stats;
     const state = print_stats.state;
     const heater_bed = status.heater_bed;
@@ -380,4 +406,37 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
     const hours = `${usertime.hours}h`.padStart(3, " ");
     const minutes = `${usertime.minutes}m`.padStart(3, " ");
     return `${days} ${hours} ${minutes}`;
+}
+
+export function HSEventToString(event: HSEvent, timeOnly: boolean = false): string {
+    const dateTimeOptions = timeOnly ? onlyTimeOptions : shortDateTimeOptions;
+
+    let result = `${event.summary}: ${event.start.toLocaleString("RU-ru", dateTimeOptions)} - ${event.end.toLocaleString(
+        "RU-ru",
+        dateTimeOptions
+    )}`;
+
+    if (event.description) {
+        result += `\n${toEscapedTelegramMarkdown(event.description)}`;
+    }
+
+    return result;
+}
+
+export function getEventsList(events: HSEvent[]): string {
+    return events.map(event => HSEventToString(event)).join("\n\n");
+}
+
+export function getTodayEventsText(todayEvents: HSEvent[]): string {
+    let messageText = "";
+
+    if (todayEvents.length !== 0) {
+        messageText += t("basic.events.today") + "\n";
+        messageText += getEventsList(todayEvents) + "\n\n";
+        messageText += t("basic.events.entrance");
+    } else {
+        messageText += t("basic.events.notoday");
+    }
+
+    return messageText;
 }

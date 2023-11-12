@@ -1,10 +1,11 @@
 import { Message } from "node-telegram-bot-api";
 
 import t from "../../services/localization";
-import { getRandomImageFromFolder } from "../../services/media";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import { getImageFromPath, getRandomImageFromFolder } from "../../utils/filesystem";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotHandlers } from "../core/types";
 
-export default class MemeHandlers {
+export default class MemeHandlers implements BotHandlers {
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
         const buffer = await getRandomImageFromFolder(path);
 
@@ -30,5 +31,16 @@ export default class MemeHandlers {
 
     static async randomRoosterHandler(bot: HackerEmbassyBot, msg: Message) {
         await MemeHandlers.randomImagePathHandler(bot, msg, "./resources/images/roosters");
+    }
+
+    static async imageHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
+        const buffer = await getImageFromPath(path);
+
+        if (!buffer) {
+            await bot.sendMessageExt(msg.chat.id, t("status.general.error"), msg);
+            return;
+        }
+
+        await bot.sendPhotoExt(msg.chat.id, buffer, msg);
     }
 }

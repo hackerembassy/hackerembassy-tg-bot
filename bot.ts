@@ -4,7 +4,7 @@ envconfig();
 import config from "config";
 
 import { BotConfig } from "./config/schema";
-import("./bot/bot-instance");
-import("./botApi");
+import("./bot/init/instance");
+import("./api/bot");
 
-process.env.TZ = (config.get("bot") as BotConfig).timezone;
+process.env.TZ = config.get<BotConfig>("bot").timezone;

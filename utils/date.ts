@@ -16,6 +16,16 @@ export interface ElapsedTimeObject {
     totalSeconds: number;
 }
 
+export const shortDateTimeOptions: Intl.DateTimeFormatOptions = {
+    dateStyle: "short",
+    timeStyle: "short",
+};
+
+export const onlyTimeOptions: Intl.DateTimeFormatOptions = {
+    dateStyle: undefined,
+    timeStyle: "short",
+};
+
 export function toDateObject(date: Date): DateObject {
     return { day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear() };
 }
@@ -42,8 +52,15 @@ export function getMonthBoundaries(date: Date): { startMonthDate: Date; endMonth
 export function isToday(someDate: Date): boolean {
     const today = new Date();
     return (
-        someDate.getDate() == today.getDate() &&
-        someDate.getMonth() == today.getMonth() &&
-        someDate.getFullYear() == today.getFullYear()
+        someDate.getDate() === today.getDate() &&
+        someDate.getMonth() === today.getMonth() &&
+        someDate.getFullYear() === today.getFullYear()
     );
+}
+
+export function getToday(): Date {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+
+    return date;
 }

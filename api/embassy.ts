@@ -1,5 +1,6 @@
-import { config as envconfig } from "dotenv";
-envconfig();
+// TODO add type checking to request bodies and remove disables below
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
@@ -10,24 +11,29 @@ import { LUCI } from "luci-rpc";
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 
-import { BotConfig, EmbassyApiConfig } from "./config/schema";
-import { getClimate } from "./services/home";
-import logger from "./services/logger";
-import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "./services/media";
-import { unlock } from "./services/mqtt";
-import printer3d from "./services/printer3d";
-import * as statusMonitor from "./services/statusMonitor";
-import { createErrorMiddleware } from "./utils/middleware";
-import { decrypt } from "./utils/security";
+import { EmbassyApiConfig } from "../config/schema";
+import {
+    conditioner,
+    getClimate,
+    getDoorcamImage,
+    getWebcam2Image,
+    getWebcamImage,
+    playInSpace,
+    ringDoorbell,
+    sayInSpace,
+} from "../services/hass";
+import logger from "../services/logger";
+import printer3d from "../services/printer3d";
+import * as statusMonitor from "../services/statusMonitor";
+import { sleep } from "../utils/common";
+import { createErrorMiddleware } from "../utils/middleware";
+import { mqttSendOnce, ping, wakeOnLan } from "../utils/network";
+import { decrypt } from "../utils/security";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
-const botConfig = config.get("bot") as BotConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const port = embassyApiConfig.port;
 const routerip = embassyApiConfig.routerip;
 const wifiip = embassyApiConfig.wifiip;
-
-statusMonitor.startMonitoring();
-process.env.TZ = botConfig.timezone;
 
 const app = express();
 app.use(cors());
@@ -53,9 +59,18 @@ app.post("/playinspace", async (req, res, next) => {
     }
 });
 
-app.get("/statusmonitor", async (_, res, next) => {
+/** @deprecated */
+app.get("/statusmonitor", (_, res, next) => {
     try {
         res.json(statusMonitor.readNewMessages());
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/healthcheck", (_, res, next) => {
+    try {
+        res.sendStatus(200);
     } catch (error) {
         next(error);
     }
@@ -93,12 +108,66 @@ app.get("/webcam2", async (_, res, next) => {
     }
 });
 
+app.post("/wake", async (req, res, next) => {
+    try {
+        const device = req.body.device as string;
+        const mac = embassyApiConfig.devices[device]?.mac;
+
+        if (mac && (await wakeOnLan(mac))) {
+            logger.info(`Woke up ${mac}`);
+            res.send({ message: "Magic packet sent" });
+        } else res.sendStatus(400);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/shutdown", async (req, res, next) => {
+    try {
+        const device = req.body.device as string;
+        const host = embassyApiConfig.devices[device]?.host;
+
+        if (!host) {
+            res.sendStatus(400);
+            return;
+        }
+
+        const os = embassyApiConfig.devices[device]?.os;
+        const command = os === "windows" ? "shutdown /s" : "shutdown now";
+        const ssh = new NodeSSH();
+        await ssh.connect({
+            host,
+            username: process.env["GAMINGUSER"],
+            password: process.env["GAMINGPASSWORD"],
+        });
+        await ssh.exec(command, [""]);
+        ssh.dispose();
+
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/ping", async (req, res, next) => {
+    try {
+        const device = req.body.device as string;
+        const host = embassyApiConfig.devices[device]?.host ?? device;
+
+        if (host) {
+            res.send(await ping(host));
+        } else res.sendStatus(400);
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.post("/unlock", async (req, res, next) => {
     try {
         const token = await decrypt(req.body.token);
 
         if (token === process.env["UNLOCKKEY"]) {
-            unlock();
+            mqttSendOnce(embassyApiConfig.mqtthost, "door", "1", process.env["MQTTUSER"], process.env["MQTTPASSWORD"]);
             logger.info("Door is opened");
             res.send("Success");
         } else res.sendStatus(401);
@@ -154,6 +223,7 @@ app.get("/doorbell", async (_, res, next) => {
  */
 app.get("/devices", async (_, res, next) => {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         const luci = new LUCI(`https://${routerip}`, "bot", process.env["LUCITOKEN"]);
         await luci.init();
         luci.autoUpdateToken(1000 * 60 * 30);
@@ -244,6 +314,78 @@ app.get("/printer", async (req, res, next) => {
         }
 
         res.send({ status, thumbnailBuffer, cam });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/conditionerstate", async (_, res, next) => {
+    try {
+        res.send(await conditioner.getState());
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/turnconditioner", async (req, res, next) => {
+    try {
+        if (req.body.enabled) {
+            await conditioner.turnOn();
+        } else {
+            await conditioner.turnOff();
+        }
+
+        await sleep(5000);
+
+        const updatedState = await conditioner.getState();
+
+        if ((req.body.enabled && updatedState.state !== "off") || (!req.body.enabled && updatedState.state === "off")) {
+            res.send({ message: "Success" });
+            return;
+        }
+        throw new Error("State was not updated");
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/setconditionermode", async (req, res, next) => {
+    try {
+        await conditioner.setMode(req.body.mode);
+
+        await sleep(5000);
+
+        if ((await conditioner.getState()).state === req.body.mode) {
+            res.send({ message: "Success" });
+        }
+        throw new Error("Mode was not updated");
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/setconditionertemperature", async (req, res, next) => {
+    try {
+        await conditioner.setTemperature(req.body.temperature);
+
+        await sleep(5000);
+
+        if ((await conditioner.getState()).attributes.temperature === req.body.temperature) {
+            res.send({ message: "Success" });
+        }
+        throw new Error("Temperature was not updated");
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/addconditionertemperature", async (req, res, next) => {
+    try {
+        const initialState = await conditioner.getState();
+        const newTemperature = initialState.attributes.temperature + req.body.diff;
+        await conditioner.setTemperature(newTemperature);
+
+        res.send({ message: "Queued" });
     } catch (error) {
         next(error);
     }

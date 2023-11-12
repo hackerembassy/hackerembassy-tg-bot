@@ -5,8 +5,8 @@ import { dirname, join } from "path";
 import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
 import { debounce } from "../../utils/common";
-import HackerEmbassyBot, { BotCustomEvent, BotHandlers, LiveChatHandler } from "./HackerEmbassyBot";
-import { MessageHistoryEntry } from "./MessageHistory";
+import HackerEmbassyBot from "./HackerEmbassyBot";
+import { BotCustomEvent, BotHandlers, LiveChatHandler, MessageHistoryEntry } from "./types";
 
 const botConfig = config.get<BotConfig>("bot");
 

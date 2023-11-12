@@ -12,15 +12,22 @@ import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 
 import { EmbassyApiConfig } from "../config/schema";
-import { conditioner, getClimate } from "../services/home";
+import {
+    conditioner,
+    getClimate,
+    getDoorcamImage,
+    getWebcam2Image,
+    getWebcamImage,
+    playInSpace,
+    ringDoorbell,
+    sayInSpace,
+} from "../services/hass";
 import logger from "../services/logger";
-import { getDoorcamImage, getWebcam2Image, getWebcamImage, playInSpace, ringDoorbell, sayInSpace } from "../services/media";
-import { unlock } from "../services/mqtt";
 import printer3d from "../services/printer3d";
 import * as statusMonitor from "../services/statusMonitor";
 import { sleep } from "../utils/common";
 import { createErrorMiddleware } from "../utils/middleware";
-import { ping, wakeOnLan } from "../utils/network";
+import { mqttSendOnce, ping, wakeOnLan } from "../utils/network";
 import { decrypt } from "../utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -160,7 +167,7 @@ app.post("/unlock", async (req, res, next) => {
         const token = await decrypt(req.body.token);
 
         if (token === process.env["UNLOCKKEY"]) {
-            unlock();
+            mqttSendOnce(embassyApiConfig.mqtthost, "door", "1", process.env["MQTTUSER"], process.env["MQTTPASSWORD"]);
             logger.info("Door is opened");
             res.send("Success");
         } else res.sendStatus(401);

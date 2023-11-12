@@ -4,6 +4,7 @@ export interface Config {
     embassyApi: EmbassyApiConfig;
     currency: CurrencyConfig;
     api: BotApiConfig;
+    network: NetworkConfig;
 }
 
 export interface BotConfig {
@@ -59,7 +60,6 @@ export interface PrinterEndpoint {
 
 export interface EmbassyApiConfig {
     devices: DevicesConfig;
-    timeout: number;
     port: number;
     queryMonitorInterval: number;
     statusCheckInterval: number;
@@ -79,6 +79,10 @@ export interface EmbassyApiConfig {
     doorbellpath: string;
     climate: ClimateConfig;
     hostsToMonitor?: string[] | null;
+}
+
+export interface NetworkConfig {
+    timeout: number;
 }
 
 export interface DevicesConfig {

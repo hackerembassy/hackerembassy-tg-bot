@@ -1,8 +1,9 @@
 import { Message } from "node-telegram-bot-api";
 
 import t from "../../services/localization";
-import { getImageFromPath, getRandomImageFromFolder } from "../../services/media";
-import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import { getImageFromPath, getRandomImageFromFolder } from "../../utils/filesystem";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotHandlers } from "../core/types";
 
 export default class MemeHandlers implements BotHandlers {
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {

@@ -24,6 +24,18 @@ describe("Bot Status commands:", () => {
         ]);
     });
 
+    test("/status should mentio people inside if -mention key is used", async () => {
+        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/status -mention"));
+
+        await jest.runAllTimersAsync();
+
+        expect(botMock.popResults()).toEqual([
+            "status\\.open",
+            "status\\.status\\.state\nstatus\\.status\\.insidechecked@adminusername 🔑📒\n\nstatus\\.status\\.updated",
+        ]);
+    });
+
     test("/out and /outforce should allow to leave anyone no matter if the space is opened or closed ", async () => {
         await botMock.processUpdate(createMockMessage("/close", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/in", ADMIN_USER_NAME));

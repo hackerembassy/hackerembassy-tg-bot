@@ -22,6 +22,14 @@ describe("Bot behavior shared for all commands:", () => {
         expect(botMock.popResults()).toEqual([]);
     });
 
+    test("commands with the silent modifier should produce no output", async () => {
+        await botMock.processUpdate(createMockMessage("/status -silent"));
+
+        await jest.runAllTimersAsync();
+
+        expect(botMock.popResults()).toEqual([]);
+    });
+
     test("guest user should not be allowed to use protected commands", async () => {
         // guestuser is a default user
         await botMock.processUpdate(createMockMessage("/unlock"));

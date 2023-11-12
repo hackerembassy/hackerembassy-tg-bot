@@ -8,9 +8,10 @@ import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, { BotHandlers } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotHandlers } from "../core/types";
+import * as helpers from "../helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -31,7 +32,7 @@ export default class BirthdayHandlers implements BotHandlers {
 
     static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date?: string) {
         const username = msg.from?.username;
-        const formattedUsername = UsersHelper.formatUsername(username, bot.context(msg).mode);
+        const formattedUsername = helpers.formatUsername(username, bot.context(msg).mode);
         const fulldate = date?.length === 5 ? "0000-" + date : date;
 
         let text = t("birthday.fail");

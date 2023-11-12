@@ -29,7 +29,7 @@
             "upcomingToLoad": 5
         },
         "moderatedChats": [-1001605898533, -1001555805688],
-        "debug": false,
+        "debug": true,
         "static": "../resources/static"
     },
     "printers": {
@@ -50,7 +50,6 @@
                 "os": "windows"
             }
         },
-        "timeout": 7000,
         "port": 8001,
         "queryMonitorInterval": 60000,
         "statusCheckInterval": 15000,
@@ -97,6 +96,9 @@
         "default": "AMD",
         "cryptoUpdateInterval": 50000,
         "fiatUpdateInterval": 3600000
+    },
+    "network": {
+        "timeout": 7000
     },
     "api": {
         "port": 3000

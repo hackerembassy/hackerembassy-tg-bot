@@ -8,7 +8,7 @@ import fundsRepository from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import { createUserStatsDonut } from "../../services/export";
-import { SpaceClimate } from "../../services/home";
+import { SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import {
@@ -23,13 +23,16 @@ import {
     openSpace,
 } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
 import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
 import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
-import HackerEmbassyBot, { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
+import * as helpers from "../helpers";
+import { InlineButton } from "../helpers";
+import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -44,19 +47,19 @@ export default class StatusHandlers implements BotHandlers {
         if (!cmd || cmd === "help") {
             message = t("status.mac.help");
         } else if (cmd && username && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-            message = t("status.mac.set", { cmd, username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.mac.set", { cmd, username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "remove" && username) {
             UsersRepository.setMACs(username, null);
             UsersRepository.setAutoinside(username, false);
-            message = t("status.mac.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.mac.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "status") {
             const usermac = username ? UsersRepository.getUserByName(username)?.mac : undefined;
             if (usermac)
                 message = t("status.mac.isset", {
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                     usermac,
                 });
-            else message = t("status.mac.isnotset", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            else message = t("status.mac.isnotset", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -76,27 +79,27 @@ export default class StatusHandlers implements BotHandlers {
             else if (UsersRepository.setAutoinside(username, true))
                 message = t("status.autoinside.set", {
                     usermac,
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
         } else if (cmd === "disable" && username) {
             UsersRepository.setAutoinside(username, false);
-            message = t("status.autoinside.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.autoinside.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "status") {
             if (userautoinside)
                 message = t("status.autoinside.isset", {
                     usermac,
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
             else
                 message = t("status.autoinside.isnotset", {
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async getStatusMessage(state: State, mode: BotMessageContextMode, withSecretData: boolean) {
+    static async getStatusMessage(state: State, mode: BotMessageContextMode, short: boolean, withSecretData: boolean) {
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
@@ -111,7 +114,11 @@ export default class StatusHandlers implements BotHandlers {
             logger.error(error);
         }
 
-        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, withSecretData);
+        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, {
+            short,
+            withSecrets: withSecretData,
+            isApi: false,
+        });
 
         if (StatusHandlers.isStatusError)
             statusMessage = mode.pin ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
@@ -119,60 +126,39 @@ export default class StatusHandlers implements BotHandlers {
         return statusMessage;
     }
 
-    static getStatusInlineKeyboard(state: State, mode: BotMessageContextMode) {
+    static getStatusInlineKeyboard(state: State, short: boolean) {
         const inlineKeyboard = state.open
-            ? [
-                  [
-                      {
-                          text: t("status.buttons.in"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                      {
-                          text: t("status.buttons.out"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                  ],
-              ]
+            ? [[InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]]
             : [];
 
         inlineKeyboard.push(
+            [InlineButton(t("status.buttons.going"), "going"), InlineButton(t("status.buttons.notgoing"), "notgoing")],
             [
-                {
-                    text: t("status.buttons.going"),
-                    callback_data: JSON.stringify({ command: "/going" }),
-                },
-                {
-                    text: t("status.buttons.notgoing"),
-                    callback_data: JSON.stringify({ command: "/notgoing" }),
-                },
-            ],
-            [
-                {
-                    text: t("status.buttons.refresh"),
-                    callback_data: JSON.stringify({ command: mode.pin ? "/s_ustatus" : "/ustatus" }),
-                },
-                {
-                    text: state.open ? t("status.buttons.close") : t("status.buttons.open"),
-                    callback_data: state.open ? JSON.stringify({ command: "/close" }) : JSON.stringify({ command: "/open" }),
-                },
+                InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short }),
+                InlineButton(state.open ? t("status.buttons.close") : t("status.buttons.open"), state.open ? "close" : "open"),
             ]
         );
 
         return inlineKeyboard;
     }
 
-    static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, mode: BotMessageContextMode) {
+    static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, short: boolean, mode: BotMessageContextMode) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
-        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, resultMessage.chat.id === botConfig.chats.horny);
-        const statusInlineKeyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+        const statusMessage = await StatusHandlers.getStatusMessage(
+            state,
+            mode,
+            short,
+            resultMessage.chat.id === botConfig.chats.horny
+        );
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
 
         try {
             await bot.editMessageTextExt(statusMessage, resultMessage, {
                 chat_id: resultMessage.chat.id,
                 message_id: resultMessage.message_id,
                 reply_markup: {
-                    inline_keyboard: mode.static ? [] : statusInlineKeyboard,
+                    inline_keyboard: mode.static ? [] : inline_keyboard,
                 },
             } as TelegramBot.EditMessageTextOptions);
         } catch {
@@ -180,7 +166,7 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
-    static async statusHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
         const state = StatusRepository.getSpaceLastState();
         const mode = bot.context(msg).mode;
@@ -190,8 +176,8 @@ export default class StatusHandlers implements BotHandlers {
             return;
         }
 
-        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, msg.chat.id === botConfig.chats.horny);
-        const statusInlineKeyboard = StatusHandlers.getStatusInlineKeyboard(state, mode);
+        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, short, msg.chat.id === botConfig.chats.horny);
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
             msg.chat.id,
@@ -199,7 +185,7 @@ export default class StatusHandlers implements BotHandlers {
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: statusInlineKeyboard,
+                    inline_keyboard,
                 },
             },
             msg.message_id
@@ -209,7 +195,7 @@ export default class StatusHandlers implements BotHandlers {
             bot.addLiveMessage(
                 resultMessage,
                 BotCustomEvent.statusLive,
-                () => StatusHandlers.liveStatusHandler(bot, resultMessage, mode),
+                () => StatusHandlers.liveStatusHandler(bot, resultMessage, short, mode),
                 {
                     functionName: StatusHandlers.liveStatusHandler.name,
                     module: __filename,
@@ -223,32 +209,18 @@ export default class StatusHandlers implements BotHandlers {
         openSpace(msg.from?.username, { checkOpener: true });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
-        const inlineKeyboard = [
-            [
-                {
-                    text: t("status.buttons.in"),
-                    callback_data: JSON.stringify({ command: "/in" }),
-                },
-                {
-                    text: t("status.buttons.reclose"),
-                    callback_data: JSON.stringify({ command: "/close" }),
-                },
-            ],
-            [
-                {
-                    text: t("status.buttons.whoinside"),
-                    callback_data: JSON.stringify({ command: "/status" }),
-                },
-            ],
+        const inline_keyboard = [
+            [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.reclose"), "close")],
+            [InlineButton(t("status.buttons.whoinside"), "status")],
         ];
 
         await bot.sendMessageExt(
             msg.chat.id,
-            t("status.open", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) }),
+            t("status.open", { username: helpers.formatUsername(msg.from?.username, bot.context(msg).mode) }),
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             }
         );
@@ -258,22 +230,15 @@ export default class StatusHandlers implements BotHandlers {
         closeSpace(msg.from?.username, { evict: true });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
-        const inlineKeyboard = [
-            [
-                {
-                    text: t("status.buttons.reopen"),
-                    callback_data: JSON.stringify({ command: "/open" }),
-                },
-            ],
-        ];
+        const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "open")]];
 
         await bot.sendMessageExt(
             msg.chat.id,
-            t("status.close", { username: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode) }),
+            t("status.close", { username: helpers.formatUsername(msg.from?.username, bot.context(msg).mode) }),
             msg,
             {
                 reply_markup: {
-                    inline_keyboard: inlineKeyboard,
+                    inline_keyboard,
                 },
             }
         );
@@ -294,47 +259,22 @@ export default class StatusHandlers implements BotHandlers {
         let message: string;
 
         if (gotIn) {
-            message = t("status.in.gotin", { username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
+            message = t("status.in.gotin", { username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.in.notready");
         }
 
-        const inlineKeyboard = gotIn
+        const inline_keyboard = gotIn
             ? [
-                  [
-                      {
-                          text: t("status.buttons.inandin"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                      {
-                          text: t("status.buttons.inandout"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                  ],
-                  [
-                      {
-                          text: t("status.buttons.whoinside"),
-                          callback_data: JSON.stringify({ command: "/status" }),
-                      },
-                  ],
+                  [InlineButton(t("status.buttons.inandin"), "in"), InlineButton(t("status.buttons.inandout"), "out")],
+                  [InlineButton(t("status.buttons.whoinside"), "status")],
               ]
-            : [
-                  [
-                      {
-                          text: t("status.buttons.repeat"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                      {
-                          text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ command: "/open" }),
-                      },
-                  ],
-              ];
+            : [[InlineButton(t("status.buttons.repeat"), "in"), InlineButton(t("status.buttons.open"), "open")]];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }
@@ -347,48 +287,23 @@ export default class StatusHandlers implements BotHandlers {
 
         if (gotOut) {
             message = t("status.out.gotout", {
-                username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+                username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
             });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t("status.out.shouldnot");
         }
 
-        const inlineKeyboard = gotOut
+        const inline_keyboard = gotOut
             ? [
-                  [
-                      {
-                          text: t("status.buttons.outandout"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                      {
-                          text: t("status.buttons.outandin"),
-                          callback_data: JSON.stringify({ command: "/in" }),
-                      },
-                  ],
-                  [
-                      {
-                          text: t("status.buttons.whoinside"),
-                          callback_data: JSON.stringify({ command: "/status" }),
-                      },
-                  ],
+                  [InlineButton(t("status.buttons.outandout"), "out"), InlineButton(t("status.buttons.outandin"), "in")],
+                  [InlineButton(t("status.buttons.whoinside"), "status")],
               ]
-            : [
-                  [
-                      {
-                          text: t("status.buttons.repeat"),
-                          callback_data: JSON.stringify({ command: "/out" }),
-                      },
-                      {
-                          text: t("status.buttons.open"),
-                          callback_data: JSON.stringify({ command: "/open" }),
-                      },
-                  ],
-              ];
+            : [[InlineButton(t("status.buttons.repeat"), "out"), InlineButton(t("status.buttons.open"), "open")]];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }
@@ -403,8 +318,8 @@ export default class StatusHandlers implements BotHandlers {
 
         if (gotIn) {
             message = t("status.inforce.gotin", {
-                memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
-                username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                memberusername: helpers.formatUsername(msg.from?.username, bot.context(msg).mode),
+                username: helpers.formatUsername(username, bot.context(msg).mode),
             });
 
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
@@ -424,8 +339,8 @@ export default class StatusHandlers implements BotHandlers {
 
         if (gotOut) {
             message = t("status.outforce.gotout", {
-                memberusername: UsersHelper.formatUsername(msg.from?.username, bot.context(msg).mode),
-                username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                memberusername: helpers.formatUsername(msg.from?.username, bot.context(msg).mode),
+                username: helpers.formatUsername(username, bot.context(msg).mode),
             });
 
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
@@ -440,7 +355,7 @@ export default class StatusHandlers implements BotHandlers {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
 
-        if (!state?.open && !UsersHelper.hasRole(username, "member") && !force) return false;
+        if (!state?.open && !helpers.hasRole(username, "member") && !force) return false;
 
         const userstate = {
             id: 0,
@@ -496,26 +411,17 @@ export default class StatusHandlers implements BotHandlers {
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.going", {
-            username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+            username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
             note,
         });
 
-        const inlineKeyboard = [
-            [
-                {
-                    text: t("status.buttons.andgoing"),
-                    callback_data: JSON.stringify({ command: "/going" }),
-                },
-                {
-                    text: t("status.buttons.whoelse"),
-                    callback_data: JSON.stringify({ command: "/status" }),
-                },
-            ],
+        const inline_keyboard = [
+            [InlineButton(t("status.buttons.andgoing"), "going"), InlineButton(t("status.buttons.whoelse"), "status")],
         ];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }
@@ -529,7 +435,7 @@ export default class StatusHandlers implements BotHandlers {
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.notgoing", {
-            username: UsersHelper.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+            username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
         });
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -541,19 +447,19 @@ export default class StatusHandlers implements BotHandlers {
         if (!emoji || emoji === "help" || !username) {
             message = t("status.emoji.help");
         } else if (emoji && isEmoji(emoji) && UsersRepository.setEmoji(username, emoji)) {
-            message = t("status.emoji.set", { emoji, username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.emoji.set", { emoji, username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (emoji === "remove") {
             UsersRepository.setEmoji(username, null);
-            message = t("status.emoji.removed", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            message = t("status.emoji.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (emoji === "status") {
             const emoji = UsersRepository.getUserByName(username)?.emoji;
 
             if (emoji)
                 message = t("status.emoji.isset", {
                     emoji,
-                    username: UsersHelper.formatUsername(username, bot.context(msg).mode),
+                    username: helpers.formatUsername(username, bot.context(msg).mode),
                 });
-            else message = t("status.emoji.isnotset", { username: UsersHelper.formatUsername(username, bot.context(msg).mode) });
+            else message = t("status.emoji.isnotset", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -616,7 +522,7 @@ export default class StatusHandlers implements BotHandlers {
         const { days, hours, minutes } = getUserTimeDescriptor(userStates);
 
         const statsText = `${t("status.statsof", {
-            username: UsersHelper.formatUsername(selectedUsername, bot.context(msg).mode),
+            username: helpers.formatUsername(selectedUsername, bot.context(msg).mode),
         })}: ${days}d, ${hours}h, ${minutes}m\n\n`;
 
         const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
@@ -637,7 +543,7 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(
             msg.chat.id,
             `${t("status.statsof", {
-                username: UsersHelper.formatUsername(selectedUsername, bot.context(msg).mode),
+                username: helpers.formatUsername(selectedUsername, bot.context(msg).mode),
             })}: ${days}d, ${hours}h, ${minutes}m\n\n${t("status.stats.tryautoinside")}`,
             msg
         );
@@ -658,7 +564,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const { startMonthDate, endMonthDate } = getMonthBoundaries(resultDate);
 
-        await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
+        await StatusHandlers.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
     static async statsHandler(

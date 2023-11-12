@@ -1,19 +1,33 @@
+import { IGNORE_UPDATE_TIMEOUT } from "../../bot/core/HackerEmbassyBot";
 import fundsRepository from "../../repositories/fundsRepository";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
+import { createBotMock, createMockMessage, GUEST_USER_NAME, prepareDb } from "../mocks/mockHelpers";
 
 describe("Bot behavior shared for all commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
+    const mockDate = new Date("2023-01-01");
 
-    beforeAll(async () => {
+    beforeAll(() => {
         prepareDb();
-        jest.useFakeTimers({ doNotFake: ["setTimeout"] });
+        jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] }).setSystemTime(mockDate);
     });
 
     afterEach(() => fundsRepository.clearFunds());
 
-    afterAll(() => {
-        jest.useRealTimers();
+    test("old messages should be ignored", async () => {
+        await botMock.processUpdate(createMockMessage("/status", GUEST_USER_NAME, mockDate.getTime() - 10000));
+
+        await jest.advanceTimersByTimeAsync(IGNORE_UPDATE_TIMEOUT);
+
+        expect(botMock.popResults()).toEqual([]);
+    });
+
+    test("commands with the silent modifier should produce no output", async () => {
+        await botMock.processUpdate(createMockMessage("/status -silent"));
+
+        await jest.runAllTimersAsync();
+
+        expect(botMock.popResults()).toEqual([]);
     });
 
     test("guest user should not be allowed to use protected commands", async () => {
@@ -54,7 +68,7 @@ describe("Bot behavior shared for all commands:", () => {
         await botMock.processUpdate(createMockMessage("/closefund Fund_Name"));
         await botMock.processUpdate(createMockMessage("/removefund Fund_Name"));
 
-        await Promise.resolve(process.nextTick);
+        await jest.runAllTimersAsync();
 
         expect(botMock.popResults()).toEqual(Array(31).fill("admin\\.messages\\.restricted"));
     });

@@ -3,8 +3,8 @@ import UserState, { UserStateType } from "../models/UserState";
 import BaseRepository from "./baseRepository";
 
 class StatusRepository extends BaseRepository {
-    getSpaceLastState(): State | null {
-        const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as State;
+    getSpaceLastState(): Nullable<State> {
+        const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as Optional<State>;
 
         if (!lastState) return null;
 
@@ -13,14 +13,14 @@ class StatusRepository extends BaseRepository {
         return lastState;
     }
 
-    getAllUserStates(): UserState[] | null {
+    getAllUserStates(): Nullable<UserState[]> {
         return this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all() as UserState[];
     }
 
     getUserStates(username: string, fromDate: number = 0, toDate: number = Date.now()): UserState[] {
         return this.db
-            .prepare("SELECT * FROM userstates WHERE username = ? AND date BETWEEN ? AND ? ORDER BY date")
-            .all(username, fromDate, toDate) as UserState[];
+            .prepare("SELECT * FROM userstates WHERE LOWER(username) = ? AND date BETWEEN ? AND ? ORDER BY date")
+            .all(username.toLowerCase(), fromDate, toDate) as UserState[];
     }
 
     updateUserState(userState: UserState): boolean {
@@ -49,7 +49,7 @@ class StatusRepository extends BaseRepository {
                 state.status ? state.status : UserStateType.Outside,
                 state.username,
                 state.date.valueOf(),
-                state.type ?? 0,
+                state.type,
                 state.note
             );
     }

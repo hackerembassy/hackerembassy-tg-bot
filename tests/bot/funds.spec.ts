@@ -5,23 +5,19 @@ import { ADMIN_USER_NAME, createBotMock, createMockMessage, prepareDb } from "..
 describe("Bot Funds commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
 
-    beforeAll(async () => {
+    beforeAll(() => {
         prepareDb();
-        jest.useFakeTimers({ doNotFake: ["setTimeout"] });
+        jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
     });
 
     afterEach(() => fundsRepository.clearFunds());
-
-    afterAll(() => {
-        jest.useRealTimers();
-    });
 
     test("/addfund should properly add a fund to a list returned by /funds", async () => {
         await botMock.processUpdate(createMockMessage("/funds"));
         await botMock.processUpdate(createMockMessage("/addfund Test_Fund with target 500 USD", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/funds"));
 
-        await Promise.resolve(process.nextTick);
+        await jest.runAllTimersAsync();
 
         const results = botMock.popResults();
 

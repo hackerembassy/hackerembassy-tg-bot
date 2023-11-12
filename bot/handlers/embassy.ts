@@ -1,21 +1,29 @@
 import config from "config";
 import { Message } from "node-telegram-bot-api";
+import { PingResponse } from "ping";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
+import statusRepository from "../../repositories/statusRepository";
+import usersRepository from "../../repositories/usersRepository";
+import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
-import { hasDeviceInside } from "../../services/statusHelper";
+import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
-import { fetchWithTimeout } from "../../utils/network";
+import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
+import { hasRole, InlineButton } from "../helpers";
+import { Flags } from "./service";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
-const botConfig = config.get("bot") as BotConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+const botConfig = config.get<BotConfig>("bot");
+export const embassyBase = `${embassyApiConfig.host}:${embassyApiConfig.port}`;
 
-export default class EmbassyHanlers {
+export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!(await hasDeviceInside(msg.from?.username))) {
             bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
@@ -29,7 +37,7 @@ export default class EmbassyHanlers {
 
             const token = await encrypt(unlockKey);
 
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/unlock`, {
+            const response = await fetchWithTimeout(`${embassyBase}/unlock`, {
                 headers: {
                     Accept: "application/json",
                     "Content-Type": "application/json",
@@ -38,7 +46,7 @@ export default class EmbassyHanlers {
                 body: JSON.stringify({ token, from: msg.from?.username }),
             });
 
-            if (response.status === 200) {
+            if (response.ok) {
                 logger.info(`${msg.from?.username} opened the door`);
                 await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
             } else throw Error("Request error");
@@ -48,30 +56,110 @@ export default class EmbassyHanlers {
         }
     }
 
+    static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
+
+        try {
+            const camsPaths = ["webcam", "webcam2", "doorcam"];
+
+            const camResponses = await Promise.allSettled(camsPaths.map(path => fetchWithTimeout(`${embassyBase}/${path}`)));
+
+            const images: ArrayBuffer[] = await Promise.all(
+                filterFulfilled(camResponses)
+                    .filter(result => result.value.ok)
+                    .map(result => result.value.arrayBuffer())
+            );
+
+            if (images.length > 0) await bot.sendPhotos(msg.chat.id, images, msg);
+            else throw Error("No available images");
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.webcam.failall"), msg);
+        }
+    }
+
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHanlers.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
+        await EmbassyHandlers.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
     }
 
     static async webcam2Handler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHanlers.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
+        await EmbassyHandlers.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
     }
 
     static async doorcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHanlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
+        await EmbassyHandlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
+    }
+
+    static async getWebcamImage(path: string) {
+        const response = await (await fetchWithTimeout(`${embassyBase}/${path}`)).arrayBuffer();
+
+        return Buffer.from(response);
+    }
+
+    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, path: string, mode: BotMessageContextMode) {
+        sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
+
+        try {
+            const webcamImage = await EmbassyHandlers.getWebcamImage(path);
+
+            const inline_keyboard = mode.static ? [] : [[InlineButton(t("status.buttons.refresh"), `${path}`, Flags.Editing)]];
+
+            await bot.editPhoto(webcamImage, msg, {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            });
+        } catch {
+            // Skip this update
+        }
     }
 
     static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path: string, prefix: string) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
-            const response = await (
-                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/${path}`)
-            )?.arrayBuffer();
+            const mode = bot.context(msg).mode;
 
-            const webcamImage = Buffer.from(response);
+            const webcamImage = await EmbassyHandlers.getWebcamImage(path);
 
-            if (webcamImage) await bot.sendPhotoExt(msg.chat.id, webcamImage, msg);
-            else throw Error("Empty webcam image");
+            const inline_keyboard = [
+                [
+                    InlineButton(t("status.buttons.refresh"), `${path}`, Flags.Editing),
+                    InlineButton(t("status.buttons.save"), "removebuttons"),
+                ],
+            ];
+
+            if (webcamImage.byteLength === 0) throw Error("Empty webcam image");
+
+            if (bot.context(msg).isEditing) {
+                await bot.editPhoto(webcamImage, msg, {
+                    reply_markup: {
+                        inline_keyboard,
+                    },
+                });
+
+                return;
+            }
+
+            const resultMessage = await bot.sendPhotoExt(msg.chat.id, webcamImage, msg, {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            });
+
+            if (mode.live) {
+                bot.addLiveMessage(
+                    resultMessage,
+                    BotCustomEvent.camLive,
+                    () => EmbassyHandlers.liveWebcamHandler(bot, resultMessage, path, mode),
+                    {
+                        functionName: EmbassyHandlers.liveWebcamHandler.name,
+                        module: __filename,
+                        params: [resultMessage, path, mode],
+                    }
+                );
+            }
         } catch (error) {
             logger.error(error);
 
@@ -79,9 +167,10 @@ export default class EmbassyHanlers {
         }
     }
 
+    /** @deprecated */
     static async monitorHandler(bot: HackerEmbassyBot, msg: Message, notifyEmpty = false) {
         try {
-            const statusMessages = await EmbassyHanlers.queryStatusMonitor();
+            const statusMessages = await EmbassyHandlers.queryStatusMonitor();
 
             if (!notifyEmpty && statusMessages.length === 0) return;
 
@@ -99,13 +188,14 @@ export default class EmbassyHanlers {
     }
 
     static async queryStatusMonitor() {
-        return await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/statusmonitor`))?.json();
+        return await (await fetchWithTimeout(`${embassyBase}/statusmonitor`)).json();
     }
 
-    static async enableStatusMonitor(bot: HackerEmbassyBot) {
+    /** @deprecated */
+    static enableStatusMonitor(bot: HackerEmbassyBot) {
         setInterval(
             () =>
-                EmbassyHanlers.monitorHandler(bot, {
+                EmbassyHandlers.monitorHandler(bot, {
                     chat: {
                         id: botConfig.chats.test,
                         type: "private",
@@ -119,22 +209,16 @@ export default class EmbassyHanlers {
 
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
-        const inlineKeyboard = [
+        const inline_keyboard = [
             [
-                {
-                    text: t("embassy.printers.anettestatus"),
-                    callback_data: JSON.stringify({ command: "/printerstatus anette" }),
-                },
-                {
-                    text: t("embassy.printers.plumbusstatus"),
-                    callback_data: JSON.stringify({ command: "/printerstatus plumbus" }),
-                },
+                InlineButton(t("embassy.printers.anettestatus"), "printerstatus", Flags.Simple, { params: "anette" }),
+                InlineButton(t("embassy.printers.plumbusstatus"), "printerstatus", Flags.Simple, { params: "plumbus" }),
             ],
         ];
 
-        bot.sendMessageExt(msg.chat.id, text, msg, {
+        await bot.sendMessageExt(msg.chat.id, text, msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }
@@ -145,14 +229,15 @@ export default class EmbassyHanlers {
         let message = t("embassy.climate.nodata");
 
         try {
-            const climateResponse = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`);
-            const climateInfo = climateResponse.status === 200 ? await climateResponse?.json() : null;
-            if (climateInfo) {
-                message = t("embassy.climate.data", { climateInfo });
+            const climateResponse = await fetchWithTimeout(`${embassyBase}/climate`);
 
-                if (msg.chat.id === botConfig.chats.horny) {
-                    message += t("embassy.climate.secretdata", { climateInfo });
-                }
+            if (!climateResponse.ok) throw Error();
+
+            const climateInfo = (await climateResponse.json()) as SpaceClimate;
+            message = t("embassy.climate.data", { climateInfo });
+
+            if (msg.chat.id === botConfig.chats.horny) {
+                message += t("embassy.climate.secretdata", { climateInfo });
             }
         } catch (error) {
             logger.error(error);
@@ -165,30 +250,29 @@ export default class EmbassyHanlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const { status, thumbnailBuffer, cam }: PrinterStatusResponse = await (
-                await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/printer?printername=${printername}`)
-            ).json();
+            const response = await fetchWithTimeout(`${embassyBase}/printer?printername=${printername}`);
 
-            if (!status || status.error) throw Error();
+            if (!response.ok) throw Error();
+
+            const { status, thumbnailBuffer, cam } = (await response.json()) as PrinterStatusResponse;
 
             if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
 
-            const caption = await TextGenerators.getPrinterStatusText(status);
+            const caption = TextGenerators.getPrinterStatusText(status);
             const inline_keyboard = [
                 [
-                    {
-                        text: t("embassy.printerstatus.update", { printername }),
-                        callback_data: JSON.stringify({ command: `/printerstatus ${printername}` }),
-                    },
+                    InlineButton(t("embassy.printerstatus.update", { printername }), "printerstatus", Flags.Editing, {
+                        params: "plumbus",
+                    }),
                 ],
             ];
 
-            if (thumbnailBuffer)
-                await bot.sendPhotoExt(msg.chat.id, Buffer.from(thumbnailBuffer), msg, {
+            if (thumbnailBuffer) {
+                await bot.sendOrEditPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), msg, {
                     caption: caption,
                     reply_markup: { inline_keyboard },
                 });
-            else await bot.sendMessageExt(msg.chat.id, caption, msg, { reply_markup: { inline_keyboard } });
+            } else await bot.sendOrEditMessage(msg.chat.id, caption, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
         } catch (error) {
             logger.error(error);
             await bot.sendMessageExt(msg.chat.id, t("embassy.printerstatus.fail"), msg);
@@ -196,23 +280,145 @@ export default class EmbassyHanlers {
     }
 
     static async doorbellHandler(bot: HackerEmbassyBot, msg: Message) {
-        let text = t("embassy.doorbell.success");
-
         try {
-            const status = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/doorbell`))?.json();
-            if (!status || status.error) throw Error();
+            const response = await fetchWithTimeout(`${embassyBase}/doorbell`);
+
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.doorbell.success"), msg);
         } catch (error) {
             logger.error(error);
-            text = t("embassy.doorbell.fail");
-        } finally {
-            await bot.sendMessageExt(msg.chat.id, text, msg);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.doorbell.fail"), msg);
+        }
+    }
+
+    static async wakeHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/wake`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ device }),
+                timeout: 15000,
+            });
+
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.wake.success"), msg);
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.wake.fail"), msg);
+        }
+    }
+
+    static async deviceHelpHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string) {
+        try {
+            const device = embassyApiConfig.devices[deviceName];
+
+            if (!device) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.help", { deviceName }), msg);
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.notfound"), msg);
+        }
+    }
+
+    static async shutdownHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/shutdown`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ device }),
+                timeout: 15000,
+            });
+
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.shutdown.success"), msg);
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.shutdown.fail"), msg);
+        }
+    }
+
+    static async pingHandler(bot: HackerEmbassyBot, msg: Message, device: string, raw: boolean = false) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/ping`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ device }),
+                timeout: 15000,
+            });
+
+            if (!response.ok) throw Error();
+
+            const body = (await response.json()) as PingResponse;
+
+            await bot.sendMessageExt(
+                msg.chat.id,
+                raw
+                    ? body.output
+                    : body.alive
+                    ? t("embassy.device.alive.up", { time: body.time })
+                    : t("embassy.device.alive.down"),
+                msg
+            );
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.device.alive.fail"), msg);
         }
     }
 
     static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        await this.playinspaceHandler(bot, msg, "http://le-fail.lan:8001/rzd.mp3", true);
+        await this.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`, true);
         await sleep(7000);
         await this.sayinspaceHandler(bot, msg, text);
+    }
+
+    static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
+        const residents = usersRepository.getUsers()?.filter(u => hasRole(u.username, "member"));
+        const recentUserStates = findRecentStates(statusRepository.getAllUserStates() ?? []);
+        const residentsInside = recentUserStates
+            .filter(filterPeopleInside)
+            .filter(insider => residents?.find(r => r.username === insider.username));
+
+        const text =
+            residentsInside.length > 0
+                ? t("embassy.knock.knock", {
+                      residentsInside: residentsInside.reduce((acc, resident) => acc + `@${resident.username} `, ""),
+                  })
+                : t("embassy.knock.noresidents");
+        await bot.sendMessageExt(msg.chat.id, text, msg);
+
+        if (residentsInside.length > 0) {
+            bot.context(msg).mode.silent = true;
+
+            await this.playinspaceHandler(bot, msg, `${embassyBase}/knock.mp3`, true);
+            await sleep(9000);
+            await this.sayinspaceHandler(
+                bot,
+                msg,
+                `Тук-тук резиденты, к вам хочет зайти ${
+                    msg.from?.username ?? msg.from?.first_name
+                }. Ответьте ему в главном чатике.`
+            );
+        }
     }
 
     static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
@@ -224,7 +430,7 @@ export default class EmbassyHanlers {
                 return;
             }
 
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/sayinspace`, {
+            const response = await fetchWithTimeout(`${embassyBase}/sayinspace`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -233,7 +439,7 @@ export default class EmbassyHanlers {
                 timeout: 15000,
             });
 
-            if (response.status === 200) await bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
+            if (response.ok) await bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
             else throw Error("Failed to say in space");
         } catch (error) {
             logger.error(error);
@@ -241,16 +447,18 @@ export default class EmbassyHanlers {
         }
     }
 
-    static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, link: string, silentMessage: boolean = false) {
+    static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, linkOrName: string, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {
-            if (!link) {
+            if (!linkOrName) {
                 bot.sendMessageExt(msg.chat.id, t("embassy.play.help"), msg);
                 return;
             }
 
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/playinspace`, {
+            const link = linkOrName.startsWith("http") ? linkOrName : `${embassyBase}/${linkOrName}.mp3`;
+
+            const response = await fetchWithTimeout(`${embassyBase}/playinspace`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -259,12 +467,126 @@ export default class EmbassyHanlers {
                 timeout: 15000,
             });
 
-            if (response.status === 200)
-                !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg));
+            if (response.ok) !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg));
             else throw Error("Failed to play in space");
         } catch (error) {
             logger.error(error);
             !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.fail"), msg));
+        }
+    }
+
+    static async conditionerHandler(bot: HackerEmbassyBot, msg: Message) {
+        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        let text = t("embassy.conditioner.unavailable");
+
+        const inline_keyboard = [
+            [
+                InlineButton(t("embassy.conditioner.buttons.turnon"), "turnconditioner", Flags.Silent | Flags.Editing, {
+                    params: true,
+                }),
+                InlineButton(t("embassy.conditioner.buttons.turnoff"), "turnconditioner", Flags.Silent | Flags.Editing, {
+                    params: false,
+                }),
+            ],
+            [
+                InlineButton(t("embassy.conditioner.buttons.more"), "addconditionertemp", Flags.Silent | Flags.Editing, {
+                    params: 1,
+                }),
+                InlineButton(t("embassy.conditioner.buttons.less"), "addconditionertemp", Flags.Silent | Flags.Editing, {
+                    params: -1,
+                }),
+            ],
+            [
+                InlineButton(t("embassy.conditioner.buttons.auto"), "setconditionermode", Flags.Silent | Flags.Editing, {
+                    params: "heat_cool",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.heat"), "setconditionermode", Flags.Silent | Flags.Editing, {
+                    params: "heat",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.cool"), "setconditionermode", Flags.Silent | Flags.Editing, {
+                    params: "cool",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.dry"), "setconditionermode", Flags.Silent | Flags.Editing, {
+                    params: "dry",
+                }),
+            ],
+            [
+                InlineButton(t("status.buttons.refresh"), "conditioner", Flags.Editing),
+                InlineButton(t("basic.control.buttons.back"), "controlpanel", Flags.Editing),
+            ],
+        ];
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/conditionerstate`);
+            if (!response.ok) throw Error();
+
+            const conditionerStatus = (await response.json()) as ConditionerStatus;
+
+            text = t("embassy.conditioner.status", { conditionerStatus });
+        } catch (error) {
+            logger.error(error);
+        } finally {
+            await bot.sendOrEditMessage(
+                msg.chat.id,
+                text,
+                msg,
+                {
+                    reply_markup: {
+                        inline_keyboard,
+                    },
+                },
+                msg.message_id
+            );
+        }
+    }
+
+    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
+        await EmbassyHandlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
+
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+    }
+
+    static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, diff: number) {
+        if (isNaN(diff)) throw Error();
+        await EmbassyHandlers.controlConditioner(bot, msg, "addconditionertemperature", { diff });
+
+        if (bot.context(msg).isButtonResponse) {
+            await sleep(5000); // Updating the temperature is slow on Midea
+            await EmbassyHandlers.conditionerHandler(bot, msg);
+        }
+    }
+
+    static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
+        if (isNaN(temperature)) throw Error();
+        await EmbassyHandlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
+    }
+
+    static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
+        await EmbassyHandlers.controlConditioner(bot, msg, "setconditionermode", { mode });
+
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+    }
+
+    static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/${endpoint}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) throw Error();
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.conditioner.success"), msg);
+        } catch (error) {
+            logger.error(error);
+
+            await bot.sendMessageExt(msg.chat.id, t("embassy.conditioner.fail"), msg);
         }
     }
 }

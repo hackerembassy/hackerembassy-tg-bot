@@ -5,10 +5,17 @@ import { promise } from "ping";
 import Winston from "winston";
 
 import { BotConfig, EmbassyApiConfig } from "../config/schema";
+import logger from "./logger";
 
-const botConfig = config.get("bot") as BotConfig;
-const embassyServiceConfig = config.get("embassy-api") as EmbassyApiConfig;
+const botConfig = config.get<BotConfig>("bot");
+const embassyServiceConfig = config.get<EmbassyApiConfig>("embassy-api");
 const hosts = embassyServiceConfig.hostsToMonitor;
+
+export type MonitorMessage = {
+    level: string;
+    message: string;
+    timestamp: string;
+};
 
 const transport = new Winston.transports.DailyRotateFile({
     level: "info",
@@ -19,7 +26,7 @@ const transport = new Winston.transports.DailyRotateFile({
     maxFiles: "14d",
 });
 
-const UnreadMessagesBuffer: string[] = [];
+const UnreadMessagesBuffer: MonitorMessage[] = [];
 
 transport.on("logged", function (data) {
     UnreadMessagesBuffer.push(data);
@@ -46,17 +53,19 @@ async function pingInternalDevices(): Promise<void> {
     }
 }
 
+/** @deprecated */
 export function startMonitoring(): void {
-    console.log("Device monitoring started");
+    logger.info("Device monitoring started");
     setInterval(() => pingInternalDevices(), embassyServiceConfig.statusCheckInterval);
 }
 
-export function readNewMessages(): string[] {
+/** @deprecated */
+export function readNewMessages(): MonitorMessage[] {
     const unreadMessages = [];
 
     while (UnreadMessagesBuffer.length > 0) {
         unreadMessages.push(UnreadMessagesBuffer.shift());
     }
 
-    return unreadMessages as string[];
+    return unreadMessages as MonitorMessage[];
 }

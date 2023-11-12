@@ -1,6 +1,9 @@
 import Database from "better-sqlite3";
+import fetchMock from "jest-fetch-mock";
 
 import { sleep } from "../utils/common";
+
+fetchMock.enableMocks();
 
 jest.mock("../utils/currency", () => {
     const currencyModule = jest.requireActual("../utils/currency");
@@ -16,7 +19,7 @@ jest.mock("../utils/currency", () => {
 jest.mock("../utils/network", () => {
     return {
         default: jest.fn(),
-        fetchWithTimeout: jest.fn(),
+        fetchWithTimeout: jest.fn().mockImplementation(fetchMock),
     };
 });
 

@@ -6,23 +6,25 @@ import * as ExportHelper from "../../services/export";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
-import * as UsersHelper from "../../services/usersHelper";
-import { initConvert, parseMoneyValue, prepareCurrency } from "../../utils/currency";
-import { isMessageFromPrivateChat } from "../bot-helpers";
-import HackerEmbassyBot from "../HackerEmbassyBot";
+import { initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
+import { equalsIns } from "../../utils/text";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotHandlers } from "../core/types";
+import * as helpers from "../helpers";
+import { InlineButton, isPrivateMessage } from "../helpers";
 
-const CALLBACK_DATA_RESTRICTION = 23;
+const CALLBACK_DATA_RESTRICTION = 21;
 
 // Converter library needs time to initialize all currencies, so we need to init it in advance
 initConvert();
 
-export default class FundsHandlers {
+export default class FundsHandlers implements BotHandlers {
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {
         const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
         const donations = FundsRepository.getDonations();
         const showAdmin =
-            UsersHelper.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isMessageFromPrivateChat(msg) || bot.context(msg).isAdminMode());
+            helpers.hasRole(msg.from?.username, "admin", "accountant") &&
+            (isPrivateMessage(msg, bot.context(msg)) || bot.context(msg).isAdminMode());
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, bot.context(msg).mode);
 
@@ -39,28 +41,16 @@ export default class FundsHandlers {
 
         const donations = FundsRepository.getDonationsForName(fundName);
         const showAdmin =
-            UsersHelper.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isMessageFromPrivateChat(msg) || bot.context(msg).isAdminMode());
+            helpers.hasRole(msg.from?.username, "admin", "accountant") &&
+            (isPrivateMessage(msg, bot.context(msg)) || bot.context(msg).isAdminMode());
 
         // telegram callback_data is restricted to 64 bytes
-        const inlineKeyboard =
+        const inline_keyboard =
             fundName.length < CALLBACK_DATA_RESTRICTION
                 ? [
                       [
-                          {
-                              text: t("funds.fund.buttons.csv"),
-                              callback_data: JSON.stringify({
-                                  command: "/ef",
-                                  opt: [fundName],
-                              }),
-                          },
-                          {
-                              text: t("funds.fund.buttons.donut"),
-                              callback_data: JSON.stringify({
-                                  command: "/ed",
-                                  opt: [fundName],
-                              }),
-                          },
+                          InlineButton(t("funds.fund.buttons.csv"), "ef", undefined, { params: fundName }),
+                          InlineButton(t("funds.fund.buttons.donut"), "ed", undefined, { params: fundName }),
                       ],
                   ]
                 : [];
@@ -69,19 +59,20 @@ export default class FundsHandlers {
 
         await bot.sendMessageExt(msg.chat.id, t("funds.fund.text", { fundlist }), msg, {
             reply_markup: {
-                inline_keyboard: inlineKeyboard,
+                inline_keyboard,
             },
         });
     }
 
     static async fundsallHandler(bot: HackerEmbassyBot, msg: Message) {
+        const context = bot.context(msg);
         const funds = FundsRepository.getFunds();
         const donations = FundsRepository.getDonations();
         const showAdmin =
-            UsersHelper.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isMessageFromPrivateChat(msg) || bot.context(msg).isAdminMode());
+            helpers.hasRole(msg.from?.username, "admin", "accountant") &&
+            (isPrivateMessage(msg, context) || bot.context(msg).isAdminMode());
 
-        const list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true }, bot.context(msg).mode);
+        const list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true }, context.mode);
 
         await bot.sendLongMessage(msg.chat.id, t("funds.fundsall", { list }), msg);
     }
@@ -106,11 +97,11 @@ export default class FundsHandlers {
         fundName: string,
         target: string,
         currency: string,
-        newFund: string
+        newFund?: string
     ) {
         const targetValue = parseMoneyValue(target);
         const preparedCurrency = await prepareCurrency(currency);
-        const newFundName = newFund?.length > 0 ? newFund : fundName;
+        const newFundName = newFund && newFund.length > 0 ? newFund : fundName;
 
         const success =
             !isNaN(targetValue) &&
@@ -151,7 +142,7 @@ export default class FundsHandlers {
 
         const success = FundsRepository.changeFundStatus(fundName, fundStatus);
 
-        bot.sendMessageExt(
+        await bot.sendMessageExt(
             msg.chat.id,
             success ? t("funds.changestatus.success", { fundName, fundStatus }) : t("funds.changestatus.fail"),
             msg
@@ -170,8 +161,8 @@ export default class FundsHandlers {
             const fund = FundsRepository.getFundById(donation.fund_id);
             text = t("funds.transferdonation.success", {
                 id,
-                accountant: UsersHelper.formatUsername(accountant, bot.context(msg).mode),
-                username: UsersHelper.formatUsername(donation.username, bot.context(msg).mode),
+                accountant: helpers.formatUsername(accountant, bot.context(msg).mode),
+                username: helpers.formatUsername(donation.username, bot.context(msg).mode),
                 fund,
                 donation,
             });
@@ -193,7 +184,9 @@ export default class FundsHandlers {
         userName = userName.replace("@", "");
         const accountant = msg.from?.username;
 
-        const userDonations = FundsRepository.getDonationsForName(fundName)?.filter(donation => donation.username === userName);
+        const userDonations = FundsRepository.getDonationsForName(fundName)?.filter(donation =>
+            equalsIns(donation.username, userName)
+        );
         const hasAlreadyDonated = userDonations && userDonations.length > 0;
 
         const success =
@@ -202,7 +195,7 @@ export default class FundsHandlers {
             FundsRepository.addDonationTo(fundName, userName, value, preparedCurrency, accountant);
         const text = success
             ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
-                  username: UsersHelper.formatUsername(userName, bot.context(msg).mode),
+                  username: helpers.formatUsername(userName, bot.context(msg).mode),
                   value,
                   currency: preparedCurrency,
                   fundName,
@@ -217,7 +210,7 @@ export default class FundsHandlers {
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
 
-        return FundsHandlers.addDonationHandler(bot, msg, valueString, currency, userName, latestCostsFund.name);
+        return await FundsHandlers.addDonationHandler(bot, msg, valueString, currency, userName, latestCostsFund.name);
     }
 
     static async showCostsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -228,7 +221,7 @@ export default class FundsHandlers {
             return;
         }
 
-        return FundsHandlers.fundHandler(bot, msg, fundName);
+        return await FundsHandlers.fundHandler(bot, msg, fundName);
     }
 
     static async showCostsDonutHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -236,7 +229,7 @@ export default class FundsHandlers {
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
 
-        return FundsHandlers.exportDonutHandler(bot, msg, latestCostsFund.name);
+        return await FundsHandlers.exportDonutHandler(bot, msg, latestCostsFund.name);
     }
 
     static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -250,12 +243,12 @@ export default class FundsHandlers {
         let resdientsDonatedList = `${t("funds.residentsdonated")}\n`;
 
         const donations = FundsRepository.getDonationsForName(fundName);
-        const residents = UsersRepository.getUsers()?.filter(u => UsersHelper.hasRole(u.username, "member"));
+        const residents = UsersRepository.getUsers()?.filter(u => helpers.hasRole(u.username, "member"));
 
         if (residents && donations) {
             for (const resident of residents) {
-                const hasDonated = donations.filter(d => d.username === resident.username)?.length > 0;
-                resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${UsersHelper.formatUsername(resident.username)}\n`;
+                const hasDonated = donations.filter(d => equalsIns(d.username, resident.username)).length > 0;
+                resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${helpers.formatUsername(resident.username)}\n`;
             }
         }
 
@@ -282,7 +275,7 @@ export default class FundsHandlers {
         const value = parseMoneyValue(valueString);
         const preparedCurrency = await prepareCurrency(currency);
 
-        const success = preparedCurrency && FundsRepository.updateDonation(donationId, value, preparedCurrency);
+        const success = preparedCurrency && FundsRepository.updateDonationValues(donationId, value, preparedCurrency);
 
         await bot.sendMessageExt(
             msg.chat.id,
@@ -291,11 +284,44 @@ export default class FundsHandlers {
         );
     }
 
+    static async debtHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        const selectedUsername = (username ?? msg.from?.username)?.replace("@", "");
+        const donations = selectedUsername ? FundsRepository.getFundDonationsHeldBy(selectedUsername) : [];
+        const donationList = donations ? TextGenerators.generateFundDonationsList(donations, true) : "";
+        const totalDonated = donations ? await sumDonations(donations) : 0;
+        const formattedUsername = helpers.formatUsername(selectedUsername, bot.context(msg).mode);
+
+        const message =
+            donationList.length > 0
+                ? t("funds.debt.text", { donationList, username: formattedUsername, total: totalDonated, currency: "AMD" })
+                : t("funds.debt.empty");
+
+        await bot.sendLongMessage(msg.chat.id, message, msg);
+    }
+
+    static async transferAllToHandler(bot: HackerEmbassyBot, msg: Message, username: string, fundName?: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        const selectedUsername = msg.from?.username?.replace("@", "");
+        const donations = selectedUsername ? FundsRepository.getFundDonationsHeldBy(selectedUsername, fundName) : [];
+
+        if (!donations || donations.length === 0) {
+            await bot.sendMessageExt(msg.chat.id, t("funds.transferdonation.nothing"), msg);
+            return;
+        }
+
+        for (const donation of donations) {
+            await FundsHandlers.transferDonationHandler(bot, msg, donation.id, username);
+        }
+    }
+
     static async exportCSVHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         try {
             const csvBuffer = await ExportHelper.exportFundToCSV(fundName);
 
-            if (!csvBuffer?.length) {
+            if (csvBuffer.length === 0) {
                 bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
                 return;
             }
@@ -318,7 +344,7 @@ export default class FundsHandlers {
         try {
             imageBuffer = await ExportHelper.exportFundToDonut(fundName);
 
-            if (!imageBuffer?.length) {
+            if (imageBuffer.length === 0) {
                 bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
                 return;
             }

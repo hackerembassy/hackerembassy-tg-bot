@@ -2,7 +2,7 @@ class Need {
     readonly id: number;
     text: string;
     requester: string;
-    buyer: string | null;
+    buyer: Nullable<string>;
     updated: string;
 
     constructor({ id, text, requester, buyer = null, updated }: Need) {

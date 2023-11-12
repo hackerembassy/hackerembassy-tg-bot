@@ -9,6 +9,8 @@ export type CoinDefinition = {
     qrfile: string;
 };
 
+const QRBaseFolder = "../resources/coins/qr";
+
 export const Coins: CoinDefinition[] = [
     {
         fullname: "Bitcoin",
@@ -39,8 +41,6 @@ export const Coins: CoinDefinition[] = [
         qrfile: "usdt.jpg",
     },
 ];
-
-const QRBaseFolder = "./qr";
 
 export function getCoinDefinition(coinname: string): CoinDefinition | undefined {
     return Coins.find(c => c.shortname === coinname);

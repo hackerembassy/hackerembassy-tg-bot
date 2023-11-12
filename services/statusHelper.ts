@@ -4,16 +4,16 @@ import { EmbassyApiConfig } from "../config/schema";
 import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
-import { anyItemIsInList } from "../utils/common";
-import { onlyUniqueFilter } from "../utils/common";
+import { anyItemIsInList, onlyUniqueInsFilter } from "../utils/common";
 import { ElapsedTimeObject, isToday } from "../utils/date";
 import { fetchWithTimeout } from "../utils/network";
+import { equalsIns } from "../utils/text";
 
-const embassyApiConfig = config.get("embassy-api") as EmbassyApiConfig;
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
 export type UserStatsTime = { username: string; usertime: ElapsedTimeObject };
 
-export function openSpace(opener: string | null | undefined, options: { checkOpener: boolean } = { checkOpener: false }): void {
+export function openSpace(opener: Optional<string>, options: { checkOpener: boolean } = { checkOpener: false }): void {
     const opendate = new Date();
     const state = {
         id: 0,
@@ -38,7 +38,7 @@ export function openSpace(opener: string | null | undefined, options: { checkOpe
     statusRepository.pushPeopleState(userstate);
 }
 
-export function closeSpace(closer: string | null | undefined, options: { evict: boolean } = { evict: false }): void {
+export function closeSpace(closer: Nullable<string> | undefined, options: { evict: boolean } = { evict: false }): void {
     const state = {
         id: 0,
         open: false,
@@ -53,14 +53,14 @@ export function closeSpace(closer: string | null | undefined, options: { evict: 
     if (options.evict && allUserStates) evictPeople(findRecentStates(allUserStates).filter(filterPeopleInside));
 }
 
-export async function hasDeviceInside(username: string | null | undefined): Promise<boolean> {
+export async function hasDeviceInside(username: Optional<string>): Promise<boolean> {
     if (!username) return false;
 
     try {
         const response = await fetchWithTimeout(
             `${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`
         );
-        const devices = await response?.json();
+        const devices = await response.json();
 
         const mac = usersRepository.getUserByName(username)?.mac;
 
@@ -107,7 +107,7 @@ export function findRecentStates(allUserStates: UserState[]) {
     const usersLastStates: UserState[] = [];
 
     for (const userstate of allUserStates) {
-        if (!usersLastStates.find(us => us.username === userstate.username)) {
+        if (!usersLastStates.find(us => equalsIns(us.username, userstate.username))) {
             userstate.date = new Date(userstate.date);
             usersLastStates.push(userstate);
         }
@@ -119,11 +119,13 @@ export function findRecentStates(allUserStates: UserState[]) {
 export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toDate: Date): UserStatsTime[] {
     const userNames = findRecentStates(allUserStates)
         .map(us => us.username)
-        .filter(onlyUniqueFilter);
+        .filter(onlyUniqueInsFilter);
     const usersTimes: UserStatsTime[] = [];
 
     for (const username of userNames) {
-        const userStates = allUserStates.filter(us => us.username === username && us.date >= fromDate && us.date <= toDate);
+        const userStates = allUserStates.filter(
+            us => equalsIns(us.username, username) && us.date >= fromDate && us.date <= toDate
+        );
         usersTimes.push({ username: username, usertime: getUserTimeDescriptor(userStates) });
     }
 

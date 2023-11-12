@@ -1,50 +1,79 @@
 import config from "config";
 
 import { CurrencyConfig } from "../config/schema";
-import Donation from "../models/Donation";
+import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import BaseRepository from "./baseRepository";
 
-const currencyConfig = config.get("currency") as CurrencyConfig;
+const currencyConfig = config.get<CurrencyConfig>("currency");
 
 class FundsRepository extends BaseRepository {
-    getFunds(): Fund[] | null {
-        return this.db.prepare("SELECT * FROM funds").all() as Fund[];
+    getFunds(): Nullable<Fund[]> {
+        return this.db.prepare("SELECT * FROM funds").all() as Nullable<Fund[]>;
     }
 
-    getFundByName(fundName: string): Fund | null {
-        return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Fund;
+    getFundByName(fundName: string): Nullable<Fund> {
+        return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Nullable<Fund>;
     }
 
-    getFundById(id: number): Fund | null {
-        return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Fund;
+    getFundById(id: number): Nullable<Fund> {
+        return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Nullable<Fund>;
     }
 
     getLatestCosts(): Fund | undefined {
         return this.getFunds()?.find(fund => /[Аа]ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
     }
 
-    getDonations(): Donation[] | null {
-        return this.db.prepare("SELECT * FROM donations").all() as Donation[];
+    getDonations(): Nullable<Donation[]> {
+        return this.db.prepare("SELECT * FROM donations").all() as Nullable<Donation[]>;
     }
 
-    getDonationsForId(fundId: number): Donation[] | null {
+    getDonationsForId(fundId: number): Nullable<Donation[]> {
         return this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
     }
 
-    getDonationsForName(fundName: string): Donation[] | null {
+    getDonationsForName(fundName: string): Nullable<Donation[]> {
         return this.db
             .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
-            .all(fundName) as Donation[];
+            .all(fundName) as Nullable<Donation[]>;
     }
 
-    getDonationById(donationId: number): Donation | null {
-        return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Donation;
+    getDonationsOf(username: string): Nullable<Donation[]> {
+        return this.db.prepare("SELECT * FROM donations WHERE username = ?").all(username) as Nullable<Donation[]>;
+    }
+
+    getFundDonationsOf(username: string): Nullable<FundDonation[]> {
+        return this.db
+            .prepare(
+                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.username = ?"
+            )
+            .all(username) as Nullable<FundDonation[]>;
+    }
+
+    // TODO there should be a better way
+    getFundDonationsHeldBy(accountant: string, fundName?: string): Nullable<FundDonation[]> {
+        return (
+            fundName && fundName.length > 0
+                ? this.db
+                      .prepare(
+                          "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.accountant = ? AND f.name = ?"
+                      )
+                      .all(accountant, fundName)
+                : this.db
+                      .prepare(
+                          "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.accountant = ?"
+                      )
+                      .all(accountant)
+        ) as Nullable<FundDonation[]>;
+    }
+
+    getDonationById(donationId: number): Nullable<Donation> {
+        return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Nullable<Donation>;
     }
 
     addFund(fundName: string, target: number, currency: string = currencyConfig.default, status: string = "open"): boolean {
         try {
-            if (this.getFundByName(fundName) !== undefined) throw new Error(`Fund ${fundName} already exists`);
+            if (this.getFundByName(fundName)) throw new Error(`Fund ${fundName} already exists`);
 
             if (!currency) throw new Error(`Invalid currency ${currency}`);
 
@@ -129,7 +158,7 @@ class FundsRepository extends BaseRepository {
         username: string,
         value: number,
         currency: string = currencyConfig.default,
-        accountant: string | null = null
+        accountant: Nullable<string> = null
     ): boolean {
         try {
             const fundId = this.getFundByName(fundName)?.id;
@@ -148,12 +177,25 @@ class FundsRepository extends BaseRepository {
         }
     }
 
-    updateDonation(donationId: number, value: number, currency: string): boolean {
+    updateDonationValues(donationId: number, value: number, currency: string): boolean {
         try {
             if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
             if (!currency) throw new Error(`Invalid currency ${currency}`);
 
             this.db.prepare("UPDATE donations SET value = ?, currency = ? WHERE id = ?").run(value, currency, donationId);
+
+            return true;
+        } catch (error) {
+            this.logger.error(error);
+            return false;
+        }
+    }
+
+    updateDonation(donation: Donation): boolean {
+        try {
+            this.db
+                .prepare("UPDATE donations SET value = ?, currency = ?, accountant = ?, username = ?, fund_id = ? WHERE id = ?")
+                .run(donation.value, donation.currency, donation.accountant, donation.username, donation.fund_id, donation.id);
 
             return true;
         } catch (error) {

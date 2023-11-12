@@ -399,7 +399,7 @@ ${chunks[index]}
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
 
             const text = message.text;
-            if (!text) return;
+            if (!text || text[0] !== "/") return;
 
             const fullCommand = text.split(" ")[0];
             const command = fullCommand.split("@")[0].slice(1);

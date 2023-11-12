@@ -88,31 +88,10 @@ export function addRoutes(bot: HackerEmbassyBot): void {
 
     // Devices
     bot.addRoute(
-        ["gayming", "gaming", "gayminghelp", "gaminghelp", "gaming help", "gayming help"],
-        EmbassyHandlers.deviceHelpHandler,
-        null,
-        () => ["gaming"],
-        ["member"]
-    );
-    bot.addRoute(
-        ["gaymingup", "gamingup", "wolgaming", "gaming up", "gayming up"],
-        EmbassyHandlers.wakeHandler,
-        null,
-        () => ["gaming"],
-        ["member"]
-    );
-    bot.addRoute(
-        ["gaymingdown", "gamingdown", "gaming shutdown", "gayming shutdown", "gaming down", "gayming down"],
-        EmbassyHandlers.shutdownHandler,
-        null,
-        () => ["gaming"],
-        ["member"]
-    );
-    bot.addRoute(
-        ["gaymingstatus", "gamingstatus", "gaming status", "gayming status"],
-        EmbassyHandlers.pingHandler,
-        null,
-        () => ["gaming"],
+        ["gayming", "gaming"],
+        EmbassyHandlers.deviceHandler,
+        OptionalParam(/(status|help|up|down)/),
+        match => ["gaming", match[1]],
         ["member"]
     );
 

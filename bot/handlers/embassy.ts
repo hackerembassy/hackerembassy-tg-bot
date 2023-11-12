@@ -23,6 +23,13 @@ const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
 export const embassyBase = `${embassyApiConfig.host}:${embassyApiConfig.port}`;
 
+enum DeviceOperation {
+    Help = "help",
+    Status = "status",
+    Up = "up",
+    Down = "down",
+}
+
 export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!(await hasDeviceInside(msg.from?.username))) {
@@ -315,11 +322,27 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async deviceHelpHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string) {
+    static async deviceHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        deviceName: string,
+        operation: DeviceOperation = DeviceOperation.Help
+    ) {
         try {
             const device = embassyApiConfig.devices[deviceName];
 
             if (!device) throw Error();
+
+            switch (operation) {
+                case "up":
+                    return EmbassyHandlers.wakeHandler(bot, msg, deviceName);
+                case "down":
+                    return EmbassyHandlers.shutdownHandler(bot, msg, deviceName);
+                case "status":
+                    return EmbassyHandlers.pingHandler(bot, msg, deviceName, false);
+                default:
+                    break;
+            }
 
             await bot.sendMessageExt(msg.chat.id, t("embassy.device.help", { deviceName }), msg);
         } catch (error) {

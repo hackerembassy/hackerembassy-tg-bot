@@ -1,25 +1,34 @@
 import config from "config";
-import TelegramBot, { ChatMemberUpdated, InlineKeyboardButton, Message } from "node-telegram-bot-api";
+import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import logger from "../../services/logger";
-import RateLimiter from "../../services/RateLimiter";
-import { userLink } from "../../services/usersHelper";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, { BotHandlers, FULL_PERMISSIONS, ITelegramUser, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
-import { MessageHistoryEntry } from "../core/MessageHistory";
+import HackerEmbassyBot, { FULL_PERMISSIONS, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
+import RateLimiter from "../core/RateLimiter";
+import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
+import { InlineButton, userLink } from "../helpers";
 import { setMenu } from "../init/menu";
-import BasicHandlers from "./basic";
-import BirthdayHandlers from "./birthday";
-import EmbassyHandlers, { embassyBase } from "./embassy";
-import FundsHandlers from "./funds";
-import MemeHandlers from "./meme";
-import NeedsHandlers from "./needs";
+import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
+
+type CallbackData = {
+    fs?: Flags;
+    vId?: number;
+    cmd?: string;
+
+    params?: any;
+};
+
+export enum Flags {
+    Simple = 0,
+    Editing = 1 << 0, // 01
+    Silent = 1 << 1, // 10
+}
 
 export default class ServiceHandlers implements BotHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
@@ -85,12 +94,14 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         preparedMessages.reverse();
-        const combinedMessageText = preparedMessages
+        let combinedMessageText = preparedMessages
             .map(m => {
                 const datePrefix = `[${new Date(m.datetime).toLocaleString("RU-ru").substring(12, 17)}]: `;
                 return `${m.text?.match(/^\[\d{2}:\d{2}\]/) ? "" : datePrefix}${m.text ?? "photo"}`;
             })
             .join("\n");
+
+        if (combinedMessageText.length > MAX_MESSAGE_LENGTH) combinedMessageText = "message is too big";
 
         bot.messageHistory.push(msg.chat.id, lastMessageToEdit.messageId, combinedMessageText, orderOfLastMessageToEdit);
 
@@ -145,231 +156,57 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
-        const data = callbackQuery.data ? JSON.parse(callbackQuery.data) : undefined;
-
+        const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
         if (!data) throw Error("Missing calback query data");
 
         msg.from = callbackQuery.from;
 
-        const isAllowed = bot.canUserCall.bind(bot, msg.from.username);
+        if (data.vId) {
+            if (callbackQuery.from.id !== data.vId) return;
 
-        if (data.vId && callbackQuery.from.id === data.vId) {
-            const tgUser = (await bot.getChat(data.vId)) as ITelegramUser;
-
-            if (ServiceHandlers.verifyUserHandler(tgUser)) {
-                try {
-                    botConfig.moderatedChats.forEach(chatId =>
-                        bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
-                    );
-
-                    await bot.deleteMessage(msg.chat.id, msg.message_id);
-                    await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
-                } catch (error) {
-                    logger.error(error);
-                }
-            }
+            return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
         }
 
-        switch (data.command) {
-            case "/in":
-                await StatusHandlers.inHandler(bot, msg);
-                break;
-            case "/out":
-                await StatusHandlers.outHandler(bot, msg);
-                break;
-            case "/going":
-                await StatusHandlers.goingHandler(bot, msg);
-                break;
-            case "/notgoing":
-                await StatusHandlers.notGoingHandler(bot, msg);
-                break;
-            case "/open":
-                if (isAllowed(StatusHandlers.openHandler)) await StatusHandlers.openHandler(bot, msg);
-                break;
-            case "/close":
-                if (isAllowed(StatusHandlers.closeHandler)) await StatusHandlers.closeHandler(bot, msg);
-                break;
-            case "/status":
-                await StatusHandlers.statusHandler(bot, msg);
-                break;
-            case "/ustatus":
-                bot.context(msg).isEditing = true;
-                await StatusHandlers.statusHandler(bot, msg);
-                break;
-            case "/s_ustatus":
-                bot.context(msg).isEditing = true;
-                bot.context(msg).mode.pin = true;
-                await StatusHandlers.statusHandler(bot, msg);
-                break;
-            case "/superstatus":
-                if (isAllowed(ServiceHandlers.superstatusHandler)) await ServiceHandlers.superstatusHandler(bot, msg);
-                break;
-            case "/birthdays":
-                await BirthdayHandlers.birthdayHandler(bot, msg);
-                break;
-            case "/needs":
-                await NeedsHandlers.needsHandler(bot, msg);
-                break;
-            case "/funds":
-                await FundsHandlers.fundsHandler(bot, msg);
-                break;
-            case "/startpanel":
-                bot.context(msg).isEditing = true;
-                await BasicHandlers.startPanelHandler(bot, msg);
-                break;
-            case "/infopanel":
-                bot.context(msg).isEditing = true;
-                await BasicHandlers.infoPanelHandler(bot, msg);
-                break;
-            case "/controlpanel":
-                if (isAllowed(BasicHandlers.controlPanelHandler)) {
-                    bot.context(msg).isEditing = true;
-                    await BasicHandlers.controlPanelHandler(bot, msg);
-                }
-                break;
-            case "/memepanel":
-                if (isAllowed(BasicHandlers.memePanelHandler)) {
-                    bot.context(msg).isEditing = true;
-                    await BasicHandlers.memePanelHandler(bot, msg);
-                }
-                break;
-            case "/conditioner":
-                if (isAllowed(EmbassyHandlers.conditionerHandler)) {
-                    bot.context(msg).isEditing = true;
-                    await EmbassyHandlers.conditionerHandler(bot, msg);
-                }
-                break;
-            case "/about":
-                await BasicHandlers.aboutHandler(bot, msg);
-                break;
-            case "/help":
-                await BasicHandlers.helpHandler(bot, msg);
-                break;
-            case "/donate":
-                await BasicHandlers.donateHandler(bot, msg);
-                break;
-            case "/join":
-                await BasicHandlers.joinHandler(bot, msg);
-                break;
-            case "/events":
-                await BasicHandlers.eventsHandler(bot, msg);
-                break;
-            case "/location":
-                await BasicHandlers.locationHandler(bot, msg);
-                break;
-            case "/getresidents":
-                await BasicHandlers.getResidentsHandler(bot, msg);
-                break;
-            case "/ef":
-                await FundsHandlers.exportCSVHandler(bot, msg, data.opt[0]);
-                break;
-            case "/ed":
-                await FundsHandlers.exportDonutHandler(bot, msg, data.opt[0]);
-                break;
-            case "/unlock":
-                if (isAllowed(EmbassyHandlers.unlockHandler)) await EmbassyHandlers.unlockHandler(bot, msg);
-                break;
-            case "/doorbell":
-                if (isAllowed(EmbassyHandlers.doorbellHandler)) await EmbassyHandlers.doorbellHandler(bot, msg);
-                break;
-            case "/webcam":
-                bot.context(msg).isEditing = data.edit ?? false;
-                if (isAllowed(EmbassyHandlers.webcamHandler)) await EmbassyHandlers.webcamHandler(bot, msg);
-                break;
-            case "/webcam2":
-                bot.context(msg).isEditing = data.edit ?? false;
-                if (isAllowed(EmbassyHandlers.webcam2Handler)) await EmbassyHandlers.webcam2Handler(bot, msg);
-                break;
-            case "/doorcam":
-                bot.context(msg).isEditing = data.edit ?? false;
-                if (isAllowed(EmbassyHandlers.doorcamHandler)) await EmbassyHandlers.doorcamHandler(bot, msg);
-                break;
-            case "/removeButtons":
-                await ServiceHandlers.removeButtons(bot, msg);
-                break;
-            case "/printers":
-                await EmbassyHandlers.printersHandler(bot, msg);
-                break;
-            case "/uanettestatus":
-                bot.context(msg).isEditing = true;
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "anette");
-                break;
-            case "/anettestatus":
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "anette");
-                break;
-            case "/uplumbusstatus":
-                bot.context(msg).isEditing = true;
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus");
-                break;
-            case "/plumbusstatus":
-                await EmbassyHandlers.printerStatusHandler(bot, msg, "plumbus");
-                break;
-            case "/uconditioner":
-                bot.context(msg).isEditing = true;
-                if (isAllowed(EmbassyHandlers.conditionerHandler)) await EmbassyHandlers.conditionerHandler(bot, msg);
-                break;
-            case "/turnconditioneron":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.turnConditionerHandler(bot, msg, true);
-                    });
-                break;
-            case "/turnconditioneroff":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.turnConditionerHandler(bot, msg, false);
-                    });
-                break;
-            case "/addconditionertemp":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.addConditionerTempHandler(bot, msg, data.diff);
-                    });
-                break;
-            case "/setconditionermode":
-                if (isAllowed(EmbassyHandlers.turnConditionerHandler))
-                    await ServiceHandlers.conditionerCallback(bot, msg, async () => {
-                        await EmbassyHandlers.setConditionerModeHandler(bot, msg, data.mode);
-                    });
-                break;
-            case "/bought":
-                await ServiceHandlers.boughtButtonHandler(bot, msg, data.id, data);
-                break;
-            case "/bought_undo":
-                if (NeedsHandlers.boughtUndoHandler(bot, msg, data.id)) {
-                    await bot.deleteMessage(msg.chat.id, msg.message_id);
-                }
-                break;
-            case "/randomcat":
-                await MemeHandlers.randomCatHandler(bot, msg);
-                break;
-            case "/randomdog":
-                await MemeHandlers.randomDogHandler(bot, msg);
-                break;
-            case "/randomcab":
-                await MemeHandlers.randomCabHandler(bot, msg);
-                break;
-            case "/randomcock":
-                await MemeHandlers.randomRoosterHandler(bot, msg);
-                break;
-            case "/moan":
-            case "/fart":
-            case "/adler":
-            case "/rickroll":
-            case "/rzd":
-            case "/rfoxed":
-            case "/zhuchok":
-            case "/nani":
-            case "/sad":
-            case "/badumtss":
-            case "/dushno":
-                bot.context(msg).mode.silent = true;
-                await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}${data.command}.mp3`);
-                break;
-            default:
-                break;
+        const command = data.cmd;
+        if (!command) throw Error("Missing calback command");
+
+        const route = bot.routeMap.get(command);
+        if (!route) throw Error(`Calback route for ${command} does not exist`);
+
+        const handler = route.handler;
+
+        if (!bot.canUserCall(msg.from.username, command)) return;
+
+        bot.context(msg).isButtonResponse = true;
+
+        if (data.fs !== undefined) {
+            if (data.fs & Flags.Silent) bot.context(msg).mode.silent = true;
+            if (data.fs & Flags.Editing) bot.context(msg).isEditing = true;
+        }
+
+        const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [bot, msg];
+
+        if (data.params !== undefined) {
+            params.push(data.params);
+        }
+
+        await handler.apply(bot, params);
+    }
+
+    private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {
+        const tgUser = (await bot.getChat(vId)) as ITelegramUser;
+
+        if (this.verifyAndAddUser(tgUser)) {
+            try {
+                botConfig.moderatedChats.forEach(chatId =>
+                    bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
+                );
+
+                await bot.deleteMessage(msg.chat.id, msg.message_id);
+                await this.welcomeHandler(bot, msg.chat, tgUser);
+            } catch (error) {
+                logger.error(error);
+            }
         }
     }
 
@@ -423,21 +260,14 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
-        const inline_keyboard = [
-            [
-                {
-                    text: t("service.welcome.captcha"),
-                    callback_data: JSON.stringify({ vId: user.id }),
-                },
-            ],
-        ];
+        const inline_keyboard = [[InlineButton(t("service.welcome.captcha"), undefined, Flags.Simple, { vId: user.id })]];
 
         await bot.sendMessageExt(chat.id, welcomeText, null, {
             reply_markup: { inline_keyboard },
         });
     }
 
-    static verifyUserHandler(tgUser: ITelegramUser) {
+    static verifyAndAddUser(tgUser: ITelegramUser) {
         const user = UsersRepository.getByUserId(tgUser.id);
 
         if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
@@ -474,25 +304,5 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         await bot.sendMessageExt(chat.id, welcomeText, null);
-    }
-
-    static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string) {
-        await NeedsHandlers.boughtByIdHandler(bot, message, id);
-
-        if (!message.reply_markup) return;
-
-        const new_keyboard = message.reply_markup.inline_keyboard.filter(
-            (button: InlineKeyboardButton[]) => button[0].callback_data !== data
-        );
-
-        if (new_keyboard.length !== message.reply_markup.inline_keyboard.length) {
-            await bot.editMessageReplyMarkup(
-                { inline_keyboard: new_keyboard },
-                {
-                    chat_id: message.chat.id,
-                    message_id: message.message_id,
-                }
-            );
-        }
     }
 }

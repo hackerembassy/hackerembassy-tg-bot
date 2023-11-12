@@ -1,11 +1,12 @@
 import config from "config";
 
 import { EmbassyApiConfig } from "../config/schema";
-import { getFromHass, postToHass } from "../utils/network";
+import { getBufferFromResponse } from "../utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const climateConfig = embassyApiConfig.climate;
 
+// Types
 export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
 
 export type ConditionerStatus = {
@@ -53,6 +54,49 @@ export interface SpaceClimate {
     bedroom: FloorClimate;
 }
 
+// Media
+
+export async function getDoorcamImage(): Promise<Buffer> {
+    return getBufferFromResponse(await getFromHass(embassyApiConfig.doorcam));
+}
+
+export async function getWebcamImage(): Promise<Buffer> {
+    return getBufferFromResponse(await getFromHass(embassyApiConfig.webcam));
+}
+
+export async function getWebcam2Image(): Promise<Buffer> {
+    return getBufferFromResponse(await getFromHass(embassyApiConfig.webcam2));
+}
+
+export async function sayInSpace(text: string): Promise<void> {
+    const response = await postToHass(embassyApiConfig.ttspath, {
+        entity_id: "media_player.hackem_speaker",
+        message: text,
+        language: "ru",
+    });
+
+    if (response.status !== 200) throw Error("Speaker request failed");
+}
+
+export async function playInSpace(link: string): Promise<void> {
+    const response = await postToHass(embassyApiConfig.playpath, {
+        entity_id: "media_player.hackem_speaker",
+        media_content_id: link,
+        media_content_type: "music",
+    });
+
+    if (response.status !== 200) throw Error("Speaker request failed");
+}
+
+export async function ringDoorbell(): Promise<void> {
+    const response = await postToHass(embassyApiConfig.doorbellpath, {
+        entity_id: "switch.doorbell",
+    });
+
+    if (response.status !== 200) throw Error("Ringing request failed");
+}
+
+// Climate
 export async function getClimate(): Promise<Nullable<SpaceClimate>> {
     try {
         const queries = [
@@ -125,3 +169,26 @@ class Conditioner {
 }
 
 export const conditioner = new Conditioner();
+
+// Hass requests
+export async function getFromHass(url: string): Promise<Response> {
+    // @ts-ignore
+    return await fetch(`${url}`, {
+        headers: {
+            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
+            "Content-Type": "application/json",
+        },
+    });
+}
+
+export async function postToHass(url: string, body: any): Promise<Response> {
+    // @ts-ignore
+    return await fetch(url, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+}

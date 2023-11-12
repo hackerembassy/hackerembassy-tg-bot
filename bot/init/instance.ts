@@ -1,13 +1,18 @@
+import config from "config";
+
+import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { setMenu } from "./menu";
 import { setAutomaticFeatures } from "./recurring-actions";
-import { setRoutes } from "./routes";
+import { addRoutes, startRouting } from "./router";
+const botConfig = config.get<BotConfig>("bot");
 
 async function init(bot: HackerEmbassyBot): Promise<void> {
     const botInstanceInfo = await bot.getMe();
     bot.Name = botInstanceInfo.username;
-    setRoutes(bot);
+    addRoutes(bot);
+    startRouting(bot, botConfig.debug);
     setAutomaticFeatures(bot);
     setMenu(bot);
 
@@ -21,8 +26,6 @@ if (!process.env["HACKERBOTTOKEN"]) {
     logger.error("Exiting...");
     process.exit(1);
 }
-
-//
 
 const bot = new HackerEmbassyBot(process.env["HACKERBOTTOKEN"], {
     polling: {

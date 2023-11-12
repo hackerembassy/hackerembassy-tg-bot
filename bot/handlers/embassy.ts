@@ -212,7 +212,7 @@ export default class EmbassyHandlers implements BotHandlers {
         const inline_keyboard = [
             [
                 InlineButton(t("embassy.printers.anettestatus"), "printerstatus", Flags.Simple, { params: "anette" }),
-                InlineButton(t("embassy.printers.plumbusstatus"), "printerstatus", Flags.Simple, { params: "anette" }),
+                InlineButton(t("embassy.printers.plumbusstatus"), "printerstatus", Flags.Simple, { params: "plumbus" }),
             ],
         ];
 
@@ -260,7 +260,11 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const caption = TextGenerators.getPrinterStatusText(status);
             const inline_keyboard = [
-                [InlineButton(t("embassy.printerstatus.update", { printername }), `${printername}status`, Flags.Editing)],
+                [
+                    InlineButton(t("embassy.printerstatus.update", { printername }), "printerstatus", Flags.Editing, {
+                        params: "plumbus",
+                    }),
+                ],
             ];
 
             if (thumbnailBuffer) {
@@ -452,14 +456,14 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const fullLink = linkOrName.startsWith("http") ? linkOrName : `${embassyBase}${linkOrName}.mp3`;
+            const link = linkOrName.startsWith("http") ? linkOrName : `${embassyBase}/${linkOrName}.mp3`;
 
             const response = await fetchWithTimeout(`${embassyBase}/playinspace`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ fullLink }),
+                body: JSON.stringify({ link }),
                 timeout: 15000,
             });
 

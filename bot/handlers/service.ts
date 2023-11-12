@@ -6,7 +6,7 @@ import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, { FULL_PERMISSIONS, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
+import HackerEmbassyBot, { FULL_PERMISSIONS, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
 import RateLimiter from "../core/RateLimiter";
 import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
 import { InlineButton, userLink } from "../helpers";
@@ -94,12 +94,14 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         preparedMessages.reverse();
-        const combinedMessageText = preparedMessages
+        let combinedMessageText = preparedMessages
             .map(m => {
                 const datePrefix = `[${new Date(m.datetime).toLocaleString("RU-ru").substring(12, 17)}]: `;
                 return `${m.text?.match(/^\[\d{2}:\d{2}\]/) ? "" : datePrefix}${m.text ?? "photo"}`;
             })
             .join("\n");
+
+        if (combinedMessageText.length > MAX_MESSAGE_LENGTH) combinedMessageText = "message is too big";
 
         bot.messageHistory.push(msg.chat.id, lastMessageToEdit.messageId, combinedMessageText, orderOfLastMessageToEdit);
 
@@ -159,7 +161,9 @@ export default class ServiceHandlers implements BotHandlers {
 
         msg.from = callbackQuery.from;
 
-        if (data.vId && callbackQuery.from.id === data.vId) {
+        if (data.vId) {
+            if (callbackQuery.from.id !== data.vId) return;
+
             return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
         }
 

@@ -43,7 +43,7 @@ import {
 const botConfig = config.get<BotConfig>("bot");
 
 // Consts
-const maxChunkSize = 3500;
+export const MAX_MESSAGE_LENGTH = 3500;
 const messagedelay = 1500;
 const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
 export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
@@ -113,7 +113,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     canUserCall(username: string | undefined, command: string): boolean {
         const savedRestrictions = this.routeMap.get(command)?.restrictions;
 
-        if (!savedRestrictions) return true;
+        if (!savedRestrictions || savedRestrictions.length === 0) return true;
 
         if (username) return hasRole(username, "admin", ...savedRestrictions);
 
@@ -372,7 +372,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: TelegramBot.SendMessageOptions = {}
     ): Promise<void> {
-        const chunks = chunkSubstr(text, maxChunkSize);
+        const chunks = chunkSubstr(text, MAX_MESSAGE_LENGTH);
 
         if (chunks.length === 1) {
             this.sendMessageExt(chatId, chunks[0], msg, options);

@@ -564,7 +564,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const { startMonthDate, endMonthDate } = getMonthBoundaries(resultDate);
 
-        await this.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
+        await StatusHandlers.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
     static async statsHandler(

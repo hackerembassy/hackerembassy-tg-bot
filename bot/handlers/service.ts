@@ -196,14 +196,14 @@ export default class ServiceHandlers implements BotHandlers {
     private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {
         const tgUser = (await bot.getChat(vId)) as ITelegramUser;
 
-        if (this.verifyAndAddUser(tgUser)) {
+        if (ServiceHandlers.verifyAndAddUser(tgUser)) {
             try {
                 botConfig.moderatedChats.forEach(chatId =>
                     bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
                 );
 
                 await bot.deleteMessage(msg.chat.id, msg.message_id);
-                await this.welcomeHandler(bot, msg.chat, tgUser);
+                await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
             } catch (error) {
                 logger.error(error);
             }

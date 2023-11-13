@@ -409,9 +409,9 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        await this.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`, true);
+        await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`, true);
         await sleep(7000);
-        await this.sayinspaceHandler(bot, msg, text);
+        await EmbassyHandlers.sayinspaceHandler(bot, msg, text);
     }
 
     static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -432,9 +432,9 @@ export default class EmbassyHandlers implements BotHandlers {
         if (residentsInside.length > 0) {
             bot.context(msg).mode.silent = true;
 
-            await this.playinspaceHandler(bot, msg, `${embassyBase}/knock.mp3`, true);
+            await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/knock.mp3`, true);
             await sleep(9000);
-            await this.sayinspaceHandler(
+            await EmbassyHandlers.sayinspaceHandler(
                 bot,
                 msg,
                 `Тук-тук резиденты, к вам хочет зайти ${

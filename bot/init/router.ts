@@ -289,7 +289,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["forward"], AdminHandlers.forwardHandler, /(.*)/, match => [match[1]], ["admin"]);
     bot.addRoute(["getlogs", "logs", "log"], AdminHandlers.getLogHandler, null, null, ["admin"]);
     bot.addRoute(["getstate", "state"], AdminHandlers.getStateHandler, null, null, ["admin"]);
-    bot.addRoute(["cleanstate"], AdminHandlers.cleanStateHandler, null, null, ["admin"]);
+    bot.addRoute(["cleanstate", "clearstate"], AdminHandlers.cleanStateHandler, null, null, ["admin"]);
     bot.addRoute(["stoplive", "cleanlive"], AdminHandlers.stopLiveHandler, OptionalParam(/(\S+)/), match => [match[1]], [
         "admin",
     ]);

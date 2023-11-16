@@ -394,7 +394,7 @@ ${chunks[index]}
     }
 
     private shouldIgnore(text?: string): boolean {
-        if (!text) return false;
+        if (!text) return true;
 
         const botNameRequested = this.Name ? /^\/\S+?@(\S+)/.exec(text)?.[1] : null;
         const forAnotherBot = !!botNameRequested && botNameRequested !== this.Name;

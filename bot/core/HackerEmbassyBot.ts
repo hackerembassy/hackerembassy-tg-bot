@@ -393,14 +393,23 @@ ${chunks[index]}
         }
     }
 
+    private shouldIgnore(text?: string): boolean {
+        if (!text) return false;
+
+        const botNameRequested = this.Name ? /^\/\S+?@(\S+)/.exec(text)?.[1] : null;
+        const forAnotherBot = !!botNameRequested && botNameRequested !== this.Name;
+
+        return text[0] !== "/" || forAnotherBot;
+    }
+
     async routeMessage(message: TelegramBot.Message) {
         try {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
 
-            const text = message.text;
-            if (!text || text[0] !== "/") return;
+            if (this.shouldIgnore(message.text)) return;
 
+            const text = message.text as string;
             const fullCommand = text.split(" ")[0];
             const command = fullCommand.split("@")[0].slice(1);
 

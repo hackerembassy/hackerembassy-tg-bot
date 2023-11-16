@@ -121,7 +121,7 @@ export default class StatusHandlers implements BotHandlers {
         });
 
         if (StatusHandlers.isStatusError)
-            statusMessage = mode.pin ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
+            statusMessage = short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         return statusMessage;
     }
@@ -199,7 +199,7 @@ export default class StatusHandlers implements BotHandlers {
                 {
                     functionName: StatusHandlers.liveStatusHandler.name,
                     module: __filename,
-                    params: [resultMessage, mode],
+                    params: [resultMessage, short, mode],
                 }
             );
         }

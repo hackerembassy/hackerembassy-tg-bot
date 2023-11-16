@@ -19,7 +19,37 @@ describe("Bot behavior shared for all commands:", () => {
 
         await jest.advanceTimersByTimeAsync(IGNORE_UPDATE_TIMEOUT);
 
-        expect(botMock.popResults()).toEqual([]);
+        expect(botMock.popResults()).toHaveLength(0);
+    });
+
+    test("bot should respond to messages when it is mentioned", async () => {
+        await botMock.processUpdate(createMockMessage(`/status@${botMock.Name}`));
+        await botMock.processUpdate(createMockMessage(`/status@${botMock.Name} short`));
+
+        await jest.runAllTimersAsync();
+
+        expect(botMock.popResults()).toHaveLength(2);
+    });
+
+    test("bot should not respond to messages when another bot is mentioned", async () => {
+        await botMock.processUpdate(createMockMessage(`/status@${botMock.Name}1`));
+        await botMock.processUpdate(createMockMessage(`/status@${botMock.Name}1 short`));
+
+        await jest.runAllTimersAsync();
+
+        expect(botMock.popResults()).toHaveLength(0);
+    });
+
+    test("bot should not respond to messages without a forward slash in the beginning", async () => {
+        await botMock.processUpdate(createMockMessage(`+status`));
+        await botMock.processUpdate(createMockMessage(`status`));
+        await botMock.processUpdate(createMockMessage(` status`));
+        await botMock.processUpdate(createMockMessage(`abc /status`));
+        await botMock.processUpdate(createMockMessage(`+status short`));
+
+        await jest.runAllTimersAsync();
+
+        expect(botMock.popResults()).toHaveLength(0);
     });
 
     test("commands with the silent modifier should produce no output", async () => {
@@ -27,7 +57,7 @@ describe("Bot behavior shared for all commands:", () => {
 
         await jest.runAllTimersAsync();
 
-        expect(botMock.popResults()).toEqual([]);
+        expect(botMock.popResults()).toHaveLength(0);
     });
 
     test("guest user should not be allowed to use protected commands", async () => {

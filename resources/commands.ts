@@ -1,4 +1,5 @@
-export const GeneralCommandsList: string = `
+export const GeneralCommandsList: string = `[Команды гостей]
+
 Инфа:
 /start - Панель управления бота
 /help - Помощь
@@ -62,39 +63,58 @@ export const GeneralCommandsList: string = `
 /randomcock
 /rickroll
 /rzd
+
+[END Команды гостей]
 `;
 
 export const MemberCommandsList: string = `
-Команды резидентов:
+[Команды резидентов]
+
+Управлением спейсом:
 /open (o) - Открыть спейс
 /close (c) - Закрыть спейс
+/doorbell (db) - Позвонить в дверной звонок
+/unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
+#\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
+#\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
+/evict - Очистить список отметившихся внутри
+
+Камеры:
 /superstatus (ss) - Статус и изображения со всех камер
 /firstfloor (ff) - Глянуть камеру первого этажа
 /secondfloor (sf) - Глянуть камеру второго этажа
 /doorcam (dc) - Глянуть камеру снаружи
 /allcams (ac) - Глянуть все камеры
-/doorbell (db) - Позвонить в дверной звонок
-/unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
+
+Чаты:
 /clear n - Удалить последние n ответов бота из чата (default n = 1)
 /combine n (sq n) - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
 /setemoji - Поставить себе эмодзи в боте
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
-#\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
-#\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
-/evict - Очистить список отметившихся внутри
+
+Инфа:
 /residentsdonated (rcosts) - Кто из резидентов уже задонатил в этом месяце
+
+Кондиционер:
 /mideaon - Врубить кондей
 /mideaoff - Вырубить кондей
 /mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
+
+Сеть спейса:
 #\`/probe host#\` - Проверить доступность хоста
 #\`/ping host#\` - Пропинговать хост
 /gaming - Управление игровым сервером
+
+Нейронки:
 /txt2img (sd) - Генерация текста по картинке с помощью StableDiffusion
+
+[END Команды резидентов]
 `;
 
 export const AdminCommandsList: string = ` 
-Команды админов:
+[Команды админов]
+
 /getusers
 /getrestrictedusers
 #\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
@@ -113,10 +133,14 @@ export const AdminCommandsList: string = `
 /stoplive
 
 \\* Roles: admin, accountant, member, trusted, default
+
+[END Команды админов]
 `;
 
 export const AccountantCommandsList: string = `
-Команды бухгалтера:
+[Команды бухгалтеров]
+
+Сборы:
 #\`/costs donation_value currency_code from telegram_username#\` (cs) - Задонатить в последний актуальный сбор на аренду
 #\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
 #\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
@@ -125,6 +149,8 @@ export const AccountantCommandsList: string = `
 #\`/closefund fund_name#\` - Изменить статус сбора на закрытый
 #\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removefund fund_name#\` - Удалить сбор (не надо)
+
+Донаты:
 #\`/adddonation donation_value currency_code from telegram_username to fund_name#\` (ad)
 #\`/changedonation donation_id to donation_value currency_code#\`
 #\`/removedonation donation_id#\` - Удалить донат
@@ -136,6 +162,8 @@ export const AccountantCommandsList: string = `
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead
+
+[END Команды бухгалтеров]
 `;
 
 export const GlobalModifiers: string = `

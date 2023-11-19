@@ -206,7 +206,7 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
-        openSpace(msg.from?.username, { checkOpener: true });
+        openSpace(msg.from?.username, { checkOpener: false });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [

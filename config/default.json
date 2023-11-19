@@ -92,6 +92,13 @@
         },
         "hostsToMonitor": ["192.168.1.2", "hass.lan"]
     },
+    "neural": {
+        "stableDiffusion": {
+            "base": "http://gayming.lan:7860",
+            "steps": 15,
+            "sampler": "Euler a"
+        }
+    },
     "currency": {
         "default": "AMD",
         "cryptoUpdateInterval": 50000,

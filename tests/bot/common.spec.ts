@@ -31,6 +31,15 @@ describe("Bot behavior shared for all commands:", () => {
         expect(botMock.popResults()).toHaveLength(2);
     });
 
+    test("bot should respond to commands with any case", async () => {
+        await botMock.processUpdate(createMockMessage(`/StAtUs`));
+        await botMock.processUpdate(createMockMessage(`/status`));
+
+        await jest.runAllTimersAsync();
+
+        expect(botMock.popResults()).toHaveLength(2);
+    });
+
     test("bot should not respond to messages when another bot is mentioned", async () => {
         await botMock.processUpdate(createMockMessage(`/status@${botMock.Name}1`));
         await botMock.processUpdate(createMockMessage(`/status@${botMock.Name}1 short`));

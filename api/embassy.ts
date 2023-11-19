@@ -23,6 +23,7 @@ import {
     sayInSpace,
 } from "../services/hass";
 import logger from "../services/logger";
+import { stableDiffusion } from "../services/neural";
 import printer3d from "../services/printer3d";
 import * as statusMonitor from "../services/statusMonitor";
 import { sleep } from "../utils/common";
@@ -278,6 +279,28 @@ app.get("/devicesFromKeenetic", async (_, res, next) => {
         const sshdata = await ssh.exec("show associations", [""]);
         const macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)].map(item => item[1]);
         res.json(macs);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * Endpoint to ask StableDiffusion to generate an image from a text prompt
+ */
+app.post("/txt2img", async (req, res, next) => {
+    try {
+        const prompt = req.body?.prompt as string | undefined;
+
+        if (!prompt) {
+            res.sendStatus(400);
+            return;
+        }
+
+        const image = await stableDiffusion.txt2image(prompt);
+
+        if (!image) throw Error("txt2image process failed");
+
+        res.send({ image });
     } catch (error) {
         next(error);
     }

@@ -99,6 +99,15 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["isalive", "alive", "probe"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1]], ["member"]);
     bot.addRoute(["ping"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1], true], ["member"]);
 
+    // Neural
+    bot.addRoute(
+        ["txt2img", "sd", "generateimage"],
+        EmbassyHandlers.stableDiffusiondHandler,
+        OptionalParam(/(.*)/),
+        match => [match[1]],
+        ["member"]
+    );
+
     // Printers
     bot.addRoute(["printers"], EmbassyHandlers.printersHandler);
     bot.addRoute(["anette", "anettestatus"], EmbassyHandlers.printerStatusHandler, null, () => ["anette"]);

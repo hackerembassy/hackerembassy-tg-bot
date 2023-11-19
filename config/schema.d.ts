@@ -126,3 +126,13 @@ export interface CurrencyConfig {
 export interface BotApiConfig {
     port: number;
 }
+
+export interface NeuralConfig {
+    stableDiffusion: StableDiffusionConfig;
+}
+
+export interface StableDiffusionConfig {
+    base: string;
+    steps?: 15;
+    sampler?: string;
+}

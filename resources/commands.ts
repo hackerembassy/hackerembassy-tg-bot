@@ -90,6 +90,7 @@ export const MemberCommandsList: string = `
 #\`/probe host#\` - Проверить доступность хоста
 #\`/ping host#\` - Пропинговать хост
 /gaming - Управление игровым сервером
+/txt2img (sd) - Генерация текста по картинке с помощью StableDiffusion
 `;
 
 export const AdminCommandsList: string = ` 

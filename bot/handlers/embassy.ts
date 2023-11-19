@@ -612,4 +612,34 @@ export default class EmbassyHandlers implements BotHandlers {
             await bot.sendMessageExt(msg.chat.id, t("embassy.conditioner.fail"), msg);
         }
     }
+
+    static async stableDiffusiondHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
+        bot.sendChatAction(msg.chat.id, "upload_document", msg);
+
+        try {
+            if (!prompt) {
+                bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.help"), msg);
+                return;
+            }
+
+            const response = await fetchWithTimeout(`${embassyBase}/txt2img`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ prompt }),
+                timeout: 15000,
+            });
+
+            if (response.ok) {
+                const body = (await response.json()) as { image: string };
+                const imageBuffer = Buffer.from(body.image, "base64");
+
+                await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            } else throw Error("Failed to generate an image");
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.fail"), msg);
+        }
+    }
 }

@@ -411,7 +411,7 @@ ${chunks[index]}
 
             const text = message.text as string;
             const fullCommand = text.split(" ")[0];
-            const command = fullCommand.split("@")[0].slice(1);
+            const command = fullCommand.split("@")[0].slice(1).toLowerCase();
 
             const route = this.routeMap.get(command);
             if (!route) return;

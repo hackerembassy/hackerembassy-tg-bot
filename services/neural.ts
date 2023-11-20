@@ -12,6 +12,79 @@ type txt2imgResponse = {
     info: string;
 };
 
+type ResponseChoice = {
+    index: number;
+    message: {
+        role: string;
+        content: string;
+    };
+    finish_reason: string;
+};
+
+type ChatCompletionResponse = {
+    id: string;
+    object: string;
+    created: number;
+    model: string;
+    choices: ResponseChoice[];
+    usage: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+    };
+};
+
+type ApiErrorResponse = {
+    error: {
+        message: string;
+        type: string;
+    };
+};
+
+export class OpenAI {
+    constructor(private apiKey: string) {}
+
+    async askChat(prompt: string) {
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", `Bearer ${this.apiKey}`);
+
+        const raw = JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [
+                {
+                    role: "system",
+                    content: "Ты телеграм бот хакерспейса, ты всегда отвечаешь кратко, смешно и иногда как гопник",
+                },
+                {
+                    role: "user",
+                    content: prompt,
+                },
+            ],
+        });
+
+        const requestOptions = {
+            method: "POST",
+            headers: myHeaders,
+            body: raw,
+        };
+
+        const response = await fetch("https://api.openai.com/v1/chat/completions", requestOptions);
+
+        if (!response.ok) {
+            if (response.status >= 500) throw Error(`OpenAI is not avaiable: ${response.statusText}`);
+
+            const errorBody = (await response.json()) as ApiErrorResponse;
+
+            throw Error(`${errorBody.error.type} ${errorBody.error.message}`);
+        }
+
+        const body = (await response.json()) as ChatCompletionResponse;
+
+        return body.choices[0].message;
+    }
+}
+
 class StableDiffusion {
     public base: string;
     public defaultSteps: number;

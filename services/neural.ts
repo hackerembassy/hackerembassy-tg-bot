@@ -17,15 +17,18 @@ class StableDiffusion {
     public defaultSteps: number;
     public defaultSampler: string;
 
+    readonly nsfw = "((children))";
+
     constructor() {
         this.base = neuralConfig.stableDiffusion.base;
         this.defaultSteps = neuralConfig.stableDiffusion.steps ?? 15;
         this.defaultSampler = neuralConfig.stableDiffusion.sampler ?? "Euler a";
     }
 
-    async txt2image(prompt: string) {
+    async txt2image(prompt: string, negative_prompt: string = "") {
         const raw = JSON.stringify({
             prompt,
+            negative_prompt: `${this.nsfw} ${negative_prompt}`,
             sampler_index: this.defaultSampler,
             steps: this.defaultSteps,
         });

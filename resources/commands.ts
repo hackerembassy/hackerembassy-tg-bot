@@ -108,6 +108,7 @@ export const MemberCommandsList: string = `
 
 Нейронки:
 /txt2img (sd) - Генерация текста по картинке с помощью StableDiffusion
+/gpt (ask) - Спроси совета у нейросети
 
 [END Команды резидентов]
 `;

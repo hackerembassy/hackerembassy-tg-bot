@@ -5,6 +5,7 @@ import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import logger from "../../services/logger";
+import { OpenAI } from "../../services/neural";
 import { sleep } from "../../utils/common";
 import HackerEmbassyBot, { FULL_PERMISSIONS, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
 import RateLimiter from "../core/RateLimiter";
@@ -304,5 +305,41 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         await bot.sendMessageExt(chat.id, welcomeText, null);
+    }
+
+    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        const apiKey = process.env["OPENAI"];
+        const allowedChats = [
+            botConfig.chats.main,
+            botConfig.chats.horny,
+            botConfig.chats.offtopic,
+            botConfig.chats.key,
+            botConfig.chats.test,
+        ];
+
+        if (!apiKey) {
+            await bot.sendMessageExt(msg.chat.id, t("service.openai.notset"), msg);
+            return;
+        }
+
+        if (!allowedChats.includes(msg.chat.id)) {
+            await bot.sendMessageExt(msg.chat.id, t("service.openai.chatnotallowed"), msg);
+            return;
+        }
+
+        if (!prompt) {
+            await bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
+            return;
+        }
+
+        const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
+        const openAI = new OpenAI(apiKey);
+        const response = await openAI.askChat(prompt);
+
+        clearInterval(loading);
+
+        await bot.sendMessageExt(msg.chat.id, response.content, msg);
     }
 }

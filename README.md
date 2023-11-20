@@ -107,6 +107,7 @@ GAMINGUSER - Gaming server username
 GAMINGPASSWORD - Gaming server user password  
 HASSTOKEN - Home Assistant API token  
 HACKERGOOGLEAPIKEY - Google Calendar API token  
+OPENAIAPIKEY - OpenAI API token  
 SONAR_TOKEN - Sonar Cloud analysis token
 
 ## Additional notes

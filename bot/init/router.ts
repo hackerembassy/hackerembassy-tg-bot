@@ -105,9 +105,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         EmbassyHandlers.stableDiffusiondHandler,
         OptionalParam(/(.*)/),
         match => [match[1]],
-        ["member"]
+        ["member", "trusted"]
     );
-    bot.addRoute(["ask", "gpt"], ServiceHandlers.askHandler, OptionalParam(/(.*)/), match => [match[1]], ["member"]);
+    bot.addRoute(["ask", "gpt"], ServiceHandlers.askHandler, OptionalParam(/(.*)/), match => [match[1]], ["member", "trusted"]);
 
     // Printers
     bot.addRoute(["printers"], EmbassyHandlers.printersHandler);

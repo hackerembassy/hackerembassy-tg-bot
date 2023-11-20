@@ -12,6 +12,7 @@ services:
             - UNLOCKKEY=$UNLOCKKEY
             - GUESTKEY=$GUESTKEY
             - HACKERGOOGLEAPIKEY=$HACKERGOOGLEAPIKEY
+            - OPENAIAPIKEY=$OPENAIAPIKEY
 volumes:
     data:
         name: "hackerembassy-bot-data"

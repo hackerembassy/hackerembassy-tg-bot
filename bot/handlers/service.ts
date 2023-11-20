@@ -310,7 +310,7 @@ export default class ServiceHandlers implements BotHandlers {
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
-        const apiKey = process.env["OPENAI"];
+        const apiKey = process.env["OPENAIAPIKEY"];
         const allowedChats = [
             botConfig.chats.main,
             botConfig.chats.horny,

@@ -622,12 +622,14 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
+            const [positive_prompt, negative_prompt] = prompt.split("!=", 2).map(pr => pr.trim());
+
             const response = await fetchWithTimeout(`${embassyBase}/txt2img`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ prompt }),
+                body: JSON.stringify({ prompt: positive_prompt, negative_prompt }),
                 timeout: 15000,
             });
 

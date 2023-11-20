@@ -290,13 +290,14 @@ app.get("/devicesFromKeenetic", async (_, res, next) => {
 app.post("/txt2img", async (req, res, next) => {
     try {
         const prompt = req.body?.prompt as string | undefined;
+        const negative_prompt = req.body?.negative_prompt as string | undefined;
 
         if (!prompt) {
             res.sendStatus(400);
             return;
         }
 
-        const image = await stableDiffusion.txt2image(prompt);
+        const image = await stableDiffusion.txt2image(prompt, negative_prompt);
 
         if (!image) throw Error("txt2image process failed");
 

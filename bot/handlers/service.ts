@@ -308,38 +308,47 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
-
-        const apiKey = process.env["OPENAIAPIKEY"];
-        const allowedChats = [
-            botConfig.chats.main,
-            botConfig.chats.horny,
-            botConfig.chats.offtopic,
-            botConfig.chats.key,
-            botConfig.chats.test,
-        ];
-
-        if (!apiKey) {
-            await bot.sendMessageExt(msg.chat.id, t("service.openai.notset"), msg);
-            return;
-        }
-
-        if (!allowedChats.includes(msg.chat.id)) {
-            await bot.sendMessageExt(msg.chat.id, t("service.openai.chatnotallowed"), msg);
-            return;
-        }
-
-        if (!prompt) {
-            await bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
-            return;
-        }
-
         const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
-        const openAI = new OpenAI(apiKey);
-        const response = await openAI.askChat(prompt);
 
-        clearInterval(loading);
+        try {
+            bot.sendChatAction(msg.chat.id, "typing", msg);
 
-        await bot.sendMessageExt(msg.chat.id, response.content, msg);
+            const apiKey = process.env["OPENAIAPIKEY"];
+            const allowedChats = [
+                botConfig.chats.main,
+                botConfig.chats.horny,
+                botConfig.chats.offtopic,
+                botConfig.chats.key,
+                botConfig.chats.test,
+            ];
+
+            if (!apiKey) {
+                await bot.sendMessageExt(msg.chat.id, t("service.openai.notset"), msg);
+                return;
+            }
+
+            if (!allowedChats.includes(msg.chat.id)) {
+                await bot.sendMessageExt(msg.chat.id, t("service.openai.chatnotallowed"), msg);
+                return;
+            }
+
+            if (!prompt) {
+                await bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
+                return;
+            }
+
+            const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
+            const openAI = new OpenAI(apiKey);
+            const response = await openAI.askChat(prompt);
+
+            clearInterval(loading);
+
+            await bot.sendMessageExt(msg.chat.id, response.content, msg);
+        } catch (error) {
+            await bot.sendMessageExt(msg.chat.id, t("service.openai.error"), msg);
+            logger.error(error);
+        } finally {
+            clearInterval(loading);
+        }
     }
 }

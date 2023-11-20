@@ -1,6 +1,7 @@
 import config from "config";
 
 import { NeuralConfig } from "../config/schema";
+import { fetchWithTimeout } from "../utils/network";
 
 const neuralConfig = config.get<NeuralConfig>("neural");
 
@@ -67,9 +68,10 @@ export class OpenAI {
             method: "POST",
             headers: myHeaders,
             body: raw,
+            timeout: 20000,
         };
 
-        const response = await fetch("https://api.openai.com/v1/chat/completions", requestOptions);
+        const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", requestOptions);
 
         if (!response.ok) {
             if (response.status >= 500) throw Error(`OpenAI is not avaiable: ${response.statusText}`);

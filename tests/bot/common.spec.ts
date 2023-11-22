@@ -1,7 +1,7 @@
 import { IGNORE_UPDATE_TIMEOUT } from "../../bot/core/HackerEmbassyBot";
 import fundsRepository from "../../repositories/fundsRepository";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { createBotMock, createMockMessage, GUEST_USER_NAME, prepareDb } from "../mocks/mockHelpers";
+import { ADMIN_USER_NAME, createBotMock, createMockMessage, GUEST_USER_NAME, prepareDb } from "../mocks/mockHelpers";
 
 describe("Bot behavior shared for all commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
@@ -31,13 +31,14 @@ describe("Bot behavior shared for all commands:", () => {
         expect(botMock.popResults()).toHaveLength(2);
     });
 
-    test("bot should respond to commands with any case", async () => {
+    test("bot should respond to commands with any case and not miss parameters", async () => {
         await botMock.processUpdate(createMockMessage(`/StAtUs`));
         await botMock.processUpdate(createMockMessage(`/status`));
+        await botMock.processUpdate(createMockMessage(`/inForce abc`, ADMIN_USER_NAME));
 
         await jest.runAllTimersAsync();
 
-        expect(botMock.popResults()).toHaveLength(2);
+        expect(botMock.popResults()).toHaveLength(3);
     });
 
     test("bot should not respond to messages when another bot is mentioned", async () => {

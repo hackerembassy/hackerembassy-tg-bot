@@ -411,7 +411,8 @@ ${chunks[index]}
 
             const text = message.text as string;
             const fullCommand = text.split(" ")[0];
-            const command = fullCommand.split("@")[0].slice(1).toLowerCase();
+            const commandWithCase = fullCommand.split("@")[0].slice(1);
+            const command = commandWithCase.toLowerCase();
 
             const route = this.routeMap.get(command);
             if (!route) return;
@@ -423,7 +424,7 @@ ${chunks[index]}
             }
 
             // parse global modifiers
-            let textToMatch = text;
+            let textToMatch = text.replace(commandWithCase, command);
 
             for (const key of Object.keys(this.context(message).mode)) {
                 if (textToMatch.includes(`-${key}`)) this.context(message).mode[key as keyof BotMessageContextMode] = true;

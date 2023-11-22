@@ -337,7 +337,7 @@ export default class ServiceHandlers implements BotHandlers {
                 return;
             }
 
-            const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
+            const loading = setTimeout(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
             const openAI = new OpenAI(apiKey);
             const response = await openAI.askChat(prompt);
 

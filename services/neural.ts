@@ -68,7 +68,7 @@ export class OpenAI {
             method: "POST",
             headers: myHeaders,
             body: raw,
-            timeout: 20000,
+            timeout: 60000,
         };
 
         const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", requestOptions);

@@ -103,11 +103,14 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["txt2img", "sd", "generateimage"],
         EmbassyHandlers.stableDiffusiondHandler,
-        OptionalParam(/(.*)/),
+        OptionalParam(/(.*)/ims),
         match => [match[1]],
         ["member", "trusted"]
     );
-    bot.addRoute(["ask", "gpt"], ServiceHandlers.askHandler, OptionalParam(/(.*)/), match => [match[1]], ["member", "trusted"]);
+    bot.addRoute(["ask", "gpt"], ServiceHandlers.askHandler, OptionalParam(/(.*)/ims), match => [match[1]], [
+        "member",
+        "trusted",
+    ]);
 
     // Printers
     bot.addRoute(["printers"], EmbassyHandlers.printersHandler);

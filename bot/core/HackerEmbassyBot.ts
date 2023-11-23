@@ -417,6 +417,8 @@ ${chunks[index]}
             const route = this.routeMap.get(command);
             if (!route) return;
 
+            this.context(message).messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
+
             // check restritions
             if (route.restrictions.length > 0 && !this.canUserCall(message.from?.username, command)) {
                 this.sendMessageExt(message.chat.id, t("admin.messages.restricted"), message);
@@ -430,8 +432,6 @@ ${chunks[index]}
                 if (textToMatch.includes(`-${key}`)) this.context(message).mode[key as keyof BotMessageContextMode] = true;
                 textToMatch = textToMatch.replace(` -${key}`, "");
             }
-
-            this.context(message).messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
             // call with or without params
             if (route.paramMapper) {

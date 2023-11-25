@@ -6,7 +6,7 @@
     "configurations": [
         {
             "type": "node",
-            "runtimeVersion": "18",
+            "runtimeVersion": "20",
             "name": "Debug Bot",
             "request": "launch",
             "skipFiles": [
@@ -19,7 +19,7 @@
         },
         {
             "type": "node",
-            "runtimeVersion": "18",
+            "runtimeVersion": "20",
             "name": "Debug Tests",
             "request": "launch",
             "skipFiles": [

@@ -80,7 +80,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"], EmbassyHandlers.webcam2Handler, null, null, [
         "member",
     ]);
-    bot.addRoute(["doorcam", "doorcum", "dc"], EmbassyHandlers.doorcamHandler, null, null, ["member"]);
+    bot.addRoute(["doorcam", "doorcum", "precam", "precum", "dc"], EmbassyHandlers.doorcamHandler, null, null, ["member"]);
     bot.addRoute(["allcams", "cams", "allcums", "cums", "allc"], EmbassyHandlers.allCamsHandler, null, null, ["member"]);
 
     // Sensors

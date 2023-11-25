@@ -32,7 +32,7 @@ export function fetchWithTimeout(uri: string, options: any = undefined, ...rest:
     const cancellation = new Cancellation(options?.timeout ?? networkConfig.timeout);
 
     // @ts-ignore
-    return fetch(uri, { signal: cancellation.signal, ...options }, ...rest);
+    return fetch(uri, { signal: cancellation.signal, ...options }, ...rest).finally(() => cancellation.reset());
 }
 
 export async function getBufferFromResponse(response: Response): Promise<Buffer> {

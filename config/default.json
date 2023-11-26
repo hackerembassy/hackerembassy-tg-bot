@@ -95,7 +95,7 @@
     "neural": {
         "stableDiffusion": {
             "base": "http://gayming.lan:7860",
-            "steps": 15,
+            "steps": 18,
             "sampler": "Euler a"
         }
     },

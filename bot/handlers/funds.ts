@@ -232,7 +232,7 @@ export default class FundsHandlers implements BotHandlers {
         return await FundsHandlers.exportDonutHandler(bot, msg, latestCostsFund.name);
     }
 
-    static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message, option: "all" | "paid" | "left" = "all") {
         const fundName = FundsRepository.getLatestCosts()?.name;
 
         if (!fundName) {
@@ -248,7 +248,14 @@ export default class FundsHandlers implements BotHandlers {
         if (residents && donations) {
             for (const resident of residents) {
                 const hasDonated = donations.filter(d => equalsIns(d.username, resident.username)).length > 0;
-                resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${helpers.formatUsername(resident.username)}\n`;
+                const shouldInclude = option === "all" || (option === "paid" && hasDonated) || (option === "left" && !hasDonated);
+
+                if (!shouldInclude) continue;
+
+                resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${helpers.formatUsername(
+                    resident.username,
+                    bot.context(msg).mode
+                )}\n`;
             }
         }
 

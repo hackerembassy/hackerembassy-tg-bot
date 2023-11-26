@@ -106,7 +106,7 @@ class StableDiffusion {
             negative_prompt: `${this.nsfw} ${negative_prompt}`,
             sampler_index: this.defaultSampler,
             steps: this.defaultSteps,
-            denoising_strength: 0.62,
+            denoising_strength: 0.58,
             init_images: [image],
         });
 

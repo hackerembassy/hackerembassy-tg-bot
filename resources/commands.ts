@@ -93,7 +93,7 @@ export const MemberCommandsList: string = `
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
 
 Инфа:
-/residentsdonated (rcosts) - Кто из резидентов уже задонатил в этом месяце
+/residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце
 
 Кондиционер:
 /mideaon - Врубить кондей

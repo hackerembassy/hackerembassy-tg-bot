@@ -220,8 +220,8 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["residentscosts", "residentsdonated", "residentcosts", "rcosts"],
         FundsHandlers.residentsDonatedHandler,
-        null,
-        null,
+        OptionalParam(/(all|paid|left)/),
+        match => [match[1]],
         ["member", "accountant"]
     );
     bot.addRoute(["showcosts", "scosts", "scs"], FundsHandlers.showCostsHandler);

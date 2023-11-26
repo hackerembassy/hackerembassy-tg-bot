@@ -1,6 +1,7 @@
 import config from "config";
 import { Message } from "node-telegram-bot-api";
 import { PingResponse } from "ping";
+import { dir } from "tmp-promise";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import statusRepository from "../../repositories/statusRepository";
@@ -12,6 +13,7 @@ import { PrinterStatusResponse } from "../../services/printer3d";
 import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
+import { readFileAsBase64 } from "../../utils/filesystem";
 import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -29,6 +31,12 @@ enum DeviceOperation {
     Up = "up",
     Down = "down",
 }
+
+type SdToImageRequest = {
+    prompt: string;
+    negative_prompt?: string;
+    image?: string;
+};
 
 export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -616,20 +624,34 @@ export default class EmbassyHandlers implements BotHandlers {
     static async stableDiffusiondHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
+        const photoId = msg.photo?.[0]?.file_id;
+        const endpoint = photoId ? "img2img" : "txt2img";
+
         try {
-            if (!prompt) {
+            if (!prompt && !photoId) {
                 bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.help"), msg);
                 return;
             }
 
-            const [positive_prompt, negative_prompt] = prompt.split("!=", 2).map(pr => pr.trim());
+            const [positive_prompt, negative_prompt] = prompt ? prompt.split("!=", 2).map(pr => pr.trim()) : ["", ""];
 
-            const response = await fetchWithTimeout(`${embassyBase}/txt2img`, {
+            const requestBody = { prompt: positive_prompt, negative_prompt } as SdToImageRequest;
+
+            if (photoId) {
+                const { path, cleanup } = await dir({
+                    unsafeCleanup: true,
+                });
+                const photoPath = await bot.downloadFile(photoId, path);
+                requestBody.image = await readFileAsBase64(photoPath);
+                cleanup();
+            }
+
+            const response = await fetchWithTimeout(`${embassyBase}/${endpoint}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ prompt: positive_prompt, negative_prompt }),
+                body: JSON.stringify(requestBody),
                 timeout: 15000,
             });
 

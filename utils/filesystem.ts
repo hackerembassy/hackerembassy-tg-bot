@@ -23,3 +23,9 @@ export async function getRandomImageFromFolder(folder: string): Promise<Nullable
 export async function getImageFromPath(path: string): Promise<Nullable<Buffer>> {
     return await fs.promises.readFile(path);
 }
+
+//function to read any file as base64 string
+export async function readFileAsBase64(path: string): Promise<string> {
+    const file = await fs.promises.readFile(path);
+    return file.toString("base64");
+}

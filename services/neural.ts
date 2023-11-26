@@ -100,6 +100,32 @@ class StableDiffusion {
         this.defaultSampler = neuralConfig.stableDiffusion.sampler ?? "Euler a";
     }
 
+    async img2image(prompt: string, negative_prompt: string = "", image: string) {
+        const raw = JSON.stringify({
+            prompt,
+            negative_prompt: `${this.nsfw} ${negative_prompt}`,
+            sampler_index: this.defaultSampler,
+            steps: this.defaultSteps,
+            init_images: [image],
+        });
+
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                ["Content-Type"]: "application/json",
+                ["accept"]: "application/json",
+            },
+            body: raw,
+        };
+
+        const response = await fetch(`${this.base}/sdapi/v1/img2img`, requestOptions);
+        const body = (await response.json()) as txt2imgResponse;
+
+        if (body.error) throw new Error(`${body.error}: ${body.detail}`);
+
+        return body.images[0];
+    }
+
     async txt2image(prompt: string, negative_prompt: string = "") {
         const raw = JSON.stringify({
             prompt,

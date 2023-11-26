@@ -91,13 +91,15 @@ class StableDiffusion {
     public base: string;
     public defaultSteps: number;
     public defaultSampler: string;
+    public defaultDenoising: number;
 
     readonly nsfw = "((children))";
 
     constructor() {
         this.base = neuralConfig.stableDiffusion.base;
-        this.defaultSteps = neuralConfig.stableDiffusion.steps ?? 15;
+        this.defaultSteps = neuralConfig.stableDiffusion.steps ?? 18;
         this.defaultSampler = neuralConfig.stableDiffusion.sampler ?? "Euler a";
+        this.defaultDenoising = neuralConfig.stableDiffusion.denoising ?? 0.57;
     }
 
     async img2image(prompt: string, negative_prompt: string = "", image: string) {
@@ -106,7 +108,7 @@ class StableDiffusion {
             negative_prompt: `${this.nsfw} ${negative_prompt}`,
             sampler_index: this.defaultSampler,
             steps: this.defaultSteps,
-            denoising_strength: 0.58,
+            denoising_strength: this.defaultDenoising,
             init_images: [image],
         });
 

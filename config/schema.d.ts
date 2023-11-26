@@ -134,5 +134,6 @@ export interface NeuralConfig {
 export interface StableDiffusionConfig {
     base: string;
     steps?: 15;
+    denoising?: 0.57;
     sampler?: string;
 }

@@ -96,6 +96,7 @@
         "stableDiffusion": {
             "base": "http://gayming.lan:7860",
             "steps": 18,
+            "denoising": 0.57,
             "sampler": "Euler a"
         }
     },

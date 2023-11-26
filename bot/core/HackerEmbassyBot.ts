@@ -407,9 +407,10 @@ ${chunks[index]}
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
 
-            if (this.shouldIgnore(message.text)) return;
+            const text = (message.text ?? message.caption) as string;
 
-            const text = message.text as string;
+            if (this.shouldIgnore(text)) return;
+
             const fullCommand = text.split(" ")[0];
             const commandWithCase = fullCommand.split("@")[0].slice(1);
             const command = commandWithCase.toLowerCase();

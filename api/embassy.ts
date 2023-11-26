@@ -307,6 +307,30 @@ app.post("/txt2img", async (req, res, next) => {
     }
 });
 
+/**
+ * Endpoint to ask StableDiffusion to generate an image from a text prompt and a starting image
+ */
+app.post("/img2img", async (req, res, next) => {
+    try {
+        const prompt = (req.body?.prompt ?? "") as string;
+        const negative_prompt = (req.body?.negative_prompt ?? "") as string;
+        const initialImage = req.body?.image as string | undefined;
+
+        if (!initialImage) {
+            res.sendStatus(400);
+            return;
+        }
+
+        const image = await stableDiffusion.img2image(prompt, negative_prompt, initialImage);
+
+        if (!image) throw Error("img2image process failed");
+
+        res.send({ image });
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.get("/printer", async (req, res, next) => {
     try {
         const printername = req.query.printername as string;

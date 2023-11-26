@@ -101,7 +101,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
 
     // Neural
     bot.addRoute(
-        ["txt2img", "sd", "generateimage"],
+        ["txt2img", "img2img", "toimg", "sd", "generateimage"],
         EmbassyHandlers.stableDiffusiondHandler,
         OptionalParam(/(.*)/ims),
         match => [match[1]],

@@ -498,6 +498,27 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    static async availableSoundsHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/availablesounds`, {
+                method: "GET",
+                timeout: 15000,
+            });
+
+            if (response.ok) {
+                const { sounds } = (await response.json()) as { sounds: string[] };
+                const soundsText = sounds.map(s => `#\`/play ${s}#\``).join("\n");
+
+                await bot.sendMessageExt(msg.chat.id, t("embassy.availablesounds.success", { sounds: soundsText }), msg);
+            } else throw Error("Failed to fetch available sounds");
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.availablesounds.fail"), msg);
+        }
+    }
+
     static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, linkOrName: string, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 

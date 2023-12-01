@@ -5,6 +5,7 @@ import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
 import express from "express";
+import { promises as fs } from "fs";
 import find from "local-devices";
 // @ts-ignore
 import { LUCI } from "luci-rpc";
@@ -56,6 +57,17 @@ app.post("/playinspace", async (req, res, next) => {
     try {
         await playInSpace(req.body.link);
         res.send({ message: "Success" });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/availablesounds", async (req, res, next) => {
+    try {
+        const availableFiles = await fs.readdir(embassyApiConfig.static);
+        res.send({
+            sounds: availableFiles.map(filename => filename.replace(".mp3", "")),
+        });
     } catch (error) {
         next(error);
     }

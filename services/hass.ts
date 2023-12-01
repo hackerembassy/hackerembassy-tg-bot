@@ -88,6 +88,14 @@ export async function playInSpace(link: string): Promise<void> {
     if (response.status !== 200) throw Error("Speaker request failed");
 }
 
+export async function stopMediaInSpace(): Promise<void> {
+    const response = await postToHass(embassyApiConfig.stoppath, {
+        entity_id: embassyApiConfig.speakerentity,
+    });
+
+    if (response.status !== 200) throw Error("Speaker request failed");
+}
+
 export async function ringDoorbell(): Promise<void> {
     const response = await postToHass(embassyApiConfig.doorbellpath, {
         entity_id: "switch.doorbell",

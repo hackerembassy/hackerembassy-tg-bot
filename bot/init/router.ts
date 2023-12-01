@@ -175,6 +175,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["sayinspace", "say"], EmbassyHandlers.sayinspaceHandler, /(.*)/ims, match => [match[1]]);
     bot.addRoute(["announce"], EmbassyHandlers.announceHandler, /(.*)/ims, match => [match[1]]);
     bot.addRoute(["playinspace", "play"], EmbassyHandlers.playinspaceHandler, /(.*)/ims, match => [match[1]]);
+    bot.addRoute(["stopmedia", "stop"], EmbassyHandlers.stopMediaHandler);
     bot.addRoute(["fartinspace", "fart"], EmbassyHandlers.playinspaceHandler, null, () => ["fart"]);
     bot.addRoute(["moaninspace", "moan"], EmbassyHandlers.playinspaceHandler, null, () => ["moan"]);
     bot.addRoute(["rickroll", "nevergonnagiveyouup"], EmbassyHandlers.playinspaceHandler, null, () => ["rickroll"]);

@@ -67,6 +67,7 @@
         "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
         "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
         "doorbellpath": "http://hass:8123/api/services/switch/turn_on",
+        "speakerentity": "media_player.cum_pod",
         "climate": {
             "conditioner": {
                 "entityId": "climate.midea_climate",

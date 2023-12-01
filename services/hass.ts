@@ -70,7 +70,7 @@ export async function getWebcam2Image(): Promise<Buffer> {
 
 export async function sayInSpace(text: string): Promise<void> {
     const response = await postToHass(embassyApiConfig.ttspath, {
-        entity_id: "media_player.hackem_speaker",
+        entity_id: embassyApiConfig.speakerentity,
         message: text,
         language: "ru",
     });
@@ -80,7 +80,7 @@ export async function sayInSpace(text: string): Promise<void> {
 
 export async function playInSpace(link: string): Promise<void> {
     const response = await postToHass(embassyApiConfig.playpath, {
-        entity_id: "media_player.hackem_speaker",
+        entity_id: embassyApiConfig.speakerentity,
         media_content_id: link,
         media_content_type: "music",
     });

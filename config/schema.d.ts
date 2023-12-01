@@ -77,6 +77,7 @@ export interface EmbassyApiConfig {
     ttspath: string;
     playpath: string;
     doorbellpath: string;
+    speakerentity: string;
     climate: ClimateConfig;
     hostsToMonitor?: string[] | null;
 }

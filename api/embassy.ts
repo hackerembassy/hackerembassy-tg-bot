@@ -21,6 +21,7 @@ import {
     playInSpace,
     ringDoorbell,
     sayInSpace,
+    stopMediaInSpace,
 } from "../services/hass";
 import logger from "../services/logger";
 import { stableDiffusion } from "../services/neural";
@@ -54,6 +55,15 @@ app.post("/sayinspace", async (req, res, next) => {
 app.post("/playinspace", async (req, res, next) => {
     try {
         await playInSpace(req.body.link);
+        res.send({ message: "Success" });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/stopmedia", async (_, res, next) => {
+    try {
+        await stopMediaInSpace();
         res.send({ message: "Success" });
     } catch (error) {
         next(error);

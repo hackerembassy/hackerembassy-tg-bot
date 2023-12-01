@@ -76,6 +76,7 @@ export interface EmbassyApiConfig {
     doorcam: string;
     ttspath: string;
     playpath: string;
+    stoppath: string;
     doorbellpath: string;
     speakerentity: string;
     climate: ClimateConfig;

@@ -478,6 +478,26 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    static async stopMediaHandler(bot: HackerEmbassyBot, msg: Message, silentMessage: boolean = false) {
+        bot.sendChatAction(msg.chat.id, "upload_document", msg);
+
+        try {
+            const response = await fetchWithTimeout(`${embassyBase}/stopmedia`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                timeout: 15000,
+            });
+
+            if (response.ok) !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.stop.success"), msg));
+            else throw Error("Failed to stop media in space");
+        } catch (error) {
+            logger.error(error);
+            !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.stop.fail"), msg));
+        }
+    }
+
     static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, linkOrName: string, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 

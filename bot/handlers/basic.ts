@@ -222,7 +222,10 @@ export default class BasicHandlers implements BotHandlers {
                 InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", Flags.Silent, { params: "badumtss" }),
                 InlineButton(t("basic.meme.buttons.dushno"), "playinspace", Flags.Silent, { params: "dushno" }),
             ],
-            [InlineButton(t("basic.meme.buttons.back"), "controlpanel", Flags.Editing)],
+            [
+                InlineButton(t("basic.meme.buttons.stop"), "stopmedia", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.back"), "controlpanel", Flags.Editing),
+            ],
         ];
 
         await bot.sendOrEditMessage(

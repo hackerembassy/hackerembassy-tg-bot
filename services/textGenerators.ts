@@ -390,9 +390,9 @@ export function getStatsText(
         }
 
         const place = `${medal}${i + 1}`.padEnd(4, " ");
-        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)}#\`#\`#\`   ${userTime.username} ${getUserBadges(
+        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)} ${userTime.username} ${getUserBadges(
             userTime.username
-        )}\n`;
+        )}#\`#\`#\`\n`;
     }
 
     stats += `\n${t("status.stats.tryautoinside")}`;

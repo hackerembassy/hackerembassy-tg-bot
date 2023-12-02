@@ -51,6 +51,8 @@ const bot = new HackerEmbassyBot(process.env["HACKERBOTTOKEN"], {
     },
 });
 
-init(bot);
+export function StartTelegramBot() {
+    init(bot);
+}
 
 export default bot;

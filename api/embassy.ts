@@ -387,6 +387,7 @@ app.post("/conditioner/temperature", async (req, res, next) => {
     }
 });
 
-app.listen(port);
-
-logger.info(`Embassy Api is started on port ${port}`);
+export function StartEmbassyApi() {
+    app.listen(port);
+    logger.info(`Embassy Api is ready to accept requests on port ${port}`);
+}

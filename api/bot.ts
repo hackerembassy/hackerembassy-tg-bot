@@ -293,6 +293,7 @@ app.get("/healthcheck", (_, res, next) => {
     }
 });
 
-app.listen(port);
-
-logger.info(`Bot Api is ready to accept requests`);
+export function StartSpaceApi() {
+    app.listen(port);
+    logger.info(`Bot Api is ready to accept requests on port ${port}`);
+}

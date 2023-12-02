@@ -98,7 +98,9 @@ export default class EmbassyHandlers implements BotHandlers {
         try {
             const webcamImage = await EmbassyHandlers.getWebcamImage(camName);
 
-            const inline_keyboard = mode.static ? [] : [[InlineButton(t("status.buttons.refresh"), `${camName}`, Flags.Editing)]];
+            const inline_keyboard = mode.static
+                ? []
+                : [[InlineButton(t("status.buttons.refresh"), `webcam`, Flags.Editing, { params: camName })]];
 
             await bot.editPhoto(webcamImage, msg, {
                 reply_markup: {
@@ -120,7 +122,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("status.buttons.refresh"), camName, Flags.Editing),
+                    InlineButton(t("status.buttons.refresh"), "webcam", Flags.Editing, { params: camName }),
                     InlineButton(t("status.buttons.save"), "removebuttons"),
                 ],
             ];

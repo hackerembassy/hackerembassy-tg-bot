@@ -22,8 +22,8 @@ export async function requestToEmbassy(
         timeout,
     } as RequestInit;
 
-    if (method === "POST" && body !== undefined) {
-        options.body = JSON.stringify(body);
+    if (method === "POST") {
+        options.body = body ? JSON.stringify(body) : "{}";
     }
 
     return await fetchWithTimeout(`${EmbassyBase}${endpoint}`, options);

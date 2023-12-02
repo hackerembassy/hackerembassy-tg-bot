@@ -7,6 +7,7 @@ import { UserStateChangeType, UserStateType } from "../../models/UserState";
 import fundsRepository from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
+import { requestToEmbassy } from "../../services/embassy";
 import { createUserStatsDonut } from "../../services/export";
 import { SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
@@ -26,7 +27,6 @@ import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
-import { fetchWithTimeout } from "../../utils/network";
 import { isEmoji } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
@@ -106,9 +106,7 @@ export default class StatusHandlers implements BotHandlers {
 
         let climateInfo: Nullable<SpaceClimate> = null;
         try {
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`, {
-                timeout: 4000,
-            });
+            const response = await requestToEmbassy(`/climate`, "GET", null, 4000);
             climateInfo = (await response.json()) as SpaceClimate;
         } catch (error) {
             logger.error(error);
@@ -467,14 +465,11 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinout(bot: HackerEmbassyBot, isIn: boolean): Promise<void> {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            const devices = await (
-                await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`, {
-                    signal: controller.signal,
-                })
-            ).json();
-            clearTimeout(timeoutId);
+            const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
+
+            if (!response.ok) throw Error("Failed to get devices inside");
+
+            const devices = (await response.json()) as string[];
 
             const insideusernames = findRecentStates(StatusRepository.getAllUserStates() ?? [])
                 .filter(filterPeopleInside)

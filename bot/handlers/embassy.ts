@@ -6,6 +6,7 @@ import { dir } from "tmp-promise";
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import statusRepository from "../../repositories/statusRepository";
 import usersRepository from "../../repositories/usersRepository";
+import { EmbassyBase, requestToEmbassy } from "../../services/embassy";
 import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
 import logger from "../../services/logger";
@@ -14,7 +15,7 @@ import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../ser
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { readFileAsBase64 } from "../../utils/filesystem";
-import { fetchWithTimeout, filterFulfilled } from "../../utils/network";
+import { filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
@@ -23,7 +24,6 @@ import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
-export const embassyBase = `${embassyApiConfig.host}:${embassyApiConfig.port}`;
 
 enum DeviceOperation {
     Help = "help",
@@ -52,14 +52,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const token = await encrypt(unlockKey);
 
-            const response = await fetchWithTimeout(`${embassyBase}/unlock`, {
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                },
-                method: "post",
-                body: JSON.stringify({ token, from: msg.from?.username }),
-            });
+            const response = await requestToEmbassy(`/space/unlock`, "POST", { token, from: msg.from?.username });
 
             if (response.ok) {
                 logger.info(`${msg.from?.username} opened the door`);
@@ -75,9 +68,8 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
-            const camsPaths = ["webcam", "webcam2", "doorcam"];
-
-            const camResponses = await Promise.allSettled(camsPaths.map(path => fetchWithTimeout(`${embassyBase}/${path}`)));
+            const camNames = Object.keys(embassyApiConfig.cams);
+            const camResponses = await Promise.allSettled(camNames.map(name => requestToEmbassy(`/webcam/${name}`)));
 
             const images: ArrayBuffer[] = await Promise.all(
                 filterFulfilled(camResponses)
@@ -94,31 +86,19 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async webcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHandlers.webcamGenericHandler(bot, msg, "webcam", t("embassy.webcam.firstfloor"));
-    }
-
-    static async webcam2Handler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHandlers.webcamGenericHandler(bot, msg, "webcam2", t("embassy.webcam.secondfloor"));
-    }
-
-    static async doorcamHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHandlers.webcamGenericHandler(bot, msg, "doorcam", t("embassy.webcam.doorcam"));
-    }
-
-    static async getWebcamImage(path: string) {
-        const response = await (await fetchWithTimeout(`${embassyBase}/${path}`)).arrayBuffer();
+    static async getWebcamImage(camName: string) {
+        const response = await (await requestToEmbassy(`/webcam/${camName}`)).arrayBuffer();
 
         return Buffer.from(response);
     }
 
-    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, path: string, mode: BotMessageContextMode) {
+    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string, mode: BotMessageContextMode) {
         sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
 
         try {
-            const webcamImage = await EmbassyHandlers.getWebcamImage(path);
+            const webcamImage = await EmbassyHandlers.getWebcamImage(camName);
 
-            const inline_keyboard = mode.static ? [] : [[InlineButton(t("status.buttons.refresh"), `${path}`, Flags.Editing)]];
+            const inline_keyboard = mode.static ? [] : [[InlineButton(t("status.buttons.refresh"), `${camName}`, Flags.Editing)]];
 
             await bot.editPhoto(webcamImage, msg, {
                 reply_markup: {
@@ -130,17 +110,17 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async webcamGenericHandler(bot: HackerEmbassyBot, msg: Message, path: string, prefix: string) {
+    static async webcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
             const mode = bot.context(msg).mode;
 
-            const webcamImage = await EmbassyHandlers.getWebcamImage(path);
+            const webcamImage = await EmbassyHandlers.getWebcamImage(camName);
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("status.buttons.refresh"), `${path}`, Flags.Editing),
+                    InlineButton(t("status.buttons.refresh"), camName, Flags.Editing),
                     InlineButton(t("status.buttons.save"), "removebuttons"),
                 ],
             ];
@@ -167,18 +147,19 @@ export default class EmbassyHandlers implements BotHandlers {
                 bot.addLiveMessage(
                     resultMessage,
                     BotCustomEvent.camLive,
-                    () => EmbassyHandlers.liveWebcamHandler(bot, resultMessage, path, mode),
+                    () => EmbassyHandlers.liveWebcamHandler(bot, resultMessage, camName, mode),
                     {
                         functionName: EmbassyHandlers.liveWebcamHandler.name,
                         module: __filename,
-                        params: [resultMessage, path, mode],
+                        params: [resultMessage, camName, mode],
                     }
                 );
             }
         } catch (error) {
             logger.error(error);
+            const camLocationName = t(`embassy.webcam.location.${camName}`);
 
-            await bot.sendMessageExt(msg.chat.id, t("embassy.webcam.fail", { prefix }), msg);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.webcam.fail", { camLocationName }), msg);
         }
     }
 
@@ -203,23 +184,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async queryStatusMonitor() {
-        return await (await fetchWithTimeout(`${embassyBase}/statusmonitor`)).json();
-    }
-
-    /** @deprecated */
-    static enableStatusMonitor(bot: HackerEmbassyBot) {
-        setInterval(
-            () =>
-                EmbassyHandlers.monitorHandler(bot, {
-                    chat: {
-                        id: botConfig.chats.test,
-                        type: "private",
-                    },
-                    message_id: 0,
-                    date: Date.now(),
-                }),
-            embassyApiConfig.queryMonitorInterval
-        );
+        return await (await requestToEmbassy(`/statusmonitor`)).json();
     }
 
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -244,7 +209,7 @@ export default class EmbassyHandlers implements BotHandlers {
         let message = t("embassy.climate.nodata");
 
         try {
-            const climateResponse = await fetchWithTimeout(`${embassyBase}/climate`);
+            const climateResponse = await requestToEmbassy(`/climate`);
 
             if (!climateResponse.ok) throw Error();
 
@@ -265,7 +230,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/printer?printername=${printername}`);
+            const response = await requestToEmbassy(`/printer/${printername}`);
 
             if (!response.ok) throw Error();
 
@@ -296,7 +261,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async doorbellHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/doorbell`);
+            const response = await requestToEmbassy(`/space/doorbell`);
 
             if (!response.ok) throw Error();
 
@@ -307,18 +272,11 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async wakeHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+    static async wakeHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/wake`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ device }),
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(`/device/${deviceName}/wake`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -360,18 +318,11 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async shutdownHandler(bot: HackerEmbassyBot, msg: Message, device: string) {
+    static async shutdownHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/shutdown`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ device }),
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(`/device/${deviceName}/shutdown`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -383,18 +334,11 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async pingHandler(bot: HackerEmbassyBot, msg: Message, device: string, raw: boolean = false) {
+    static async pingHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string, raw: boolean = false) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/ping`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ device }),
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(`/device/${deviceName}/ping`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -417,7 +361,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/rzd.mp3`, true);
+        await EmbassyHandlers.playinspaceHandler(bot, msg, "rzd", true);
         await sleep(7000);
         await EmbassyHandlers.sayinspaceHandler(bot, msg, text);
     }
@@ -440,7 +384,7 @@ export default class EmbassyHandlers implements BotHandlers {
         if (residentsInside.length > 0) {
             bot.context(msg).mode.silent = true;
 
-            await EmbassyHandlers.playinspaceHandler(bot, msg, `${embassyBase}/knock.mp3`, true);
+            await EmbassyHandlers.playinspaceHandler(bot, msg, "knock", true);
             await sleep(9000);
             await EmbassyHandlers.sayinspaceHandler(
                 bot,
@@ -461,14 +405,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const response = await fetchWithTimeout(`${embassyBase}/sayinspace`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ text }),
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(`/speaker/tts`, "POST", { text });
 
             if (response.ok) await bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
             else throw Error("Failed to say in space");
@@ -482,13 +419,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/stopmedia`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(`/speaker/stop`, "POST");
 
             if (response.ok) !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.stop.success"), msg));
             else throw Error("Failed to stop media in space");
@@ -502,10 +433,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/availablesounds`, {
-                method: "GET",
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(`/speaker/sounds`);
 
             if (response.ok) {
                 const { sounds } = (await response.json()) as { sounds: string[] };
@@ -528,16 +456,9 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const link = linkOrName.startsWith("http") ? linkOrName : `${embassyBase}/${linkOrName}.mp3`;
+            const link = linkOrName.startsWith("http") ? linkOrName : `${EmbassyBase}/${linkOrName}.mp3`;
 
-            const response = await fetchWithTimeout(`${embassyBase}/playinspace`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ link }),
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(`/speaker/play`, "POST", { link });
 
             if (response.ok) !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.play.success"), msg));
             else throw Error("Failed to play in space");
@@ -590,7 +511,8 @@ export default class EmbassyHandlers implements BotHandlers {
         ];
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/conditionerstate`);
+            const response = await requestToEmbassy(`/conditioner/state`);
+
             if (!response.ok) throw Error();
 
             const conditionerStatus = (await response.json()) as ConditionerStatus;
@@ -614,14 +536,14 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
-        await EmbassyHandlers.controlConditioner(bot, msg, "turnconditioner", { enabled });
+        await EmbassyHandlers.controlConditioner(bot, msg, `/conditioner/power/${enabled ? "on" : "off"}`, null);
 
         if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
     }
 
     static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, diff: number) {
         if (isNaN(diff)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, "addconditionertemperature", { diff });
+        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/temperature", { diff });
 
         if (bot.context(msg).isButtonResponse) {
             await sleep(5000); // Updating the temperature is slow on Midea
@@ -631,11 +553,11 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
         if (isNaN(temperature)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, "setconditionertemperature", { temperature });
+        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/temperature", { temperature });
     }
 
     static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
-        await EmbassyHandlers.controlConditioner(bot, msg, "setconditionermode", { mode });
+        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/mode", { mode });
 
         if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
     }
@@ -644,13 +566,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await fetchWithTimeout(`${embassyBase}/${endpoint}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(body),
-            });
+            const response = await requestToEmbassy(endpoint, "POST", body);
 
             if (!response.ok) throw Error();
 
@@ -666,7 +582,6 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         const photoId = msg.photo?.[0]?.file_id;
-        const endpoint = photoId ? "img2img" : "txt2img";
 
         try {
             if (!prompt && !photoId) {
@@ -687,14 +602,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 cleanup();
             }
 
-            const response = await fetchWithTimeout(`${embassyBase}/${endpoint}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestBody),
-                timeout: 15000,
-            });
+            const response = await requestToEmbassy(photoId ? "/sd/img2img" : "/sd/txt2img", "POST", requestBody);
 
             if (response.ok) {
                 const body = (await response.json()) as { image: string };

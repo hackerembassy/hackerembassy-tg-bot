@@ -163,30 +163,6 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    /** @deprecated */
-    static async monitorHandler(bot: HackerEmbassyBot, msg: Message, notifyEmpty = false) {
-        try {
-            const statusMessages = await EmbassyHandlers.queryStatusMonitor();
-
-            if (!notifyEmpty && statusMessages.length === 0) return;
-
-            const message =
-                statusMessages.length > 0
-                    ? TextGenerators.getMonitorMessagesList(statusMessages)
-                    : t("embassy.monitor.nonewmessages");
-
-            bot.sendMessageExt(msg.chat.id, message, msg);
-        } catch (error) {
-            logger.error(error);
-
-            bot.sendMessageExt(msg.chat.id, t("embassy.monitor.fail"), msg);
-        }
-    }
-
-    static async queryStatusMonitor() {
-        return await (await requestToEmbassy(`/statusmonitor`)).json();
-    }
-
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
         const inline_keyboard = [

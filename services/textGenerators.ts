@@ -14,7 +14,6 @@ import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./hass";
 import t from "./localization";
 import { PrinterStatus } from "./printer3d";
-import { MonitorMessage } from "./statusMonitor";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 
@@ -218,14 +217,6 @@ export function getResidentsList(residents: Optional<User[]>, mode: { mention: b
     }
 
     return t("basic.residents", { userList });
-}
-
-export function getMonitorMessagesList(monitorMessages?: MonitorMessage[]): string {
-    return monitorMessages
-        ? monitorMessages
-              .map(message => `${message.level === "error" ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}`)
-              .join("\n")
-        : "";
 }
 
 export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }): string {

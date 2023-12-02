@@ -60,27 +60,41 @@ export interface PrinterEndpoint {
 
 export interface EmbassyApiConfig {
     devices: DevicesConfig;
-    port: number;
+    service: EmbassyServiceConfig;
+    spacenetwork: SpaceNetworkConfig;
+    mqtthost: string;
+    speaker: SpeakerConfig;
+    cams: CamConfig;
+    doorbell: DoorbellConfig;
+    climate: ClimateConfig;
+    hostsToMonitor?: string[] | null;
+}
+
+export interface DoorbellConfig {
+    host: string;
+    hasspath: string;
+}
+
+export interface EmbassyServiceConfig {
+    host: string;
     queryMonitorInterval: number;
     statusCheckInterval: number;
-    host: string;
+    port: number;
     static: string;
-    devicesCheckingPath: string;
+}
+
+export interface SpaceNetworkConfig {
+    devicesCheckingMethod: string;
     networkRange: string;
     routerip: string;
     wifiip: string;
-    mqtthost: string;
-    doorbell: string;
-    webcam: string;
-    webcam2: string;
-    doorcam: string;
+}
+
+export interface SpeakerConfig {
+    entity: string;
     ttspath: string;
     playpath: string;
     stoppath: string;
-    doorbellpath: string;
-    speakerentity: string;
-    climate: ClimateConfig;
-    hostsToMonitor?: string[] | null;
 }
 
 export interface NetworkConfig {
@@ -95,6 +109,12 @@ export interface DeviceDescriptor {
     host: string;
     mac: string;
     os?: "windows" | "linux" | "macos";
+}
+
+export interface CamConfig {
+    webcam: string;
+    webcam2: string;
+    doorcam: string;
 }
 
 export interface ClimateConfig {

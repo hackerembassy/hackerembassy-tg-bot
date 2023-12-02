@@ -196,16 +196,16 @@ app.get("/space/doorbell", async (req, res, next) => {
 app.get("/devices", async (req, res, next) => {
     try {
         const method = req.query.method;
+        const luciToken = process.env["LUCITOKEN"];
+        const wifiUser = process.env["WIFIUSER"];
+        const wifiPassword = process.env["WIFIPASSWORD"];
 
         switch (method) {
             case "openwrt":
+                if (!luciToken) throw Error("Missing Luci token");
+
                 // We don't use our Xiaomi openWRT device as wifi access point anymore
-                res.json(
-                    await NeworkDevicesLocator.getDevicesFromOpenWrt(
-                        embassyApiConfig.spacenetwork.routerip,
-                        process.env["LUCITOKEN"]
-                    )
-                );
+                res.json(await NeworkDevicesLocator.getDevicesFromOpenWrt(embassyApiConfig.spacenetwork.routerip, luciToken));
                 break;
             case "scan":
                 // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
@@ -214,7 +214,15 @@ app.get("/devices", async (req, res, next) => {
             // Our main wifi access point
             case "keenetic":
             default:
-                res.json(await NeworkDevicesLocator.getDevicesFromKeenetic(embassyApiConfig.spacenetwork.wifiip));
+                if (!wifiUser || !wifiPassword) throw Error("Missing keenetic ssh credentials");
+
+                res.json(
+                    await NeworkDevicesLocator.getDevicesFromKeenetic(
+                        embassyApiConfig.spacenetwork.wifiip,
+                        wifiUser,
+                        wifiPassword
+                    )
+                );
         }
     } catch (error) {
         next(error);

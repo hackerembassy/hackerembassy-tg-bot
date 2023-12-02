@@ -14,6 +14,14 @@ import { NetworkConfig } from "../config/schema";
 
 const networkConfig = config.get<NetworkConfig>("network");
 
+type LuciWlanAdapters = {
+    result: {
+        results?: {
+            mac?: string;
+        }[];
+    }[];
+};
+
 class Cancellation {
     controller: AbortController;
     timeoutId: NodeJS.Timeout;
@@ -32,11 +40,12 @@ class Cancellation {
     }
 }
 
-export function fetchWithTimeout(uri: string, options: any = undefined, ...rest: any[]): Promise<Response> {
-    const cancellation = new Cancellation(options?.timeout ?? networkConfig.timeout);
+export function fetchWithTimeout(uri: string, options?: RequestInit & { timeout?: number }): Promise<Response> {
+    const timeout = options?.timeout ?? networkConfig.timeout;
+    const cancellation = new Cancellation(timeout);
 
     // @ts-ignore
-    return fetch(uri, { signal: cancellation.signal, ...options }, ...rest).finally(() => cancellation.reset());
+    return fetch(uri, { signal: cancellation.signal, ...options }).finally(() => cancellation.reset());
 }
 
 export async function getBufferFromResponse(response: Response): Promise<Buffer> {
@@ -97,13 +106,13 @@ export async function getImageFromRTSP(url: string, filename: string): Promise<B
 }
 
 export class NeworkDevicesLocator {
-    static async getDevicesFromKeenetic(routerip: string) {
+    static async getDevicesFromKeenetic(routerip: string, username: string, password: string) {
         const ssh = new NodeSSH();
 
         await ssh.connect({
             host: routerip,
-            username: process.env["WIFIUSER"],
-            password: process.env["WIFIPASSWORD"],
+            username,
+            password,
         });
 
         const sshdata = await ssh.exec("show associations", [""]);
@@ -116,7 +125,11 @@ export class NeworkDevicesLocator {
         if (!token) throw Error("Token is required");
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        const luci = new LUCI(`https://${routerip}`, "bot", token);
+        const luci = new LUCI(`https://${routerip}`, "bot", token) as {
+            init: () => Promise<void>;
+            autoUpdateToken: (arg: number) => void;
+            token?: string;
+        };
         await luci.init();
         luci.autoUpdateToken(1000 * 60 * 30);
 
@@ -143,12 +156,12 @@ export class NeworkDevicesLocator {
             method: "POST",
         });
 
-        const adapters = await response.json();
+        const adapters = (await response.json()) as LuciWlanAdapters[];
         let macs: string[] = [];
 
         for (const wlanAdapter of adapters) {
             const devices = wlanAdapter.result[1]?.results;
-            if (devices) macs = macs.concat(devices.map((dev: any) => dev?.mac.toLowerCase() ?? ""));
+            if (devices) macs = macs.concat(devices.map(dev => dev.mac?.toLowerCase() ?? ""));
         }
 
         return macs;

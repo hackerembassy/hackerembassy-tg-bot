@@ -7,21 +7,21 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 
 import StatusHandlers from "../bot/handlers/status";
-import { BotApiConfig, BotConfig, EmbassyApiConfig } from "../config/schema";
+import { BotApiConfig, BotConfig } from "../config/schema";
 import FundsRepository from "../repositories/fundsRepository";
 import StatusRepository from "../repositories/statusRepository";
 import UsersRepository from "../repositories/usersRepository";
 import { ApiCommandsList } from "../resources/commands";
+import { requestToEmbassy } from "../services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
+import { SpaceClimate } from "../services/hass";
 import logger from "../services/logger";
 import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "../services/statusHelper";
 import * as TextGenerators from "../services/textGenerators";
 import { getEventsList } from "../services/textGenerators";
 import { stripCustomMarkup } from "../utils/common";
 import { createErrorMiddleware, createTokenSecuredMiddleware } from "../utils/middleware";
-import { fetchWithTimeout } from "../utils/network";
 
-const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const apiConfig = config.get<BotApiConfig>("api");
 const botConfig = config.get<BotConfig>("bot");
 
@@ -57,7 +57,8 @@ app.get("/text/status", async (_, res) => {
         const allUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
-        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`)).json();
+        const climateResponse = await requestToEmbassy(`/climate`);
+        const climateInfo = (await climateResponse.json()) as SpaceClimate;
 
         content = TextGenerators.getStatusMessage(
             state,
@@ -292,6 +293,7 @@ app.get("/healthcheck", (_, res, next) => {
     }
 });
 
-app.listen(port);
-
-logger.info(`Bot Api is ready to accept requests`);
+export function StartSpaceApi() {
+    app.listen(port);
+    logger.info(`Bot Api is ready to accept requests on port ${port}`);
+}

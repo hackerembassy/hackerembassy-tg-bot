@@ -6,8 +6,8 @@ import statusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
 import { anyItemIsInList, onlyUniqueInsFilter } from "../utils/common";
 import { ElapsedTimeObject, isToday } from "../utils/date";
-import { fetchWithTimeout } from "../utils/network";
 import { equalsIns } from "../utils/text";
+import { requestToEmbassy } from "./embassy";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
@@ -57,9 +57,7 @@ export async function hasDeviceInside(username: Optional<string>): Promise<boole
     if (!username) return false;
 
     try {
-        const response = await fetchWithTimeout(
-            `${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`
-        );
+        const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
         const devices = await response.json();
 
         const mac = usersRepository.getUserByName(username)?.mac;

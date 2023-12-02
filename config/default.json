@@ -50,25 +50,33 @@
                 "os": "windows"
             }
         },
-        "port": 8001,
-        "queryMonitorInterval": 60000,
-        "statusCheckInterval": 15000,
-        "host": "http://le-fail.lan",
-        "static": "/home/nick/static",
-        "devicesCheckingPath": "devicesFromKeenetic",
-        "networkRange": "192.168.1.1-192.168.1.254",
-        "routerip": "192.168.1.1",
-        "wifiip": "192.168.1.2",
+        "service": {
+            "port": 8001,
+            "host": "http://le-fail.lan",
+            "static": "/home/nick/static"
+        },
+        "spacenetwork": {
+            "devicesCheckingMethod": "keenetic",
+            "networkRange": "192.168.1.1-192.168.1.254",
+            "routerip": "192.168.1.1",
+            "wifiip": "192.168.1.2"
+        },
         "mqtthost": "minimi.lan",
-        "doorbell": "doorbell-shelly.lan",
-        "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
-        "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
-        "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
-        "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
-        "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
-        "stoppath": "http://hass.lan:8123/api/services/media_player/media_stop",
-        "doorbellpath": "http://hass:8123/api/services/switch/turn_on",
-        "speakerentity": "media_player.cum_pod",
+        "cams": {
+            "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
+            "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
+            "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor"
+        },
+        "speaker": {
+            "entity": "media_player.cum_pod",
+            "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
+            "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
+            "stoppath": "http://hass.lan:8123/api/services/media_player/media_stop"
+        },
+        "doorbell": {
+            "host": "doorbell-shelly.lan",
+            "hasspath": "http://hass:8123/api/services/switch/turn_on"
+        },
         "climate": {
             "conditioner": {
                 "entityId": "climate.midea_climate",
@@ -91,8 +99,7 @@
                 "temperature": "http://hass:8123/api/states/sensor.atc_9ba1_temperature",
                 "humidity": "http://hass:8123/api/states/sensor.atc_9ba1_humidity"
             }
-        },
-        "hostsToMonitor": ["192.168.1.2", "hass.lan"]
+        }
     },
     "neural": {
         "stableDiffusion": {

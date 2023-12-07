@@ -319,10 +319,15 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     ]);
 
     // Memes
-    bot.addRoute(["randomdog", "dog"], MemeHandlers.randomDogHandler);
-    bot.addRoute(["randomcat", "cat"], MemeHandlers.randomCatHandler);
-    bot.addRoute(["randomcock", "cock"], MemeHandlers.randomRoosterHandler);
-    bot.addRoute(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"], MemeHandlers.randomCabHandler);
+    bot.addRoute(["randomdog", "dog"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/dogs"]);
+    bot.addRoute(["randomcat", "cat"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/cats"]);
+    bot.addRoute(["randomcock", "cock"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/roosters"]);
+    bot.addRoute(
+        ["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"],
+        MemeHandlers.randomImagePathHandler,
+        null,
+        () => ["./resources/images/cab"]
+    );
     bot.addRoute(["syrniki", "pidarasi", "pidorasi"], MemeHandlers.imageHandler, null, () => [
         "./resources/images/memes/syrniki.jpeg",
     ]);

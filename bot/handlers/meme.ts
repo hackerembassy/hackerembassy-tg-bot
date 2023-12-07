@@ -17,22 +17,6 @@ export default class MemeHandlers implements BotHandlers {
         await bot.sendPhotoExt(msg.chat.id, buffer, msg);
     }
 
-    static async randomDogHandler(bot: HackerEmbassyBot, msg: Message) {
-        await MemeHandlers.randomImagePathHandler(bot, msg, "./resources/images/dogs");
-    }
-
-    static async randomCatHandler(bot: HackerEmbassyBot, msg: Message) {
-        await MemeHandlers.randomImagePathHandler(bot, msg, "./resources/images/cats");
-    }
-
-    static async randomCabHandler(bot: HackerEmbassyBot, msg: Message) {
-        await MemeHandlers.randomImagePathHandler(bot, msg, "./resources/images/cab");
-    }
-
-    static async randomRoosterHandler(bot: HackerEmbassyBot, msg: Message) {
-        await MemeHandlers.randomImagePathHandler(bot, msg, "./resources/images/roosters");
-    }
-
     static async imageHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
         const buffer = await getImageFromPath(path);
 

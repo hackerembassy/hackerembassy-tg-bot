@@ -5,13 +5,14 @@ import logger from "../../services/logger";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { setMenu } from "./menu";
 import { setAutomaticFeatures } from "./recurring-actions";
-import { addRoutes, startRouting } from "./router";
+import { addEventHandlers, addRoutes, startRouting } from "./router";
 const botConfig = config.get<BotConfig>("bot");
 
 async function init(bot: HackerEmbassyBot): Promise<void> {
     const botInstanceInfo = await bot.getMe();
     bot.Name = botInstanceInfo.username;
     addRoutes(bot);
+    addEventHandlers(bot);
     startRouting(bot, botConfig.debug);
     setAutomaticFeatures(bot);
     setMenu(bot);

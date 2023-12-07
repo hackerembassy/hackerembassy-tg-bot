@@ -13,6 +13,7 @@ import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
 import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
+import broadcast, { BroadcastEvents } from "../../utils/broadcast";
 import { sleep } from "../../utils/common";
 import { readFileAsBase64 } from "../../utils/filesystem";
 import { filterFulfilled } from "../../utils/network";
@@ -20,6 +21,7 @@ import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import { hasRole, InlineButton } from "../helpers";
+import * as helpers from "../helpers";
 import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -57,11 +59,20 @@ export default class EmbassyHandlers implements BotHandlers {
             if (response.ok) {
                 logger.info(`${msg.from?.username} opened the door`);
                 await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
+                broadcast.emit(BroadcastEvents.SpaceUnlocked, msg.from?.username);
             } else throw Error("Request error");
         } catch (error) {
             logger.error(error);
             bot.sendMessageExt(msg.chat.id, t("embassy.common.fail"), msg);
         }
+    }
+
+    static async unlockedNotificationHandler(bot: HackerEmbassyBot, username: string) {
+        await bot.sendMessageExt(
+            botConfig.chats.alerts,
+            t("embassy.unlock.success-alert", { user: helpers.formatUsername(username, { mention: false }) }),
+            null
+        );
     }
 
     static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {

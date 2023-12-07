@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import logger from "../../services/logger";
+import broadcast, { BroadcastEvents } from "../../utils/broadcast";
 import { OptionalParam } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import AdminHandlers from "../handlers/admin";
@@ -334,6 +335,18 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, ["member"]);
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler, null, null, ["admin"]);
     bot.addRoute(["removebuttons"], ServiceHandlers.removeButtons, null, null, ["member"]);
+}
+
+export function addEventHandlers(bot: HackerEmbassyBot) {
+    broadcast.addListener(BroadcastEvents.SpaceOpened, state => {
+        StatusHandlers.openedNotificationHandler(bot, state);
+    });
+    broadcast.addListener(BroadcastEvents.SpaceClosed, state => {
+        StatusHandlers.closedNotificationHandler(bot, state);
+    });
+    broadcast.addListener(BroadcastEvents.SpaceUnlocked, username => {
+        EmbassyHandlers.unlockedNotificationHandler(bot, username);
+    });
 }
 
 export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {

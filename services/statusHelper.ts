@@ -4,6 +4,7 @@ import { EmbassyApiConfig } from "../config/schema";
 import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
+import broadcast, { BroadcastEvents } from "../utils/broadcast";
 import { anyItemIsInList, onlyUniqueInsFilter } from "../utils/common";
 import { ElapsedTimeObject, isToday } from "../utils/date";
 import { equalsIns } from "../utils/text";
@@ -23,6 +24,8 @@ export function openSpace(opener: Optional<string>, options: { checkOpener: bool
     };
 
     statusRepository.pushSpaceState(state);
+
+    broadcast.emit(BroadcastEvents.SpaceOpened, state);
 
     if (!options.checkOpener) return;
 
@@ -47,6 +50,8 @@ export function closeSpace(closer: Nullable<string> | undefined, options: { evic
     };
 
     statusRepository.pushSpaceState(state);
+
+    broadcast.emit(BroadcastEvents.SpaceClosed, state);
 
     const allUserStates = statusRepository.getAllUserStates();
 

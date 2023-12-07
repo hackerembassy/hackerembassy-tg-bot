@@ -41,6 +41,7 @@ export interface ChatsConfig {
     offtopic: number;
     test: number;
     key: number;
+    alerts: number;
     status: number;
 }
 export interface AutoinsideTimeouts {

@@ -224,6 +224,22 @@ export default class StatusHandlers implements BotHandlers {
         );
     }
 
+    static async openedNotificationHandler(bot: HackerEmbassyBot, state: State) {
+        await bot.sendMessageExt(
+            botConfig.chats.alerts,
+            t("status.open-alert", { user: helpers.formatUsername(state.changedby, { mention: false }) }),
+            null
+        );
+    }
+
+    static async closedNotificationHandler(bot: HackerEmbassyBot, state: State) {
+        await bot.sendMessageExt(
+            botConfig.chats.alerts,
+            t("status.close-alert", { user: helpers.formatUsername(state.changedby, { mention: false }) }),
+            null
+        );
+    }
+
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
         closeSpace(msg.from?.username, { evict: true });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);

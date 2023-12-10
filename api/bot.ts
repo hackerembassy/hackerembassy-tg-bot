@@ -11,7 +11,6 @@ import { BotApiConfig, BotConfig } from "../config/schema";
 import FundsRepository from "../repositories/fundsRepository";
 import StatusRepository from "../repositories/statusRepository";
 import UsersRepository from "../repositories/usersRepository";
-import { ApiCommandsList } from "../resources/commands";
 import { requestToEmbassy } from "../services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
 import { SpaceClimate } from "../services/hass";
@@ -44,9 +43,47 @@ try {
     logger.error(error);
 }
 
+const ApiTextCommandsList = [
+    {
+        command: "status",
+        description: "Статус спейса и кто отметился внутри",
+        regex: "^status$",
+    },
+    {
+        command: "join",
+        description: "Как присоединиться к нам",
+        regex: "^join$",
+    },
+    {
+        command: "donate",
+        description: "Как задонатить",
+        regex: "^donate$",
+    },
+    {
+        command: "funds",
+        description: "Наши открытые сборы",
+        regex: "^funds$",
+    },
+    {
+        command: "events",
+        description: "Мероприятия у нас",
+        regex: "^events$",
+    },
+    {
+        command: "upcoming",
+        description: "Ближайшие мероприятия",
+        regex: "^upcoming$",
+    },
+    {
+        command: "today",
+        description: "Мероприятия сегодня",
+        regex: "^today$",
+    },
+];
+
 // Routes
-app.get("/text/commands", (_, res) => {
-    res.send(ApiCommandsList);
+app.get("/api/text", (_, res) => {
+    res.json(ApiTextCommandsList);
 });
 
 app.get("/text/status", async (_, res) => {

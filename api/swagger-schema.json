@@ -16,7 +16,7 @@
     }
   ],
   "paths": {
-    "/text/commands": {
+    "/api/text": {
       "get": {
         "description": "",
         "responses": {

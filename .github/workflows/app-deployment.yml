@@ -5,6 +5,17 @@ on:
     push:
         branches:
             - main
+        paths-ignore:
+            - "tests/**"
+            - ".github/**"
+            - ".husky/**"
+            - ".vscode/**"
+            - "README.md"
+            - "sonar-project.properties"
+            - "jest.config.ts"
+            - ".eslintrc.json"
+            - ".prettierrc"
+            - ".nvmrc"
 
 jobs:
     build:

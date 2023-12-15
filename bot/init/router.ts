@@ -80,6 +80,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["webcam", "webcum", "cam", "cum", "firstfloor", "ff"], EmbassyHandlers.webcamHandler, null, () => ["webcam"], [
         "member",
     ]);
+    bot.addRoute(["jigglycam", "jigglycum", "firstfloor2", "ff2"], EmbassyHandlers.webcamHandler, null, () => ["jigglycam"], [
+        "member",
+    ]);
     bot.addRoute(
         ["webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"],
         EmbassyHandlers.webcamHandler,

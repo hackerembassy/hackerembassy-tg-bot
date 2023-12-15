@@ -4,6 +4,14 @@ on:
     push:
         branches:
             - main
+        paths-ignore:
+            - ".github/**"
+            - ".husky/**"
+            - ".vscode/**"
+            - "README.md"
+            - ".eslintrc.json"
+            - ".prettierrc"
+            - ".nvmrc"
     pull_request:
         branches:
             - main

@@ -138,6 +138,7 @@ basic:
             unlock: 🔑 Замок
             doorbell: 🔔 Звонок
             webcam: 📹 I этаж
+            jigglycam: 📹 I этаж 2
             webcam2: 📹 II этаж
             doorcam: 📹 Вход
             superstatus: 🩻 Суперстатус
@@ -233,6 +234,7 @@ embassy:
     webcam:
         location:
             webcam: Первый этаж
+            jigglycam: Первый этаж 2
             webcam2: Второй этаж
             doorcam: Входная дверь
         fail: |

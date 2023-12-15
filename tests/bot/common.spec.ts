@@ -76,6 +76,7 @@ describe("Bot behavior shared for all commands:", () => {
         await botMock.processUpdate(createMockMessage("/doorbell"));
         await botMock.processUpdate(createMockMessage("/webcam"));
         await botMock.processUpdate(createMockMessage("/webcam2"));
+        await botMock.processUpdate(createMockMessage("/jigglycam"));
         await botMock.processUpdate(createMockMessage("/doorcam"));
         await botMock.processUpdate(createMockMessage("/superstatus"));
         await botMock.processUpdate(createMockMessage("/open"));

@@ -66,6 +66,7 @@
         "cams": {
             "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
             "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
+            "jigglycam": "http://hass.lan:8123/api/camera_proxy/camera.jigglypuff_2",
             "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor"
         },
         "speaker": {

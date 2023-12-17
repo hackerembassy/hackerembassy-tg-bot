@@ -27,6 +27,7 @@ export default class BotState {
 
                 this.history = persistedState.history;
                 this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());
+                this.lastBirthdayWishTimestamp = persistedState.lastBirthdayWishTimestamp;
                 this.initLiveChats();
 
                 return;
@@ -38,6 +39,7 @@ export default class BotState {
 
         this.history = {};
         this.liveChats = [];
+        this.lastBirthdayWishTimestamp = 0;
 
         mkdirSync(dirname(this.statepath), { recursive: true });
         writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
@@ -62,6 +64,7 @@ export default class BotState {
 
     public liveChats: LiveChatHandler[] = [];
     public history: { [chatId: string]: Optional<MessageHistoryEntry[]> };
+    public lastBirthdayWishTimestamp: number = 0;
 
     clearLiveHandlers(chatId: number, event?: BotCustomEvent) {
         const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);
@@ -81,6 +84,7 @@ export default class BotState {
         }
         this.liveChats = [];
         this.history = {};
+        this.lastBirthdayWishTimestamp = 0;
         this.persistChanges();
     }
 

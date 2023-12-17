@@ -104,7 +104,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string, mode: BotMessageContextMode) {
-        sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
+        await sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
 
         try {
             const webcamImage = await EmbassyHandlers.getWebcamImage(camName);

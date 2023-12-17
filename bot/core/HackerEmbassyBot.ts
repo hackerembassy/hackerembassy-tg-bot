@@ -422,7 +422,11 @@ ${chunks[index]}
 
             // check restritions
             if (route.restrictions.length > 0 && !this.canUserCall(message.from?.username, command)) {
-                this.sendMessageExt(message.chat.id, t("admin.messages.restricted"), message);
+                this.sendMessageExt(
+                    message.chat.id,
+                    t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
+                    message
+                );
                 return;
             }
 

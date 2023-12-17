@@ -16,6 +16,10 @@ export interface ElapsedTimeObject {
     totalSeconds: number;
 }
 
+export const MINUTE = 60 * 1000;
+export const HOUR = 60 * MINUTE;
+export const HALFDAY = 12 * HOUR;
+
 export const shortDateTimeOptions: Intl.DateTimeFormatOptions = {
     dateStyle: "short",
     timeStyle: "short",
@@ -49,12 +53,12 @@ export function getMonthBoundaries(date: Date): { startMonthDate: Date; endMonth
     return { startMonthDate, endMonthDate };
 }
 
-export function isToday(someDate: Date): boolean {
+export function isToday(someDate: Date, ignoreYear: boolean = false): boolean {
     const today = new Date();
     return (
         someDate.getDate() === today.getDate() &&
         someDate.getMonth() === today.getMonth() &&
-        someDate.getFullYear() === today.getFullYear()
+        (ignoreYear || someDate.getFullYear() === today.getFullYear())
     );
 }
 

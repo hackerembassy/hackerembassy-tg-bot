@@ -9,14 +9,16 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
+import { isToday, MINUTE } from "../../utils/date";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
-const wishedTodayPath = path.join(__dirname, `../../${botConfig.persistedfolderpath}/wished-today.json`);
 const baseWishesDir = "./resources/wishes";
+const DATE_FORMAT = "sv";
+const DATE_SUBSTRING_INDICES: [number, number] = [5, 10];
 
 export default class BirthdayHandlers implements BotHandlers {
     static forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -24,7 +26,7 @@ export default class BirthdayHandlers implements BotHandlers {
     }
 
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
-        const usersWithBirthday = UsersRepository.getUsers()?.filter(u => u.birthday);
+        const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
@@ -37,7 +39,7 @@ export default class BirthdayHandlers implements BotHandlers {
 
         let text = t("birthday.fail");
 
-        if (BirthdayHandlers.isProperFormatDateString(date) && username && UsersRepository.setBirthday(username, fulldate)) {
+        if (BirthdayHandlers.isAllowedFormatDateString(date) && username && UsersRepository.setBirthday(username, fulldate)) {
             text = t("birthday.set", { username: formattedUsername, date });
         } else if (date === "remove" && username && UsersRepository.setBirthday(username, null)) {
             text = t("birthday.remove", { username: formattedUsername });
@@ -46,42 +48,29 @@ export default class BirthdayHandlers implements BotHandlers {
         bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, force = false) {
-        const currentDate = new Date().toLocaleDateString("sv").substring(5, 10);
-        const birthdayUsers = UsersRepository.getUsers()?.filter(u => {
-            return u.birthday?.substring(5, 10) === currentDate;
-        });
+    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, force: boolean = false) {
+        const currentDate = new Date().toLocaleDateString(DATE_FORMAT).substring(...DATE_SUBSTRING_INDICES);
+        const birthdayUsers = UsersRepository.getUsers().filter(u => u.username && u.birthday?.substring(5, 10) === currentDate);
 
-        if (!birthdayUsers) return;
+        if (!force && isToday(new Date(bot.botState.lastBirthdayWishTimestamp), true)) return;
 
-        if (await fs.access(wishedTodayPath).catch(() => true)) {
-            await fs.writeFile(wishedTodayPath, "[]");
-        }
-
-        const wishedToday = JSON.parse(await fs.readFile(wishedTodayPath, "utf8"));
-        const wishedAmount = wishedToday?.length;
+        if (birthdayUsers.length === 0) return;
 
         for (const user of birthdayUsers) {
-            const wishedUser = wishedToday.find(
-                (entry: { username: string; date: string }) => entry.username && entry.date === currentDate
-            );
-            if (!force && wishedUser) continue;
-
-            let message = "🎂 ";
-            message += await getWish(user.username ?? "[no username provided]");
+            const wish = await getWish(user.username ?? "[no username provided]");
+            const message = `🎂 ${wish}`;
 
             await bot.sendMessageExt(botConfig.chats.main, message, msg);
+
             logger.info(`Wished ${user.username} a happy birthday`);
-
-            if (!wishedUser) wishedToday.push({ username: user.username, date: currentDate });
-
-            sleep(30000);
+            await sleep(MINUTE);
         }
 
-        if (wishedAmount !== wishedToday.length) fs.writeFile(wishedTodayPath, JSON.stringify(wishedToday));
+        bot.botState.lastBirthdayWishTimestamp = Date.now();
+        bot.botState.persistChanges();
     }
 
-    static isProperFormatDateString(date?: string) {
+    static isAllowedFormatDateString(date?: string) {
         return date ? /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date) : false;
     }
 }

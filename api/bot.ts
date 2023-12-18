@@ -18,6 +18,7 @@ import logger from "../services/logger";
 import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "../services/statusHelper";
 import * as TextGenerators from "../services/textGenerators";
 import { getEventsList } from "../services/textGenerators";
+import wiki from "../services/wiki";
 import { stripCustomMarkup } from "../utils/common";
 import { createErrorMiddleware, createTokenSecuredMiddleware } from "../utils/middleware";
 
@@ -325,6 +326,50 @@ app.get("/text/donate", (_, res) => {
 app.get("/healthcheck", (_, res, next) => {
     try {
         res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/api/wiki/list", async (req, res, next) => {
+    try {
+        const lang = req.query.lang as string | undefined;
+        const list = await wiki.listPages(lang);
+
+        res.json(list);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/api/wiki/tree", async (req, res, next) => {
+    try {
+        const lang = req.query.lang as string | undefined;
+        const list = await wiki.listPagesAsTree(lang);
+
+        res.json(list);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/api/wiki/page/:id", async (req, res, next) => {
+    try {
+        if (!req.params.id) {
+            res.status(400).send({ error: "Missing page id" });
+            return;
+        }
+
+        const pageId = Number(req.params.id);
+
+        if (isNaN(pageId)) {
+            res.status(400).send({ error: "Invalid page id" });
+            return;
+        }
+
+        const page = await wiki.getPage(Number(pageId));
+
+        res.json(page);
     } catch (error) {
         next(error);
     }

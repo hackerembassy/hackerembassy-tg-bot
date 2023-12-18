@@ -121,5 +121,9 @@
     },
     "api": {
         "port": 3000
+    },
+    "wiki": {
+        "endpoint": "https://wiki.hackerembassy.site/graphql",
+        "defaultLocale": "ru"
     }
 }

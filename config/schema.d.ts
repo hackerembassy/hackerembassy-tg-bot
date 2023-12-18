@@ -5,6 +5,12 @@ export interface Config {
     currency: CurrencyConfig;
     api: BotApiConfig;
     network: NetworkConfig;
+    wiki: WikiConfig;
+}
+
+export interface WikiConfig {
+    endpoint: string;
+    defaultLocale: string;
 }
 
 export interface BotConfig {

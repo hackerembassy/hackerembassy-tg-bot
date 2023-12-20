@@ -1,10 +1,12 @@
+import { TOptions } from "i18next";
+
 export interface DateObject {
     day: number;
     month: number;
     year: number;
 }
 
-export interface DateBoundary {
+export interface DateBoundary extends TOptions {
     from: DateObject;
     to: DateObject;
 }

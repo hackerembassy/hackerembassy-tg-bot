@@ -3,7 +3,6 @@ import config from "config";
 import { promises as fs } from "fs";
 import { t } from "i18next";
 import {
-    BotCommandScope,
     CallbackQuery,
     ChatId,
     ChatMemberUpdated,
@@ -292,16 +291,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return await super.sendLocation(chatId, latitude, longitude, {
             ...options,
             message_thread_id: this.context(msg).messageThreadId,
-        });
-    }
-
-    setMyCommands(
-        commands: TelegramBot.BotCommand[],
-        options: { scope: BotCommandScope; language_code?: string } | undefined = undefined
-    ): Promise<boolean> {
-        return super.setMyCommands(commands, {
-            ...options,
-            scope: JSON.stringify(options?.scope) as unknown as BotCommandScope,
         });
     }
 

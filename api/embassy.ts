@@ -1,7 +1,6 @@
 // TODO add type checking to request bodies and remove disables below
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
 import express from "express";
@@ -32,7 +31,7 @@ const port = embassyApiConfig.service.port;
 
 const app = express();
 app.use(cors());
-app.use(json());
+app.use(express.json());
 app.use(express.static(embassyApiConfig.service.static));
 app.use(createErrorMiddleware(logger));
 

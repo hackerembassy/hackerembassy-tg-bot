@@ -1,4 +1,3 @@
-import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
 import express from "express";
@@ -31,7 +30,7 @@ const tokenHassSecured = createTokenSecuredMiddleware(logger, process.env["UNLOC
 const tokenGuestSecured = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
 
 app.use(cors());
-app.use(json());
+app.use(express.json());
 app.use(createErrorMiddleware(logger));
 app.use("/static", express.static(path.join(__dirname, botConfig.static)));
 

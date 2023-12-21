@@ -1,10 +1,27 @@
-FROM docker.io/library/node:lts-alpine
+# Build stage
+FROM docker.io/library/node:lts-alpine AS build
+WORKDIR /app
+
 RUN apk add --update --no-cache g++ make python3 &&\
     ln -sf python3 /usr/bin/python
-WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
 COPY . .
-RUN mv ./deploy/entrypoint.sh / &&\
-    chmod +x /entrypoint.sh &&\
-    npm ci
+
+RUN npm run build
+
+# Production stage
+FROM docker.io/library/node:lts-alpine
+WORKDIR /app
+
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./
+
+COPY --from=build /app/deploy/entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:ci"]

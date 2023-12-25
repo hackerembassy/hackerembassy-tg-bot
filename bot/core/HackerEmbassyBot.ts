@@ -361,6 +361,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: TelegramBot.SendMessageOptions = {}
     ): Promise<void> {
+        if (text.length <= MAX_MESSAGE_LENGTH) {
+            await this.sendMessageExt(chatId, text, msg, options);
+            return;
+        }
+
         const chunks = chunkSubstr(text, MAX_MESSAGE_LENGTH);
 
         if (chunks.length === 1) {

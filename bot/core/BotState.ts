@@ -1,5 +1,6 @@
 import config from "config";
 import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "fs";
+import Module from "module";
 import { dirname, join } from "path";
 
 import { BotConfig } from "../../config/schema";
@@ -49,8 +50,17 @@ export default class BotState {
     async initLiveChats() {
         for (let chatRecordIndex: number = 0; chatRecordIndex < this.liveChats.length; chatRecordIndex++) {
             const lc = this.liveChats[chatRecordIndex];
-            const module = ((await import(lc.serializationData.module)) as { default: BotHandlers }).default;
-            const restoredHandler = module[lc.serializationData.functionName as keyof BotHandlers] as AnyFunction;
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const importedModule = (await import(lc.serializationData.module)).default as typeof Module | { default: Module };
+            const module = typeof importedModule === "function" ? importedModule : importedModule.default;
+            const restoredHandler = module[lc.serializationData.functionName as keyof BotHandlers] as AnyFunction | undefined;
+
+            if (!restoredHandler) {
+                logger.error(`Could not restore handler for ${lc.event}, Live handlers are not loaded for this event.`);
+                continue;
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             lc.handler = () => restoredHandler(this.bot, ...lc.serializationData.params);
             this.bot.CustomEmitter.on(lc.event, lc.handler);

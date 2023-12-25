@@ -1,5 +1,4 @@
-import { config as envconfig } from "dotenv";
-envconfig();
+import "dotenv/config";
 
 import config from "config";
 

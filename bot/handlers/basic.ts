@@ -108,7 +108,7 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers()?.filter(u => helpers.hasRole(u.username, "member"));
+        const users = UsersRepository.getUsers().filter(u => helpers.hasRole(u.username, "member"));
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
@@ -243,17 +243,21 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
-    static async upcomingEventsHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async upcomingEventsHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        numberOfEvents: number = botConfig.calendar.upcomingToLoad
+    ) {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
         try {
-            const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad);
+            const events = await getClosestEventsFromCalendar(numberOfEvents);
             messageText += getEventsList(events);
         } catch (error) {
             messageText = t("basic.events.error");
             logger.error(error);
         } finally {
-            bot.sendMessageExt(msg.chat.id, messageText, msg);
+            bot.sendLongMessage(msg.chat.id, messageText, msg);
         }
     }
 

@@ -11,5 +11,5 @@
       "typeRoots" : ["./node_modules/@types", "./typings"]
     },
     "include": ["./**/*"],
-    "exclude": ["node_modules", "tests", "coverage", "dist"]
+    "exclude": ["node_modules", "coverage", "dist"]
 }

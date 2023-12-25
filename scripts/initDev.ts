@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { execSync } from "child_process";
 import { existsSync, mkdirSync, promises, renameSync, writeFileSync } from "fs";
 // @ts-ignore

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import fundsRepository from "../repositories/fundsRepository";
 
 function migrateDonations(from: string, to: string) {

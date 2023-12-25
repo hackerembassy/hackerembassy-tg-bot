@@ -7,6 +7,14 @@ import BaseRepository from "./baseRepository";
 
 const currencyConfig = config.get<CurrencyConfig>("currency");
 
+type DonationExport = {
+    donationId: number;
+    amount: number;
+    currency: string;
+    from: string;
+    fund: string;
+};
+
 class FundsRepository extends BaseRepository {
     getFunds(): Nullable<Fund[]> {
         return this.db.prepare("SELECT * FROM funds").all() as Nullable<Fund[]>;
@@ -69,6 +77,17 @@ class FundsRepository extends BaseRepository {
 
     getDonationById(donationId: number): Nullable<Donation> {
         return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Nullable<Donation>;
+    }
+
+    exportDonations(): DonationExport[] {
+        return this.db
+            .prepare(
+                `SELECT d.id as 'donationId', d.value as 'amount', d.currency as 'currency', d.username as 'from', f.name as 'fund' \
+                FROM donations d \
+                JOIN funds f ON d.fund_id = f.id \
+                ORDER BY f.id`
+            )
+            .all() as DonationExport[];
     }
 
     addFund(fundName: string, target: number, currency: string = currencyConfig.default, status: string = "open"): boolean {

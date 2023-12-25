@@ -27,7 +27,12 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["donatecrypto"], BasicHandlers.donateCoinHandler, /(btc|eth|usdc|usdt)/, match => [match[1]]);
 
     bot.addRoute(["getresidents", "gr"], BasicHandlers.getResidentsHandler);
-    bot.addRoute(["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"], BasicHandlers.upcomingEventsHandler);
+    bot.addRoute(
+        ["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"],
+        BasicHandlers.upcomingEventsHandler,
+        OptionalParam(/(\d)/),
+        match => [match[1]]
+    );
     bot.addRoute(["todayevents", "today", "te"], BasicHandlers.todayEventsHandler);
 
     // Panels

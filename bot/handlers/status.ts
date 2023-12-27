@@ -4,11 +4,12 @@ import TelegramBot, { Message } from "node-telegram-bot-api";
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import State from "../../models/State";
 import { UserStateChangeType, UserStateType } from "../../models/UserState";
-import fundsRepository from "../../repositories/fundsRepository";
+import fundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import { requestToEmbassy } from "../../services/embassy";
 import { createUserStatsDonut } from "../../services/export";
+import * as ExportHelper from "../../services/export";
 import { SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
 import logger from "../../services/logger";
@@ -490,7 +491,7 @@ export default class StatusHandlers implements BotHandlers {
             const insideusernames = findRecentStates(StatusRepository.getAllUserStates() ?? [])
                 .filter(filterPeopleInside)
                 .map(us => us.username);
-            const autousers = UsersRepository.getUsers()?.filter(u => u.autoinside && u.mac) ?? [];
+            const autousers = UsersRepository.getUsers().filter(u => u.autoinside && u.mac);
             const selectedautousers = isIn
                 ? autousers.filter(u => u.username && !insideusernames.includes(u.username))
                 : autousers.filter(u => u.username && insideusernames.includes(u.username));
@@ -542,6 +543,13 @@ export default class StatusHandlers implements BotHandlers {
         })}`;
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
+
+        if (donations && donations.length > 0) {
+            const filteredDonations = ExportHelper.prepareCostsForExport(donations, COSTS_PREFIX);
+            const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, COSTS_PREFIX);
+
+            if (imageBuffer.length !== 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+        }
     }
 
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {

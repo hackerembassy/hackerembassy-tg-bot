@@ -70,3 +70,27 @@ export function getToday(): Date {
 
     return date;
 }
+
+const monthMap = new Map([
+    ["январь", 1],
+    ["февраль", 2],
+    ["март", 3],
+    ["апрель", 4],
+    ["май", 5],
+    ["июнь", 6],
+    ["июль", 7],
+    ["август", 8],
+    ["сентябрь", 9],
+    ["октябрь", 10],
+    ["ноябрь", 11],
+    ["декабрь", 12],
+]);
+
+export function compareMonthNames(a: string, b: string) {
+    const monthA = monthMap.get(a.toLowerCase());
+    const monthB = monthMap.get(b.toLowerCase());
+
+    if (!monthA || !monthB) throw new Error(`Invalid month ${a} or ${b}`);
+
+    return monthA - monthB;
+}

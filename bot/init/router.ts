@@ -243,6 +243,13 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1]],
         ["member", "accountant"]
     );
+    bot.addRoute(
+        ["residentscostshistory", "historycosts", "rhcosts", "rhcs"],
+        FundsHandlers.resdientsHistoryHandler,
+        OptionalParam(/(\d\d\d\d)/),
+        match => [match[1]],
+        ["member", "accountant"]
+    );
     bot.addRoute(["showcosts", "scosts", "scs"], FundsHandlers.showCostsHandler);
 
     // Donations
@@ -275,11 +282,24 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1], "CabiaRangris"],
         ["accountant"]
     );
+    bot.addRoute(["tonick", "givenick", "tn"], FundsHandlers.transferDonationHandler, /(\d+)/, match => [match[1], "korn9509"], [
+        "accountant",
+    ]);
+    bot.addRoute(["topaid", "paid", "tp"], FundsHandlers.transferDonationHandler, /(\d+)/, match => [match[1], "paid"], [
+        "accountant",
+    ]);
     bot.addRoute(
         ["tocaball", "givecaball", "givecaballmymoney", "tca"],
         FundsHandlers.transferAllToHandler,
         OptionalParam(/(.*)/),
         match => ["CabiaRangris", match[1]],
+        ["accountant"]
+    );
+    bot.addRoute(
+        ["topaidall", "paidall"],
+        FundsHandlers.transferAllToHandler,
+        OptionalParam(/(.*)/),
+        match => ["paid", match[1]],
         ["accountant"]
     );
     bot.addRoute(

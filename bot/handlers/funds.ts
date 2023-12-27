@@ -1,12 +1,13 @@
 import { Message } from "node-telegram-bot-api";
 
-import FundsRepository from "../../repositories/fundsRepository";
+import FundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import * as ExportHelper from "../../services/export";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
+import { getToday } from "../../utils/date";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
@@ -243,9 +244,9 @@ export default class FundsHandlers implements BotHandlers {
         let resdientsDonatedList = `${t("funds.residentsdonated")}\n`;
 
         const donations = FundsRepository.getDonationsForName(fundName);
-        const residents = UsersRepository.getUsers()?.filter(u => helpers.hasRole(u.username, "member"));
+        const residents = UsersRepository.getUsers().filter(u => helpers.hasRole(u.username, "member"));
 
-        if (residents && donations) {
+        if (residents.length !== 0 && donations) {
             for (const resident of residents) {
                 const hasDonated = donations.filter(d => equalsIns(d.username, resident.username)).length > 0;
                 const shouldInclude = option === "all" || (option === "paid" && hasDonated) || (option === "left" && !hasDonated);
@@ -260,6 +261,26 @@ export default class FundsHandlers implements BotHandlers {
         }
 
         await bot.sendMessageExt(msg.chat.id, resdientsDonatedList, msg);
+    }
+
+    static async resdientsHistoryHandler(bot: HackerEmbassyBot, msg: Message, year: number = getToday().getFullYear()) {
+        const donations = FundsRepository.getCostsFundDonations(year);
+        const residents = UsersRepository.getUsers()
+            .filter(u => helpers.hasRole(u.username, "member"))
+            .map(u => u.username?.toLowerCase());
+
+        if (residents.length !== 0 && donations && donations.length > 0) {
+            const residentsDonations = donations.filter(d => residents.includes(d.username.toLowerCase()));
+
+            const filteredDonations = ExportHelper.prepareCostsForExport(residentsDonations, COSTS_PREFIX);
+            const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, `${COSTS_PREFIX} ${year}`);
+
+            if (imageBuffer.length !== 0) return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+
+            return await bot.sendMessageExt(msg.chat.id, t("funds.residentshistory.fail"), msg);
+        }
+
+        return await bot.sendMessageExt(msg.chat.id, t("funds.residentshistory.empty"), msg);
     }
 
     static async removeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId: number) {
@@ -302,7 +323,12 @@ export default class FundsHandlers implements BotHandlers {
 
         const message =
             donationList.length > 0
-                ? t("funds.debt.text", { donationList, username: formattedUsername, total: totalDonated, currency: "AMD" })
+                ? t("funds.debt.text", {
+                      donationList,
+                      username: formattedUsername,
+                      total: totalDonated.toFixed(2),
+                      currency: "AMD",
+                  })
                 : t("funds.debt.empty");
 
         await bot.sendLongMessage(msg.chat.id, message, msg);

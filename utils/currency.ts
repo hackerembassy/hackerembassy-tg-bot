@@ -69,7 +69,11 @@ export async function initConvert() {
     );
 }
 
-export async function convertCurrency(amount: number, from: string | number, to: string): Promise<Optional<number>> {
+export async function convertCurrency(
+    amount: number,
+    from: string | number,
+    to: string = currencyConfig.default
+): Promise<Optional<number>> {
     try {
         if (from === to) return amount;
 

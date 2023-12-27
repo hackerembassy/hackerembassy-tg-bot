@@ -15,6 +15,8 @@ type DonationExport = {
     fund: string;
 };
 
+export const COSTS_PREFIX = "Аренда";
+
 class FundsRepository extends BaseRepository {
     getFunds(): Nullable<Fund[]> {
         return this.db.prepare("SELECT * FROM funds").all() as Nullable<Fund[]>;
@@ -50,29 +52,35 @@ class FundsRepository extends BaseRepository {
         return this.db.prepare("SELECT * FROM donations WHERE username = ?").all(username) as Nullable<Donation[]>;
     }
 
+    getFundDonations(): Nullable<FundDonation[]> {
+        return this.db
+            .prepare("SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id")
+            .all() as Nullable<FundDonation[]>;
+    }
+
+    getCostsFundDonations(year?: number): Nullable<FundDonation[]> {
+        return this.db
+            .prepare(
+                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE f.name LIKE ? || '%' || ?"
+            )
+            .all(COSTS_PREFIX, year ? year.toString() : "%") as Nullable<FundDonation[]>;
+    }
+
     getFundDonationsOf(username: string): Nullable<FundDonation[]> {
         return this.db
             .prepare(
-                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.username = ?"
+                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE LOWER(d.username) = ?"
             )
-            .all(username) as Nullable<FundDonation[]>;
+            .all(username.toLowerCase()) as Nullable<FundDonation[]>;
     }
 
     // TODO there should be a better way
     getFundDonationsHeldBy(accountant: string, fundName?: string): Nullable<FundDonation[]> {
-        return (
-            fundName && fundName.length > 0
-                ? this.db
-                      .prepare(
-                          "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.accountant = ? AND f.name = ?"
-                      )
-                      .all(accountant, fundName)
-                : this.db
-                      .prepare(
-                          "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE d.accountant = ?"
-                      )
-                      .all(accountant)
-        ) as Nullable<FundDonation[]>;
+        return this.db
+            .prepare(
+                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE LOWER(d.accountant) = ? AND f.name LIKE ?"
+            )
+            .all(accountant.toLowerCase(), fundName && fundName.length > 0 ? fundName : "%") as Nullable<FundDonation[]>;
     }
 
     getDonationById(donationId: number): Nullable<Donation> {

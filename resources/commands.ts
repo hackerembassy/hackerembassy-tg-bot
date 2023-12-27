@@ -97,6 +97,7 @@ export const MemberCommandsList: string = `
 
 Инфа:
 /residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце
+/historycosts year - График донатов резидентов на аренду (без указания года будет выбран текущий)
 
 Кондиционер:
 /mideaon - Врубить кондей
@@ -160,7 +161,10 @@ export const AccountantCommandsList: string = `
 #\`/removedonation donation_id#\` - Удалить донат
 #\`/transferdonation donation_id to username#\` (td) - Передать донат другому бухгалтеру
 #\`/tocab donation_id#\` - Передать донат Кабу
+#\`/tonick donation_id#\` - Передать донат Коле
 #\`/tocaball fund_name#\` - Передать все свои донаты Кабу, опционально можно указать конкретный сбор
+#\`/tonickall fund_name#\` - Передать все свои донаты Коле, опционально можно указать конкретный сбор
+#\`/paid donation_id#\` - Отметить донат оплаченным по id (ушел на цель сбора)
 #\`/profile username#\` - Статистика посещениий и донатов юзера
 #\`/debt username#\` - Сколько донатов числится на юзере (без параметра - на тебе)
 

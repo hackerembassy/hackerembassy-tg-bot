@@ -259,6 +259,9 @@ function createLines(
                             display: axisLables.y !== undefined,
                             labelString: axisLables.y,
                         },
+                        ticks: {
+                            beginAtZero: true,
+                        },
                     },
                 ],
             },

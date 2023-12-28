@@ -184,3 +184,10 @@ export const GlobalModifiers: string = `
 #\`-admin#\` - Вспомогательные команды выведутся для админа и бухгалтера и в публичном чате
 #\`-forward#\` - Сообщение будет переадресовано в главный чат
 `;
+
+export const CommandsMap = {
+    default: GeneralCommandsList,
+    member: MemberCommandsList,
+    admin: AdminCommandsList,
+    accountant: AccountantCommandsList,
+};

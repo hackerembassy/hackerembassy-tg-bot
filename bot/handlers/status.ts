@@ -538,7 +538,7 @@ export default class StatusHandlers implements BotHandlers {
         })}: ${days}d, ${hours}h, ${minutes}m\n\n`;
 
         const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
-            total: totalDonated,
+            total: totalDonated.toFixed(2),
             currency: "AMD",
         })}`;
 

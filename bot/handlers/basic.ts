@@ -19,13 +19,18 @@ import { Flags } from "./service";
 const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicHandlers implements BotHandlers {
-    static async helpHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
+        const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
+
         const text = t("basic.help", {
-            availableCommands: helpers.getAvailableCommands(msg.from?.username),
+            availableCommands: helpers.getAvailableCommands(
+                msg.from?.username,
+                selectedRole as keyof typeof Commands.CommandsMap
+            ),
             globalModifiers: Commands.GlobalModifiers,
         });
 
-        await bot.sendLongMessage(msg.chat.id, text, msg);
+        return await bot.sendLongMessage(msg.chat.id, text, msg);
     }
 
     static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {

@@ -16,7 +16,7 @@ import StatusHandlers from "../handlers/status";
 
 export function addRoutes(bot: HackerEmbassyBot): void {
     // Info
-    bot.addRoute(["help"], BasicHandlers.helpHandler);
+    bot.addRoute(["help"], BasicHandlers.helpHandler, OptionalParam(/(\S+)/), match => [match[1]]);
     bot.addRoute(["about"], BasicHandlers.aboutHandler);
     bot.addRoute(["join"], BasicHandlers.joinHandler);
     bot.addRoute(["events"], BasicHandlers.eventsHandler);

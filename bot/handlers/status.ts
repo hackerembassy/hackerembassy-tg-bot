@@ -596,6 +596,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const fromDate = new Date(fromDateString ?? statsStartDateString);
         const toDate = toDateString ? new Date(toDateString) : new Date();
+        toDate.setHours(23, 59, 59, 999);
 
         if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
             await bot.sendMessageExt(msg.chat.id, t("status.stats.invaliddates"), msg);
@@ -603,6 +604,7 @@ export default class StatusHandlers implements BotHandlers {
         }
 
         const allUserStates = StatusRepository.getAllUserStates();
+
         const userTimes = allUserStates ? getAllUsersTimes(allUserStates, fromDate, toDate) : [];
         const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };

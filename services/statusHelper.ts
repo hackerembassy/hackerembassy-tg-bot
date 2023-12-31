@@ -111,8 +111,7 @@ export function findRecentStates(allUserStates: UserState[]) {
 
     for (const userstate of allUserStates) {
         if (!usersLastStates.find(us => equalsIns(us.username, userstate.username))) {
-            userstate.date = new Date(userstate.date);
-            usersLastStates.push(userstate);
+            usersLastStates.push({ ...userstate, date: new Date(userstate.date) });
         }
     }
 
@@ -127,7 +126,7 @@ export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toD
 
     for (const username of userNames) {
         const userStates = allUserStates.filter(
-            us => equalsIns(us.username, username) && us.date >= fromDate && us.date <= toDate
+            us => equalsIns(us.username, username) && Number(us.date) >= fromDate.getTime() && Number(us.date) <= toDate.getTime()
         );
         usersTimes.push({ username: username, usertime: getUserTimeDescriptor(userStates) });
     }

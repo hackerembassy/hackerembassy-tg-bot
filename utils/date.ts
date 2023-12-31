@@ -51,6 +51,7 @@ export function getMonthBoundaries(date: Date): { startMonthDate: Date; endMonth
     const endMonthDate = new Date(date);
     endMonthDate.setMonth(endMonthDate.getMonth() + 1);
     endMonthDate.setDate(0);
+    endMonthDate.setHours(23, 59, 59, 999);
 
     return { startMonthDate, endMonthDate };
 }

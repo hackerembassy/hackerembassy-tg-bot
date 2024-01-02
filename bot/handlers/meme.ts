@@ -19,7 +19,7 @@ export default class MemeHandlers implements BotHandlers {
         const now = new Date();
 
         if (now.getDate() === ITS_WEDNESDAY_YEAAAH && now.getHours() < 6) {
-            const msg = await bot.sendMessageExt(botConfig.chats.test, t("meme.its_wednesday"), null);
+            const msg = await bot.sendMessageExt(botConfig.chats.horny, t("meme.its_wednesday"), null);
             msg && MemeHandlers.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
         }
     }

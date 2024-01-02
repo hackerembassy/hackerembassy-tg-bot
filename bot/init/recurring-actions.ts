@@ -5,12 +5,14 @@ import { HALFDAY, HOUR } from "../../utils/date";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent } from "../core/types";
 import BirthdayHandlers from "../handlers/birthday";
+import MemeHandlers from "../handlers/meme";
 import StatusHandlers from "../handlers/status";
 
 const botConfig = config.get<BotConfig>("bot");
 
 export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, null, false), 6 * HOUR);
+    setInterval(() => MemeHandlers.remindItIsWednesdayHandler(bot), 6 * HOUR);
     setInterval(
         () =>
             bot.sendNotification(

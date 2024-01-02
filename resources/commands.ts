@@ -63,6 +63,7 @@ export const GeneralCommandsList: string = `[Команды гостей]
 /randomdog
 /randomcab
 /randomcock
+/randomzhabka
 /rickroll
 /badumtss
 /rzd

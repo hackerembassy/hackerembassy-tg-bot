@@ -356,6 +356,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         null,
         () => ["./resources/images/cab"]
     );
+    bot.addRoute(["randomzhabka", "randomtoad", "zhabka", "zhaba", "toad", "wednesday"], MemeHandlers.randomZhabkaHandler);
     bot.addRoute(["syrniki", "pidarasi", "pidorasi"], MemeHandlers.imageHandler, null, () => [
         "./resources/images/memes/syrniki.jpeg",
     ]);

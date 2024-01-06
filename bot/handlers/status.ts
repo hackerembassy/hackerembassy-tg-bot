@@ -28,7 +28,7 @@ import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
-import { isEmoji } from "../../utils/text";
+import { isEmoji, REPLACE_MARKER } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../helpers";
@@ -100,18 +100,16 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async getStatusMessage(state: State, mode: BotMessageContextMode, short: boolean, withSecretData: boolean) {
+    static getStatusMessage(
+        state: State,
+        mode: BotMessageContextMode,
+        short: boolean,
+        climateInfo: Nullable<SpaceClimate> = null,
+        withSecretData: boolean = false
+    ) {
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
-
-        let climateInfo: Nullable<SpaceClimate> = null;
-        try {
-            const response = await requestToEmbassy(`/climate`, "GET", null, 4000);
-            climateInfo = (await response.json()) as SpaceClimate;
-        } catch (error) {
-            logger.error(error);
-        }
 
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, {
             short,
@@ -123,6 +121,17 @@ export default class StatusHandlers implements BotHandlers {
             statusMessage = short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         return statusMessage;
+    }
+
+    private static async queryClimate() {
+        let climateInfo: Nullable<SpaceClimate> = null;
+        try {
+            const response = await requestToEmbassy(`/climate`, "GET", null, 4000);
+            climateInfo = (await response.json()) as SpaceClimate;
+        } catch (error) {
+            logger.error(error);
+        }
+        return climateInfo;
     }
 
     static getStatusInlineKeyboard(state: State, short: boolean) {
@@ -144,10 +153,13 @@ export default class StatusHandlers implements BotHandlers {
     static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, short: boolean, mode: BotMessageContextMode) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
-        const statusMessage = await StatusHandlers.getStatusMessage(
+        const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+
+        const statusMessage = StatusHandlers.getStatusMessage(
             state,
             mode,
             short,
+            climateInfo,
             resultMessage.chat.id === botConfig.chats.horny
         );
         const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
@@ -175,7 +187,7 @@ export default class StatusHandlers implements BotHandlers {
             return;
         }
 
-        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, short, msg.chat.id === botConfig.chats.horny);
+        const statusMessage = StatusHandlers.getStatusMessage(state, mode, short);
         const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
@@ -189,6 +201,24 @@ export default class StatusHandlers implements BotHandlers {
             },
             msg.message_id
         )) as Message;
+
+        const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+
+        if (climateInfo) {
+            const statusWithClient = statusMessage.replace(
+                REPLACE_MARKER,
+                TextGenerators.getClimateMessage(climateInfo, {
+                    withSecrets: msg.chat.id === botConfig.chats.horny,
+                })
+            );
+            bot.editMessageTextExt(statusWithClient, resultMessage, {
+                chat_id: msg.chat.id,
+                message_id: resultMessage.message_id,
+                reply_markup: {
+                    inline_keyboard,
+                },
+            });
+        }
 
         if (mode.live) {
             bot.addLiveMessage(

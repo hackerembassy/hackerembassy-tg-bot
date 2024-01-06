@@ -289,11 +289,11 @@ export default class EmbassyHandlers implements BotHandlers {
             if (!device) throw Error();
 
             switch (operation) {
-                case "up":
+                case DeviceOperation.Up:
                     return EmbassyHandlers.wakeHandler(bot, msg, deviceName);
-                case "down":
+                case DeviceOperation.Down:
                     return EmbassyHandlers.shutdownHandler(bot, msg, deviceName);
-                case "status":
+                case DeviceOperation.Status:
                     return EmbassyHandlers.pingHandler(bot, msg, deviceName, false);
                 default:
                     break;
@@ -338,8 +338,8 @@ export default class EmbassyHandlers implements BotHandlers {
                 raw
                     ? body.output
                     : body.alive
-                    ? t("embassy.device.alive.up", { time: body.time })
-                    : t("embassy.device.alive.down"),
+                      ? t("embassy.device.alive.up", { time: body.time })
+                      : t("embassy.device.alive.down"),
                 msg
             );
         } catch (error) {
@@ -349,18 +349,12 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async announceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        await EmbassyHandlers.playinspaceHandler(bot, msg, "rzd", true);
-        await sleep(7000);
-        await EmbassyHandlers.sayinspaceHandler(bot, msg, text);
-    }
-
     static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
-        const residents = usersRepository.getUsers()?.filter(u => hasRole(u.username, "member"));
+        const residents = usersRepository.getUsers().filter(u => hasRole(u.username, "member"));
         const recentUserStates = findRecentStates(statusRepository.getAllUserStates() ?? []);
         const residentsInside = recentUserStates
             .filter(filterPeopleInside)
-            .filter(insider => residents?.find(r => r.username === insider.username));
+            .filter(insider => residents.find(r => r.username === insider.username));
 
         const text =
             residentsInside.length > 0

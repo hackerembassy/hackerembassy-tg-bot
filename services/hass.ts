@@ -63,9 +63,7 @@ export async function getWebcamImage(camName: keyof CamConfig): Promise<Buffer> 
 
 export async function sayInSpace(text: string): Promise<void> {
     const response = await postToHass(embassyApiConfig.speaker.ttspath, {
-        entity_id: embassyApiConfig.speaker.entity,
         message: text,
-        language: "ru",
     });
 
     if (response.status !== 200) throw Error("Speaker request failed");

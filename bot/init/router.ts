@@ -189,8 +189,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     );
 
     // Sounds
-    bot.addRoute(["sayinspace", "say"], EmbassyHandlers.sayinspaceHandler, /(.*)/ims, match => [match[1]]);
-    bot.addRoute(["announce"], EmbassyHandlers.announceHandler, /(.*)/ims, match => [match[1]]);
+    bot.addRoute(["sayinspace", "say", "announce"], EmbassyHandlers.sayinspaceHandler, /(.*)/ims, match => [match[1]]);
     bot.addRoute(["playinspace", "play"], EmbassyHandlers.playinspaceHandler, /(.*)/ims, match => [match[1]]);
     bot.addRoute(["stopmedia", "stop"], EmbassyHandlers.stopMediaHandler);
     bot.addRoute(["availablesounds", "sounds"], EmbassyHandlers.availableSoundsHandler);

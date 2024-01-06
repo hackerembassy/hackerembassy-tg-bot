@@ -10,6 +10,7 @@ import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
 import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, onlyTimeOptions, shortDateTimeOptions } from "../utils/date";
+import { REPLACE_MARKER } from "../utils/text";
 import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./hass";
 import t from "./localization";
@@ -162,18 +163,20 @@ export function getStatusMessage(
             userStatus.note ? `(${userStatus.note})` : ""
         }\n`;
     }
-    stateText += climateInfo
-        ? `\n${t("embassy.climate.data", { climateInfo })}${
-              options.withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""
-          }`
-        : "";
     stateText += "\n";
+    stateText += climateInfo ? getClimateMessage(climateInfo, options) : REPLACE_MARKER;
     stateText += !options.isApi
         ? t("status.status.updated", {
               updatedDate: new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21),
           })
         : "";
     return stateText;
+}
+
+export function getClimateMessage(climateInfo: SpaceClimate, options: { withSecrets: boolean }) {
+    return `${t("embassy.climate.data", { climateInfo })}${
+        options.withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""
+    }\n`;
 }
 
 export function getUserBadges(username: Nullable<string>): string {

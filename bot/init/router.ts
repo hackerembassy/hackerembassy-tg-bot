@@ -13,6 +13,7 @@ import MemeHandlers from "../handlers/meme";
 import NeedsHandlers from "../handlers/needs";
 import ServiceHandlers from "../handlers/service";
 import StatusHandlers from "../handlers/status";
+import TopicsHandlers from "../handlers/subscriptions";
 
 export function addRoutes(bot: HackerEmbassyBot): void {
     // Info
@@ -74,6 +75,15 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["lastmonth", "statslastmonth", "lastmonthstats"], StatusHandlers.statsMonthHandler, null, () => [
         new Date().getMonth() - 1,
     ]);
+
+    // Subscriptions
+    bot.addRoute(["mysubscriptions", "subscriptions", "subs"], TopicsHandlers.mySubscriptionsHandler);
+    bot.addRoute(["topics"], TopicsHandlers.topicsHandler, null, null, ["member"]);
+    bot.addRoute(["addtopic"], TopicsHandlers.addTopicHandler, /(\S+)(?: (.*))?/, match => [match[1], match[2]], ["member"]);
+    bot.addRoute(["deletetopic", "removetopic"], TopicsHandlers.deleteTopicHandler, /(\S+)/, match => [match[1]], ["member"]);
+    bot.addRoute(["subscribe", "sub"], TopicsHandlers.subscribeHandler, /(\S+)/, match => [match[1]]);
+    bot.addRoute(["unsubscribe", "unsub"], TopicsHandlers.unsubscribeHandler, /(\S+)/, match => [match[1]]);
+    bot.addRoute(["tagsubscribers", "tagsubs", "tag"], TopicsHandlers.tagSubscribersHandler, /(\S+)/, match => [match[1]]);
 
     // Emoji
     bot.addRoute(["setemoji", "emoji", "myemoji"], StatusHandlers.setemojiHandler, OptionalParam(/(.*)/), match => [match[1]], [

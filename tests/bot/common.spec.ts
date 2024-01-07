@@ -76,6 +76,8 @@ describe("Bot behavior shared for all commands:", () => {
             "/doorbell",
             "/webcam",
             "/webcam2",
+            "/addtopic test_topic test_description",
+            "/removetopic test_topic",
             "/jigglycam",
             "/doorcam",
             "/superstatus",

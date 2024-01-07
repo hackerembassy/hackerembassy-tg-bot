@@ -5,6 +5,7 @@ import { PrintersConfig } from "../config/schema";
 import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
+import Topic from "../models/Topic";
 import User from "../models/User";
 import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
@@ -433,4 +434,10 @@ export function getTodayEventsText(todayEvents: HSEvent[]): string {
     }
 
     return messageText;
+}
+
+export function listTopics(topics: Topic[]): string {
+    return topics.length > 0
+        ? topics.map(topic => `#\`${topic.name}#\`${topic.description ? ` - ${topic.description}` : ""}`).join("\n")
+        : "";
 }

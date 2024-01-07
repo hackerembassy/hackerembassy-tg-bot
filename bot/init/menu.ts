@@ -45,6 +45,7 @@ const defaultCommands = [
         description: "Наши резиденты, можно к ним обратиться по любым спейсовским вопросам",
     },
     { command: "stats", description: "Статистика по времени в спейсе" },
+    { command: "topics", description: "Топики для подписки на уведомления" },
 ];
 
 const residentCommands = [
@@ -72,6 +73,7 @@ const residentCommands = [
     { command: "anette", description: "Статус Anette" },
     { command: "plumbus", description: "Статус Plumbus" },
     { command: "stats", description: "Статистика по времени в спейсе" },
+    { command: "topics", description: "Топики для подписки на уведомления" },
 ];
 
 export async function setMenu(bot: HackerEmbassyBot): Promise<void> {

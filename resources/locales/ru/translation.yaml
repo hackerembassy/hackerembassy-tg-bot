@@ -133,15 +133,15 @@ basic:
             printers: 🖨 3D Принтеры
             help: 📝 Команды бота
     control:
-        text: 🕹 Панель управления спейсом для резидентов
+        text: 🕹 Панель управления хакерспейсом для резидентов
         buttons:
             unlock: 🔑 Замок
             doorbell: 🔔 Звонок
-            downstairs: 📹 I этаж
-            upstairs: 📹 II этаж
-            jigglycam: 📹 Jiggly
+            downstairs: 📹 I
+            upstairs: 📹 II
             outdoors: 📹 Вход
-            printers: 📹 Принт
+            jigglycam: 📹 Jpuff
+            printers: 📹 3D
             superstatus: 🩻 Суперстатус
             conditioner: ❄️ Кондей
             meme: 🔫 Мемошная

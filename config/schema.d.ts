@@ -119,9 +119,11 @@ export interface DeviceDescriptor {
 }
 
 export interface CamConfig {
-    webcam: string;
-    webcam2: string;
-    doorcam: string;
+    downstairs: string;
+    upstairs: string;
+    jigglycam: string;
+    printers: string;
+    outdoors: string;
 }
 
 export interface ClimateConfig {

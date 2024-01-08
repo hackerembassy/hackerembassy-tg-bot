@@ -94,22 +94,31 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     ]);
 
     // Cams
-    bot.addRoute(["webcam", "webcum", "cam", "cum", "firstfloor", "ff"], EmbassyHandlers.webcamHandler, null, () => ["webcam"], [
-        "member",
-    ]);
+    bot.addRoute(
+        ["downstairs", "webcam", "webcum", "cam", "cum", "firstfloor", "ff"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["downstairs"],
+        ["member"]
+    );
     bot.addRoute(["jigglycam", "jigglycum", "firstfloor2", "ff2"], EmbassyHandlers.webcamHandler, null, () => ["jigglycam"], [
         "member",
     ]);
     bot.addRoute(
-        ["webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"],
+        ["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"],
         EmbassyHandlers.webcamHandler,
         null,
-        () => ["webcam2"],
+        () => ["upstairs"],
         ["member"]
     );
-    bot.addRoute(["doorcam", "doorcum", "precam", "precum", "dc"], EmbassyHandlers.webcamHandler, null, () => ["doorcam"], [
-        "member",
-    ]);
+    bot.addRoute(
+        ["outdoors", "doorcam", "doorcum", "precam", "precum", "dc"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["outdoors"],
+        ["member"]
+    );
+    bot.addRoute(["printerscam", "funroom"], EmbassyHandlers.webcamHandler, null, () => ["printers"], ["member"]);
     bot.addRoute(["allcams", "cams", "allcums", "cums", "allc"], EmbassyHandlers.allCamsHandler, null, null, ["member"]);
 
     // Sensors

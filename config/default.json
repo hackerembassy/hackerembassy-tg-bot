@@ -64,10 +64,11 @@
         },
         "mqtthost": "minimi.lan",
         "cams": {
-            "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
-            "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
+            "downstairs": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
+            "upstairs": "http://hass.lan:8123/api/camera_proxy/camera.upstairs",
             "jigglycam": "http://hass.lan:8123/api/camera_proxy/camera.jigglypuff_2",
-            "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor"
+            "printers": "http://hass.lan:8123/api/camera_proxy/camera.le_fail_lan",
+            "outdoors": "http://hass.lan:8123/api/camera_proxy/camera.outdoor"
         },
         "speaker": {
             "entity": "media_player.cum_pod",

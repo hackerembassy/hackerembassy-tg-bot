@@ -52,12 +52,16 @@ export default class AdminHandlers implements BotHandlers {
         s: BotCustomEvent.statusLive,
         ss: BotCustomEvent.statusLive,
         webcam: BotCustomEvent.camLive,
+        downstairs: BotCustomEvent.camLive,
         webcam2: BotCustomEvent.camLive,
+        upstairs: BotCustomEvent.camLive,
+        printerscam: BotCustomEvent.camLive,
         jigglycam: BotCustomEvent.camLive,
         doorcam: BotCustomEvent.camLive,
         webcum: BotCustomEvent.camLive,
         webcum2: BotCustomEvent.camLive,
         doorcum: BotCustomEvent.camLive,
+        outdoors: BotCustomEvent.camLive,
         cam: BotCustomEvent.camLive,
         cam2: BotCustomEvent.camLive,
         cum: BotCustomEvent.camLive,
@@ -74,13 +78,11 @@ export default class AdminHandlers implements BotHandlers {
     }
 
     static async getRestrictedUsersHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers()?.filter(u => u.roles.includes("restricted"));
+        const users = UsersRepository.getUsers().filter(u => u.roles.includes("restricted"));
         let userList = "";
 
-        if (users) {
-            for (const user of users) {
-                userList += `${helpers.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
-            }
+        for (const user of users) {
+            userList += `${helpers.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
         }
 
         await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);
@@ -90,12 +92,10 @@ export default class AdminHandlers implements BotHandlers {
         const users = UsersRepository.getUsers();
         let userList = "";
 
-        if (users) {
-            for (const user of users) {
-                userList += `[${user.userid}] ${helpers.formatUsername(user.username, bot.context(msg).mode)}
+        for (const user of users) {
+            userList += `[${user.userid}] ${helpers.formatUsername(user.username, bot.context(msg).mode)}
     Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
     Autoinside: ${user.autoinside ? "on" : "off"}\n`;
-            }
         }
 
         await bot.sendLongMessage(msg.chat.id, t("admin.getUsers.text") + userList, msg);

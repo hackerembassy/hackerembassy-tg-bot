@@ -86,9 +86,11 @@ export const MemberCommandsList: string = `
 
 Камеры:
 /superstatus (ss) - Статус и изображения со всех камер
-/firstfloor (ff) - Глянуть камеру первого этажа
-/secondfloor (sf) - Глянуть камеру второго этажа
-/doorcam (dc) - Глянуть камеру снаружи
+/downstairs (ff) - Глянуть камеру первого этажа
+/upstairs (sf) - Глянуть камеру второго этажа
+/outdoors - Глянуть камеру снаружи
+/jigglycam - Глянуть камеру Jigglypuff
+/printerscam - Глянуть камеру принтерной
 /allcams (ac) - Глянуть все камеры
 
 Чаты:

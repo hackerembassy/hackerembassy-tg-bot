@@ -56,7 +56,9 @@ export default class TopicsHandlers implements BotHandlers {
             }
 
             const text = subscriptions
-                .map(subscription => userLink({ username: subscription.username ?? "anon", id: subscription.userid }))
+                .map(subscription =>
+                    subscription.username ? `@${subscription.username}` : userLink({ username: "anon", id: subscription.userid })
+                )
                 .join(" ");
 
             bot.sendMessageExt(msg.chat.id, text, msg);

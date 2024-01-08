@@ -235,7 +235,7 @@ embassy:
     webcam:
         location:
             downstairs: Первый этаж
-            upstairs: Первый этаж
+            upstairs: Второй этаж
             jigglycam: Jigglypuff
             outdoors: Входная дверь
             printers: Принтерная

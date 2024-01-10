@@ -18,14 +18,14 @@ export default class MemeHandlers implements BotHandlers {
     static async remindItIsWednesdayHandler(bot: HackerEmbassyBot) {
         const now = new Date();
 
-        if (now.getDate() === ITS_WEDNESDAY_YEAAAH && now.getHours() < 6) {
+        if (now.getDay() === ITS_WEDNESDAY_YEAAAH && now.getHours() < 6) {
             const msg = await bot.sendMessageExt(botConfig.chats.horny, t("meme.its_wednesday"), null);
             msg && MemeHandlers.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
         }
     }
 
     static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (getToday().getDate() !== ITS_WEDNESDAY_YEAAAH) {
+        if (getToday().getDay() !== ITS_WEDNESDAY_YEAAAH) {
             await bot.sendMessageExt(msg.chat.id, t("meme.not_wednesday"), msg);
             return;
         }

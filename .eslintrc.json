@@ -39,6 +39,7 @@
         "no-unneeded-ternary":"error",
         "no-var":"error",
         "prefer-const":"error",
-        "no-console":"warn"
+        "no-console":"warn",
+        "no-unexpected-multiline": "warn"
     }
 }

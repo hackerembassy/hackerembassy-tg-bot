@@ -103,12 +103,14 @@ MQTTUSER - Broker username
 MQTTPASSWORD - Broker password  
 WIFIUSER - Keenetic router username  
 WIFIPASSWORD - Keenetic router user password  
+UNIFIUSER - Unifi AP username  
+UNIFIPASSWORD - Unifi AP password  
 GAMINGUSER - Gaming server username  
 GAMINGPASSWORD - Gaming server user password  
 HASSTOKEN - Home Assistant API token  
 HACKERGOOGLEAPIKEY - Google Calendar API token  
 OPENAIAPIKEY - OpenAI API token  
-SONAR_TOKEN - Sonar Cloud analysis token
+SONAR_TOKEN - Sonar Cloud analysis token  
 
 ## Additional notes
 

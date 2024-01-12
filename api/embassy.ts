@@ -198,6 +198,8 @@ app.get("/devices", async (req, res, next) => {
         const luciToken = process.env["LUCITOKEN"];
         const wifiUser = process.env["WIFIUSER"];
         const wifiPassword = process.env["WIFIPASSWORD"];
+        const unifiUser = process.env["UNIFIUSER"];
+        const unifiPassword = process.env["UNIFIPASSWORD"];
 
         switch (method) {
             case "openwrt":
@@ -209,6 +211,18 @@ app.get("/devices", async (req, res, next) => {
             case "scan":
                 // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
                 res.json(await NeworkDevicesLocator.findDevicesUsingNmap(embassyApiConfig.spacenetwork.networkRange));
+                break;
+            case "unifi":
+                // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
+                if (!unifiUser || !unifiPassword) throw Error("Missing unifi credentials");
+
+                res.json(
+                    await NeworkDevicesLocator.getDevicesFromUnifiController(
+                        embassyApiConfig.spacenetwork.unifihost,
+                        unifiUser,
+                        unifiPassword
+                    )
+                );
                 break;
             // Our main wifi access point
             case "keenetic":

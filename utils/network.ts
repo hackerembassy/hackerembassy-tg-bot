@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import config from "config";
 import { promises as fs } from "fs";
+import https from "https";
 import find from "local-devices";
 // @ts-ignore
 import { LUCI } from "luci-rpc";
@@ -21,6 +22,10 @@ type LuciWlanAdapters = {
         }[];
     }[];
 };
+
+const tlsIgnoreAgent = new https.Agent({
+    rejectUnauthorized: false,
+});
 
 class Cancellation {
     controller: AbortController;
@@ -165,6 +170,47 @@ export class NeworkDevicesLocator {
         }
 
         return macs;
+    }
+
+    static async getDevicesFromUnifiController(host: string, username: string, password: string) {
+        const loginResponse = await fetch(`${host}/api/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            agent: tlsIgnoreAgent,
+            body: JSON.stringify({
+                username,
+                password,
+            }),
+        });
+
+        if (loginResponse.status !== 200) throw new Error("Login failed");
+
+        const cookiesHeader = loginResponse.headers
+            .raw()
+            ["set-cookie"].map((cookie: string) => cookie.split(";")[0])
+            .join("; ");
+
+        const devicesResponse = await fetch(`${host}/api/s/default/stat/sta`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Cookie: cookiesHeader,
+            },
+            agent: tlsIgnoreAgent,
+
+            body: JSON.stringify({
+                username,
+                password,
+            }),
+        });
+
+        if (devicesResponse.status !== 200) throw new Error("Failed to get devices");
+
+        const devices = (await devicesResponse.json()) as { data: { mac: string }[] };
+
+        return devices.data.map((device: { mac: string }) => device.mac);
     }
 
     static async findDevicesUsingNmap(networkRange: string) {

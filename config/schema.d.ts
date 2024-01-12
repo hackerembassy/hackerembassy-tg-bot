@@ -95,6 +95,7 @@ export interface SpaceNetworkConfig {
     networkRange: string;
     routerip: string;
     wifiip: string;
+    unifihost: string;
 }
 
 export interface SpeakerConfig {

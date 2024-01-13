@@ -7,6 +7,7 @@ import express from "express";
 import { promises as fs } from "fs";
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
+import path from "path";
 
 import { CamConfig, EmbassyApiConfig } from "../config/schema";
 import {
@@ -30,14 +31,15 @@ const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const port = embassyApiConfig.service.port;
 
 const app = express();
+const staticPath = path.join(__dirname, embassyApiConfig.service.static);
 app.use(cors());
 app.use(express.json());
-app.use(express.static(embassyApiConfig.service.static));
+app.use(express.static(staticPath));
 app.use(createErrorMiddleware(logger));
 
 app.get("/speaker/sounds", async (req, res, next) => {
     try {
-        const availableFiles = await fs.readdir(embassyApiConfig.service.static);
+        const availableFiles = await fs.readdir(staticPath);
         res.send({
             sounds: availableFiles.map(filename => filename.replace(".mp3", "")),
         });

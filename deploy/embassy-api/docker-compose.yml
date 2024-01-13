@@ -4,11 +4,11 @@ services:
     tg-bot:
         image: ghcr.io/hackerembassy/hackerembassy-tg-bot:main
         platform: linux/amd64
-        ports:
-            - "8001:8001"
+        network_mode: host
         volumes:
             - log-volume:/app/log
             - data-volume:/app/data/db
+            - ./sec:/app/config/sec
         env_file:
             - .env
         command: ["npm", "run", "start-service:ci"]

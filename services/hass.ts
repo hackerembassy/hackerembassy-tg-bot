@@ -97,37 +97,33 @@ export async function ringDoorbell(): Promise<void> {
 
 // Climate
 export async function getClimate(): Promise<Nullable<SpaceClimate>> {
-    try {
-        const queries = [
-            (await getFromHass(climateConfig.first_floor.temperature)).json(),
-            (await getFromHass(climateConfig.first_floor.humidity)).json(),
-            (await getFromHass(climateConfig.first_floor.co2!)).json(),
-            (await getFromHass(climateConfig.second_floor.temperature)).json(),
-            (await getFromHass(climateConfig.second_floor.humidity)).json(),
-            (await getFromHass(climateConfig.bedroom.temperature)).json(),
-            (await getFromHass(climateConfig.bedroom.humidity)).json(),
-        ];
+    const queries = [
+        (await getFromHass(climateConfig.first_floor.temperature)).json(),
+        (await getFromHass(climateConfig.first_floor.humidity)).json(),
+        (await getFromHass(climateConfig.first_floor.co2!)).json(),
+        (await getFromHass(climateConfig.second_floor.temperature)).json(),
+        (await getFromHass(climateConfig.second_floor.humidity)).json(),
+        (await getFromHass(climateConfig.bedroom.temperature)).json(),
+        (await getFromHass(climateConfig.bedroom.humidity)).json(),
+    ];
 
-        const climateValues = await Promise.allSettled(queries);
+    const climateValues = await Promise.allSettled(queries);
 
-        return {
-            firstFloor: {
-                temperature: getValueOrDefault(climateValues[0]),
-                humidity: getValueOrDefault(climateValues[1]),
-                co2: getValueOrDefault(climateValues[2]),
-            },
-            secondFloor: {
-                temperature: getValueOrDefault(climateValues[3]),
-                humidity: getValueOrDefault(climateValues[4]),
-            },
-            bedroom: {
-                temperature: getValueOrDefault(climateValues[5]),
-                humidity: getValueOrDefault(climateValues[6]),
-            },
-        };
-    } catch {
-        return null;
-    }
+    return {
+        firstFloor: {
+            temperature: getValueOrDefault(climateValues[0]),
+            humidity: getValueOrDefault(climateValues[1]),
+            co2: getValueOrDefault(climateValues[2]),
+        },
+        secondFloor: {
+            temperature: getValueOrDefault(climateValues[3]),
+            humidity: getValueOrDefault(climateValues[4]),
+        },
+        bedroom: {
+            temperature: getValueOrDefault(climateValues[5]),
+            humidity: getValueOrDefault(climateValues[6]),
+        },
+    };
 }
 
 function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?"): any {

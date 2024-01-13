@@ -54,7 +54,7 @@
         "service": {
             "port": 8001,
             "host": "http://le-fail.lan",
-            "static": "/home/nick/static"
+            "static": "../static"
         },
         "spacenetwork": {
             "devicesCheckingMethod": "keenetic",

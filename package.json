@@ -8,6 +8,7 @@
         "postbuild": "node scripts/postBuild.mjs",
         "start": "node dist/bot.js",
         "start:ci": "node bot.js",
+        "start-service:ci": "node embassy.js",
         "start-background": "nohup node dist/bot.js &",
         "start-service": "node dist/embassy.js",
         "start-service-background": "nohup node dist/embassy.js &",

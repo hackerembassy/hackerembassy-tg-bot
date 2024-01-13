@@ -9,6 +9,7 @@ services:
             - log-volume:/app/log
             - data-volume:/app/data/db
             - ./sec:/app/config/sec
+            - ./static:/app/static
         env_file:
             - .env
         command: ["npm", "run", "start-service:ci"]

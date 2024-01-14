@@ -12,6 +12,7 @@ services:
             - ./static:/app/static
         env_file:
             - .env
+        restart: unless-stopped
         command: ["npm", "run", "start-service:ci"]
 
 volumes:

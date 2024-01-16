@@ -98,6 +98,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public CustomEmitter: EventEmitter;
     public botState: BotState;
     public routeMap = new Map<string, BotRoute>();
+    public restrictedImage: Nullable<Buffer> = null;
 
     private contextMap = new Map();
 
@@ -416,11 +417,7 @@ ${chunks[index]}
 
             // check restritions
             if (route.restrictions.length > 0 && !this.canUserCall(message.from?.username, command)) {
-                this.sendMessageExt(
-                    message.chat.id,
-                    t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
-                    message
-                );
+                this.sendRestrictedMessage(message, route);
                 return;
             }
 
@@ -451,6 +448,18 @@ ${chunks[index]}
         } finally {
             this.context(message).clear();
         }
+    }
+
+    private sendRestrictedMessage(message: TelegramBot.Message, route: BotRoute) {
+        this.restrictedImage
+            ? this.sendPhotoExt(message.chat.id, this.restrictedImage, message, {
+                  caption: t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
+              })
+            : this.sendMessageExt(
+                  message.chat.id,
+                  t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
+                  message
+              );
     }
 
     addRoute(

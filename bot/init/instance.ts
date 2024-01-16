@@ -1,4 +1,5 @@
 import config from "config";
+import { promises as fs } from "fs";
 
 import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
@@ -11,6 +12,8 @@ const botConfig = config.get<BotConfig>("bot");
 async function init(bot: HackerEmbassyBot): Promise<void> {
     const botInstanceInfo = await bot.getMe();
     bot.Name = botInstanceInfo.username;
+    const restrictedImage = await fs.readFile("./resources/images/restricted.jpg").catch(() => null);
+    bot.restrictedImage = restrictedImage ? Buffer.from(restrictedImage) : null;
     addRoutes(bot);
     addEventHandlers(bot);
     startRouting(bot, botConfig.debug);

@@ -69,6 +69,7 @@ export default class BasicHandlers implements BotHandlers {
         const report = t("basic.issue.report", { issue: issueText });
         if (issueText) {
             await bot.sendMessageExt(msg.chat.id, sentMessage, msg);
+            delete bot.context(msg).messageThreadId;
             await bot.sendMessageExt(botConfig.chats.key, report, msg);
         } else {
             await bot.sendMessageExt(msg.chat.id, helpMessage, msg);

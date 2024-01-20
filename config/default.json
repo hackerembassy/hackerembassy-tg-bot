@@ -57,7 +57,7 @@
             "static": "static"
         },
         "spacenetwork": {
-            "devicesCheckingMethod": "keenetic",
+            "devicesCheckingMethod": "unifi",
             "networkRange": "192.168.1.1-192.168.1.254",
             "routerip": "192.168.1.1",
             "wifiip": "192.168.1.2",

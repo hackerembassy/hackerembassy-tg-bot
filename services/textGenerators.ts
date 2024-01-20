@@ -10,7 +10,14 @@ import User from "../models/User";
 import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
-import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, onlyTimeOptions, shortDateTimeOptions } from "../utils/date";
+import {
+    convertMinutesToHours,
+    DateBoundary,
+    ElapsedTimeObject,
+    hasBirthdayToday,
+    onlyTimeOptions,
+    shortDateTimeOptions,
+} from "../utils/date";
 import { REPLACE_MARKER } from "../utils/text";
 import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./hass";
@@ -191,8 +198,9 @@ export function getUserBadges(username: Nullable<string>): string {
         roles.includes("trusted") ? "🎓" : ""
     }`;
     const customBadge = user.emoji ?? "";
+    const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";
 
-    return `${roleBadges}${customBadge}`;
+    return `${roleBadges}${customBadge}${birthdayBadge}`;
 }
 
 export function getUserBadgesWithStatus(userStatus: UserState): string {

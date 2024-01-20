@@ -95,3 +95,14 @@ export function compareMonthNames(a: string, b: string) {
 
     return monthA - monthB;
 }
+
+const LOCALE_ISO_DATE_FORMAT = "sv";
+const DATE_SUBSTRING_INDICES: [number, number] = [5, 10];
+
+export function hasBirthdayToday(date: Nullable<string>) {
+    if (!date) return false;
+
+    const currentDate = new Date().toLocaleDateString(LOCALE_ISO_DATE_FORMAT).substring(...DATE_SUBSTRING_INDICES);
+
+    return date.substring(5, 10) === currentDate;
+}

@@ -9,7 +9,7 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
-import { isToday, MINUTE } from "../../utils/date";
+import { hasBirthdayToday, isToday, MINUTE } from "../../utils/date";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
@@ -17,8 +17,6 @@ import * as helpers from "../helpers";
 const botConfig = config.get<BotConfig>("bot");
 
 const baseWishesDir = "./resources/wishes";
-const DATE_FORMAT = "sv";
-const DATE_SUBSTRING_INDICES: [number, number] = [5, 10];
 
 export default class BirthdayHandlers implements BotHandlers {
     static forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -49,8 +47,7 @@ export default class BirthdayHandlers implements BotHandlers {
     }
 
     static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, force: boolean = false) {
-        const currentDate = new Date().toLocaleDateString(DATE_FORMAT).substring(...DATE_SUBSTRING_INDICES);
-        const birthdayUsers = UsersRepository.getUsers().filter(u => u.username && u.birthday?.substring(5, 10) === currentDate);
+        const birthdayUsers = UsersRepository.getUsers().filter(u => u.username && hasBirthdayToday(u.birthday));
 
         if (!force && isToday(new Date(bot.botState.lastBirthdayWishTimestamp), true)) return;
 

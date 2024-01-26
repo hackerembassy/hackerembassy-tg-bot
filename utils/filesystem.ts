@@ -13,6 +13,10 @@ export function lastModifiedFilePath(logfolderpath: string): string | undefined 
         : undefined;
 }
 
+export function getImageFromFolder(folder: string, filename: string): Promise<Nullable<Buffer>> {
+    return fs.promises.readFile(path.join(folder, filename));
+}
+
 export async function getRandomImageFromFolder(folder: string): Promise<Nullable<Buffer>> {
     const files = await fs.promises.readdir(folder);
     if (files.length === 0) return null;

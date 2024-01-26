@@ -6,8 +6,9 @@ import * as ExportHelper from "../../services/export";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
-import { initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
+import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
 import { getToday } from "../../utils/date";
+import { getImageFromFolder } from "../../utils/filesystem";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
@@ -203,7 +204,25 @@ export default class FundsHandlers implements BotHandlers {
               })
             : t("funds.adddonation.fail");
 
-        await bot.sendMessageExt(msg.chat.id, text, msg);
+        try {
+            if (!success) throw new Error("Failed to add donation");
+
+            const valueInAMD = await convertCurrency(value, preparedCurrency, "AMD");
+
+            if (!valueInAMD) throw new Error("Failed to convert currency");
+
+            const happinessLevel = valueInAMD < 10000 ? 1 : valueInAMD < 40000 ? 2 : 3;
+            const animeImage = await getImageFromFolder(`./resources/images/anime/`, `${happinessLevel}.jpg`);
+
+            if (!animeImage) throw new Error("Failed to get image");
+
+            await bot.sendPhotoExt(msg.chat.id, animeImage, msg, {
+                caption: text,
+            });
+        } catch (error) {
+            await bot.sendMessageExt(msg.chat.id, text, msg);
+            logger.error(error);
+        }
     }
 
     static async costsHandler(bot: HackerEmbassyBot, msg: Message, valueString: string, currency: string, userName: string) {

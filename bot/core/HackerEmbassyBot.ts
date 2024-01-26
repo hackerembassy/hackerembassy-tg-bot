@@ -190,6 +190,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         const inline_keyboard =
             mode.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
 
+        if (options.caption) {
+            options.caption = prepareMessageForMarkdown(options.caption);
+            options = this.prepareOptionsForMarkdown({ ...options });
+        }
+
         this.sendChatAction(chatId, "upload_photo", msg);
 
         const message = await super.sendPhoto(

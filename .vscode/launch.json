@@ -19,16 +19,48 @@
         },
         {
             "type": "node",
-            "runtimeVersion": "20",
-            "name": "Debug Tests",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
+            "runtimeVersion": "20",
+            "name": "Jest Current File",
+            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "args": [
+              "--runInBand",
+              "--collectCoverage=false",
+              "--testTimeout=100000000",
+              "--runTestsByPath",
+              "${relativeFile}"
             ],
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run-script", "test"
+            "env": {
+              "NODE_ENV": "test",
+              "LOG_LEVEL": "debug"
+            },
+            "console": "integratedTerminal",
+            "windows": {
+              "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+            },
+            "runtimeArgs": ["--preserve-symlinks"],
+            "skipFiles": ["<node_internals>/**/*.js"]
+          },
+          {
+            "type": "node",
+            "request": "launch",
+            "runtimeVersion": "20",
+            "name": "Jest All",
+            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "args": [
+              "--collectCoverage=false",
+              "--testTimeout=100000000"
             ],
-        }
+            "env": {
+              "NODE_ENV": "test",
+              "LOG_LEVEL": "debug"
+            },
+            "console": "integratedTerminal",
+            "windows": {
+              "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+            },
+            "runtimeArgs": ["--preserve-symlinks"],
+            "skipFiles": ["<node_internals>/**/*.js"]
+          },
     ]   
 }

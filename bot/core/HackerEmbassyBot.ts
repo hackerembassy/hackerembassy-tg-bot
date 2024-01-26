@@ -197,7 +197,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
-        const message = await super.sendPhoto(
+        const message = await this.sendPhoto(
             chatIdToUse,
             photo,
             {

@@ -17,7 +17,7 @@ export function mockTelegramApiRequests() {
         .persist();
 
     nock("https://api.telegram.org")
-        .post("/botTOKEN/sendChatAction", "chat_id=1&action=typing")
+        .post("/botTOKEN/sendChatAction")
         .reply(200, {
             ok: true,
             result: [],

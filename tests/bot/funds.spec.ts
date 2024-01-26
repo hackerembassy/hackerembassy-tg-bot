@@ -1,4 +1,5 @@
 import fundsRepository from "../../repositories/fundsRepository";
+import { sleep } from "../../utils/common";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
 import { ADMIN_USER_NAME, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
 
@@ -33,8 +34,9 @@ describe("Bot Funds commands:", () => {
         await botMock.processUpdate(
             createMockMessage("/adddonation 5000 USD from @user1 to Test_Fund_With_Donations", ADMIN_USER_NAME)
         );
+        // Send photo delay
+        await sleep(100);
         await botMock.processUpdate(createMockMessage("/funds"));
-
         await jest.runAllTimersAsync();
 
         expect(botMock.popResults()).toEqual([

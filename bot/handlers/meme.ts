@@ -58,13 +58,15 @@ export default class MemeHandlers implements BotHandlers {
     }
 
     static async slapHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
-        if (!username) {
+        const sender = msg.from?.username ?? msg.from?.first_name;
+        const extractedTarget = username ?? msg.reply_to_message?.from?.username ?? msg.reply_to_message?.from?.first_name;
+
+        if (!extractedTarget) {
             await bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
             return;
         }
 
-        const sender = msg.from?.username ?? msg.from?.first_name;
-        const target = formatUsername(username, { mention: true });
+        const target = formatUsername(extractedTarget, { mention: true });
         const caption = t("meme.slap.user", {
             from: formatUsername(sender),
             target,

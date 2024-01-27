@@ -7,6 +7,7 @@ import { getToday } from "../../utils/date";
 import { getImageFromPath, getRandomImageFromFolder } from "../../utils/filesystem";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
+import { formatUsername } from "../helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -54,5 +55,30 @@ export default class MemeHandlers implements BotHandlers {
         }
 
         await bot.sendPhotoExt(msg.chat.id, buffer, msg);
+    }
+
+    static async slapHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
+        if (!username) {
+            await bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
+            return;
+        }
+
+        const sender = msg.from?.username ?? msg.from?.first_name;
+        const target = formatUsername(username, { mention: true });
+        const caption = t("meme.slap.user", {
+            from: formatUsername(sender),
+            target,
+        });
+        const gif =
+            sender !== target.slice(1)
+                ? await getImageFromPath("./resources/images/animations/slap.gif").catch(() => null)
+                : await getImageFromPath("./resources/images/animations/slap-self.gif").catch(() => null);
+
+        if (!gif) {
+            await bot.sendMessageExt(msg.chat.id, caption, msg);
+            return;
+        }
+
+        await bot.sendAnimationExt(msg.chat.id, gif, msg, { caption });
     }
 }

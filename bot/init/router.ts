@@ -380,6 +380,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["syrniki", "pidarasi", "pidorasi"], MemeHandlers.imageHandler, null, () => [
         "./resources/images/memes/syrniki.jpeg",
     ]);
+    bot.addRoute(["slap"], MemeHandlers.slapHandler, OptionalParam(/(\S+)/), match => [match[1]]);
 
     // Chat control
     bot.addRoute(["clear"], ServiceHandlers.clearHandler, OptionalParam(/(\d*)/), match => [match[1]], ["member"]);

@@ -219,6 +219,37 @@ export default class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(message);
     }
 
+    // TODO extract common logic from here sendPhotoExt
+    async sendAnimationExt(
+        chatId: ChatId,
+        animation: string | Stream | Buffer,
+        msg: TelegramBot.Message,
+        options?: TelegramBot.SendAnimationOptions | undefined
+    ): Promise<TelegramBot.Message> {
+        const mode = this.context(msg).mode;
+        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
+
+        if (options?.caption) {
+            options.caption = prepareMessageForMarkdown(options.caption);
+            options = this.prepareOptionsForMarkdown({ ...options });
+        }
+
+        this.sendChatAction(chatId, "upload_photo", msg);
+
+        const message = await this.sendAnimation(chatIdToUse, animation, {
+            ...options,
+            message_thread_id: this.context(msg).messageThreadId,
+        });
+
+        if (mode.pin) {
+            this.tryPinChatMessage(message, msg.from?.username);
+        }
+
+        this.messageHistory.push(chatId, message.message_id);
+
+        return Promise.resolve(message);
+    }
+
     async sendPhotos(
         chatId: TelegramBot.ChatId,
         photos: Buffer[] | ArrayBuffer[],
@@ -642,6 +673,18 @@ ${chunks[index]}
         fileOptions?: TelegramBot.FileOptions | undefined
     ): Promise<TelegramBot.Message> {
         return super.sendPhoto(chatId, photo, options, fileOptions);
+    }
+
+    /**
+     * @deprecated Do not use directly
+     * @see sendAnimationExt
+     */
+    sendAnimation(
+        chatId: ChatId,
+        animation: string | Stream | Buffer,
+        options?: TelegramBot.SendAnimationOptions | undefined
+    ): Promise<TelegramBot.Message> {
+        return super.sendAnimation(chatId, animation, options);
     }
 
     /**

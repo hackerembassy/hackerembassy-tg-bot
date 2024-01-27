@@ -69,10 +69,25 @@ export default class MemeHandlers implements BotHandlers {
             from: formatUsername(sender),
             target,
         });
-        const gif =
-            sender !== target.slice(1)
-                ? await getImageFromPath("./resources/images/animations/slap.gif").catch(() => null)
-                : await getImageFromPath("./resources/images/animations/slap-self.gif").catch(() => null);
+
+        let source: string;
+
+        switch (target.slice(1)) {
+            case bot.Name:
+                source = "./resources/images/animations/slap-bot.gif";
+                break;
+            case "korn9509":
+                source = "./resources/images/animations/slap-korn.gif";
+                break;
+            case sender:
+                source = "./resources/images/animations/slap-self.gif";
+                break;
+            default:
+                source = "./resources/images/animations/slap.gif";
+                break;
+        }
+
+        const gif = await getImageFromPath(source).catch(() => null);
 
         if (!gif) {
             await bot.sendMessageExt(msg.chat.id, caption, msg);

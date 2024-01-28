@@ -91,6 +91,7 @@ export const MemberCommandsList: string = `
 /outdoors - Глянуть камеру снаружи
 /jigglycam - Глянуть камеру Jigglypuff
 /printerscam - Глянуть камеру принтерной
+/ktichen - Глянуть камеру на кухне
 /allcams (ac) - Глянуть все камеры
 
 Чаты:

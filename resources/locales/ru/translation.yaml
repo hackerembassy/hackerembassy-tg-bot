@@ -137,11 +137,12 @@ basic:
         buttons:
             unlock: 🔑 Замок
             doorbell: 🔔 Звонок
-            downstairs: 📹 I
-            upstairs: 📹 II
+            downstairs: 📹 I этаж
+            kitchen: 📹 Кухня
+            jigglycam: 📹 Jiglypuff
+            upstairs: 📹 II этаж
             outdoors: 📹 Вход
-            jigglycam: 📹 Jpuff
-            printers: 📹 3D
+            printers: 📹 Принтеры
             superstatus: 🩻 Суперстатус
             conditioner: ❄️ Кондей
             meme: 🔫 Мемошная
@@ -235,8 +236,9 @@ embassy:
     webcam:
         location:
             downstairs: Первый этаж
-            upstairs: Второй этаж
+            kitchen: Кухня
             jigglycam: Jigglypuff
+            upstairs: Второй этаж
             outdoors: Входная дверь
             printers: Принтерная
         fail: |

@@ -118,6 +118,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         () => ["outdoors"],
         ["member"]
     );
+    bot.addRoute(["kitchen", "kitchencam", "kitchencum"], EmbassyHandlers.webcamHandler, null, () => ["kitchen"], ["member"]);
     bot.addRoute(["printerscam", "funroom"], EmbassyHandlers.webcamHandler, null, () => ["printers"], ["member"]);
     bot.addRoute(["allcams", "cams", "allcums", "cums", "allc"], EmbassyHandlers.allCamsHandler, null, null, ["member"]);
 

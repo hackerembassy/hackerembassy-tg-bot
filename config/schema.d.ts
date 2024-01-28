@@ -125,6 +125,7 @@ export interface CamConfig {
     jigglycam: string;
     printers: string;
     outdoors: string;
+    kitchen: string;
 }
 
 export interface ClimateConfig {

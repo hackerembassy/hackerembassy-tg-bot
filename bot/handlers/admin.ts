@@ -62,6 +62,7 @@ export default class AdminHandlers implements BotHandlers {
         webcum2: BotCustomEvent.camLive,
         doorcum: BotCustomEvent.camLive,
         outdoors: BotCustomEvent.camLive,
+        kitchen: BotCustomEvent.camLive,
         cam: BotCustomEvent.camLive,
         cam2: BotCustomEvent.camLive,
         cum: BotCustomEvent.camLive,

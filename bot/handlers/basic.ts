@@ -221,10 +221,10 @@ export default class BasicHandlers implements BotHandlers {
                 InlineButton(t("basic.meme.buttons.nani"), "playinspace", Flags.Silent, { params: "nani" }),
             ],
             [
-                InlineButton(t("basic.meme.buttons.cat"), "cat"),
-                InlineButton(t("basic.meme.buttons.dog"), "dog"),
-                InlineButton(t("basic.meme.buttons.cab"), "cab"),
-                InlineButton(t("basic.meme.buttons.cock"), "cock"),
+                InlineButton(t("basic.meme.buttons.cat"), "cat", Flags.Simple, { params: "./resources/images/cats" }),
+                InlineButton(t("basic.meme.buttons.dog"), "dog", Flags.Simple, { params: "./resources/images/dogs" }),
+                InlineButton(t("basic.meme.buttons.cab"), "cab", Flags.Simple, { params: "./resources/images/cab" }),
+                InlineButton(t("basic.meme.buttons.cock"), "cock", Flags.Simple, { params: "./resources/images/roosters" }),
             ],
             [
                 InlineButton(t("basic.meme.buttons.sad"), "playinspace", Flags.Silent, { params: "sad" }),

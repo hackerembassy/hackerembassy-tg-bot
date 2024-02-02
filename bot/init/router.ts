@@ -209,6 +209,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [Number(match[1])],
         ["member", "trusted"]
     );
+    bot.addRoute(["preheat"], EmbassyHandlers.preheatHandler, null, null, ["member"]);
 
     // Sounds
     bot.addRoute(["sayinspace", "say", "announce"], EmbassyHandlers.sayinspaceHandler, /(.*)/ims, match => [match[1]]);

@@ -155,6 +155,10 @@ class Conditioner {
         });
     }
 
+    async preheat() {
+        await postToHass(climateConfig.conditioner.preheatPath, {});
+    }
+
     async setTemperature(temperature: number) {
         await postToHass(climateConfig.conditioner.setTemperaturePath, {
             temperature: temperature,

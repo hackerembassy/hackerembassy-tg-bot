@@ -89,7 +89,8 @@
                 "turnOnPath": "http://hass.lan:8123/api/services/climate/turn_on",
                 "turnOffPath": "http://hass.lan:8123/api/services/climate/turn_off",
                 "setModePath": "http://hass.lan:8123/api/services/climate/set_hvac_mode",
-                "setTemperaturePath": "http://hass.lan:8123/api/services/climate/set_temperature"
+                "setTemperaturePath": "http://hass.lan:8123/api/services/climate/set_temperature",
+                "preheatPath": "http://hass.lan:8123/api/services/script/preheat"
             },
             "first_floor": {
                 "temperature": "http://hass:8123/api/states/sensor.first_floor_temperature",

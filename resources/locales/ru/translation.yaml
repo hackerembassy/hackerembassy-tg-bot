@@ -270,6 +270,7 @@ embassy:
         buttons:
             turnon: 🌀 Включить
             turnoff: ⛔️ Выключить
+            preheat: ☀️ Preheat
             more: 🔼 +1°C
             less: 🔽 -1°C
             auto: ♻️ Auto

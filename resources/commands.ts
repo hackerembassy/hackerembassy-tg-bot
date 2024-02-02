@@ -109,6 +109,7 @@ export const MemberCommandsList: string = `
 /mideaoff - Вырубить кондей
 /mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
+/preheat - Заранее подогреть спейс
 
 Сеть спейса:
 #\`/probe host#\` - Проверить доступность хоста

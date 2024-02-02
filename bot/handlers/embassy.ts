@@ -464,6 +464,9 @@ export default class EmbassyHandlers implements BotHandlers {
                 InlineButton(t("embassy.conditioner.buttons.turnoff"), "turnconditioner", Flags.Silent | Flags.Editing, {
                     params: false,
                 }),
+                InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", Flags.Silent | Flags.Editing, {
+                    params: false,
+                }),
             ],
             [
                 InlineButton(t("embassy.conditioner.buttons.more"), "addconditionertemp", Flags.Silent | Flags.Editing, {
@@ -541,6 +544,12 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
         await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/mode", { mode });
+
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+    }
+
+    static async preheatHandler(bot: HackerEmbassyBot, msg: Message) {
+        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/preheat", {});
 
         if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
     }

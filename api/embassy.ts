@@ -380,6 +380,15 @@ app.post("/conditioner/mode", async (req, res, next) => {
     }
 });
 
+app.post("/conditioner/preheat", async (_, res, next) => {
+    try {
+        await conditioner.preheat();
+        res.send({ message: "Success" });
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.post("/conditioner/temperature", async (req, res, next) => {
     try {
         const requestBody = req.body as { diff?: number; temperature?: number };

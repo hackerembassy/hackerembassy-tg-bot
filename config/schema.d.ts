@@ -142,6 +142,7 @@ export interface ConditionerConfig {
     turnOffPath: string;
     setModePath: string;
     setTemperaturePath: string;
+    preheatPath: string;
 }
 
 export interface RoomClimate {

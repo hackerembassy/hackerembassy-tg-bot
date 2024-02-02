@@ -231,7 +231,7 @@ export default class EmbassyHandlers implements BotHandlers {
             const inline_keyboard = [
                 [
                     InlineButton(t("embassy.printerstatus.update", { printername }), "printerstatus", Flags.Editing, {
-                        params: "plumbus",
+                        params: printername,
                     }),
                 ],
             ];

@@ -262,6 +262,7 @@ embassy:
             ℹ️ Команды:
             /mideaon - Врубить
             /mideaoff - Вырубить
+            /preheat - Подогреть спейс заранее
             #`/mideamode cool#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
             #`/mideatemp 24#` - Целевая температура (16-28°C)
         success: ✅ Получилось

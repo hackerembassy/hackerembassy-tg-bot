@@ -103,5 +103,6 @@ export function toEscapedTelegramMarkdown(text: string): string {
     })
         .replaceAll(/https?:\/\/t\.me/g, "t.me")
         .replaceAll(/\[t\.me\/(.*?)\]/g, "[$1]")
-        .replaceAll(/\[(.*?)\]\((.*?)\)/g, "#[$1#]#($2#)");
+        .replaceAll(/\[(.*?)\]\((.*?)\)/g, "#[$1#]#($2#)")
+        .replaceAll(/%5F/g, "_");
 }

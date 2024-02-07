@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import config from "config";
 import CryptoConvert from "crypto-convert";
 import { Convert } from "easy-currencies";
@@ -27,6 +29,8 @@ const CurrencySymbolToCode = {
     ["֏"]: "AMD",
     ["₽"]: "RUB",
 };
+
+const MediatorCurrency = "USD";
 
 export function formatValueForCurrency(value: number, currency: string): number {
     const fraction = CurrencyFractionDigits.find(fd => fd.currency === currency)?.fraction ?? 4;
@@ -67,6 +71,18 @@ export async function initConvert() {
         async () => await Convert(1).from("AMD").to("USD"),
         currencyConfig.fiatUpdateInterval
     );
+    await convert.addCurrency(
+        "BYN",
+        "USD",
+        async () => await Convert(1).from("BYN").to("USD"),
+        currencyConfig.fiatUpdateInterval
+    );
+    await convert.addCurrency(
+        "GEL",
+        "USD",
+        async () => await Convert(1).from("GEL").to("USD"),
+        currencyConfig.fiatUpdateInterval
+    );
 }
 
 export async function convertCurrency(
@@ -81,7 +97,16 @@ export async function convertCurrency(
 
         if (convert) {
             await convert.ready();
-            return await convert[from as keyof typeof convert][to](amount);
+
+            let result = (await convert[from as keyof typeof convert][to](amount)) as number | null;
+
+            // If direct conversion failed, try to convert to mediator currency first
+            if (!result) {
+                const toMediatorCurrency = (await convert[from as keyof typeof convert][MediatorCurrency](amount)) as number;
+                result = (await convert[MediatorCurrency as keyof typeof convert][to](toMediatorCurrency)) as number | null;
+            }
+
+            return result;
         } else {
             throw new Error("Error while converting currency, convert failed to initialise");
         }

@@ -11,11 +11,17 @@ import { formatUsername } from "../helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
-const ZHABKAS_PATH = "./resources/images/toads";
-const ITS_WEDNESDAY_YEAAAH = 3;
 const ZHABKA_CHANCE = 0.35;
+const ZHABKAS_PATH = "./resources/images/toads";
+const ITS_WEDNESDAY_YEAAAH = ["𓆏", "𓆏", "𓆏"].length;
 
 export default class MemeHandlers implements BotHandlers {
+    static 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺 === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶));
+
+    static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
+        await MemeHandlers.𓆏(bot, msg);
+    }
+
     static async remindItIsWednesdayHandler(bot: HackerEmbassyBot) {
         const now = new Date();
 
@@ -23,16 +29,6 @@ export default class MemeHandlers implements BotHandlers {
             const msg = await bot.sendMessageExt(botConfig.chats.horny, t("meme.its_wednesday"), null);
             msg && MemeHandlers.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
         }
-    }
-
-    static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
-        await MemeHandlers.𓆏(bot, msg);
-    }
-
-    static async 𓆏(𓈝: 𓇍, 𓎶: 𓇝) {
-        const 𓆏 = 𓁺 === 𓀥;
-        if (𓆏) return 𓉢(𓈝, 𓎶, 𓇠);
-        await 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶);
     }
 
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {

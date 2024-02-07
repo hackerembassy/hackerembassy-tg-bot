@@ -8,7 +8,7 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
 import { getToday } from "../../utils/date";
-import { getImageFromFolder } from "../../utils/filesystem";
+import { getImageFromPath } from "../../utils/filesystem";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
@@ -211,8 +211,15 @@ export default class FundsHandlers implements BotHandlers {
 
             if (!valueInAMD) throw new Error("Failed to convert currency");
 
-            const happinessLevel = valueInAMD < 10000 ? 1 : valueInAMD < 40000 ? 2 : 3;
-            const animeImage = await getImageFromFolder(`./resources/images/anime/`, `${happinessLevel}.jpg`);
+            let animeImage: Nullable<Buffer> = null;
+
+            if (value === 42069 || value === 69420 || value === 69 || value === 420) {
+                animeImage = await getImageFromPath(`./resources/images/memes/comedy.jpg`);
+            } else {
+                const happinessLevel =
+                    valueInAMD < 10000 ? 1 : valueInAMD < 20000 ? 2 : valueInAMD < 40000 ? 3 : valueInAMD < 80000 ? 4 : 5; // lol
+                animeImage = await getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
+            }
 
             if (!animeImage) throw new Error("Failed to get image");
 

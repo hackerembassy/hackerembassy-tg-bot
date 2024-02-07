@@ -5,16 +5,24 @@ import { PrintersConfig } from "../config/schema";
 import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
+import Topic from "../models/Topic";
 import User from "../models/User";
 import UserState, { UserStateChangeType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
-import { convertMinutesToHours, DateBoundary, ElapsedTimeObject, onlyTimeOptions, shortDateTimeOptions } from "../utils/date";
+import {
+    convertMinutesToHours,
+    DateBoundary,
+    ElapsedTimeObject,
+    hasBirthdayToday,
+    onlyTimeOptions,
+    shortDateTimeOptions,
+} from "../utils/date";
+import { REPLACE_MARKER } from "../utils/text";
 import { HSEvent } from "./googleCalendar";
 import { SpaceClimate } from "./hass";
 import t from "./localization";
 import { PrinterStatus } from "./printer3d";
-import { MonitorMessage } from "./statusMonitor";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 
@@ -163,18 +171,20 @@ export function getStatusMessage(
             userStatus.note ? `(${userStatus.note})` : ""
         }\n`;
     }
-    stateText += climateInfo
-        ? `\n${t("embassy.climate.data", { climateInfo })}${
-              options.withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""
-          }`
-        : "";
     stateText += "\n";
+    stateText += climateInfo ? getClimateMessage(climateInfo, options) : REPLACE_MARKER;
     stateText += !options.isApi
         ? t("status.status.updated", {
               updatedDate: new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21),
           })
         : "";
     return stateText;
+}
+
+export function getClimateMessage(climateInfo: SpaceClimate, options: { withSecrets: boolean }) {
+    return `${t("embassy.climate.data", { climateInfo })}${
+        options.withSecrets ? t("embassy.climate.secretdata", { climateInfo }) : ""
+    }\n`;
 }
 
 export function getUserBadges(username: Nullable<string>): string {
@@ -188,8 +198,9 @@ export function getUserBadges(username: Nullable<string>): string {
         roles.includes("trusted") ? "🎓" : ""
     }`;
     const customBadge = user.emoji ?? "";
+    const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";
 
-    return `${roleBadges}${customBadge}`;
+    return `${roleBadges}${customBadge}${birthdayBadge}`;
 }
 
 export function getUserBadgesWithStatus(userStatus: UserState): string {
@@ -218,14 +229,6 @@ export function getResidentsList(residents: Optional<User[]>, mode: { mention: b
     }
 
     return t("basic.residents", { userList });
-}
-
-export function getMonitorMessagesList(monitorMessages?: MonitorMessage[]): string {
-    return monitorMessages
-        ? monitorMessages
-              .map(message => `${message.level === "error" ? "⛔" : "⏺"} ${message.message} - ${message.timestamp}`)
-              .join("\n")
-        : "";
 }
 
 export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }): string {
@@ -390,9 +393,9 @@ export function getStatsText(
         }
 
         const place = `${medal}${i + 1}`.padEnd(4, " ");
-        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)}#\`#\`#\`   ${userTime.username} ${getUserBadges(
+        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)} ${userTime.username} ${getUserBadges(
             userTime.username
-        )}\n`;
+        )}#\`#\`#\`\n`;
     }
 
     stats += `\n${t("status.stats.tryautoinside")}`;
@@ -439,4 +442,10 @@ export function getTodayEventsText(todayEvents: HSEvent[]): string {
     }
 
     return messageText;
+}
+
+export function listTopics(topics: Topic[]): string {
+    return topics.length > 0
+        ? topics.map(topic => `#\`${topic.name}#\`${topic.description ? ` - ${topic.description}` : ""}`).join("\n")
+        : "";
 }

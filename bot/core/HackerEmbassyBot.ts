@@ -3,7 +3,6 @@ import config from "config";
 import { promises as fs } from "fs";
 import { t } from "i18next";
 import {
-    BotCommandScope,
     CallbackQuery,
     ChatId,
     ChatMemberUpdated,
@@ -99,6 +98,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public CustomEmitter: EventEmitter;
     public botState: BotState;
     public routeMap = new Map<string, BotRoute>();
+    public restrictedImage: Nullable<Buffer> = null;
 
     private contextMap = new Map();
 
@@ -190,9 +190,14 @@ export default class HackerEmbassyBot extends TelegramBot {
         const inline_keyboard =
             mode.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
 
+        if (options.caption) {
+            options.caption = prepareMessageForMarkdown(options.caption);
+            options = this.prepareOptionsForMarkdown({ ...options });
+        }
+
         this.sendChatAction(chatId, "upload_photo", msg);
 
-        const message = await super.sendPhoto(
+        const message = await this.sendPhoto(
             chatIdToUse,
             photo,
             {
@@ -204,6 +209,37 @@ export default class HackerEmbassyBot extends TelegramBot {
             },
             fileOptions
         );
+
+        if (mode.pin) {
+            this.tryPinChatMessage(message, msg.from?.username);
+        }
+
+        this.messageHistory.push(chatId, message.message_id);
+
+        return Promise.resolve(message);
+    }
+
+    // TODO extract common logic from here sendPhotoExt
+    async sendAnimationExt(
+        chatId: ChatId,
+        animation: string | Stream | Buffer,
+        msg: TelegramBot.Message,
+        options?: TelegramBot.SendAnimationOptions | undefined
+    ): Promise<TelegramBot.Message> {
+        const mode = this.context(msg).mode;
+        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
+
+        if (options?.caption) {
+            options.caption = prepareMessageForMarkdown(options.caption);
+            options = this.prepareOptionsForMarkdown({ ...options });
+        }
+
+        this.sendChatAction(chatId, "upload_photo", msg);
+
+        const message = await this.sendAnimation(chatIdToUse, animation, {
+            ...options,
+            message_thread_id: this.context(msg).messageThreadId,
+        });
 
         if (mode.pin) {
             this.tryPinChatMessage(message, msg.from?.username);
@@ -295,16 +331,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
-    setMyCommands(
-        commands: TelegramBot.BotCommand[],
-        options: { scope: BotCommandScope; language_code?: string } | undefined = undefined
-    ): Promise<boolean> {
-        return super.setMyCommands(commands, {
-            ...options,
-            scope: JSON.stringify(options?.scope) as unknown as BotCommandScope,
-        });
-    }
-
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,
@@ -372,6 +398,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: TelegramBot.SendMessageOptions = {}
     ): Promise<void> {
+        if (text.length <= MAX_MESSAGE_LENGTH) {
+            await this.sendMessageExt(chatId, text, msg, options);
+            return;
+        }
+
         const chunks = chunkSubstr(text, MAX_MESSAGE_LENGTH);
 
         if (chunks.length === 1) {
@@ -393,35 +424,46 @@ ${chunks[index]}
         }
     }
 
+    private shouldIgnore(text?: string): boolean {
+        if (!text) return true;
+
+        const botNameRequested = this.Name ? /^\/\S+?@(\S+)/.exec(text)?.[1] : null;
+        const forAnotherBot = !!botNameRequested && botNameRequested !== this.Name;
+
+        return text[0] !== "/" || forAnotherBot;
+    }
+
     async routeMessage(message: TelegramBot.Message) {
         try {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
 
-            const text = message.text;
-            if (!text) return;
+            const text = (message.text ?? message.caption) as string;
+
+            if (this.shouldIgnore(text)) return;
 
             const fullCommand = text.split(" ")[0];
-            const command = fullCommand.split("@")[0].slice(1);
+            const commandWithCase = fullCommand.split("@")[0].slice(1);
+            const command = commandWithCase.toLowerCase();
 
             const route = this.routeMap.get(command);
             if (!route) return;
 
+            this.context(message).messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
+
             // check restritions
             if (route.restrictions.length > 0 && !this.canUserCall(message.from?.username, command)) {
-                this.sendMessageExt(message.chat.id, t("admin.messages.restricted"), message);
+                this.sendRestrictedMessage(message, route);
                 return;
             }
 
             // parse global modifiers
-            let textToMatch = text;
+            let textToMatch = text.replace(commandWithCase, command);
 
             for (const key of Object.keys(this.context(message).mode)) {
                 if (textToMatch.includes(`-${key}`)) this.context(message).mode[key as keyof BotMessageContextMode] = true;
                 textToMatch = textToMatch.replace(` -${key}`, "");
             }
-
-            this.context(message).messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
             // call with or without params
             if (route.paramMapper) {
@@ -442,6 +484,18 @@ ${chunks[index]}
         } finally {
             this.context(message).clear();
         }
+    }
+
+    private sendRestrictedMessage(message: TelegramBot.Message, route: BotRoute) {
+        this.restrictedImage
+            ? this.sendPhotoExt(message.chat.id, this.restrictedImage, message, {
+                  caption: t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
+              })
+            : this.sendMessageExt(
+                  message.chat.id,
+                  t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
+                  message
+              );
     }
 
     addRoute(
@@ -619,6 +673,18 @@ ${chunks[index]}
         fileOptions?: TelegramBot.FileOptions | undefined
     ): Promise<TelegramBot.Message> {
         return super.sendPhoto(chatId, photo, options, fileOptions);
+    }
+
+    /**
+     * @deprecated Do not use directly
+     * @see sendAnimationExt
+     */
+    sendAnimation(
+        chatId: ChatId,
+        animation: string | Stream | Buffer,
+        options?: TelegramBot.SendAnimationOptions | undefined
+    ): Promise<TelegramBot.Message> {
+        return super.sendAnimation(chatId, animation, options);
     }
 
     /**

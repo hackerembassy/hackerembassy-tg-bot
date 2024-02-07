@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import statusRepository from "../repositories/statusRepository";
 
 function migrateUserStatuses(from: string, to: string) {

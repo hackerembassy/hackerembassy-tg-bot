@@ -7,6 +7,7 @@
             "offtopic": -1001555805688,
             "test": -1001942114189,
             "key": -1001807382938,
+            "alerts": -1002083039447,
             "status": -1001942114189
         },
         "locales": "../resources/locales/{{lng}}/{{ns}}.yaml",
@@ -50,23 +51,37 @@
                 "os": "windows"
             }
         },
-        "port": 8001,
-        "queryMonitorInterval": 60000,
-        "statusCheckInterval": 15000,
-        "host": "http://le-fail.lan",
-        "static": "/home/nick/static",
-        "devicesCheckingPath": "devicesFromKeenetic",
-        "networkRange": "192.168.1.1-192.168.1.254",
-        "routerip": "192.168.1.1",
-        "wifiip": "192.168.1.2",
+        "service": {
+            "port": 8001,
+            "host": "http://le-fail.lan",
+            "static": "static"
+        },
+        "spacenetwork": {
+            "devicesCheckingMethod": "unifi",
+            "networkRange": "192.168.1.1-192.168.1.254",
+            "routerip": "192.168.1.1",
+            "wifiip": "192.168.1.2",
+            "unifihost": "https://unifi.lan:8443"
+        },
         "mqtthost": "minimi.lan",
-        "doorbell": "doorbell-shelly.lan",
-        "webcam": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
-        "webcam2": "http://hass.lan:8123/api/camera_proxy/camera.second_floor",
-        "doorcam": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
-        "ttspath": "http://hass.lan:8123/api/services/tts/google_translate_say",
-        "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
-        "doorbellpath": "http://hass:8123/api/services/switch/turn_on",
+        "cams": {
+            "downstairs": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
+            "upstairs": "http://hass.lan:8123/api/camera_proxy/camera.upstairs",
+            "jigglycam": "http://hass.lan:8123/api/camera_proxy/camera.jigglypuff_2",
+            "printers": "http://hass.lan:8123/api/camera_proxy/camera.le_fail_lan",
+            "outdoors": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
+            "kitchen": "http://hass.lan:8123/api/camera_proxy/camera.kitchen"
+        },
+        "speaker": {
+            "entity": "media_player.cum_pod",
+            "ttspath": "http://hass.lan:8123/api/services/script/announce_in_space",
+            "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
+            "stoppath": "http://hass.lan:8123/api/services/media_player/media_stop"
+        },
+        "doorbell": {
+            "host": "doorbell-shelly.lan",
+            "hasspath": "http://hass:8123/api/services/switch/turn_on"
+        },
         "climate": {
             "conditioner": {
                 "entityId": "climate.midea_climate",
@@ -74,7 +89,8 @@
                 "turnOnPath": "http://hass.lan:8123/api/services/climate/turn_on",
                 "turnOffPath": "http://hass.lan:8123/api/services/climate/turn_off",
                 "setModePath": "http://hass.lan:8123/api/services/climate/set_hvac_mode",
-                "setTemperaturePath": "http://hass.lan:8123/api/services/climate/set_temperature"
+                "setTemperaturePath": "http://hass.lan:8123/api/services/climate/set_temperature",
+                "preheatPath": "http://hass.lan:8123/api/services/script/preheat"
             },
             "first_floor": {
                 "temperature": "http://hass:8123/api/states/sensor.first_floor_temperature",
@@ -89,8 +105,15 @@
                 "temperature": "http://hass:8123/api/states/sensor.atc_9ba1_temperature",
                 "humidity": "http://hass:8123/api/states/sensor.atc_9ba1_humidity"
             }
-        },
-        "hostsToMonitor": ["192.168.1.2", "hass.lan"]
+        }
+    },
+    "neural": {
+        "stableDiffusion": {
+            "base": "http://gayming.lan:7860",
+            "steps": 18,
+            "denoising": 0.57,
+            "sampler": "Euler a"
+        }
     },
     "currency": {
         "default": "AMD",
@@ -102,5 +125,9 @@
     },
     "api": {
         "port": 3000
+    },
+    "wiki": {
+        "endpoint": "http://172.17.0.1/graphql",
+        "defaultLocale": "ru"
     }
 }

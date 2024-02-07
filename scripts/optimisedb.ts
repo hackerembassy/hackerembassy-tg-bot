@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import UserState from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 

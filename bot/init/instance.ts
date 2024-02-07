@@ -1,17 +1,21 @@
 import config from "config";
+import { promises as fs } from "fs";
 
 import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { setMenu } from "./menu";
 import { setAutomaticFeatures } from "./recurring-actions";
-import { addRoutes, startRouting } from "./router";
+import { addEventHandlers, addRoutes, startRouting } from "./router";
 const botConfig = config.get<BotConfig>("bot");
 
 async function init(bot: HackerEmbassyBot): Promise<void> {
     const botInstanceInfo = await bot.getMe();
     bot.Name = botInstanceInfo.username;
+    const restrictedImage = await fs.readFile("./resources/images/restricted.jpg").catch(() => null);
+    bot.restrictedImage = restrictedImage ? Buffer.from(restrictedImage) : null;
     addRoutes(bot);
+    addEventHandlers(bot);
     startRouting(bot, botConfig.debug);
     setAutomaticFeatures(bot);
     setMenu(bot);
@@ -51,6 +55,8 @@ const bot = new HackerEmbassyBot(process.env["HACKERBOTTOKEN"], {
     },
 });
 
-init(bot);
+export function StartTelegramBot() {
+    init(bot);
+}
 
 export default bot;

@@ -2,10 +2,11 @@ import { writeToBuffer } from "@fast-csv/format";
 // @ts-ignore
 import ChartJsImage from "chartjs-to-image";
 
+import { FundDonation } from "../models/Donation";
 import FundsRepository from "../repositories/fundsRepository";
 import { onlyUniqueInsFilter } from "../utils/common";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
-import { DateBoundary } from "../utils/date";
+import { compareMonthNames, DateBoundary } from "../utils/date";
 import { equalsIns } from "../utils/text";
 import t from "./localization";
 
@@ -20,19 +21,6 @@ type ChartLabel = {
         size: number;
     };
 };
-
-export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDonation[] {
-    const uniqueUsernames = donations.map(d => d.username).filter(onlyUniqueInsFilter);
-    const combinedDonations = [];
-
-    for (const username of uniqueUsernames) {
-        const userDonations = donations.filter(d => equalsIns(d.username, username));
-        const userCombinedDonation = userDonations.reduce((acc, curr) => acc + curr.donation, 0);
-        combinedDonations.push({ username, donation: userCombinedDonation });
-    }
-
-    return combinedDonations;
-}
 
 const colorScheme = [
     "rgb(190, 30, 46)",
@@ -59,6 +47,8 @@ const colorScheme = [
 ];
 
 const remainedColor = "rgba(0,0,0,0.025)";
+
+// Export functions
 
 export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
@@ -127,6 +117,36 @@ export async function exportFundToDonut(fundname: string): Promise<Buffer> {
 
     return await chart.toBinary();
 }
+
+export async function exportDonationsToLineChart(donations: FundDonation[], title: string): Promise<Buffer> {
+    const monthLabels = donations.map(d => d.name);
+
+    const uniqueUsernames = donations.map(d => d.username).filter(onlyUniqueInsFilter);
+    const uniqueMonthLabels = monthLabels.filter(onlyUniqueInsFilter);
+    const uniqueData = [];
+
+    for (const username of uniqueUsernames) {
+        const userDonations = donations.filter(d => equalsIns(d.username, username));
+        const userData = [];
+
+        for (const label of uniqueMonthLabels) {
+            const labelDonations = userDonations.filter(d => equalsIns(d.name, label));
+            const convertedDonations = await Promise.all(
+                labelDonations.map(async d => (await convertCurrency(d.value, d.currency)) ?? 0)
+            );
+            const labelDonationsSum = convertedDonations.reduce((acc, curr) => acc + curr, 0);
+            userData.push(labelDonationsSum);
+        }
+
+        uniqueData.push({ label: username, data: userData });
+    }
+
+    const chart = createLines(uniqueMonthLabels, uniqueData, title, { height: 900, width: 1400 }, { y: "AMD" });
+
+    return await chart.toBinary();
+}
+
+// Chart generation functions
 
 export async function createUserStatsDonut(
     userTimes: { username: string; usertime: { totalSeconds: number } }[],
@@ -199,4 +219,83 @@ export function createDonut(
     chart.setWidth(params.width).setHeight(params.height).setBackgroundColor("transparent");
 
     return chart;
+}
+
+function createLines(
+    labels: string[],
+    data: { label: string; data: string[] | number[] }[],
+    titleText: string,
+    params = { width: 1400, height: 900 },
+    axisLables: { x?: string; y?: string } = { x: undefined, y: undefined }
+) {
+    const chart: ChartJsImage = new ChartJsImage();
+
+    chart.setConfig({
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: data.map((d, index) => ({ label: d.label, data: d.data, borderColor: colorScheme[index], fill: false })),
+        },
+        options: {
+            title: {
+                display: true,
+                text: titleText,
+                padding: 40,
+                align: "end",
+                fontSize: 30,
+            },
+            scales: {
+                xAxes: [
+                    {
+                        scaleLabel: {
+                            display: axisLables.x !== undefined,
+                            labelString: axisLables.x,
+                        },
+                    },
+                ],
+                yAxes: [
+                    {
+                        scaleLabel: {
+                            display: axisLables.y !== undefined,
+                            labelString: axisLables.y,
+                        },
+                        ticks: {
+                            beginAtZero: true,
+                        },
+                    },
+                ],
+            },
+        },
+    });
+    chart.setWidth(params.width).setHeight(params.height).setBackgroundColor("transparent");
+
+    return chart;
+}
+
+// Helper functions for export
+export function prepareCostsForExport(donations: FundDonation[], costsPrefix: string) {
+    return donations
+        .filter(d => d.name.startsWith(costsPrefix))
+        .map(d => {
+            const dateString = d.name.replace(costsPrefix, "").trim();
+            return {
+                ...d,
+                name: dateString,
+                extractedMonthName: dateString.split(" ")[0],
+            };
+        })
+        .sort((a, b) => compareMonthNames(a.extractedMonthName, b.extractedMonthName));
+}
+
+export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDonation[] {
+    const uniqueUsernames = donations.map(d => d.username).filter(onlyUniqueInsFilter);
+    const combinedDonations = [];
+
+    for (const username of uniqueUsernames) {
+        const userDonations = donations.filter(d => equalsIns(d.username, username));
+        const userCombinedDonation = userDonations.reduce((acc, curr) => acc + curr.donation, 0);
+        combinedDonations.push({ username, donation: userCombinedDonation });
+    }
+
+    return combinedDonations;
 }

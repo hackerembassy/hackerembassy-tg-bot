@@ -6,6 +6,7 @@ const jestConfig: JestConfigWithTsJest = {
     setupFilesAfterEnv: ["<rootDir>/tests/jestSetup.ts"],
     reporters: [["github-actions", { silent: false }], "default", "summary"],
     testLocationInResults: true,
+    testPathIgnorePatterns: ["<rootDir>/dist/"],
 };
 
 export default jestConfig;

@@ -1,47 +1,54 @@
 // TODO add type checking to request bodies and remove disables below
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
 import express from "express";
-import find from "local-devices";
-// @ts-ignore
-import { LUCI } from "luci-rpc";
+import { promises as fs } from "fs";
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
+import path from "path";
 
-import { EmbassyApiConfig } from "../config/schema";
+import { CamConfig, EmbassyApiConfig } from "../config/schema";
 import {
     conditioner,
     getClimate,
-    getDoorcamImage,
-    getWebcam2Image,
     getWebcamImage,
     playInSpace,
     ringDoorbell,
     sayInSpace,
+    stopMediaInSpace,
 } from "../services/hass";
 import logger from "../services/logger";
+import { stableDiffusion } from "../services/neural";
 import printer3d from "../services/printer3d";
-import * as statusMonitor from "../services/statusMonitor";
 import { sleep } from "../utils/common";
 import { createErrorMiddleware } from "../utils/middleware";
-import { mqttSendOnce, ping, wakeOnLan } from "../utils/network";
+import { mqttSendOnce, NeworkDevicesLocator, ping, wakeOnLan } from "../utils/network";
 import { decrypt } from "../utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
-const port = embassyApiConfig.port;
-const routerip = embassyApiConfig.routerip;
-const wifiip = embassyApiConfig.wifiip;
+const port = embassyApiConfig.service.port;
 
 const app = express();
+const staticPath = path.join(__dirname, "..", embassyApiConfig.service.static);
 app.use(cors());
-app.use(json());
-app.use(express.static(embassyApiConfig.static));
+app.use(express.json());
+app.use(express.static(staticPath));
 app.use(createErrorMiddleware(logger));
 
-app.post("/sayinspace", async (req, res, next) => {
+app.get("/speaker/sounds", async (req, res, next) => {
+    try {
+        const availableFiles = await fs.readdir(staticPath);
+        res.send({
+            sounds: availableFiles.map(filename => filename.replace(".mp3", "")),
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/speaker/tts", async (req, res, next) => {
     try {
         await sayInSpace(req.body.text);
         res.send({ message: "Success" });
@@ -50,7 +57,7 @@ app.post("/sayinspace", async (req, res, next) => {
     }
 });
 
-app.post("/playinspace", async (req, res, next) => {
+app.post("/speaker/play", async (req, res, next) => {
     try {
         await playInSpace(req.body.link);
         res.send({ message: "Success" });
@@ -59,10 +66,10 @@ app.post("/playinspace", async (req, res, next) => {
     }
 });
 
-/** @deprecated */
-app.get("/statusmonitor", (_, res, next) => {
+app.post("/speaker/stop", async (_, res, next) => {
     try {
-        res.json(statusMonitor.readNewMessages());
+        await stopMediaInSpace();
+        res.send({ message: "Success" });
     } catch (error) {
         next(error);
     }
@@ -76,14 +83,6 @@ app.get("/healthcheck", (_, res, next) => {
     }
 });
 
-app.get("/doorcam", async (_, res, next) => {
-    try {
-        res.send(await getDoorcamImage());
-    } catch (error) {
-        next(error);
-    }
-});
-
 app.get("/climate", async (_, res, next) => {
     try {
         res.json(await getClimate());
@@ -92,25 +91,17 @@ app.get("/climate", async (_, res, next) => {
     }
 });
 
-app.get("/webcam", async (_, res, next) => {
+app.get("/webcam/:name", async (req, res, next) => {
     try {
-        res.send(await getWebcamImage());
+        res.send(await getWebcamImage(req.params.name as keyof CamConfig));
     } catch (error) {
         next(error);
     }
 });
 
-app.get("/webcam2", async (_, res, next) => {
+app.post("/device/:name/wake", async (req, res, next) => {
     try {
-        res.send(await getWebcam2Image());
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.post("/wake", async (req, res, next) => {
-    try {
-        const device = req.body.device as string;
+        const device = req.params.name;
         const mac = embassyApiConfig.devices[device]?.mac;
 
         if (mac && (await wakeOnLan(mac))) {
@@ -122,9 +113,9 @@ app.post("/wake", async (req, res, next) => {
     }
 });
 
-app.post("/shutdown", async (req, res, next) => {
+app.post("/device/:name/shutdown", async (req, res, next) => {
     try {
-        const device = req.body.device as string;
+        const device = req.params.name;
         const host = embassyApiConfig.devices[device]?.host;
 
         if (!host) {
@@ -149,9 +140,9 @@ app.post("/shutdown", async (req, res, next) => {
     }
 });
 
-app.post("/ping", async (req, res, next) => {
+app.post("/device/:name/ping", async (req, res, next) => {
     try {
-        const device = req.body.device as string;
+        const device = req.params.name;
         const host = embassyApiConfig.devices[device]?.host ?? device;
 
         if (host) {
@@ -162,7 +153,7 @@ app.post("/ping", async (req, res, next) => {
     }
 });
 
-app.post("/unlock", async (req, res, next) => {
+app.post("/space/unlock", async (req, res, next) => {
     try {
         const token = await decrypt(req.body.token);
 
@@ -177,39 +168,22 @@ app.post("/unlock", async (req, res, next) => {
 });
 
 /**
- * Endpoint to get a list of devices by a full newtwork scan
- *
- * @deprecated Use Keenetic endpoint instead, this method is very unreliable (especialy for apple devices), only for temporary use.
+ * Endpoint to ring a doorbell
  */
-app.get("/devicesscan", async (_, res, next) => {
+app.get("/space/doorbell", async (req, res, next) => {
     try {
-        const devices = await find({ address: embassyApiConfig.networkRange });
-        res.send(devices.map(d => d.mac));
-    } catch (error) {
-        next(error);
-    }
-});
+        const method = req.query.method;
 
-/**
- * Endpoint to ring a doorbell by calling Shelly
- *
- * @deprecated Use Keenetic endpoint instead, this method is very unreliable (especialy for apple devices), only for temporary use.
- */
-app.get("/doorbellShelly", async (_, res, next) => {
-    try {
-        await fetch(`http://${embassyApiConfig.doorbell}/rpc/Switch.Set?id=0&on=true`);
-        res.send({ message: "success" });
-    } catch (error) {
-        next(error);
-    }
-});
-
-/**
- * Endpoint to ring a doorbell by calling Hass
- */
-app.get("/doorbell", async (_, res, next) => {
-    try {
-        await ringDoorbell();
+        switch (method) {
+            // Using doorbell esp32 Shelly api directly
+            case "shelly":
+                await fetch(`http://${embassyApiConfig.doorbell.host}/rpc/Switch.Set?id=0&on=true`);
+                break;
+            // Preferable method using hass
+            case "hass":
+            default:
+                await ringDoorbell();
+        }
         res.send({ message: "Success" });
     } catch (error) {
         next(error);
@@ -217,75 +191,109 @@ app.get("/doorbell", async (_, res, next) => {
 });
 
 /**
- * Endpoint to get a list of devices inside from OpenWRT
- *
- * @deprecated Use Keenetic endpoint instead
+ * Endpoint to get mac addresses of devices, which are currently connected to the space internal network
+ * It's used for autoinside and unlock purposes
  */
-app.get("/devices", async (_, res, next) => {
+app.get("/devices", async (req, res, next) => {
     try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        const luci = new LUCI(`https://${routerip}`, "bot", process.env["LUCITOKEN"]);
-        await luci.init();
-        luci.autoUpdateToken(1000 * 60 * 30);
+        const method = req.query.method;
+        const luciToken = process.env["LUCITOKEN"];
+        const wifiUser = process.env["WIFIUSER"];
+        const wifiPassword = process.env["WIFIPASSWORD"];
+        const unifiUser = process.env["UNIFIUSER"];
+        const unifiPassword = process.env["UNIFIPASSWORD"];
 
-        const rpc = [
-            {
-                jsonrpc: "2.0",
-                id: 93,
-                method: "call",
-                params: [luci.token, "iwinfo", "assoclist", { device: "phy0-ap0" }],
-            },
-            {
-                jsonrpc: "2.0",
-                id: 94,
-                method: "call",
-                params: [luci.token, "iwinfo", "assoclist", { device: "phy1-ap0" }],
-            },
-        ];
+        switch (method) {
+            case "openwrt":
+                if (!luciToken) throw Error("Missing Luci token");
 
-        const response = await fetch(`http://${routerip}/ubus/`, {
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(rpc),
-            method: "POST",
-        });
+                // We don't use our Xiaomi openWRT device as wifi access point anymore
+                res.json(await NeworkDevicesLocator.getDevicesFromOpenWrt(embassyApiConfig.spacenetwork.routerip, luciToken));
+                break;
+            case "scan":
+                // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
+                res.json(await NeworkDevicesLocator.findDevicesUsingNmap(embassyApiConfig.spacenetwork.networkRange));
+                break;
+            case "unifi":
+                // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
+                if (!unifiUser || !unifiPassword) throw Error("Missing unifi credentials");
 
-        const adapters = await response.json();
-        let macs: string[] = [];
+                res.json(
+                    await NeworkDevicesLocator.getDevicesFromUnifiController(
+                        embassyApiConfig.spacenetwork.unifihost,
+                        unifiUser,
+                        unifiPassword
+                    )
+                );
+                break;
+            // Our main wifi access point
+            case "keenetic":
+            default:
+                if (!wifiUser || !wifiPassword) throw Error("Missing keenetic ssh credentials");
 
-        for (const wlanAdapter of adapters) {
-            const devices = wlanAdapter.result[1]?.results;
-            if (devices) macs = macs.concat(devices.map((dev: any) => dev?.mac.toLowerCase() ?? ""));
+                res.json(
+                    await NeworkDevicesLocator.getDevicesFromKeenetic(
+                        embassyApiConfig.spacenetwork.wifiip,
+                        wifiUser,
+                        wifiPassword
+                    )
+                );
+        }
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * Endpoint to ask StableDiffusion to generate an image from a text prompt
+ */
+app.post("/sd/txt2img", async (req, res, next) => {
+    try {
+        const prompt = req.body?.prompt as string | undefined;
+        const negative_prompt = req.body?.negative_prompt as string | undefined;
+
+        if (!prompt) {
+            res.sendStatus(400);
+            return;
         }
 
-        res.send(macs);
+        const image = await stableDiffusion.txt2image(prompt, negative_prompt);
+
+        if (!image) throw Error("txt2image process failed");
+
+        res.send({ image });
     } catch (error) {
         next(error);
     }
 });
 
-app.get("/devicesFromKeenetic", async (_, res, next) => {
+/**
+ * Endpoint to ask StableDiffusion to generate an image from a text prompt and a starting image
+ */
+app.post("/sd/img2img", async (req, res, next) => {
     try {
-        const ssh = new NodeSSH();
+        const prompt = (req.body?.prompt ?? "") as string;
+        const negative_prompt = (req.body?.negative_prompt ?? "") as string;
+        const initialImage = req.body?.image as string | undefined;
 
-        await ssh.connect({
-            host: wifiip,
-            username: process.env["WIFIUSER"],
-            password: process.env["WIFIPASSWORD"],
-        });
+        if (!initialImage) {
+            res.sendStatus(400);
+            return;
+        }
 
-        const sshdata = await ssh.exec("show associations", [""]);
-        const macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)].map(item => item[1]);
-        res.json(macs);
+        const image = await stableDiffusion.img2image(prompt, negative_prompt, initialImage);
+
+        if (!image) throw Error("img2image process failed");
+
+        res.send({ image });
     } catch (error) {
         next(error);
     }
 });
 
-app.get("/printer", async (req, res, next) => {
+app.get("/printer/:name", async (req, res, next) => {
     try {
-        const printername = req.query.printername as string;
+        const printername = req.params.name;
 
         if (!printername) {
             res.status(400).send({ message: "Printer name is required" });
@@ -319,7 +327,7 @@ app.get("/printer", async (req, res, next) => {
     }
 });
 
-app.get("/conditionerstate", async (_, res, next) => {
+app.get("/conditioner/state", async (_, res, next) => {
     try {
         res.send(await conditioner.getState());
     } catch (error) {
@@ -327,19 +335,27 @@ app.get("/conditionerstate", async (_, res, next) => {
     }
 });
 
-app.post("/turnconditioner", async (req, res, next) => {
+app.post("/conditioner/power/:action", async (req, res, next) => {
     try {
-        if (req.body.enabled) {
-            await conditioner.turnOn();
-        } else {
-            await conditioner.turnOff();
+        const action = req.params.action;
+
+        switch (action) {
+            case "on":
+                await conditioner.turnOn();
+                break;
+            case "off":
+                await conditioner.turnOff();
+                break;
+            default:
+                res.sendStatus(400);
+                return;
         }
 
         await sleep(5000);
 
         const updatedState = await conditioner.getState();
 
-        if ((req.body.enabled && updatedState.state !== "off") || (!req.body.enabled && updatedState.state === "off")) {
+        if ((action === "on" && updatedState.state !== "off") || (action === "off" && updatedState.state === "off")) {
             res.send({ message: "Success" });
             return;
         }
@@ -349,7 +365,7 @@ app.post("/turnconditioner", async (req, res, next) => {
     }
 });
 
-app.post("/setconditionermode", async (req, res, next) => {
+app.post("/conditioner/mode", async (req, res, next) => {
     try {
         await conditioner.setMode(req.body.mode);
 
@@ -364,13 +380,37 @@ app.post("/setconditionermode", async (req, res, next) => {
     }
 });
 
-app.post("/setconditionertemperature", async (req, res, next) => {
+app.post("/conditioner/preheat", async (_, res, next) => {
     try {
-        await conditioner.setTemperature(req.body.temperature);
+        await conditioner.preheat();
+        res.send({ message: "Success" });
+    } catch (error) {
+        next(error);
+    }
+});
 
+app.post("/conditioner/temperature", async (req, res, next) => {
+    try {
+        const requestBody = req.body as { diff?: number; temperature?: number };
+
+        let newTemperature = requestBody.temperature;
+
+        if (requestBody.diff) {
+            const initialState = await conditioner.getState();
+            newTemperature = initialState.attributes.temperature + requestBody.diff;
+        }
+
+        if (newTemperature === undefined) {
+            res.status(404).send({ message: "Provide either temperature or diff" });
+            return;
+        }
+
+        await conditioner.setTemperature(newTemperature);
         await sleep(5000);
 
-        if ((await conditioner.getState()).attributes.temperature === req.body.temperature) {
+        const newState = await conditioner.getState();
+
+        if (newState.attributes.temperature === newTemperature) {
             res.send({ message: "Success" });
         }
         throw new Error("Temperature was not updated");
@@ -379,18 +419,7 @@ app.post("/setconditionertemperature", async (req, res, next) => {
     }
 });
 
-app.post("/addconditionertemperature", async (req, res, next) => {
-    try {
-        const initialState = await conditioner.getState();
-        const newTemperature = initialState.attributes.temperature + req.body.diff;
-        await conditioner.setTemperature(newTemperature);
-
-        res.send({ message: "Queued" });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.listen(port);
-
-logger.info(`Embassy Api is started on port ${port}`);
+export function StartEmbassyApi() {
+    app.listen(port);
+    logger.info(`Embassy Api is ready to accept requests on port ${port}`);
+}

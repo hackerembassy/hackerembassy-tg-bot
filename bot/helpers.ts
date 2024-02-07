@@ -4,7 +4,7 @@ import { Message } from "node-telegram-bot-api";
 import { BotRole, ITelegramUser } from "../bot/core/types";
 import User from "../models/User";
 import UsersRepository from "../repositories/usersRepository";
-import { AccountantCommandsList, AdminCommandsList, GeneralCommandsList, MemberCommandsList } from "../resources/commands";
+import { CommandsMap } from "../resources/commands";
 import { BotMessageContext } from "./core/types";
 import { Flags } from "./handlers/service";
 
@@ -34,7 +34,9 @@ export function toRolesList(roles: Optional<string>): BotRole[] {
     return roles ? (roles.split("|") as BotRole[]) : [];
 }
 
-export function getRoles(user: string | User) {
+export function getRoles(user: string | User | undefined) {
+    if (!user) return [];
+
     if (user instanceof User) return toRolesList(user.roles);
 
     return toRolesList(UsersRepository.getUserByName(user)?.roles);
@@ -47,17 +49,15 @@ export function isMember(user: string | User): boolean {
     return userRoles?.includes("member") === true;
 }
 
-export function getAvailableCommands(username: Optional<string>) {
-    let availableCommands = GeneralCommandsList;
+export function getAvailableCommands(username?: string, role?: keyof typeof CommandsMap) {
+    const userRoles = [...getRoles(username), "default"];
 
-    const userRoles = username ? UsersRepository.getUserByName(username)?.roles : undefined;
-    if (!userRoles) return availableCommands;
+    if (role && userRoles.includes(role)) return CommandsMap[role];
 
-    if (userRoles.includes("member")) availableCommands += MemberCommandsList;
-    if (userRoles.includes("admin")) availableCommands += AdminCommandsList;
-    if (userRoles.includes("accountant")) availableCommands += AccountantCommandsList;
-
-    return availableCommands;
+    return Object.keys(CommandsMap)
+        .filter(r => userRoles.includes(r as keyof typeof CommandsMap))
+        .map(r => CommandsMap[r as keyof typeof CommandsMap])
+        .join("");
 }
 
 export function formatUsername(username: Optional<string>, mode = { mention: false }, isApi = false): string {
@@ -103,5 +103,6 @@ export function toEscapedTelegramMarkdown(text: string): string {
     })
         .replaceAll(/https?:\/\/t\.me/g, "t.me")
         .replaceAll(/\[t\.me\/(.*?)\]/g, "[$1]")
-        .replaceAll(/\[(.*?)\]\((.*?)\)/g, "#[$1#]#($2#)");
+        .replaceAll(/\[(.*?)\]\((.*?)\)/g, "#[$1#]#($2#)")
+        .replaceAll(/%5F/g, "_");
 }

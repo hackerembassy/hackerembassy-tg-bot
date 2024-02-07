@@ -1,4 +1,5 @@
-export const GeneralCommandsList: string = `
+export const GeneralCommandsList: string = `[Команды гостей]
+
 Инфа:
 /start - Панель управления бота
 /help - Помощь
@@ -36,11 +37,14 @@ export const GeneralCommandsList: string = `
 
 Это другое:
 /birthdays - Кто празднует днюху в этом месяце
+/topics - Уведомления, на которые можно подписаться
 /setmac - Управление своим MAC адресом
 /autoinside - Настроить автоматический вход и выход из спейса
 /issue issue_text - Полностью анонимно сообщить о какой-либо проблеме в спейсе (чего-то не хватает, что-то не работает, кто-то делает что-то очень неправильное в спейсе). Резиденты обязательно её рассмотрят и постараются решить.
 #\`/sayinspace some_text#\` - Сказать что-нибудь на динамике в спейсе
 #\`/announce some_text#\` - Объявить что-нибудь на динамике в спейсе
+#\`/play sounds_name_or_mp3_url#\` - Воспроизвести звук на динамике в спейсе
+#\`/sounds#\` - Список загруженных звуков
 
 Надо купить в спейс:
 /needs - Посмотреть, что просили купить в спейс по дороге
@@ -60,40 +64,68 @@ export const GeneralCommandsList: string = `
 /randomdog
 /randomcab
 /randomcock
+/randomzhabka
 /rickroll
+/badumtss
 /rzd
+
+[END Команды гостей]
 `;
 
 export const MemberCommandsList: string = `
-Команды резидентов:
+[Команды резидентов]
+
+Управлением спейсом:
 /open (o) - Открыть спейс
 /close (c) - Закрыть спейс
-/superstatus (ss) - Статус и изображения со всех камер
-/firstfloor (ff) - Глянуть камеру первого этажа
-/secondfloor (sf) - Глянуть камеру второго этажа
-/doorcam (dc) - Глянуть камеру снаружи
-/allcams (ac) - Глянуть все камеры
 /doorbell (db) - Позвонить в дверной звонок
 /unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /setmac)
+#\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
+#\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
+/evict - Очистить список отметившихся внутри
+
+Камеры:
+/superstatus (ss) - Статус и изображения со всех камер
+/downstairs (ff) - Глянуть камеру первого этажа
+/upstairs (sf) - Глянуть камеру второго этажа
+/outdoors - Глянуть камеру снаружи
+/jigglycam - Глянуть камеру Jigglypuff
+/printerscam - Глянуть камеру принтерной
+/ktichen - Глянуть камеру на кухне
+/allcams (ac) - Глянуть все камеры
+
+Чаты:
 /clear n - Удалить последние n ответов бота из чата (default n = 1)
 /combine n (sq n) - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
 /setemoji - Поставить себе эмодзи в боте
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
-#\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
-#\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса
-/evict - Очистить список отметившихся внутри
-/residentsdonated (rcosts) - Кто из резидентов уже задонатил в этом месяце
+
+Инфа:
+/residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце
+/historycosts year - График донатов резидентов на аренду (без указания года будет выбран текущий)
+
+Кондиционер:
 /mideaon - Врубить кондей
 /mideaoff - Вырубить кондей
 /mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
+/preheat - Заранее подогреть спейс
+
+Сеть спейса:
 #\`/probe host#\` - Проверить доступность хоста
 #\`/ping host#\` - Пропинговать хост
 /gaming - Управление игровым сервером
+
+Нейронки:
+/txt2img, /img2img (sd) - Генерация текста по картинке с помощью StableDiffusion
+/gpt (ask) - Спроси совета у нейросети
+
+[END Команды резидентов]
 `;
 
 export const AdminCommandsList: string = ` 
-Команды админов:
+[Команды админов]
+
 /getusers
 /getrestrictedusers
 #\`/adduser telegram_username as user_role1|user_role2|user_role3#\`
@@ -112,10 +144,14 @@ export const AdminCommandsList: string = `
 /stoplive
 
 \\* Roles: admin, accountant, member, trusted, default
+
+[END Команды админов]
 `;
 
 export const AccountantCommandsList: string = `
-Команды бухгалтера:
+[Команды бухгалтеров]
+
+Сборы:
 #\`/costs donation_value currency_code from telegram_username#\` (cs) - Задонатить в последний актуальный сбор на аренду
 #\`/addfund Fund_Name with target goal_value currency_code#\` - Добавить сбор
 #\`/updatefund Fund_Name with target goal_value currency_code as New_Name#\` - Обновить параметры сбора
@@ -124,17 +160,24 @@ export const AccountantCommandsList: string = `
 #\`/closefund fund_name#\` - Изменить статус сбора на закрытый
 #\`/changefundftatus of fund_name to status_name#\` - Изменить статус сбора
 #\`/removefund fund_name#\` - Удалить сбор (не надо)
+
+Донаты:
 #\`/adddonation donation_value currency_code from telegram_username to fund_name#\` (ad)
 #\`/changedonation donation_id to donation_value currency_code#\`
 #\`/removedonation donation_id#\` - Удалить донат
 #\`/transferdonation donation_id to username#\` (td) - Передать донат другому бухгалтеру
 #\`/tocab donation_id#\` - Передать донат Кабу
+#\`/tonick donation_id#\` - Передать донат Коле
 #\`/tocaball fund_name#\` - Передать все свои донаты Кабу, опционально можно указать конкретный сбор
+#\`/tonickall fund_name#\` - Передать все свои донаты Коле, опционально можно указать конкретный сбор
+#\`/paid donation_id#\` - Отметить донат оплаченным по id (ушел на цель сбора)
 #\`/profile username#\` - Статистика посещениий и донатов юзера
 #\`/debt username#\` - Сколько донатов числится на юзере (без параметра - на тебе)
 
 \\* Statuses: open, closed, postponed
 \\* CAREFULL, /removeFund will wipe all its donations, use /closeFund instead
+
+[END Команды бухгалтеров]
 `;
 
 export const GlobalModifiers: string = `
@@ -148,12 +191,9 @@ export const GlobalModifiers: string = `
 #\`-forward#\` - Сообщение будет переадресовано в главный чат
 `;
 
-export const ApiCommandsList: string = `
--status - Статус спейса и кто отметился внутри
--join - Как присоединиться к нам
--donate - Как задонатить
--funds - Наши открытые сборы
--events - Мероприятия у нас
--upcoming - Ближайшие мероприятия
--today - Мероприятия сегодня
-`;
+export const CommandsMap = {
+    default: GeneralCommandsList,
+    member: MemberCommandsList,
+    admin: AdminCommandsList,
+    accountant: AccountantCommandsList,
+};

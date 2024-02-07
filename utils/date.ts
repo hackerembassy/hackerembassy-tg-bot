@@ -1,10 +1,12 @@
+import { TOptions } from "i18next";
+
 export interface DateObject {
     day: number;
     month: number;
     year: number;
 }
 
-export interface DateBoundary {
+export interface DateBoundary extends TOptions {
     from: DateObject;
     to: DateObject;
 }
@@ -15,6 +17,10 @@ export interface ElapsedTimeObject {
     minutes: number;
     totalSeconds: number;
 }
+
+export const MINUTE = 60 * 1000;
+export const HOUR = 60 * MINUTE;
+export const HALFDAY = 12 * HOUR;
 
 export const shortDateTimeOptions: Intl.DateTimeFormatOptions = {
     dateStyle: "short",
@@ -45,16 +51,17 @@ export function getMonthBoundaries(date: Date): { startMonthDate: Date; endMonth
     const endMonthDate = new Date(date);
     endMonthDate.setMonth(endMonthDate.getMonth() + 1);
     endMonthDate.setDate(0);
+    endMonthDate.setHours(23, 59, 59, 999);
 
     return { startMonthDate, endMonthDate };
 }
 
-export function isToday(someDate: Date): boolean {
+export function isToday(someDate: Date, ignoreYear: boolean = false): boolean {
     const today = new Date();
     return (
         someDate.getDate() === today.getDate() &&
         someDate.getMonth() === today.getMonth() &&
-        someDate.getFullYear() === today.getFullYear()
+        (ignoreYear || someDate.getFullYear() === today.getFullYear())
     );
 }
 
@@ -63,4 +70,39 @@ export function getToday(): Date {
     date.setHours(0, 0, 0, 0);
 
     return date;
+}
+
+const monthMap = new Map([
+    ["январь", 1],
+    ["февраль", 2],
+    ["март", 3],
+    ["апрель", 4],
+    ["май", 5],
+    ["июнь", 6],
+    ["июль", 7],
+    ["август", 8],
+    ["сентябрь", 9],
+    ["октябрь", 10],
+    ["ноябрь", 11],
+    ["декабрь", 12],
+]);
+
+export function compareMonthNames(a: string, b: string) {
+    const monthA = monthMap.get(a.toLowerCase());
+    const monthB = monthMap.get(b.toLowerCase());
+
+    if (!monthA || !monthB) throw new Error(`Invalid month ${a} or ${b}`);
+
+    return monthA - monthB;
+}
+
+const LOCALE_ISO_DATE_FORMAT = "sv";
+const DATE_SUBSTRING_INDICES: [number, number] = [5, 10];
+
+export function hasBirthdayToday(date: Nullable<string>) {
+    if (!date) return false;
+
+    const currentDate = new Date().toLocaleDateString(LOCALE_ISO_DATE_FORMAT).substring(...DATE_SUBSTRING_INDICES);
+
+    return date.substring(5, 10) === currentDate;
 }

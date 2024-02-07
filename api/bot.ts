@@ -1,4 +1,3 @@
-import { json } from "body-parser";
 import config from "config";
 import cors from "cors";
 import express from "express";
@@ -7,21 +6,21 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 
 import StatusHandlers from "../bot/handlers/status";
-import { BotApiConfig, BotConfig, EmbassyApiConfig } from "../config/schema";
+import { BotApiConfig, BotConfig } from "../config/schema";
 import FundsRepository from "../repositories/fundsRepository";
 import StatusRepository from "../repositories/statusRepository";
 import UsersRepository from "../repositories/usersRepository";
-import { ApiCommandsList } from "../resources/commands";
+import { requestToEmbassy } from "../services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
+import { SpaceClimate } from "../services/hass";
 import logger from "../services/logger";
 import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "../services/statusHelper";
 import * as TextGenerators from "../services/textGenerators";
 import { getEventsList } from "../services/textGenerators";
+import wiki from "../services/wiki";
 import { stripCustomMarkup } from "../utils/common";
 import { createErrorMiddleware, createTokenSecuredMiddleware } from "../utils/middleware";
-import { fetchWithTimeout } from "../utils/network";
 
-const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const apiConfig = config.get<BotApiConfig>("api");
 const botConfig = config.get<BotConfig>("bot");
 
@@ -31,7 +30,7 @@ const tokenHassSecured = createTokenSecuredMiddleware(logger, process.env["UNLOC
 const tokenGuestSecured = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
 
 app.use(cors());
-app.use(json());
+app.use(express.json());
 app.use(createErrorMiddleware(logger));
 app.use("/static", express.static(path.join(__dirname, botConfig.static)));
 
@@ -44,9 +43,47 @@ try {
     logger.error(error);
 }
 
+const ApiTextCommandsList = [
+    {
+        command: "status",
+        description: "Статус спейса и кто отметился внутри",
+        regex: "^status$",
+    },
+    {
+        command: "join",
+        description: "Как присоединиться к нам",
+        regex: "^join$",
+    },
+    {
+        command: "donate",
+        description: "Как задонатить",
+        regex: "^donate$",
+    },
+    {
+        command: "funds",
+        description: "Наши открытые сборы",
+        regex: "^funds$",
+    },
+    {
+        command: "events",
+        description: "Мероприятия у нас",
+        regex: "^events$",
+    },
+    {
+        command: "upcoming",
+        description: "Ближайшие мероприятия",
+        regex: "^upcoming$",
+    },
+    {
+        command: "today",
+        description: "Мероприятия сегодня",
+        regex: "^today$",
+    },
+];
+
 // Routes
-app.get("/text/commands", (_, res) => {
-    res.send(ApiCommandsList);
+app.get("/api/text", (_, res) => {
+    res.json(ApiTextCommandsList);
 });
 
 app.get("/text/status", async (_, res) => {
@@ -57,7 +94,8 @@ app.get("/text/status", async (_, res) => {
         const allUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
-        const climateInfo = await (await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`)).json();
+        const climateResponse = await requestToEmbassy(`/climate`);
+        const climateInfo = (await climateResponse.json()) as SpaceClimate;
 
         content = TextGenerators.getStatusMessage(
             state,
@@ -292,6 +330,51 @@ app.get("/healthcheck", (_, res, next) => {
     }
 });
 
-app.listen(port);
+app.get("/api/wiki/list", async (req, res, next) => {
+    try {
+        const lang = req.query.lang as string | undefined;
+        const list = await wiki.listPages(lang);
 
-logger.info(`Bot Api is ready to accept requests`);
+        res.json(list);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/api/wiki/tree", async (req, res, next) => {
+    try {
+        const lang = req.query.lang as string | undefined;
+        const list = await wiki.listPagesAsTree(lang);
+
+        res.json(list);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get("/api/wiki/page/:id", async (req, res, next) => {
+    try {
+        if (!req.params.id) {
+            res.status(400).send({ error: "Missing page id" });
+            return;
+        }
+
+        const pageId = Number(req.params.id);
+
+        if (isNaN(pageId)) {
+            res.status(400).send({ error: "Invalid page id" });
+            return;
+        }
+
+        const page = await wiki.getPage(Number(pageId));
+
+        res.json(page);
+    } catch (error) {
+        next(error);
+    }
+});
+
+export function StartSpaceApi() {
+    app.listen(port);
+    logger.info(`Bot Api is ready to accept requests on port ${port}`);
+}

@@ -20,19 +20,21 @@ describe("Bot Status commands:", () => {
 
         expect(results).toEqual([
             "status\\.open",
-            "status\\.status\\.state\nstatus\\.status\\.insidechecked[adminusername](t\\.me/adminusername) 🔑📒\n\nstatus\\.status\\.updated",
+            "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n\x1astatus\\.status\\.updated",
         ]);
     });
 
     test("/status should mentio people inside if -mention key is used", async () => {
         await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/in", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/status -mention"));
 
         await jest.runAllTimersAsync();
 
         expect(botMock.popResults()).toEqual([
             "status\\.open",
-            "status\\.status\\.state\nstatus\\.status\\.insidechecked@adminusername 🔑📒\n\nstatus\\.status\\.updated",
+            "status\\.in\\.gotin",
+            "status\\.status\\.state\nstatus\\.status\\.insidechecked@adminusername 🔑📒\n\n\x1astatus\\.status\\.updated",
         ]);
     });
 
@@ -54,7 +56,7 @@ describe("Bot Status commands:", () => {
             "status\\.inforce\\.gotin",
             "status\\.out\\.gotout",
             "status\\.out\\.gotout",
-            "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\nstatus\\.status\\.updated",
+            "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n\x1astatus\\.status\\.updated",
         ]);
     });
 
@@ -76,7 +78,7 @@ describe("Bot Status commands:", () => {
             "status\\.inforce\\.gotin",
             "status\\.inforce\\.gotin",
             "status\\.outforce\\.gotout",
-            "status\\.status\\.state\nstatus\\.status\\.insidechecked[regularuser](t\\.me/regularuser) \n\nstatus\\.status\\.updated",
+            "status\\.status\\.state\nstatus\\.status\\.insidechecked[regularuser](t\\.me/regularuser) \n\n\x1astatus\\.status\\.updated",
         ]);
     });
 
@@ -98,7 +100,7 @@ describe("Bot Status commands:", () => {
             "status\\.inforce\\.gotin",
             "status\\.inforce\\.gotin",
             "status\\.close",
-            "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\nstatus\\.status\\.updated",
+            "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n\x1astatus\\.status\\.updated",
         ]);
     });
 });

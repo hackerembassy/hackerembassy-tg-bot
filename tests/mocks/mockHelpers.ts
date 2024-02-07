@@ -17,7 +17,7 @@ export function mockTelegramApiRequests() {
         .persist();
 
     nock("https://api.telegram.org")
-        .post("/botTOKEN/sendChatAction", "chat_id=1&action=typing")
+        .post("/botTOKEN/sendChatAction")
         .reply(200, {
             ok: true,
             result: [],
@@ -27,7 +27,7 @@ export function mockTelegramApiRequests() {
 
 export async function prepareDb() {
     const usersRepository = (await import("../../repositories/usersRepository")).default;
-    usersRepository.addUser(ADMIN_USER_NAME, ["admin|member|accountant"]);
+    usersRepository.addUser(ADMIN_USER_NAME, ["admin|member|accountant"], 123);
 }
 
 export function createBotMock() {

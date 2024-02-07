@@ -26,12 +26,13 @@ export default class MemeHandlers implements BotHandlers {
     }
 
     static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (getToday().getDay() !== ITS_WEDNESDAY_YEAAAH) {
-            await bot.sendMessageExt(msg.chat.id, t("meme.not_wednesday"), msg);
-            return;
-        }
+        await MemeHandlers.𓆏(bot, msg);
+    }
 
-        await MemeHandlers.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
+    static async 𓆏(𓈝: 𓇍, 𓎶: 𓇝) {
+        const 𓆏 = 𓁺 === 𓀥;
+        if (𓆏) return 𓉢(𓈝, 𓎶, 𓇠);
+        await 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶);
     }
 
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
@@ -99,3 +100,16 @@ export default class MemeHandlers implements BotHandlers {
         await bot.sendAnimationExt(msg.chat.id, gif, msg, { caption });
     }
 }
+
+// Legend
+const 𓉢 = MemeHandlers.randomImagePathHandler;
+const 𓁺 = getToday().getDay();
+const 𓀥 = ITS_WEDNESDAY_YEAAAH;
+const 𓇠 = ZHABKAS_PATH;
+const 𓆲 = t;
+const 𓈴 = "sendMessageExt";
+const 𓁪𓁫 = "chat";
+const 𓁷 = "id";
+const 𓃾 = "meme.not_wednesday";
+type 𓇍 = HackerEmbassyBot;
+type 𓇝 = Message;

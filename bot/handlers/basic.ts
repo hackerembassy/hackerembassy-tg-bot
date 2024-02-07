@@ -19,13 +19,18 @@ import { Flags } from "./service";
 const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicHandlers implements BotHandlers {
-    static async helpHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
+        const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
+
         const text = t("basic.help", {
-            availableCommands: helpers.getAvailableCommands(msg.from?.username),
+            availableCommands: helpers.getAvailableCommands(
+                msg.from?.username,
+                selectedRole as keyof typeof Commands.CommandsMap
+            ),
             globalModifiers: Commands.GlobalModifiers,
         });
 
-        await bot.sendLongMessage(msg.chat.id, text, msg);
+        return await bot.sendLongMessage(msg.chat.id, text, msg);
     }
 
     static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -64,6 +69,7 @@ export default class BasicHandlers implements BotHandlers {
         const report = t("basic.issue.report", { issue: issueText });
         if (issueText) {
             await bot.sendMessageExt(msg.chat.id, sentMessage, msg);
+            delete bot.context(msg).messageThreadId;
             await bot.sendMessageExt(botConfig.chats.key, report, msg);
         } else {
             await bot.sendMessageExt(msg.chat.id, helpMessage, msg);
@@ -108,7 +114,7 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers()?.filter(u => helpers.hasRole(u.username, "member"));
+        const users = UsersRepository.getUsers().filter(u => helpers.hasRole(u.username, "member"));
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
@@ -144,17 +150,23 @@ export default class BasicHandlers implements BotHandlers {
 
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
+            [InlineButton(t("basic.control.buttons.superstatus"), "superstatus")],
+
             [
                 InlineButton(t("basic.control.buttons.unlock"), "unlock"),
                 InlineButton(t("basic.control.buttons.doorbell"), "doorbell"),
                 InlineButton(t("basic.control.buttons.conditioner"), "conditioner", Flags.Editing),
             ],
             [
-                InlineButton(t("basic.control.buttons.webcam"), "webcam"),
-                InlineButton(t("basic.control.buttons.webcam2"), "webcam2"),
-                InlineButton(t("basic.control.buttons.doorcam"), "doorcam"),
+                InlineButton(t("basic.control.buttons.downstairs"), "webcam", Flags.Simple, { params: "downstairs" }),
+                InlineButton(t("basic.control.buttons.jigglycam"), "webcam", Flags.Simple, { params: "jigglycam" }),
+                InlineButton(t("basic.control.buttons.kitchen"), "webcam", Flags.Simple, { params: "kitchen" }),
             ],
-            [InlineButton(t("basic.control.buttons.superstatus"), "superstatus")],
+            [
+                InlineButton(t("basic.control.buttons.upstairs"), "webcam", Flags.Simple, { params: "upstairs" }),
+                InlineButton(t("basic.control.buttons.printers"), "webcam", Flags.Simple, { params: "printers" }),
+                InlineButton(t("basic.control.buttons.outdoors"), "webcam", Flags.Simple, { params: "outdoors" }),
+            ],
             [
                 InlineButton(t("basic.control.buttons.meme"), "memepanel", Flags.Editing),
                 InlineButton(t("basic.control.buttons.back"), "startpanel", Flags.Editing),
@@ -212,17 +224,21 @@ export default class BasicHandlers implements BotHandlers {
                 InlineButton(t("basic.meme.buttons.nani"), "playinspace", Flags.Silent, { params: "nani" }),
             ],
             [
-                InlineButton(t("basic.meme.buttons.cat"), "cat"),
-                InlineButton(t("basic.meme.buttons.dog"), "dog"),
-                InlineButton(t("basic.meme.buttons.cab"), "cab"),
-                InlineButton(t("basic.meme.buttons.cock"), "cock"),
+                InlineButton(t("basic.meme.buttons.cat"), "cat", Flags.Simple, { params: "./resources/images/cats" }),
+                InlineButton(t("basic.meme.buttons.dog"), "dog", Flags.Simple, { params: "./resources/images/dogs" }),
+                InlineButton(t("basic.meme.buttons.cab"), "cab", Flags.Simple, { params: "./resources/images/cab" }),
+                InlineButton(t("basic.meme.buttons.cock"), "cock", Flags.Simple, { params: "./resources/images/roosters" }),
             ],
             [
                 InlineButton(t("basic.meme.buttons.sad"), "playinspace", Flags.Silent, { params: "sad" }),
                 InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", Flags.Silent, { params: "badumtss" }),
                 InlineButton(t("basic.meme.buttons.dushno"), "playinspace", Flags.Silent, { params: "dushno" }),
             ],
-            [InlineButton(t("basic.meme.buttons.back"), "controlpanel", Flags.Editing)],
+            [InlineButton(t("basic.meme.buttons.all"), "availablesounds")],
+            [
+                InlineButton(t("basic.meme.buttons.stop"), "stopmedia", Flags.Silent),
+                InlineButton(t("basic.meme.buttons.back"), "controlpanel", Flags.Editing),
+            ],
         ];
 
         await bot.sendOrEditMessage(
@@ -238,17 +254,21 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
-    static async upcomingEventsHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async upcomingEventsHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        numberOfEvents: number = botConfig.calendar.upcomingToLoad
+    ) {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
         try {
-            const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad);
+            const events = await getClosestEventsFromCalendar(numberOfEvents);
             messageText += getEventsList(events);
         } catch (error) {
             messageText = t("basic.events.error");
             logger.error(error);
         } finally {
-            bot.sendMessageExt(msg.chat.id, messageText, msg);
+            bot.sendLongMessage(msg.chat.id, messageText, msg);
         }
     }
 

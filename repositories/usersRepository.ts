@@ -5,7 +5,7 @@ import { anyItemIsInList } from "../utils/common";
 import BaseRepository from "./baseRepository";
 
 class UserRepository extends BaseRepository {
-    getUsers(): Nullable<User[]> {
+    getUsers(): User[] {
         const users = this.db.prepare("SELECT * FROM users").all();
 
         return users.filter(user => user).map(user => new User(user as User));

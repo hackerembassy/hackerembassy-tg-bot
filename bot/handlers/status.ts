@@ -4,10 +4,12 @@ import TelegramBot, { Message } from "node-telegram-bot-api";
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import State from "../../models/State";
 import { UserStateChangeType, UserStateType } from "../../models/UserState";
-import fundsRepository from "../../repositories/fundsRepository";
+import fundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
+import { requestToEmbassy } from "../../services/embassy";
 import { createUserStatsDonut } from "../../services/export";
+import * as ExportHelper from "../../services/export";
 import { SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
 import logger from "../../services/logger";
@@ -26,8 +28,7 @@ import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject } from "../../utils/date";
-import { fetchWithTimeout } from "../../utils/network";
-import { isEmoji } from "../../utils/text";
+import { isEmoji, REPLACE_MARKER } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../helpers";
@@ -99,20 +100,16 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    static async getStatusMessage(state: State, mode: BotMessageContextMode, short: boolean, withSecretData: boolean) {
+    static getStatusMessage(
+        state: State,
+        mode: BotMessageContextMode,
+        short: boolean,
+        climateInfo: Nullable<SpaceClimate> = null,
+        withSecretData: boolean = false
+    ) {
         const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
         const inside = recentUserStates.filter(filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
-
-        let climateInfo: Nullable<SpaceClimate> = null;
-        try {
-            const response = await fetchWithTimeout(`${embassyApiConfig.host}:${embassyApiConfig.port}/climate`, {
-                timeout: 4000,
-            });
-            climateInfo = (await response.json()) as SpaceClimate;
-        } catch (error) {
-            logger.error(error);
-        }
 
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, {
             short,
@@ -121,9 +118,20 @@ export default class StatusHandlers implements BotHandlers {
         });
 
         if (StatusHandlers.isStatusError)
-            statusMessage = mode.pin ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
+            statusMessage = short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         return statusMessage;
+    }
+
+    private static async queryClimate() {
+        let climateInfo: Nullable<SpaceClimate> = null;
+        try {
+            const response = await requestToEmbassy(`/climate`, "GET", null, 4000);
+            climateInfo = (await response.json()) as SpaceClimate;
+        } catch (error) {
+            logger.error(error);
+        }
+        return climateInfo;
     }
 
     static getStatusInlineKeyboard(state: State, short: boolean) {
@@ -145,10 +153,13 @@ export default class StatusHandlers implements BotHandlers {
     static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, short: boolean, mode: BotMessageContextMode) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
-        const statusMessage = await StatusHandlers.getStatusMessage(
+        const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+
+        const statusMessage = StatusHandlers.getStatusMessage(
             state,
             mode,
             short,
+            climateInfo,
             resultMessage.chat.id === botConfig.chats.horny
         );
         const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
@@ -176,7 +187,7 @@ export default class StatusHandlers implements BotHandlers {
             return;
         }
 
-        const statusMessage = await StatusHandlers.getStatusMessage(state, mode, short, msg.chat.id === botConfig.chats.horny);
+        const statusMessage = StatusHandlers.getStatusMessage(state, mode, short);
         const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
@@ -191,6 +202,24 @@ export default class StatusHandlers implements BotHandlers {
             msg.message_id
         )) as Message;
 
+        const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+
+        if (climateInfo) {
+            const statusWithClient = statusMessage.replace(
+                REPLACE_MARKER,
+                TextGenerators.getClimateMessage(climateInfo, {
+                    withSecrets: msg.chat.id === botConfig.chats.horny,
+                })
+            );
+            bot.editMessageTextExt(statusWithClient, resultMessage, {
+                chat_id: msg.chat.id,
+                message_id: resultMessage.message_id,
+                reply_markup: {
+                    inline_keyboard,
+                },
+            });
+        }
+
         if (mode.live) {
             bot.addLiveMessage(
                 resultMessage,
@@ -199,14 +228,14 @@ export default class StatusHandlers implements BotHandlers {
                 {
                     functionName: StatusHandlers.liveStatusHandler.name,
                     module: __filename,
-                    params: [resultMessage, mode],
+                    params: [resultMessage, short, mode],
                 }
             );
         }
     }
 
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
-        openSpace(msg.from?.username, { checkOpener: true });
+        openSpace(msg.from?.username, { checkOpener: false });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [
@@ -223,6 +252,22 @@ export default class StatusHandlers implements BotHandlers {
                     inline_keyboard,
                 },
             }
+        );
+    }
+
+    static async openedNotificationHandler(bot: HackerEmbassyBot, state: State) {
+        await bot.sendMessageExt(
+            botConfig.chats.alerts,
+            t("status.open-alert", { user: helpers.formatUsername(state.changedby, { mention: false }) }),
+            null
+        );
+    }
+
+    static async closedNotificationHandler(bot: HackerEmbassyBot, state: State) {
+        await bot.sendMessageExt(
+            botConfig.chats.alerts,
+            t("status.close-alert", { user: helpers.formatUsername(state.changedby, { mention: false }) }),
+            null
         );
     }
 
@@ -467,19 +512,16 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinout(bot: HackerEmbassyBot, isIn: boolean): Promise<void> {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
-            const devices = await (
-                await fetch(`${embassyApiConfig.host}:${embassyApiConfig.port}/${embassyApiConfig.devicesCheckingPath}`, {
-                    signal: controller.signal,
-                })
-            ).json();
-            clearTimeout(timeoutId);
+            const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
+
+            if (!response.ok) throw Error("Failed to get devices inside");
+
+            const devices = (await response.json()) as string[];
 
             const insideusernames = findRecentStates(StatusRepository.getAllUserStates() ?? [])
                 .filter(filterPeopleInside)
                 .map(us => us.username);
-            const autousers = UsersRepository.getUsers()?.filter(u => u.autoinside && u.mac) ?? [];
+            const autousers = UsersRepository.getUsers().filter(u => u.autoinside && u.mac);
             const selectedautousers = isIn
                 ? autousers.filter(u => u.username && !insideusernames.includes(u.username))
                 : autousers.filter(u => u.username && insideusernames.includes(u.username));
@@ -526,11 +568,18 @@ export default class StatusHandlers implements BotHandlers {
         })}: ${days}d, ${hours}h, ${minutes}m\n\n`;
 
         const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
-            total: totalDonated,
+            total: totalDonated.toFixed(2),
             currency: "AMD",
         })}`;
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
+
+        if (donations && donations.length > 0) {
+            const filteredDonations = ExportHelper.prepareCostsForExport(donations, COSTS_PREFIX);
+            const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, COSTS_PREFIX);
+
+            if (imageBuffer.length !== 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+        }
     }
 
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
@@ -577,6 +626,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const fromDate = new Date(fromDateString ?? statsStartDateString);
         const toDate = toDateString ? new Date(toDateString) : new Date();
+        toDate.setHours(23, 59, 59, 999);
 
         if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
             await bot.sendMessageExt(msg.chat.id, t("status.stats.invaliddates"), msg);
@@ -584,6 +634,7 @@ export default class StatusHandlers implements BotHandlers {
         }
 
         const allUserStates = StatusRepository.getAllUserStates();
+
         const userTimes = allUserStates ? getAllUsersTimes(allUserStates, fromDate, toDate) : [];
         const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };

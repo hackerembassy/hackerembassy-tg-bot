@@ -1,0 +1,69 @@
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS "states" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"open"	INTEGER,
+	"changedby"	TEXT,
+	"date"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "funds" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"name"	TEXT,
+	"target_value"	INTEGER,
+	"target_currency"	TEXT,
+	"status"	TEXT DEFAULT 'open',
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "needs" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"text"	TEXT,
+	"requester"	TEXT DEFAULT NULL,
+	"buyer"	TEXT DEFAULT NULL,
+	"updated"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "donations" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"username"	TEXT,
+	"fund_id"	INTEGER,
+	"value"	INTEGER,
+	"currency"	TEXT,
+	"accountant"	TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	FOREIGN KEY("fund_id") REFERENCES "funds"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "userstates" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"username"	TEXT,
+	"status"	INTEGER,
+	"date"	INTEGER,
+	"type"	INTEGER DEFAULT 0,
+	"note"	TEXT DEFAULT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "users" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"username"	TEXT,
+	"roles"	TEXT DEFAULT 'default',
+	"mac"	TEXT DEFAULT NULL,
+	"birthday"	TEXT DEFAULT NULL,
+	"autoinside"	INTEGER DEFAULT 0,
+	"emoji"	TEXT DEFAULT NULL,
+	"userid"	INTEGER NOT NULL UNIQUE,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "subscriptions" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"userid"	INTEGER NOT NULL,
+	"topicid"	INTEGER NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	FOREIGN KEY("userid") REFERENCES "users"("userid") ON DELETE CASCADE,
+	FOREIGN KEY("topicid") REFERENCES "topics"("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "topics" (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"name"	TEXT NOT NULL UNIQUE,
+	"description"	TEXT DEFAULT null,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+COMMIT;

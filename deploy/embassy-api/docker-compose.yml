@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+    tg-bot:
+        image: ghcr.io/hackerembassy/hackerembassy-tg-bot:main
+        platform: linux/amd64
+        network_mode: host
+        volumes:
+            - log-volume:/app/log
+            - data-volume:/app/data/db
+            - ./sec:/app/config/sec
+            - ./static:/app/static
+        env_file:
+            - .env
+        restart: unless-stopped
+        command: ["npm", "run", "start-service:ci"]
+
+volumes:
+    log-volume:
+    data-volume:

@@ -18,8 +18,7 @@ const defaultCommands = [
     { command: "going", description: "Планирую сегодня в спейс" },
     { command: "in", description: "Отметиться находящимся в спейсе" },
     { command: "out", description: "Отметиться ушедшим из спейса" },
-    { command: "open", description: "Открыть спейс" },
-    { command: "close", description: "Закрыть спейс" },
+    { command: "knock", description: "Уведомить резидентов в спейсе, что их ждут в чате" },
     { command: "funds", description: "Наши открытые сборы" },
     {
         command: "birthdays",
@@ -32,6 +31,8 @@ const defaultCommands = [
     { command: "about", description: "О спейсе и боте" },
     { command: "join", description: "Как присоединиться к нам" },
     { command: "events", description: "Мероприятия в спейсе" },
+    { command: "upcoming", description: "Ближайшие мероприятия в спейсе" },
+    { command: "today", description: "Сегодняшние мероприятия в спейсе" },
     { command: "donate", description: "Как задонатить" },
     { command: "location", description: "Как нас найти" },
     { command: "printers", description: "О наших 3D принтерах" },
@@ -44,6 +45,7 @@ const defaultCommands = [
         description: "Наши резиденты, можно к ним обратиться по любым спейсовским вопросам",
     },
     { command: "stats", description: "Статистика по времени в спейсе" },
+    { command: "topics", description: "Топики для подписки на уведомления" },
 ];
 
 const residentCommands = [
@@ -61,6 +63,9 @@ const residentCommands = [
     { command: "unlock", description: "Открыть дверь" },
     { command: "funds", description: "Наши открытые сборы" },
     { command: "fundsall", description: "Все сборы" },
+    { command: "debt", description: "Сколько числится на тебе донатов" },
+    { command: "scosts", description: "Показать сбор на аренду в этом месяце" },
+    { command: "rcosts", description: "Кто из резидентов задонатил в этом месяце" },
     {
         command: "needs",
         description: "Посмотреть, что просили купить в спейс по дороге",
@@ -68,6 +73,7 @@ const residentCommands = [
     { command: "anette", description: "Статус Anette" },
     { command: "plumbus", description: "Статус Plumbus" },
     { command: "stats", description: "Статистика по времени в спейсе" },
+    { command: "topics", description: "Топики для подписки на уведомления" },
 ];
 
 export async function setMenu(bot: HackerEmbassyBot): Promise<void> {

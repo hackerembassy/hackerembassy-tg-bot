@@ -1,15 +1,15 @@
 {
     "compilerOptions": {
+      "outDir": "./dist",
       "allowJs": true,
-      "checkJs": true,
       "target": "ES2022",
       "module": "None",
       "moduleResolution": "Node",
-      "noEmit": true,
       "noImplicitReturns": true,
       "strict": true,
       "esModuleInterop": true,
       "typeRoots" : ["./node_modules/@types", "./typings"]
     },
-    "include": ["./**/*"]
+    "include": ["./**/*"],
+    "exclude": ["node_modules", "coverage", "dist"]
 }

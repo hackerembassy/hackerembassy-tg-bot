@@ -14,7 +14,7 @@ function importUsers(fromFile: string) {
     const dbUsers = usersRepository.getUsers();
     const fileUsers = JSON.parse(fs.readFileSync(fromFile).toString()) as { id: number; username: string }[] | undefined;
 
-    if (!dbUsers || !fileUsers) {
+    if (!fileUsers) {
         console.log("No users found");
         return;
     }

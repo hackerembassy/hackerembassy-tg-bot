@@ -1,5 +1,6 @@
 import config from "config";
 import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "fs";
+import Module from "module";
 import { dirname, join } from "path";
 
 import { BotConfig } from "../../config/schema";
@@ -27,6 +28,7 @@ export default class BotState {
 
                 this.history = persistedState.history;
                 this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());
+                this.lastBirthdayWishTimestamp = persistedState.lastBirthdayWishTimestamp;
                 this.initLiveChats();
 
                 return;
@@ -38,6 +40,7 @@ export default class BotState {
 
         this.history = {};
         this.liveChats = [];
+        this.lastBirthdayWishTimestamp = 0;
 
         mkdirSync(dirname(this.statepath), { recursive: true });
         writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
@@ -47,8 +50,17 @@ export default class BotState {
     async initLiveChats() {
         for (let chatRecordIndex: number = 0; chatRecordIndex < this.liveChats.length; chatRecordIndex++) {
             const lc = this.liveChats[chatRecordIndex];
-            const module = ((await import(lc.serializationData.module)) as { default: BotHandlers }).default;
-            const restoredHandler = module[lc.serializationData.functionName as keyof BotHandlers] as AnyFunction;
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            const importedModule = (await import(lc.serializationData.module)).default as typeof Module | { default: Module };
+            const module = typeof importedModule === "function" ? importedModule : importedModule.default;
+            const restoredHandler = module[lc.serializationData.functionName as keyof BotHandlers] as AnyFunction | undefined;
+
+            if (!restoredHandler) {
+                logger.error(`Could not restore handler for ${lc.event}, Live handlers are not loaded for this event.`);
+                continue;
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             lc.handler = () => restoredHandler(this.bot, ...lc.serializationData.params);
             this.bot.CustomEmitter.on(lc.event, lc.handler);
@@ -62,6 +74,7 @@ export default class BotState {
 
     public liveChats: LiveChatHandler[] = [];
     public history: { [chatId: string]: Optional<MessageHistoryEntry[]> };
+    public lastBirthdayWishTimestamp: number = 0;
 
     clearLiveHandlers(chatId: number, event?: BotCustomEvent) {
         const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);
@@ -81,6 +94,7 @@ export default class BotState {
         }
         this.liveChats = [];
         this.history = {};
+        this.lastBirthdayWishTimestamp = 0;
         this.persistChanges();
     }
 

@@ -1,6 +1,6 @@
 import config from "config";
 
-import { EmbassyApiConfig } from "../config/schema";
+import { CamConfig, EmbassyApiConfig } from "../config/schema";
 import { getBufferFromResponse } from "../utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -55,32 +55,23 @@ export interface SpaceClimate {
 }
 
 // Media
+export async function getWebcamImage(camName: keyof CamConfig): Promise<Buffer> {
+    if (!embassyApiConfig.cams[camName]) throw ReferenceError("No cam with such name defined");
 
-export async function getDoorcamImage(): Promise<Buffer> {
-    return getBufferFromResponse(await getFromHass(embassyApiConfig.doorcam));
-}
-
-export async function getWebcamImage(): Promise<Buffer> {
-    return getBufferFromResponse(await getFromHass(embassyApiConfig.webcam));
-}
-
-export async function getWebcam2Image(): Promise<Buffer> {
-    return getBufferFromResponse(await getFromHass(embassyApiConfig.webcam2));
+    return getBufferFromResponse(await getFromHass(embassyApiConfig.cams[camName]));
 }
 
 export async function sayInSpace(text: string): Promise<void> {
-    const response = await postToHass(embassyApiConfig.ttspath, {
-        entity_id: "media_player.hackem_speaker",
+    const response = await postToHass(embassyApiConfig.speaker.ttspath, {
         message: text,
-        language: "ru",
     });
 
     if (response.status !== 200) throw Error("Speaker request failed");
 }
 
 export async function playInSpace(link: string): Promise<void> {
-    const response = await postToHass(embassyApiConfig.playpath, {
-        entity_id: "media_player.hackem_speaker",
+    const response = await postToHass(embassyApiConfig.speaker.playpath, {
+        entity_id: embassyApiConfig.speaker.entity,
         media_content_id: link,
         media_content_type: "music",
     });
@@ -88,8 +79,16 @@ export async function playInSpace(link: string): Promise<void> {
     if (response.status !== 200) throw Error("Speaker request failed");
 }
 
+export async function stopMediaInSpace(): Promise<void> {
+    const response = await postToHass(embassyApiConfig.speaker.stoppath, {
+        entity_id: embassyApiConfig.speaker.entity,
+    });
+
+    if (response.status !== 200) throw Error("Speaker request failed");
+}
+
 export async function ringDoorbell(): Promise<void> {
-    const response = await postToHass(embassyApiConfig.doorbellpath, {
+    const response = await postToHass(embassyApiConfig.doorbell.hasspath, {
         entity_id: "switch.doorbell",
     });
 
@@ -98,37 +97,33 @@ export async function ringDoorbell(): Promise<void> {
 
 // Climate
 export async function getClimate(): Promise<Nullable<SpaceClimate>> {
-    try {
-        const queries = [
-            (await getFromHass(climateConfig.first_floor.temperature)).json(),
-            (await getFromHass(climateConfig.first_floor.humidity)).json(),
-            (await getFromHass(climateConfig.first_floor.co2!)).json(),
-            (await getFromHass(climateConfig.second_floor.temperature)).json(),
-            (await getFromHass(climateConfig.second_floor.humidity)).json(),
-            (await getFromHass(climateConfig.bedroom.temperature)).json(),
-            (await getFromHass(climateConfig.bedroom.humidity)).json(),
-        ];
+    const queries = [
+        (await getFromHass(climateConfig.first_floor.temperature)).json(),
+        (await getFromHass(climateConfig.first_floor.humidity)).json(),
+        (await getFromHass(climateConfig.first_floor.co2!)).json(),
+        (await getFromHass(climateConfig.second_floor.temperature)).json(),
+        (await getFromHass(climateConfig.second_floor.humidity)).json(),
+        (await getFromHass(climateConfig.bedroom.temperature)).json(),
+        (await getFromHass(climateConfig.bedroom.humidity)).json(),
+    ];
 
-        const climateValues = await Promise.allSettled(queries);
+    const climateValues = await Promise.allSettled(queries);
 
-        return {
-            firstFloor: {
-                temperature: getValueOrDefault(climateValues[0]),
-                humidity: getValueOrDefault(climateValues[1]),
-                co2: getValueOrDefault(climateValues[2]),
-            },
-            secondFloor: {
-                temperature: getValueOrDefault(climateValues[3]),
-                humidity: getValueOrDefault(climateValues[4]),
-            },
-            bedroom: {
-                temperature: getValueOrDefault(climateValues[5]),
-                humidity: getValueOrDefault(climateValues[6]),
-            },
-        };
-    } catch {
-        return null;
-    }
+    return {
+        firstFloor: {
+            temperature: getValueOrDefault(climateValues[0]),
+            humidity: getValueOrDefault(climateValues[1]),
+            co2: getValueOrDefault(climateValues[2]),
+        },
+        secondFloor: {
+            temperature: getValueOrDefault(climateValues[3]),
+            humidity: getValueOrDefault(climateValues[4]),
+        },
+        bedroom: {
+            temperature: getValueOrDefault(climateValues[5]),
+            humidity: getValueOrDefault(climateValues[6]),
+        },
+    };
 }
 
 function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?"): any {
@@ -158,6 +153,10 @@ class Conditioner {
             hvac_mode: mode,
             entity_id: climateConfig.conditioner.entityId,
         });
+    }
+
+    async preheat() {
+        await postToHass(climateConfig.conditioner.preheatPath, {});
     }
 
     async setTemperature(temperature: number) {

@@ -5,6 +5,12 @@ export interface Config {
     currency: CurrencyConfig;
     api: BotApiConfig;
     network: NetworkConfig;
+    wiki: WikiConfig;
+}
+
+export interface WikiConfig {
+    endpoint: string;
+    defaultLocale: string;
 }
 
 export interface BotConfig {
@@ -41,6 +47,7 @@ export interface ChatsConfig {
     offtopic: number;
     test: number;
     key: number;
+    alerts: number;
     status: number;
 }
 export interface AutoinsideTimeouts {
@@ -60,25 +67,42 @@ export interface PrinterEndpoint {
 
 export interface EmbassyApiConfig {
     devices: DevicesConfig;
-    port: number;
+    service: EmbassyServiceConfig;
+    spacenetwork: SpaceNetworkConfig;
+    mqtthost: string;
+    speaker: SpeakerConfig;
+    cams: CamConfig;
+    doorbell: DoorbellConfig;
+    climate: ClimateConfig;
+    hostsToMonitor?: string[] | null;
+}
+
+export interface DoorbellConfig {
+    host: string;
+    hasspath: string;
+}
+
+export interface EmbassyServiceConfig {
+    host: string;
     queryMonitorInterval: number;
     statusCheckInterval: number;
-    host: string;
+    port: number;
     static: string;
-    devicesCheckingPath: string;
+}
+
+export interface SpaceNetworkConfig {
+    devicesCheckingMethod: string;
     networkRange: string;
     routerip: string;
     wifiip: string;
-    mqtthost: string;
-    doorbell: string;
-    webcam: string;
-    webcam2: string;
-    doorcam: string;
+    unifihost: string;
+}
+
+export interface SpeakerConfig {
+    entity: string;
     ttspath: string;
     playpath: string;
-    doorbellpath: string;
-    climate: ClimateConfig;
-    hostsToMonitor?: string[] | null;
+    stoppath: string;
 }
 
 export interface NetworkConfig {
@@ -95,6 +119,15 @@ export interface DeviceDescriptor {
     os?: "windows" | "linux" | "macos";
 }
 
+export interface CamConfig {
+    downstairs: string;
+    upstairs: string;
+    jigglycam: string;
+    printers: string;
+    outdoors: string;
+    kitchen: string;
+}
+
 export interface ClimateConfig {
     first_floor: RoomClimate;
     second_floor: RoomClimate;
@@ -109,6 +142,7 @@ export interface ConditionerConfig {
     turnOffPath: string;
     setModePath: string;
     setTemperaturePath: string;
+    preheatPath: string;
 }
 
 export interface RoomClimate {
@@ -125,4 +159,15 @@ export interface CurrencyConfig {
 
 export interface BotApiConfig {
     port: number;
+}
+
+export interface NeuralConfig {
+    stableDiffusion: StableDiffusionConfig;
+}
+
+export interface StableDiffusionConfig {
+    base: string;
+    steps?: 15;
+    denoising?: 0.57;
+    sampler?: string;
 }

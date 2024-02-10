@@ -11,6 +11,7 @@ import { getToday } from "../../utils/date";
 import { getImageFromPath } from "../../utils/filesystem";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 import { InlineButton, isPrivateMessage } from "../helpers";
@@ -371,9 +372,7 @@ export default class FundsHandlers implements BotHandlers {
             return;
         }
 
-        for (const donation of donations) {
-            await FundsHandlers.transferDonationHandler(bot, msg, donation.id, username);
-        }
+        RateLimiter.executeOverTime(donations.map(d => () => FundsHandlers.transferDonationHandler(bot, msg, d.id, username)));
     }
 
     static async exportCSVHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {

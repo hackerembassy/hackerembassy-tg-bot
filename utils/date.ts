@@ -72,6 +72,13 @@ export function getToday(): Date {
     return date;
 }
 
+export function shiftedToUTC4(date: Date): Date {
+    const utcDate = new Date(date);
+    utcDate.setHours(utcDate.getHours() + 4 + utcDate.getTimezoneOffset() / 60);
+
+    return utcDate;
+}
+
 const monthMap = new Map([
     ["январь", 1],
     ["февраль", 2],

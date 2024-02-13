@@ -3,7 +3,7 @@ import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import t from "../../services/localization";
-import { getToday } from "../../utils/date";
+import { getToday, shiftedToUTC4 } from "../../utils/date";
 import { getImageFromPath, getRandomImageFromFolder } from "../../utils/filesystem";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
@@ -99,7 +99,7 @@ export default class MemeHandlers implements BotHandlers {
 
 // Legend
 const 𓉢 = MemeHandlers.randomImagePathHandler;
-const 𓁺 = getToday().getDay();
+const 𓁺 = shiftedToUTC4(getToday()).getDay();
 const 𓀥 = ITS_WEDNESDAY_YEAAAH;
 const 𓇠 = ZHABKAS_PATH;
 const 𓆲 = t;

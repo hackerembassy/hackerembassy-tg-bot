@@ -3,7 +3,7 @@ import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import t from "../../services/localization";
-import { getToday, shiftedToUTC4 } from "../../utils/date";
+import { getToday } from "../../utils/date";
 import { getImageFromPath, getRandomImageFromFolder } from "../../utils/filesystem";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
@@ -16,7 +16,7 @@ const ZHABKAS_PATH = "./resources/images/toads";
 const ITS_WEDNESDAY_YEAAAH = ["𓆏", "𓆏", "𓆏"].length;
 
 export default class MemeHandlers implements BotHandlers {
-    static 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺 === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶));
+    static 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺() === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶));
 
     static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
         await MemeHandlers.𓆏(bot, msg);
@@ -99,7 +99,7 @@ export default class MemeHandlers implements BotHandlers {
 
 // Legend
 const 𓉢 = MemeHandlers.randomImagePathHandler;
-const 𓁺 = shiftedToUTC4(getToday()).getDay();
+const 𓁺 = () => getToday().getDay();
 const 𓀥 = ITS_WEDNESDAY_YEAAAH;
 const 𓇠 = ZHABKAS_PATH;
 const 𓆲 = t;

@@ -48,6 +48,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     // Status
     bot.addRoute(["status", "s"], StatusHandlers.statusHandler, OptionalParam(/(short)/), match => [match[1] === "short"]);
     bot.addRoute(["shortstatus", "statusshort", "shs"], StatusHandlers.statusHandler, null, () => [true]);
+    bot.addRoute(["livestatus", "live"], StatusHandlers.liveStatusShortcutHandler, null, null, ["member"]);
     bot.addRoute(["in", "iaminside"], StatusHandlers.inHandler);
     bot.addRoute(["open", "o"], StatusHandlers.openHandler, null, null, ["member"]);
     bot.addRoute(["close", "c"], StatusHandlers.closeHandler, null, null, ["member"]);

@@ -10,7 +10,7 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { getEventsList } from "../../services/textGenerators";
 import * as CoinsHelper from "../../utils/coins";
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import HackerEmbassyBot, { MAX_MESSAGE_LENGTH } from "../core/HackerEmbassyBot";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 import { InlineButton, isPrivateMessage } from "../helpers";
@@ -45,22 +45,39 @@ export default class BasicHandlers implements BotHandlers {
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
         const message = TextGenerators.getEventsText(false, botConfig.calendar.appLink);
 
-        await bot.sendMessageExt(msg.chat.id, message, msg, {
-            reply_markup: {
-                inline_keyboard: isPrivateMessage(msg, bot.context(msg))
-                    ? [
-                          [
-                              {
-                                  text: t("basic.events.opencalendar"),
-                                  web_app: {
-                                      url: botConfig.calendar.url,
-                                  },
-                              },
-                          ],
-                      ]
-                    : [],
+        const defaultInlineKeyboard = [
+            [
+                InlineButton(t("basic.events.buttons.today"), "today", Flags.Editing),
+                InlineButton(t("basic.events.buttons.upcoming"), "upcoming", Flags.Editing),
+            ],
+            [InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)],
+        ];
+
+        const inline_keyboard = isPrivateMessage(msg, bot.context(msg))
+            ? [
+                  [
+                      {
+                          text: t("basic.events.opencalendar"),
+                          web_app: {
+                              url: botConfig.calendar.url,
+                          },
+                      },
+                  ],
+                  ...defaultInlineKeyboard,
+              ]
+            : defaultInlineKeyboard;
+
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            message,
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
             },
-        });
+            msg.message_id
+        );
     }
 
     static async issueHandler(bot: HackerEmbassyBot, msg: Message, issueText: string) {
@@ -122,17 +139,24 @@ export default class BasicHandlers implements BotHandlers {
 
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
-            [InlineButton(t("basic.start.buttons.status"), "status")],
-            [InlineButton(t("basic.start.buttons.events"), "events"), InlineButton(t("basic.start.buttons.funds"), "funds")],
+            [InlineButton(t("basic.start.buttons.status"), "status", Flags.Editing)],
+            [
+                InlineButton(t("basic.start.buttons.events"), "events", Flags.Editing),
+                InlineButton(t("basic.start.buttons.funds"), "funds", Flags.Editing),
+            ],
             [
                 InlineButton(t("basic.start.buttons.control"), "controlpanel", Flags.Editing),
                 InlineButton(t("basic.start.buttons.info"), "infopanel", Flags.Editing),
             ],
             [
-                InlineButton(t("basic.start.buttons.birthdays"), "birthdays"),
-                InlineButton(t("basic.start.buttons.needs"), "needs"),
+                InlineButton(t("basic.start.buttons.birthdays"), "birthdays", Flags.Editing),
+                InlineButton(t("basic.start.buttons.needs"), "needs", Flags.Editing),
             ],
-            [InlineButton(t("basic.start.buttons.printers"), "printers"), InlineButton(t("basic.start.buttons.help"), "help")],
+            [
+                InlineButton(t("basic.start.buttons.printers"), "printers", Flags.Editing),
+                InlineButton(t("basic.start.buttons.topics"), "topics", Flags.Editing),
+            ],
+            [InlineButton(t("basic.start.buttons.me"), "me"), InlineButton(t("basic.start.buttons.help"), "help")],
         ];
 
         await bot.sendOrEditMessage(
@@ -169,7 +193,7 @@ export default class BasicHandlers implements BotHandlers {
             ],
             [
                 InlineButton(t("basic.control.buttons.meme"), "memepanel", Flags.Editing),
-                InlineButton(t("basic.control.buttons.back"), "startpanel", Flags.Editing),
+                InlineButton(t("general.buttons.back"), "startpanel", Flags.Editing),
             ],
         ];
 
@@ -192,7 +216,7 @@ export default class BasicHandlers implements BotHandlers {
             [InlineButton(t("basic.info.buttons.location"), "location"), InlineButton(t("basic.info.buttons.donate"), "donate")],
             [
                 InlineButton(t("basic.info.buttons.residents"), "getresidents"),
-                InlineButton(t("basic.info.buttons.back"), "startpanel", Flags.Editing),
+                InlineButton(t("general.buttons.back"), "startpanel", Flags.Editing),
             ],
         ];
 
@@ -237,7 +261,7 @@ export default class BasicHandlers implements BotHandlers {
             [InlineButton(t("basic.meme.buttons.all"), "availablesounds")],
             [
                 InlineButton(t("basic.meme.buttons.stop"), "stopmedia", Flags.Silent),
-                InlineButton(t("basic.meme.buttons.back"), "controlpanel", Flags.Editing),
+                InlineButton(t("general.buttons.back"), "controlpanel", Flags.Editing),
             ],
         ];
 
@@ -261,19 +285,33 @@ export default class BasicHandlers implements BotHandlers {
     ) {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
+        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", Flags.Editing)]];
+
         try {
             const events = await getClosestEventsFromCalendar(numberOfEvents);
-            messageText += getEventsList(events);
+            messageText += getEventsList(events).slice(0, MAX_MESSAGE_LENGTH);
         } catch (error) {
             messageText = t("basic.events.error");
             logger.error(error);
         } finally {
-            bot.sendLongMessage(msg.chat.id, messageText, msg);
+            bot.sendOrEditMessage(
+                msg.chat.id,
+                messageText,
+                msg,
+                {
+                    reply_markup: {
+                        inline_keyboard,
+                    },
+                },
+                msg.message_id
+            );
         }
     }
 
     static async todayEventsHandler(bot: HackerEmbassyBot, msg: Message) {
         let messageText: string = "";
+
+        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", Flags.Editing)]];
 
         try {
             messageText = TextGenerators.getTodayEventsText(await getTodayEvents());
@@ -281,7 +319,17 @@ export default class BasicHandlers implements BotHandlers {
             messageText = t("basic.events.error");
             logger.error(error);
         } finally {
-            bot.sendMessageExt(msg.chat.id, messageText, msg);
+            bot.sendOrEditMessage(
+                msg.chat.id,
+                messageText,
+                msg,
+                {
+                    reply_markup: {
+                        inline_keyboard,
+                    },
+                },
+                msg.message_id
+            );
         }
     }
 }

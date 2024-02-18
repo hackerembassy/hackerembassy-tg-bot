@@ -14,13 +14,21 @@ export default class NeedsHandlers implements BotHandlers {
         const needs = NeedsRepository.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
 
-        const inline_keyboard = needs
+        const needs_keyboard = needs
             ? needs.map(need => [InlineButton(need.text, "boughtbutton", Flags.Simple, { params: need.id })])
             : [];
 
-        await bot.sendMessageExt(msg.chat.id, text, msg, {
-            reply_markup: { inline_keyboard },
-        });
+        const default_inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)]];
+
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            text,
+            msg,
+            {
+                reply_markup: { inline_keyboard: [...needs_keyboard, ...default_inline_keyboard] },
+            },
+            msg.message_id
+        );
     }
 
     static async buyHandler(bot: HackerEmbassyBot, msg: Message, item: string) {

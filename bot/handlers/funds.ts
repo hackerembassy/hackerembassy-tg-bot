@@ -8,12 +8,14 @@ import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
 import { getToday } from "../../utils/date";
-import { getImageFromFolder } from "../../utils/filesystem";
+import { getImageFromPath } from "../../utils/filesystem";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 import { InlineButton, isPrivateMessage } from "../helpers";
+import { Flags } from "./service";
 
 const CALLBACK_DATA_RESTRICTION = 21;
 
@@ -30,7 +32,13 @@ export default class FundsHandlers implements BotHandlers {
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, bot.context(msg).mode);
 
-        await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg);
+        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)]];
+
+        await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg, {
+            reply_markup: {
+                inline_keyboard,
+            },
+        });
     }
 
     static async fundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
@@ -211,8 +219,15 @@ export default class FundsHandlers implements BotHandlers {
 
             if (!valueInAMD) throw new Error("Failed to convert currency");
 
-            const happinessLevel = valueInAMD < 10000 ? 1 : valueInAMD < 40000 ? 2 : 3;
-            const animeImage = await getImageFromFolder(`./resources/images/anime/`, `${happinessLevel}.jpg`);
+            let animeImage: Nullable<Buffer> = null;
+
+            if (value === 42069 || value === 69420 || value === 69 || value === 420) {
+                animeImage = await getImageFromPath(`./resources/images/memes/comedy.jpg`);
+            } else {
+                const happinessLevel =
+                    valueInAMD < 10000 ? 1 : valueInAMD < 20000 ? 2 : valueInAMD < 40000 ? 3 : valueInAMD < 80000 ? 4 : 5; // lol
+                animeImage = await getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
+            }
 
             if (!animeImage) throw new Error("Failed to get image");
 
@@ -364,9 +379,7 @@ export default class FundsHandlers implements BotHandlers {
             return;
         }
 
-        for (const donation of donations) {
-            await FundsHandlers.transferDonationHandler(bot, msg, donation.id, username);
-        }
+        RateLimiter.executeOverTime(donations.map(d => () => FundsHandlers.transferDonationHandler(bot, msg, d.id, username)));
     }
 
     static async exportCSVHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {

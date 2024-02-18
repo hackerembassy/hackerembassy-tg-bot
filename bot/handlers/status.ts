@@ -143,7 +143,7 @@ export default class StatusHandlers implements BotHandlers {
             [InlineButton(t("status.buttons.going"), "going"), InlineButton(t("status.buttons.notgoing"), "notgoing")],
             [
                 InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short }),
-                InlineButton(state.open ? t("status.buttons.close") : t("status.buttons.open"), state.open ? "close" : "open"),
+                InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
             ]
         );
 

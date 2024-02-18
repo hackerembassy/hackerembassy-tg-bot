@@ -181,6 +181,11 @@ export default class TopicsHandlers implements BotHandlers {
 
     static async addTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, topicdescription: string) {
         try {
+            if (subscriptionsRepository.getTopicByName(topicname)) {
+                await bot.sendMessageExt(msg.chat.id, t("topics.add.exists", { topic: topicname }), msg);
+                return;
+            }
+
             const success = subscriptionsRepository.addTopic(topicname, topicdescription);
 
             if (!success) throw new Error("Failed to add topic");
@@ -219,6 +224,11 @@ export default class TopicsHandlers implements BotHandlers {
 
             if (!topic) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
+                return;
+            }
+
+            if (subscriptionsRepository.getSubscriptionsByTopicId(topic.id).some(s => s.userid === tgUserId)) {
+                await bot.sendMessageExt(msg.chat.id, t("topics.subscribe.already", { topic: topicname }), msg);
                 return;
             }
 

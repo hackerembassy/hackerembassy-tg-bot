@@ -120,6 +120,11 @@ export default class TopicsHandlers implements BotHandlers {
                 msg
             );
 
+            // Save the message thread id to be able to reply to the original topic later
+            const context = bot.context(msg);
+            const topicId = context.messageThreadId;
+            context.messageThreadId = undefined;
+
             const message = t("topics.notify.message", { topic: topicname, text });
 
             const results = await RateLimiter.executeOverTime(
@@ -132,6 +137,8 @@ export default class TopicsHandlers implements BotHandlers {
             );
 
             const received = results.filter(r => r !== null).length;
+
+            context.messageThreadId = topicId;
 
             await bot.sendMessageExt(msg.chat.id, t("topics.notify.finished", { topic: topicname, count, received }), msg);
         } catch (error) {

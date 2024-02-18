@@ -99,6 +99,7 @@ export const MemberCommandsList: string = `
 /combine n (sq n) - Соединить последние n ответов бота из чата в одно сообщение (default n = 2)
 /setemoji - Поставить себе эмодзи в боте
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
+/removebuttons (rb) - Убрать кнопки из сообщения бота (команду нужно отправлять как ответ)
 
 Инфа:
 /residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце

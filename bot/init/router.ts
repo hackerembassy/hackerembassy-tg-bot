@@ -398,7 +398,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     ]);
     bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, ["member"]);
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler, null, null, ["admin"]);
-    bot.addRoute(["removebuttons"], ServiceHandlers.removeButtons, null, null, ["member"]);
+    bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, ["member"]);
 }
 
 export function addEventHandlers(bot: HackerEmbassyBot) {

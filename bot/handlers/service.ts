@@ -232,15 +232,21 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
-        await bot.editMessageReplyMarkup(
-            {
-                inline_keyboard: [],
-            },
-            {
-                message_id: msg.message_id,
-                chat_id: msg.chat.id,
-            }
-        );
+        try {
+            const messageToUpdate = msg.reply_to_message ?? msg;
+            await bot.editMessageReplyMarkup(
+                {
+                    inline_keyboard: [],
+                },
+                {
+                    message_id: messageToUpdate.message_id,
+                    chat_id: messageToUpdate.chat.id,
+                }
+            );
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("service.removebuttons.error"), msg);
+        }
     }
 
     static async newMemberHandler(bot: HackerEmbassyBot, memberUpdated: ChatMemberUpdated) {

@@ -249,7 +249,7 @@ export default class TopicsHandlers implements BotHandlers {
             const topic = subscriptionsRepository.getTopicByName(topicname);
 
             if (!topic) {
-                await bot.sendMessageExt(msg.chat.id, t("topics.unsubscribe.notfound", { topic: topicname }), msg);
+                await bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
                 return;
             }
 

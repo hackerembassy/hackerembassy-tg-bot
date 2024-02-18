@@ -19,11 +19,12 @@ import { file } from "tmp-promise";
 
 import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
-import { chunkSubstr, sleep } from "../../utils/common";
+import { chunkSubstr } from "../../utils/common";
 import { OptionalRegExp } from "../../utils/text";
 import { hasRole, prepareMessageForMarkdown } from "../helpers";
 import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
+import { RateLimiter } from "./RateLimit";
 import {
     BotCallbackHandler,
     BotCustomEvent,
@@ -43,7 +44,7 @@ const botConfig = config.get<BotConfig>("bot");
 
 // Consts
 export const MAX_MESSAGE_LENGTH = 3500;
-const messagedelay = 1500;
+export const MAX_MESSAGE_LENGTH_WITH_TAGS = 3200;
 const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
 export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
@@ -403,25 +404,11 @@ export default class HackerEmbassyBot extends TelegramBot {
             return;
         }
 
-        const chunks = chunkSubstr(text, MAX_MESSAGE_LENGTH);
+        const messageResponses = chunkSubstr(text, MAX_MESSAGE_LENGTH)
+            .map((chunk, index) => `📧 ${index + 1} часть 📧\n\n${chunk}\n📧 Конец части ${index + 1} 📧`)
+            .map(chunk => () => this.sendMessageExt(chatId, chunk, msg, options));
 
-        if (chunks.length === 1) {
-            this.sendMessageExt(chatId, chunks[0], msg, options);
-            return;
-        }
-
-        for (let index = 0; index < chunks.length; index++) {
-            this.sendMessageExt(
-                chatId,
-                `📧 ${index + 1} часть 📧
-
-${chunks[index]}
-📧 Конец части ${index + 1} 📧`,
-                msg,
-                options
-            );
-            await sleep(messagedelay);
-        }
+        RateLimiter.executeOverTime(messageResponses);
     }
 
     private shouldIgnore(text?: string): boolean {

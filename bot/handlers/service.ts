@@ -7,8 +7,12 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import { OpenAI } from "../../services/neural";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, { FULL_PERMISSIONS, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "../core/HackerEmbassyBot";
-import RateLimiter from "../core/RateLimiter";
+import HackerEmbassyBot, {
+    FULL_PERMISSIONS,
+    MAX_MESSAGE_LENGTH_WITH_TAGS,
+    RESTRICTED_PERMISSIONS,
+} from "../core/HackerEmbassyBot";
+import { UserRateLimiter } from "../core/RateLimit";
 import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
 import { InlineButton, userLink } from "../helpers";
 import { setMenu } from "../init/menu";
@@ -65,6 +69,7 @@ export default class ServiceHandlers implements BotHandlers {
         let lastMessageToEdit: Nullable<MessageHistoryEntry>;
         let foundLast = false;
 
+        // find a suitable message to edit (because images are not supported yet)
         do {
             lastMessageToEdit = bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
             if (!lastMessageToEdit) return;
@@ -81,28 +86,34 @@ export default class ServiceHandlers implements BotHandlers {
         preparedMessages.push(lastMessageToEdit);
 
         let messagesRemained = countToCombine - 1;
+        let combinedMessageLength = 0;
 
+        // TODO allow combining images into one message
         while (messagesRemained > 0) {
-            const message = bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            const message = bot.messageHistory.get(msg.chat.id, orderOfLastMessageToEdit);
             if (!message) break;
 
+            combinedMessageLength += message.text?.length ?? 0;
+
+            if (combinedMessageLength > MAX_MESSAGE_LENGTH_WITH_TAGS) break;
+
             const success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
-            // TODO combining images into one message
-            if (success) {
-                preparedMessages.push(message);
-                messagesRemained--;
-            }
+            await sleep(750); // prevent 429 because of telegram rate limit
+
+            if (!success) break;
+
+            bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            preparedMessages.push(message);
+            messagesRemained--;
         }
 
         preparedMessages.reverse();
-        let combinedMessageText = preparedMessages
+        const combinedMessageText = preparedMessages
             .map(m => {
                 const datePrefix = `[${new Date(m.datetime).toLocaleString("RU-ru").substring(12, 17)}]: `;
                 return `${m.text?.match(/^\[\d{2}:\d{2}\]/) ? "" : datePrefix}${m.text ?? "photo"}`;
             })
             .join("\n");
-
-        if (combinedMessageText.length > MAX_MESSAGE_LENGTH) combinedMessageText = "message is too big";
 
         bot.messageHistory.push(msg.chat.id, lastMessageToEdit.messageId, combinedMessageText, orderOfLastMessageToEdit);
 
@@ -148,7 +159,7 @@ export default class ServiceHandlers implements BotHandlers {
 
             bot.context(msg).messageThreadId = msg.message_thread_id;
 
-            await RateLimiter.throttled(ServiceHandlers.routeQuery, msg.from.id)(bot, callbackQuery, msg);
+            await UserRateLimiter.throttled(ServiceHandlers.routeQuery, msg.from.id)(bot, callbackQuery, msg);
         } catch (error) {
             logger.error(error);
         } finally {
@@ -221,15 +232,21 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
-        await bot.editMessageReplyMarkup(
-            {
-                inline_keyboard: [],
-            },
-            {
-                message_id: msg.message_id,
-                chat_id: msg.chat.id,
-            }
-        );
+        try {
+            const messageToUpdate = msg.reply_to_message ?? msg;
+            await bot.editMessageReplyMarkup(
+                {
+                    inline_keyboard: [],
+                },
+                {
+                    message_id: messageToUpdate.message_id,
+                    chat_id: messageToUpdate.chat.id,
+                }
+            );
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("service.removebuttons.error"), msg);
+        }
     }
 
     static async newMemberHandler(bot: HackerEmbassyBot, memberUpdated: ChatMemberUpdated) {

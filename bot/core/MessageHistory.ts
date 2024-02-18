@@ -40,5 +40,9 @@ export default class MessageHistory {
         return removed;
     }
 
+    get(chatId: number, from: number = 0): Nullable<MessageHistoryEntry> {
+        return this.botState.history[chatId]?.[from] ?? null;
+    }
+
     // TODO update history entry for EditMessage
 }

@@ -17,7 +17,7 @@ export interface BotConfig {
     timezone: string;
     chats: ChatsConfig;
     timeouts: AutoinsideTimeouts;
-    rateLimit: number;
+    rateLimits: RateLimits;
     autoWish: boolean;
     logfolderpath: string;
     persistedfolderpath: string;
@@ -28,6 +28,12 @@ export interface BotConfig {
     debug: boolean;
     moderatedChats: number[];
     static: string;
+}
+
+export interface RateLimits {
+    user: number;
+    api: number;
+    notifications: number;
 }
 
 export interface LiveConfig {

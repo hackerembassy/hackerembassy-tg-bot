@@ -139,12 +139,18 @@ export default class StatusHandlers implements BotHandlers {
             ? [[InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]]
             : [];
 
+        inlineKeyboard.push([
+            InlineButton(t("status.buttons.going"), "going"),
+            InlineButton(t("status.buttons.notgoing"), "notgoing"),
+        ]);
+
         inlineKeyboard.push(
-            [InlineButton(t("status.buttons.going"), "going"), InlineButton(t("status.buttons.notgoing"), "notgoing")],
-            [
-                InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short }),
-                InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
-            ]
+            short
+                ? [InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short })]
+                : [
+                      InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short }),
+                      InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
+                  ]
         );
 
         return inlineKeyboard;

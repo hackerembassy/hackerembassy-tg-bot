@@ -33,6 +33,7 @@ export interface BotConfig {
 export interface RateLimits {
     user: number;
     api: number;
+    notifications: number;
 }
 
 export interface LiveConfig {

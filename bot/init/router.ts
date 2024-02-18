@@ -86,6 +86,13 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["subscribe", "sub"], TopicsHandlers.subscribeHandler, /(\S+)/, match => [match[1]]);
     bot.addRoute(["unsubscribe", "unsub"], TopicsHandlers.unsubscribeHandler, /(\S+)/, match => [match[1]]);
     bot.addRoute(["tagsubscribers", "tagsubs", "tag"], TopicsHandlers.tagSubscribersHandler, /(\S+)/, match => [match[1]]);
+    bot.addRoute(
+        ["notify", "notifysubs", "notifysubscribers"],
+        TopicsHandlers.notifySubscribersHandler,
+        OptionalParam(/(\S+) (.*)/s),
+        match => [match[1], match[2]],
+        ["member"]
+    );
 
     // Emoji
     bot.addRoute(["setemoji", "emoji", "myemoji"], StatusHandlers.setemojiHandler, OptionalParam(/(.*)/), match => [match[1]], [

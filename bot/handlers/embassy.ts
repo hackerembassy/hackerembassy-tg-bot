@@ -183,13 +183,20 @@ export default class EmbassyHandlers implements BotHandlers {
                 InlineButton(t("embassy.printers.anettestatus"), "printerstatus", Flags.Simple, { params: "anette" }),
                 InlineButton(t("embassy.printers.plumbusstatus"), "printerstatus", Flags.Simple, { params: "plumbus" }),
             ],
+            [InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)],
         ];
 
-        await bot.sendMessageExt(msg.chat.id, text, msg, {
-            reply_markup: {
-                inline_keyboard,
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            text,
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
             },
-        });
+            msg.message_id
+        );
     }
 
     static async climateHandler(bot: HackerEmbassyBot, msg: Message) {

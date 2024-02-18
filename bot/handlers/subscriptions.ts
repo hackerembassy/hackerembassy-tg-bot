@@ -34,7 +34,12 @@ export default class TopicsHandlers implements BotHandlers {
                 )
             );
 
-            const inline_keyboard = [[InlineButton(t("topics.buttons.topics"), "topics", Flags.Editing)]];
+            const inline_keyboard = [
+                [
+                    InlineButton(t("topics.buttons.topics"), "topics", Flags.Editing),
+                    InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
+                ],
+            ];
 
             await bot.sendOrEditMessage(
                 msg.chat.id,
@@ -143,7 +148,12 @@ export default class TopicsHandlers implements BotHandlers {
             const topicsList = topics.length > 0 ? listTopics(topics) : t("topics.general.empty");
             const text = t("topics.topics.list", { topics: topicsList }) + (isMember ? `\n${t("topics.topics.member")}` : "");
 
-            const inline_keyboard = [[InlineButton(t("topics.buttons.subscriptions"), "subscriptions", Flags.Editing)]];
+            const inline_keyboard = [
+                [
+                    InlineButton(t("topics.buttons.subscriptions"), "subscriptions", Flags.Editing),
+                    InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
+                ],
+            ];
 
             await bot.sendOrEditMessage(
                 msg.chat.id,

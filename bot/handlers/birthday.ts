@@ -12,6 +12,8 @@ import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
+import { InlineButton } from "../helpers";
+import { Flags } from "./service";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -26,7 +28,19 @@ export default class BirthdayHandlers implements BotHandlers {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
 
-        await bot.sendMessageExt(msg.chat.id, text, msg);
+        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)]];
+
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            text,
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            },
+            msg.message_id
+        );
     }
 
     static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date?: string) {

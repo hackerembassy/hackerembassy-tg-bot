@@ -15,6 +15,7 @@ import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 import { InlineButton, isPrivateMessage } from "../helpers";
+import { Flags } from "./service";
 
 const CALLBACK_DATA_RESTRICTION = 21;
 
@@ -31,7 +32,13 @@ export default class FundsHandlers implements BotHandlers {
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, bot.context(msg).mode);
 
-        await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg);
+        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)]];
+
+        await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg, {
+            reply_markup: {
+                inline_keyboard,
+            },
+        });
     }
 
     static async fundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {

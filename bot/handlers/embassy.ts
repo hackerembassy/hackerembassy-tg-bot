@@ -68,11 +68,15 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async unlockedNotificationHandler(bot: HackerEmbassyBot, username: string) {
-        await bot.sendMessageExt(
-            botConfig.chats.alerts,
-            t("embassy.unlock.success-alert", { user: helpers.formatUsername(username, { mention: false }) }),
-            null
-        );
+        try {
+            await bot.sendMessageExt(
+                botConfig.chats.alerts,
+                t("embassy.unlock.success-alert", { user: helpers.formatUsername(username, { mention: false }) }),
+                null
+            );
+        } catch (error) {
+            logger.error(error);
+        }
     }
 
     static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {

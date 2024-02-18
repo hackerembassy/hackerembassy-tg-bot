@@ -8,6 +8,7 @@ const botConfig = config.get<BotConfig>("bot");
 
 export const DEFAULT_USER_RATE_LIMIT = botConfig.rateLimits.user;
 export const DEFAULT_API_RATE_LIMIT = botConfig.rateLimits.api;
+export const DEFAULT_NOTIFICATIONS_RATE_LIMIT = botConfig.rateLimits.notifications;
 
 export class UserRateLimiter {
     static #debounceTimerIds = new Map();
@@ -62,11 +63,15 @@ export class UserRateLimiter {
 }
 
 export class RateLimiter {
-    static async executeOverTime<T>(calls: (() => Promise<T>)[], rateLimit = DEFAULT_API_RATE_LIMIT): Promise<T[]> {
+    static async executeOverTime<T>(
+        calls: (() => Promise<T>)[],
+        rateLimit = DEFAULT_API_RATE_LIMIT,
+        onFailure?: (error: any) => T
+    ): Promise<T[]> {
         const results: T[] = [];
 
         for (const call of calls) {
-            results.push(await call());
+            results.push(await call().catch(onFailure));
             await sleep(rateLimit);
         }
 

@@ -132,7 +132,11 @@ export default class BasicHandlers implements BotHandlers {
                 InlineButton(t("basic.start.buttons.birthdays"), "birthdays"),
                 InlineButton(t("basic.start.buttons.needs"), "needs"),
             ],
-            [InlineButton(t("basic.start.buttons.printers"), "printers"), InlineButton(t("basic.start.buttons.help"), "help")],
+            [
+                InlineButton(t("basic.start.buttons.printers"), "printers"),
+                InlineButton(t("basic.start.buttons.topics"), "topics"),
+            ],
+            [InlineButton(t("basic.start.buttons.me"), "me"), InlineButton(t("basic.start.buttons.help"), "help")],
         ];
 
         await bot.sendOrEditMessage(

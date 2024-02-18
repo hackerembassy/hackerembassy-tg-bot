@@ -17,7 +17,8 @@
         },
         "rateLimits": {
             "user": 500,
-            "api": 750
+            "api": 750,
+            "notifications": 5000
         },
         "autoWish": true,
         "logfolderpath": "log/application",

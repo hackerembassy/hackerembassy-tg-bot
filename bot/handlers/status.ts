@@ -183,6 +183,14 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
+    static async liveStatusShortcutHandler(bot: HackerEmbassyBot, msg: Message) {
+        const mode = bot.context(msg).mode;
+        mode.live = true;
+        mode.pin = true;
+
+        await StatusHandlers.statusHandler(bot, msg, true);
+    }
+
     static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
         const state = StatusRepository.getSpaceLastState();

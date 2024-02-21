@@ -628,7 +628,7 @@ export default class EmbassyHandlers implements BotHandlers {
         try {
             const enaPageContent = await fetch(ENA_OUTAGES_URL_HY).then(res => res.text());
 
-            if (enaPageContent.includes(EMBASSY_STREET_HY)) {
+            if (enaPageContent.toLowerCase().includes(EMBASSY_STREET_HY.toLowerCase())) {
                 if (!bot.botState.flags.electricityOutageMentioned || msg) {
                     bot.botState.flags.electricityOutageMentioned = true;
                     bot.botState.persistChanges();

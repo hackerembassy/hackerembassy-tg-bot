@@ -11,6 +11,10 @@ import { BotCustomEvent, BotHandlers, LiveChatHandler, MessageHistoryEntry } fro
 
 const botConfig = config.get<BotConfig>("bot");
 
+type StateFlags = {
+    electricityOutageMentioned: boolean;
+};
+
 export default class BotState {
     static readonly STATE_FILE_NAME = "state.json";
     statepath: string;
@@ -30,6 +34,7 @@ export default class BotState {
                 this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());
                 this.lastBirthdayWishTimestamp = persistedState.lastBirthdayWishTimestamp;
                 this.initLiveChats();
+                this.flags = persistedState.flags;
 
                 return;
             } catch (error) {
@@ -41,6 +46,9 @@ export default class BotState {
         this.history = {};
         this.liveChats = [];
         this.lastBirthdayWishTimestamp = 0;
+        this.flags = {
+            electricityOutageMentioned: false,
+        };
 
         mkdirSync(dirname(this.statepath), { recursive: true });
         writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
@@ -75,6 +83,7 @@ export default class BotState {
     public liveChats: LiveChatHandler[] = [];
     public history: { [chatId: string]: Optional<MessageHistoryEntry[]> };
     public lastBirthdayWishTimestamp: number = 0;
+    public flags: StateFlags;
 
     clearLiveHandlers(chatId: number, event?: BotCustomEvent) {
         const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);
@@ -95,6 +104,9 @@ export default class BotState {
         this.liveChats = [];
         this.history = {};
         this.lastBirthdayWishTimestamp = 0;
+        this.flags = {
+            electricityOutageMentioned: false,
+        };
         this.persistChanges();
     }
 

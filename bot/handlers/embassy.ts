@@ -618,4 +618,38 @@ export default class EmbassyHandlers implements BotHandlers {
             await bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.fail"), msg);
         }
     }
+
+    static async checkOutageMentionsHandler(bot: HackerEmbassyBot, msg?: Message) {
+        const EMBASSY_STREET = t("embassy.ena.street");
+        const EMBASSY_STREET_HY = "Պուշկինի";
+        const ENA_OUTAGES_URL_HY = "https://www.ena.am/Info.aspx?id=5&lang=1";
+        const destinationChat = msg?.chat.id ?? botConfig.chats.alerts;
+
+        try {
+            const enaPageContent = await fetch(ENA_OUTAGES_URL_HY).then(res => res.text());
+
+            if (enaPageContent.includes(EMBASSY_STREET_HY)) {
+                if (!bot.botState.flags.electricityOutageMentioned || msg) {
+                    bot.botState.flags.electricityOutageMentioned = true;
+                    bot.botState.persistChanges();
+                    await bot.sendMessageExt(
+                        destinationChat,
+                        t("embassy.ena.mentioned", { hystreet: EMBASSY_STREET_HY, street: EMBASSY_STREET }),
+                        msg ?? null
+                    );
+                }
+            } else if (bot.botState.flags.electricityOutageMentioned || msg) {
+                bot.botState.flags.electricityOutageMentioned = false;
+                bot.botState.persistChanges();
+                await bot.sendMessageExt(
+                    destinationChat,
+                    t("embassy.ena.notmentioned", { hystreet: EMBASSY_STREET_HY, street: EMBASSY_STREET }),
+                    msg ?? null
+                );
+            }
+        } catch (error) {
+            logger.error(error);
+            if (msg) await bot.sendMessageExt(msg.chat.id, t("embassy.ena.fail"), msg);
+        }
+    }
 }

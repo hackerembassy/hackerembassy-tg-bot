@@ -5,6 +5,7 @@ import { HALFDAY, HOUR } from "../../utils/date";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent } from "../core/types";
 import BirthdayHandlers from "../handlers/birthday";
+import EmbassyHandlers from "../handlers/embassy";
 import MemeHandlers from "../handlers/meme";
 import StatusHandlers from "../handlers/status";
 
@@ -47,6 +48,8 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
 
     setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
     setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
+
+    setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), HOUR / 2);
 
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);

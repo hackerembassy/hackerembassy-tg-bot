@@ -400,6 +400,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, ["member"]);
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler, null, null, ["admin"]);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, ["member"]);
+
+    // Checks
+    bot.addRoute(["ena", "checkena", "checkoutages", "outages"], EmbassyHandlers.checkOutageMentionsHandler);
 }
 
 export function addEventHandlers(bot: HackerEmbassyBot) {

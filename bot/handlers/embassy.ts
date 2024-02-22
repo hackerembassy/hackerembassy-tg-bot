@@ -627,26 +627,24 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             const enaPageContent = await fetch(ENA_OUTAGES_URL_HY).then(res => res.text());
+            const isElectricityOutage = enaPageContent.toLowerCase().includes(EMBASSY_STREET_HY.toLowerCase());
+            const needToRespond = msg || bot.botState.flags.electricityOutageMentioned !== isElectricityOutage;
 
-            if (enaPageContent.toLowerCase().includes(EMBASSY_STREET_HY.toLowerCase())) {
-                if (!bot.botState.flags.electricityOutageMentioned || msg) {
-                    bot.botState.flags.electricityOutageMentioned = true;
-                    bot.botState.persistChanges();
-                    await bot.sendMessageExt(
-                        destinationChat,
-                        t("embassy.ena.mentioned", { hystreet: EMBASSY_STREET_HY, street: EMBASSY_STREET }),
-                        msg ?? null
-                    );
-                }
-            } else if (bot.botState.flags.electricityOutageMentioned || msg) {
-                bot.botState.flags.electricityOutageMentioned = false;
-                bot.botState.persistChanges();
-                await bot.sendMessageExt(
-                    destinationChat,
-                    t("embassy.ena.notmentioned", { hystreet: EMBASSY_STREET_HY, street: EMBASSY_STREET }),
-                    msg ?? null
-                );
+            if (!needToRespond) return;
+
+            if (!msg) {
+                bot.botState.flags.electricityOutageMentioned = isElectricityOutage;
+                await bot.botState.persistChanges();
             }
+
+            await bot.sendMessageExt(
+                destinationChat,
+                t(isElectricityOutage ? "embassy.ena.mentioned" : "embassy.ena.notmentioned", {
+                    hystreet: EMBASSY_STREET_HY,
+                    street: EMBASSY_STREET,
+                }),
+                msg ?? null
+            );
         } catch (error) {
             logger.error(error);
             if (msg) await bot.sendMessageExt(msg.chat.id, t("embassy.ena.fail"), msg);

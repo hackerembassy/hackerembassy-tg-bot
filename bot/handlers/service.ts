@@ -233,7 +233,12 @@ export default class ServiceHandlers implements BotHandlers {
 
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
         try {
-            const messageToUpdate = msg.reply_to_message ?? msg;
+            // I hate topics in tg 🤬
+            const messageToUpdate =
+                msg.reply_to_message && msg.reply_to_message.message_thread_id !== msg.reply_to_message.message_id
+                    ? msg.reply_to_message
+                    : msg;
+
             await bot.editMessageReplyMarkup(
                 {
                     inline_keyboard: [],

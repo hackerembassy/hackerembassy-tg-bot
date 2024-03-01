@@ -255,7 +255,7 @@ export default class EmbassyHandlers implements BotHandlers {
             } else await bot.sendOrEditMessage(msg.chat.id, caption, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
         } catch (error) {
             logger.error(error);
-            await bot.sendMessageExt(msg.chat.id, t("embassy.printerstatus.fail"), msg);
+            if (!bot.context(msg).isEditing) await bot.sendMessageExt(msg.chat.id, t("embassy.printerstatus.fail"), msg);
         }
     }
 

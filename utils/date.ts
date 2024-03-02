@@ -22,6 +22,8 @@ export const MINUTE = 60 * 1000;
 export const HOUR = 60 * MINUTE;
 export const HALFDAY = 12 * HOUR;
 
+export const DURATION_STRING_REGEX = /(?:(\d+)h\s?)?(?:(\d+)m)?/;
+
 export const shortDateTimeOptions: Intl.DateTimeFormatOptions = {
     dateStyle: "short",
     timeStyle: "short",
@@ -37,11 +39,11 @@ export function toDateObject(date: Date): DateObject {
 }
 
 export function durationStringToMs(durationString: string): number | undefined {
-    const duration = durationString.match(/(\d+)h\s?(\d+)?m?/);
+    const duration = durationString.match(DURATION_STRING_REGEX);
 
     if (!duration) throw new Error(`Invalid duration string: ${durationString}`);
 
-    const hours = parseInt(duration[1]);
+    const hours = duration[1] ? parseInt(duration[1]) : 0;
     const minutes = duration[2] ? parseInt(duration[2]) : 0;
 
     return (hours * 60 + minutes) * MINUTE;

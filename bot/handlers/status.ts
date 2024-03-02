@@ -331,25 +331,27 @@ export default class StatusHandlers implements BotHandlers {
         durationString?: string,
         username?: string
     ) {
+        const context = bot.context(msg);
+
+        if (
+            ghost &&
+            msg.chat.id !== botConfig.chats.key &&
+            msg.chat.id !== botConfig.chats.alerts &&
+            !helpers.isPrivateMessage(msg, context)
+        )
+            return await bot.sendMessageExt(msg.chat.id, "👻", msg);
+
         const eventDate = new Date();
         const force = username !== undefined;
         const usernameOrFirstname = username ?? msg.from?.username ?? msg.from?.first_name;
+        const inviter = force ? msg.from?.username : undefined;
         const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
         const until = durationMs ? new Date(eventDate.getTime() + durationMs) : undefined;
         const gotIn = usernameOrFirstname ? StatusHandlers.LetIn(usernameOrFirstname, eventDate, until, force, ghost) : false;
 
-        let message: string;
+        if (gotIn) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
-        if (gotIn) {
-            message = t(force ? "status.inforce.gotin" : "status.in.gotin", {
-                username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
-                memberusername: force ? helpers.formatUsername(msg.from?.username, bot.context(msg).mode) : undefined,
-            });
-
-            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
-        } else {
-            message = force ? t("status.inforce.notready") : t("status.in.notready");
-        }
+        const message = TextGenerators.getInMessage(usernameOrFirstname, gotIn, context.mode, inviter, until);
 
         const inline_keyboard = gotIn
             ? [

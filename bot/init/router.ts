@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import logger from "../../services/logger";
 import broadcast, { BroadcastEvents } from "../../utils/broadcast";
+import { DURATION_STRING_REGEX } from "../../utils/date";
 import { OptionalParam } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import AdminHandlers from "../handlers/admin";
@@ -44,20 +45,27 @@ export function addRoutes(bot: HackerEmbassyBot): void {
 
     // Issues
     bot.addRoute(["issue"], BasicHandlers.issueHandler, OptionalParam(/(.*)/), match => [match[1]]);
-
     // Status
     bot.addRoute(["status", "s"], StatusHandlers.statusHandler, OptionalParam(/(short)/), match => [match[1] === "short"]);
     bot.addRoute(["shortstatus", "statusshort", "shs"], StatusHandlers.statusHandler, null, () => [true]);
     bot.addRoute(["livestatus", "live"], StatusHandlers.liveStatusShortcutHandler, null, null, ["member"]);
-    bot.addRoute(["in", "iaminside"], StatusHandlers.inHandler, OptionalParam(/(for \d\d?(?:h|m))/), match => [false, match[1]]);
-    bot.addRoute(["inghost", "ghost"], StatusHandlers.inHandler, OptionalParam(/(for \d\d?(?:h|m))/), match => [true, match[1]], [
-        "member",
-        "trusted",
-    ]);
+    bot.addRoute(
+        ["in", "iaminside"],
+        StatusHandlers.inHandler,
+        OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)),
+        match => [false, match[1]]
+    );
+    bot.addRoute(
+        ["inghost", "ghost"],
+        StatusHandlers.inHandler,
+        OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)),
+        match => [true, match[1]],
+        ["member", "trusted"]
+    );
     bot.addRoute(
         ["inforce", "goin"],
         StatusHandlers.inHandler,
-        /(\S+)(?: (for \d\d?(?:h|m)))?/,
+        RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))`),
         match => [false, match[2], match[1]],
         ["member", "trusted"]
     );

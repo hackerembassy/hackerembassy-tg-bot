@@ -362,7 +362,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
         const residents = usersRepository.getUsers().filter(u => hasRole(u.username, "member"));
-        const recentUserStates = findRecentStates(statusRepository.getAllUserStates() ?? []);
+        const recentUserStates = findRecentStates(statusRepository.getAllUserStates());
         const residentsInside = recentUserStates
             .filter(filterPeopleInside)
             .filter(insider => residents.find(r => r.username === insider.username));

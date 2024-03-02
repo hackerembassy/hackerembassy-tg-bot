@@ -419,14 +419,14 @@ export default class StatusHandlers implements BotHandlers {
         return true;
     }
 
-    static LetOut(username: string, date: Date, force = false) {
+    static LetOut(username: string, date: Date, force = false, timedOut = false) {
         const userstate = {
             id: 0,
             status: UserStateType.Outside,
             date: date,
             until: null,
             username: username,
-            type: force ? UserStateChangeType.Force : UserStateChangeType.Manual,
+            type: force ? UserStateChangeType.Force : timedOut ? UserStateChangeType.TimedOut : UserStateChangeType.Manual,
             note: null,
         };
 
@@ -556,6 +556,19 @@ export default class StatusHandlers implements BotHandlers {
             StatusHandlers.isStatusError = true;
             logger.error(error);
         }
+    }
+
+    static timedOutHandler(bot: HackerEmbassyBot) {
+        const currentDate = new Date();
+        const timedOutUsers = UserStateService.getRecentUserStates()
+            .filter(filterAllPeopleInside)
+            .filter(us => us.until && us.until < currentDate);
+
+        for (const user of timedOutUsers) {
+            StatusHandlers.LetOut(user.username, currentDate);
+        }
+
+        if (timedOutUsers.length > 0) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
     }
 
     static async profileHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {

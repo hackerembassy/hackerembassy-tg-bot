@@ -49,11 +49,21 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["status", "s"], StatusHandlers.statusHandler, OptionalParam(/(short)/), match => [match[1] === "short"]);
     bot.addRoute(["shortstatus", "statusshort", "shs"], StatusHandlers.statusHandler, null, () => [true]);
     bot.addRoute(["livestatus", "live"], StatusHandlers.liveStatusShortcutHandler, null, null, ["member"]);
-    bot.addRoute(["in", "iaminside"], StatusHandlers.inHandler);
+    bot.addRoute(["in", "iaminside"], StatusHandlers.inHandler, OptionalParam(/(for \d\d?(?:h|m))/), match => [false, match[1]]);
+    bot.addRoute(["inghost", "ghost"], StatusHandlers.inHandler, OptionalParam(/(for \d\d?(?:h|m))/), match => [true, match[1]], [
+        "member",
+        "trusted",
+    ]);
+    bot.addRoute(
+        ["inforce", "goin"],
+        StatusHandlers.inHandler,
+        /(\S+)(?: (for \d\d?(?:h|m)))?/,
+        match => [false, match[2], match[1]],
+        ["member", "trusted"]
+    );
     bot.addRoute(["open", "o"], StatusHandlers.openHandler, null, null, ["member"]);
     bot.addRoute(["close", "c"], StatusHandlers.closeHandler, null, null, ["member"]);
-    bot.addRoute(["inforce", "goin"], StatusHandlers.inForceHandler, /(\S+)/, match => [match[1]], ["member", "trusted"]);
-    bot.addRoute(["outforce", "gohome"], StatusHandlers.outForceHandler, /(\S+)/, match => [match[1]], ["member", "trusted"]);
+    bot.addRoute(["outforce", "gohome"], StatusHandlers.outHandler, /(\S+)/, match => [match[1]], ["member", "trusted"]);
     bot.addRoute(["out", "iamleaving"], StatusHandlers.outHandler);
     bot.addRoute(["evict", "outforceall"], StatusHandlers.evictHandler, null, null, ["member"]);
     bot.addRoute(["going", "coming", "cuming", "g"], StatusHandlers.goingHandler, OptionalParam(/(.*)/), match => [match[1]]);
@@ -356,7 +366,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     ]);
 
     // Admin
-    bot.addRoute(["getusers", "users", "gu"], AdminHandlers.getUsersHandler, null, null, ["admin"]);
+    bot.addRoute(["getuser", "user", "gu"], AdminHandlers.getUserHandler, OptionalParam(/(\S+?)/), match => [match[1]], [
+        "admin",
+    ]);
     bot.addRoute(["getrestrictedusers", "restricted"], AdminHandlers.getRestrictedUsersHandler, null, null, ["admin"]);
     bot.addRoute(["adduser"], AdminHandlers.addUserHandler, /(\S+?) as (\S+)/, match => [match[1], match[2]], ["admin"]);
     bot.addRoute(["updateroles"], AdminHandlers.updateRolesHandler, /of (\S+?) to (\S+)/, match => [match[1], match[2]], [
@@ -375,6 +387,8 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["stoplive", "cleanlive"], AdminHandlers.stopLiveHandler, OptionalParam(/(\S+)/), match => [match[1]], [
         "admin",
     ]);
+    bot.addRoute(["setflag"], AdminHandlers.setFlagHandler, /(\S+?) (true|false|1|0)/, match => [match[1], match[2]], ["admin"]);
+    bot.addRoute(["getflags"], AdminHandlers.getFlagsHandler, null, null, ["admin"]);
 
     // Memes
     bot.addRoute(["randomdog", "dog"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/dogs"]);

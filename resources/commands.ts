@@ -144,6 +144,8 @@ export const AdminCommandsList: string = `
 /getstate
 /cleanstate
 /stoplive
+/setflag flag_name flag_value
+/getflags
 
 \\* Roles: admin, accountant, member, trusted, default
 

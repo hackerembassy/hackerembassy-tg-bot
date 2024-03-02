@@ -92,6 +92,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         live: false,
         static: false,
         forward: false,
+        secret: false,
     };
 
     public messageHistory: MessageHistory;
@@ -126,7 +127,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (!this.contextMap.has(msg)) {
             const newContext: BotMessageContext = {
-                mode: { ...HackerEmbassyBot.defaultModes },
+                mode: { ...HackerEmbassyBot.defaultModes, secret: msg.chat.id === botConfig.chats.key },
                 messageThreadId: undefined,
                 clear() {
                     botthis.contextMap.delete(msg);
@@ -137,6 +138,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 isEditing: false,
                 isButtonResponse: false,
             };
+
             this.contextMap.set(msg, newContext);
 
             return newContext;

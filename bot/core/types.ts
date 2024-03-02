@@ -19,6 +19,7 @@ export type BotMessageContextMode = {
     live: boolean;
     static: boolean;
     forward: boolean;
+    secret: boolean;
 };
 
 export type LiveChatHandler = {

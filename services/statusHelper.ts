@@ -33,6 +33,7 @@ export function openSpace(opener: Optional<string>, options: { checkOpener: bool
         id: 0,
         status: UserStateType.Inside,
         date: opendate,
+        until: null,
         username: opener ?? "anon",
         type: UserStateChangeType.Opened,
         note: null,
@@ -55,7 +56,7 @@ export function closeSpace(closer: Nullable<string> | undefined, options: { evic
 
     const allUserStates = statusRepository.getAllUserStates();
 
-    if (options.evict && allUserStates) evictPeople(findRecentStates(allUserStates).filter(filterPeopleInside));
+    if (options.evict) evictPeople(findRecentStates(allUserStates).filter(filterPeopleInside));
 }
 
 export async function hasDeviceInside(username: Optional<string>): Promise<boolean> {
@@ -140,6 +141,10 @@ export function filterPeopleInside(userState: UserState): boolean {
     return userState.status === UserStateType.Inside;
 }
 
+export function filterAllPeopleInside(userState: UserState): boolean {
+    return userState.status === UserStateType.Inside || userState.status === UserStateType.InsideSecret;
+}
+
 export function filterPeopleGoing(userState: UserState): boolean {
     return userState.status === UserStateType.Going && isToday(new Date(userState.date));
 }
@@ -152,9 +157,18 @@ export function evictPeople(insideStates: UserState[]): void {
             id: 0,
             status: UserStateType.Outside,
             date: date,
+            until: null,
             username: userstate.username,
             type: UserStateChangeType.Evicted,
             note: null,
         });
+    }
+}
+
+export class UserStateService {
+    private static userStateCache: UserState[] = [];
+
+    static getRecentUserStates(): UserState[] {
+        return findRecentStates(statusRepository.getAllUserStates());
     }
 }

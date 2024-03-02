@@ -36,6 +36,25 @@ export function toDateObject(date: Date): DateObject {
     return { day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear() };
 }
 
+export function durationStringToMs(durationString: string): number | undefined {
+    const duration = durationString.match(/(\d+)h\s?(\d+)?m?/);
+
+    if (!duration) throw new Error(`Invalid duration string: ${durationString}`);
+
+    const hours = parseInt(duration[1]);
+    const minutes = duration[2] ? parseInt(duration[2]) : 0;
+
+    return (hours * 60 + minutes) * MINUTE;
+}
+
+export function tryDurationStringToMs(durationString: string): number | undefined {
+    try {
+        return durationStringToMs(durationString);
+    } catch {
+        return undefined;
+    }
+}
+
 export function convertMinutesToHours(minutes: number): string | undefined {
     if (isNaN(minutes) || !isFinite(minutes)) return undefined;
 

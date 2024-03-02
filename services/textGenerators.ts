@@ -7,7 +7,7 @@ import Fund from "../models/Fund";
 import Need from "../models/Need";
 import Topic from "../models/Topic";
 import User from "../models/User";
-import UserState, { UserStateChangeType } from "../models/UserState";
+import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
 import {
@@ -206,8 +206,9 @@ export function getUserBadges(username: Nullable<string>): string {
 export function getUserBadgesWithStatus(userStatus: UserState): string {
     const userBadges = getUserBadges(userStatus.username);
     const autoBadge = userStatus.type === UserStateChangeType.Auto ? "📲" : "";
+    const ghostBadge = userStatus.status === UserStateType.InsideSecret ? "👻" : "";
 
-    return `${autoBadge}${userBadges}`;
+    return `${ghostBadge}${autoBadge}${userBadges}`;
 }
 
 export function getAccountsList(accountants: Optional<User[]>, mode: { mention: boolean }, isApi = false): string {

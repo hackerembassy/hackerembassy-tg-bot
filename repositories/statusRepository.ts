@@ -13,7 +13,7 @@ class StatusRepository extends BaseRepository {
         return lastState;
     }
 
-    getAllUserStates(): Nullable<UserState[]> {
+    getAllUserStates(): UserState[] {
         return this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all() as UserState[];
     }
 
@@ -44,11 +44,12 @@ class StatusRepository extends BaseRepository {
 
     pushPeopleState(state: UserState): void {
         this.db
-            .prepare("INSERT INTO userstates (status, username, date, type, note) VALUES (?, ?, ?, ?, ?)")
+            .prepare("INSERT INTO userstates (status, username, date, until, type, note) VALUES (?, ?, ?, ?, ?)")
             .run(
                 state.status ? state.status : UserStateType.Outside,
                 state.username,
                 state.date.valueOf(),
+                state.until ? state.until.valueOf() : null,
                 state.type,
                 state.note
             );

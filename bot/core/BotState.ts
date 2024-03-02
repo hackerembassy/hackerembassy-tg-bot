@@ -11,9 +11,12 @@ import { BotCustomEvent, BotHandlers, LiveChatHandler, MessageHistoryEntry } fro
 
 const botConfig = config.get<BotConfig>("bot");
 
-type StateFlags = {
-    electricityOutageMentioned: boolean;
+const DEFAULT_STATE_FLAGS = {
+    electricityOutageMentioned: false,
+    hideGuests: false,
 };
+
+export type StateFlags = typeof DEFAULT_STATE_FLAGS;
 
 export default class BotState {
     static readonly STATE_FILE_NAME = "state.json";
@@ -46,9 +49,7 @@ export default class BotState {
         this.history = {};
         this.liveChats = [];
         this.lastBirthdayWishTimestamp = 0;
-        this.flags = {
-            electricityOutageMentioned: false,
-        };
+        this.flags = { ...DEFAULT_STATE_FLAGS };
 
         mkdirSync(dirname(this.statepath), { recursive: true });
         writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
@@ -104,9 +105,7 @@ export default class BotState {
         this.liveChats = [];
         this.history = {};
         this.lastBirthdayWishTimestamp = 0;
-        this.flags = {
-            electricityOutageMentioned: false,
-        };
+        this.flags = { ...DEFAULT_STATE_FLAGS };
         this.persistChanges();
     }
 

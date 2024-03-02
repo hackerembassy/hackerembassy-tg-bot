@@ -1,5 +1,11 @@
 import { ChatId } from "node-telegram-bot-api";
 
+export const enum AutoInsideMode {
+    Disabled = 0,
+    Enabled = 1,
+    Ghost = 2,
+}
+
 class User {
     readonly id: number;
     userid: Nullable<ChatId>;
@@ -7,7 +13,7 @@ class User {
     roles: string;
     mac: Nullable<string>;
     birthday: Nullable<string>;
-    autoinside: boolean;
+    autoinside: AutoInsideMode;
     emoji: Nullable<string>;
 
     constructor({
@@ -16,7 +22,7 @@ class User {
         roles = "default",
         mac = null,
         birthday = null,
-        autoinside = false,
+        autoinside = AutoInsideMode.Disabled,
         emoji = null,
         userid = null,
     }: User) {

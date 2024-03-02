@@ -4,6 +4,7 @@ export const enum UserStateChangeType {
     Force = 2,
     Opened = 3,
     Evicted = 4,
+    TimedOut = 5,
 }
 
 export const enum UserStateType {

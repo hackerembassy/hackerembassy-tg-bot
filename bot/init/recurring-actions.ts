@@ -1,7 +1,7 @@
 import config from "config";
 
 import { BotConfig } from "../../config/schema";
-import { HALFDAY, HOUR } from "../../utils/date";
+import { HALFDAY, HOUR, MINUTE } from "../../utils/date";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent } from "../core/types";
 import BirthdayHandlers from "../handlers/birthday";
@@ -48,6 +48,7 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
 
     setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
     setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
+    setInterval(() => StatusHandlers.timedOutHandler(bot), MINUTE);
 
     setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), HOUR / 2);
 

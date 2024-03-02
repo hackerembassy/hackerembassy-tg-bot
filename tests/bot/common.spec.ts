@@ -107,6 +107,8 @@ describe("Bot behavior shared for all commands:", () => {
             "/transferdonation 1 to username",
             "/closefund Fund_Name",
             "/removefund Fund_Name",
+            "/setflag flag_name true",
+            "getflags",
         ];
 
         for (const command of protectedCommands) {

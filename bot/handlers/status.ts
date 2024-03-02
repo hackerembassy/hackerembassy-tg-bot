@@ -3,7 +3,7 @@ import TelegramBot, { Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import State from "../../models/State";
-import { UserStateChangeType, UserStateType } from "../../models/UserState";
+import UserState, { UserStateChangeType, UserStateType } from "../../models/UserState";
 import fundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
 import UsersRepository from "../../repositories/usersRepository";
@@ -16,6 +16,7 @@ import logger from "../../services/logger";
 import {
     closeSpace,
     evictPeople,
+    filterAllPeopleInside,
     filterPeopleGoing,
     filterPeopleInside,
     findRecentStates,
@@ -23,11 +24,12 @@ import {
     getUserTimeDescriptor,
     isMacInside,
     openSpace,
+    UserStateService,
 } from "../../services/statusHelper";
 import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { sumDonations } from "../../utils/currency";
-import { getMonthBoundaries, toDateObject } from "../../utils/date";
+import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "../../utils/date";
 import { isEmoji, REPLACE_MARKER } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
@@ -102,13 +104,13 @@ export default class StatusHandlers implements BotHandlers {
 
     static getStatusMessage(
         state: State,
+        recentUserStates: UserState[],
         mode: BotMessageContextMode,
         short: boolean,
         climateInfo: Nullable<SpaceClimate> = null,
         withSecretData: boolean = false
     ) {
-        const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
-        const inside = recentUserStates.filter(filterPeopleInside);
+        const inside = recentUserStates.filter(mode.secret ? filterAllPeopleInside : filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
 
         let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, {
@@ -159,10 +161,12 @@ export default class StatusHandlers implements BotHandlers {
     static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, short: boolean, mode: BotMessageContextMode) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
+        const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
         const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
 
         const statusMessage = StatusHandlers.getStatusMessage(
             state,
+            recentUserStates,
             mode,
             short,
             climateInfo,
@@ -193,15 +197,17 @@ export default class StatusHandlers implements BotHandlers {
 
     static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
-        const state = StatusRepository.getSpaceLastState();
         const mode = bot.context(msg).mode;
+
+        const state = StatusRepository.getSpaceLastState();
+        const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
 
         if (!state) {
             bot.sendMessageExt(msg.chat.id, t("status.status.undefined"), msg);
             return;
         }
 
-        const statusMessage = StatusHandlers.getStatusMessage(state, mode, short);
+        const statusMessage = StatusHandlers.getStatusMessage(state, recentUserStates, mode, short);
         const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
@@ -312,24 +318,37 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
-        evictPeople(findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside));
+        evictPeople(findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside));
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
-    static async inHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async inHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        ghost: boolean = false,
+        durationString?: string,
+        username?: string
+    ) {
         const eventDate = new Date();
-        const usernameOrFirstname = msg.from?.username ?? msg.from?.first_name;
-        const gotIn = usernameOrFirstname ? StatusHandlers.LetIn(usernameOrFirstname, eventDate) : false;
+        const force = username !== undefined;
+        const usernameOrFirstname = username ?? msg.from?.username ?? msg.from?.first_name;
+        const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
+        const until = durationMs ? new Date(eventDate.getTime() + durationMs) : undefined;
+        const gotIn = usernameOrFirstname ? StatusHandlers.LetIn(usernameOrFirstname, eventDate, until, force, ghost) : false;
 
         let message: string;
 
         if (gotIn) {
-            message = t("status.in.gotin", { username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode) });
+            message = t(force ? "status.inforce.gotin" : "status.in.gotin", {
+                username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+                memberusername: force ? helpers.formatUsername(msg.from?.username, bot.context(msg).mode) : undefined,
+            });
+
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
-            message = t("status.in.notready");
+            message = force ? t("status.inforce.notready") : t("status.in.notready");
         }
 
         const inline_keyboard = gotIn
@@ -346,19 +365,21 @@ export default class StatusHandlers implements BotHandlers {
         });
     }
 
-    static async outHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const eventDate = new Date();
-        const usernameOrFirstname = msg.from?.username ?? msg.from?.first_name;
-        const gotOut = usernameOrFirstname ? StatusHandlers.LetOut(usernameOrFirstname, eventDate) : false;
+        const force = username !== undefined;
+        const usernameOrFirstname = username ?? msg.from?.username ?? msg.from?.first_name;
+        const gotOut = usernameOrFirstname ? StatusHandlers.LetOut(usernameOrFirstname, eventDate, force) : false;
         let message: string;
 
         if (gotOut) {
-            message = t("status.out.gotout", {
+            message = t(force ? "status.outforce.gotout" : "status.out.gotout", {
                 username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
+                memberusername: force ? helpers.formatUsername(msg.from?.username, bot.context(msg).mode) : undefined,
             });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {
-            message = t("status.out.shouldnot");
+            message = t(force ? "status.outforce.shouldnot" : "status.out.shouldnot");
         }
 
         const inline_keyboard = gotOut
@@ -375,50 +396,7 @@ export default class StatusHandlers implements BotHandlers {
         });
     }
 
-    static async inForceHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
-        username = username.replace("@", "");
-        const eventDate = new Date();
-
-        const gotIn = StatusHandlers.LetIn(username, eventDate, true);
-
-        let message: string;
-
-        if (gotIn) {
-            message = t("status.inforce.gotin", {
-                memberusername: helpers.formatUsername(msg.from?.username, bot.context(msg).mode),
-                username: helpers.formatUsername(username, bot.context(msg).mode),
-            });
-
-            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
-        } else {
-            message = t("status.inforce.notready");
-        }
-
-        await bot.sendMessageExt(msg.chat.id, message, msg);
-    }
-
-    static async outForceHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
-        const eventDate = new Date();
-        username = username.replace("@", "");
-        const gotOut = StatusHandlers.LetOut(username, eventDate, true);
-
-        let message: string;
-
-        if (gotOut) {
-            message = t("status.outforce.gotout", {
-                memberusername: helpers.formatUsername(msg.from?.username, bot.context(msg).mode),
-                username: helpers.formatUsername(username, bot.context(msg).mode),
-            });
-
-            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
-        } else {
-            message = t("status.outforce.shouldnot");
-        }
-
-        await bot.sendMessageExt(msg.chat.id, message, msg);
-    }
-
-    static LetIn(username: string, date: Date, force = false) {
+    static LetIn(username: string, date: Date, until?: Date, force = false, ghost = false) {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
 
@@ -426,8 +404,9 @@ export default class StatusHandlers implements BotHandlers {
 
         const userstate = {
             id: 0,
-            status: UserStateType.Inside,
-            date: date,
+            status: ghost ? UserStateType.InsideSecret : UserStateType.Inside,
+            date,
+            until: until ?? null,
             username: username,
             type: force ? UserStateChangeType.Force : UserStateChangeType.Manual,
             note: null,
@@ -443,6 +422,7 @@ export default class StatusHandlers implements BotHandlers {
             id: 0,
             status: UserStateType.Outside,
             date: date,
+            until: null,
             username: username,
             type: force ? UserStateChangeType.Force : UserStateChangeType.Manual,
             note: null,
@@ -460,6 +440,7 @@ export default class StatusHandlers implements BotHandlers {
             id: 0,
             status: isGoing ? UserStateType.Going : UserStateType.Outside,
             date: eventDate,
+            until: null,
             username: usernameOrFirstname,
             type: UserStateChangeType.Manual,
             note: note ?? null,
@@ -540,7 +521,7 @@ export default class StatusHandlers implements BotHandlers {
 
             const devices = (await response.json()) as string[];
 
-            const insideusernames = findRecentStates(StatusRepository.getAllUserStates() ?? [])
+            const insideusernames = findRecentStates(StatusRepository.getAllUserStates())
                 .filter(filterPeopleInside)
                 .map(us => us.username);
             const autousers = UsersRepository.getUsers().filter(u => u.autoinside && u.mac);
@@ -558,6 +539,7 @@ export default class StatusHandlers implements BotHandlers {
                             id: 0,
                             status: isIn ? UserStateType.Inside : UserStateType.Outside,
                             date: new Date(),
+                            until: null,
                             username: user.username,
                             type: UserStateChangeType.Auto,
                             note: null,
@@ -657,7 +639,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const allUserStates = StatusRepository.getAllUserStates();
 
-        const userTimes = allUserStates ? getAllUsersTimes(allUserStates, fromDate, toDate) : [];
+        const userTimes = getAllUsersTimes(allUserStates, fromDate, toDate);
         const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
 

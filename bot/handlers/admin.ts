@@ -7,6 +7,7 @@ import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import t from "../../services/localization";
 import { lastModifiedFilePath } from "../../utils/filesystem";
+import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { BotCustomEvent, BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
@@ -89,17 +90,14 @@ export default class AdminHandlers implements BotHandlers {
         await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);
     }
 
-    static async getUsersHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers();
-        let userList = "";
+    static async getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
+        if (!query) return await bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
 
-        for (const user of users) {
-            userList += `[${user.userid}] ${helpers.formatUsername(user.username, bot.context(msg).mode)}
-    Roles: ${user.roles}${user.mac ? `\nMAC: ${user.mac}` : ""}${user.birthday ? `\nBirthday: ${user.birthday}` : ""}
-    Autoinside: ${user.autoinside ? "on" : "off"}\n`;
-        }
+        const user = UsersRepository.getUserByName(query) ?? UsersRepository.getByUserId(query);
 
-        await bot.sendLongMessage(msg.chat.id, t("admin.getUsers.text") + userList, msg);
+        if (!user) return await bot.sendMessageExt(msg.chat.id, "User not found", msg);
+
+        return await bot.sendMessageExt(msg.chat.id, JSON.stringify(user), msg);
     }
 
     static async addUserHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
@@ -151,5 +149,21 @@ export default class AdminHandlers implements BotHandlers {
         const text = success ? t("admin.removeUser.success", { username: `[${userid}]` }) : t("admin.removeUser.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
+    }
+
+    static async setFlagHandler(bot: HackerEmbassyBot, msg: Message, flag: string, value: "true" | "false" | "1" | "0") {
+        const flags = bot.botState.flags;
+        if (!Object.keys(flags).includes(flag)) {
+            await bot.sendMessageExt(msg.chat.id, "Flag not found", msg);
+            return;
+        }
+
+        flags[flag as keyof StateFlags] = value === "true" || value === "1";
+        await bot.botState.persistChanges();
+        await bot.sendMessageExt(msg.chat.id, `Flag ${flag} is set to ${value}`, msg);
+    }
+
+    static async getFlagsHandler(bot: HackerEmbassyBot, msg: Message) {
+        await bot.sendMessageExt(msg.chat.id, JSON.stringify(bot.botState.flags), msg);
     }
 }

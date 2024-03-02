@@ -44,7 +44,7 @@ class StatusRepository extends BaseRepository {
 
     pushPeopleState(state: UserState): void {
         this.db
-            .prepare("INSERT INTO userstates (status, username, date, until, type, note) VALUES (?, ?, ?, ?, ?)")
+            .prepare("INSERT INTO userstates (status, username, date, until, type, note) VALUES (?, ?, ?, ?, ?, ?)")
             .run(
                 state.status ? state.status : UserStateType.Outside,
                 state.username,

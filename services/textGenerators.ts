@@ -1,5 +1,6 @@
 import config from "config";
 
+import { BotMessageContextMode } from "../bot/core/types";
 import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "../bot/helpers";
 import { PrintersConfig } from "../config/schema";
 import Donation, { FundDonation } from "../models/Donation";
@@ -449,4 +450,27 @@ export function listTopics(topics: Topic[]): string {
     return topics.length > 0
         ? topics.map(topic => `#\`${topic.name}#\`${topic.description ? ` - ${topic.description}` : ""}`).join("\n")
         : "";
+}
+
+export function getInMessage(
+    usernameOrFirstname: string | undefined,
+    isSuccess: boolean,
+    mode: BotMessageContextMode,
+    inviter?: string,
+    until?: Date
+): string {
+    const force = inviter !== undefined;
+
+    if (isSuccess) {
+        const insidePart = t(force ? "status.inforce.gotin" : "status.in.gotin", {
+            username: formatUsername(usernameOrFirstname, mode),
+            memberusername: force ? formatUsername(inviter, mode) : undefined,
+        });
+        const untilPart = until ? t("status.in.until", { until: until.toLocaleString() }) : "";
+        const tryAutoInsidePart = !force ? t("status.in.tryautoinside") : "";
+
+        return insidePart + untilPart + "\n\n" + tryAutoInsidePart;
+    }
+
+    return force ? t("status.inforce.notready") : t("status.in.notready");
 }

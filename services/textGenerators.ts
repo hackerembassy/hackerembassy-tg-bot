@@ -7,7 +7,7 @@ import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import Need from "../models/Need";
 import Topic from "../models/Topic";
-import User from "../models/User";
+import User, { AutoInsideMode } from "../models/User";
 import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
@@ -473,4 +473,28 @@ export function getInMessage(
     }
 
     return force ? t("status.inforce.notready") : t("status.in.notready");
+}
+
+export function getAutoinsideMessageStatus(
+    userautoinside: AutoInsideMode | undefined,
+    usermac: Nullable<string> | undefined,
+    username: string | undefined,
+    mode: BotMessageContextMode
+) {
+    switch (userautoinside) {
+        case AutoInsideMode.Enabled:
+            return t("status.autoinside.isset", {
+                usermac,
+                username: formatUsername(username, mode),
+            });
+        case AutoInsideMode.Ghost:
+            return t("status.autoinside.isghost", {
+                usermac,
+                username: formatUsername(username, mode),
+            });
+        default:
+            return t("status.autoinside.isnotset", {
+                username: formatUsername(username, mode),
+            });
+    }
 }

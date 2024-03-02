@@ -1,14 +1,22 @@
 import { ChatId } from "node-telegram-bot-api";
 
-import User from "../models/User";
+import User, { AutoInsideMode } from "../models/User";
 import { anyItemIsInList } from "../utils/common";
 import BaseRepository from "./baseRepository";
 
 class UserRepository extends BaseRepository {
     getUsers(): User[] {
-        const users = this.db.prepare("SELECT * FROM users").all();
+        const users = this.db.prepare("SELECT * FROM users").all() as User[];
 
-        return users.filter(user => user).map(user => new User(user as User));
+        return users.map(user => new User(user));
+    }
+
+    getAutoinsideUsers(): User[] {
+        const users = this.db
+            .prepare("SELECT * FROM users WHERE autoinside > 0 AND username IS NOT NULL AND mac IS NOT NULL")
+            .all() as User[];
+
+        return users.map(user => new User(user));
     }
 
     addUser(username?: string, roles: string[] = ["default"], userid?: number): boolean {
@@ -139,14 +147,15 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setAutoinside(username: string, value: boolean): boolean {
+    setAutoinside(username: string, mode: AutoInsideMode): boolean {
         try {
             const user = this.getUserByName(username);
-            if ((user === null && !this.addUser(username, ["default"])) || (value && !user?.mac)) return false;
+            if ((user === null && !this.addUser(username, ["default"])) || (mode === AutoInsideMode.Disabled && !user?.mac))
+                return false;
 
             this.db
                 .prepare("UPDATE users SET autoinside = ? WHERE LOWER(username) = ?")
-                .run(Number(value), username.toLowerCase());
+                .run(Number(mode), username.toLowerCase());
 
             return true;
         } catch (error) {

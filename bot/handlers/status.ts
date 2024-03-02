@@ -3,6 +3,7 @@ import TelegramBot, { Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import State from "../../models/State";
+import { AutoInsideMode } from "../../models/User";
 import UserState, { UserStateChangeType, UserStateType } from "../../models/UserState";
 import fundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
 import StatusRepository from "../../repositories/statusRepository";
@@ -53,7 +54,7 @@ export default class StatusHandlers implements BotHandlers {
             message = t("status.mac.set", { cmd, username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "remove" && username) {
             UsersRepository.setMACs(username, null);
-            UsersRepository.setAutoinside(username, false);
+            UsersRepository.setAutoinside(username, AutoInsideMode.Disabled);
             message = t("status.mac.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
         } else if (cmd === "status") {
             const usermac = username ? UsersRepository.getUserByName(username)?.mac : undefined;
@@ -69,37 +70,52 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
-        let message = t("status.autoinside.fail");
+        const mode = bot.context(msg).mode;
         const username = msg.from?.username;
-        const user = username ? UsersRepository.getUserByName(username) : undefined;
-        const usermac = user?.mac;
-        const userautoinside = user?.autoinside;
 
-        if (!cmd || cmd === "help") {
-            message = t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 });
-        } else if (cmd === "enable" && username) {
-            if (!usermac) message = t("status.autoinside.nomac");
-            else if (UsersRepository.setAutoinside(username, true))
-                message = t("status.autoinside.set", {
-                    usermac,
-                    username: helpers.formatUsername(username, bot.context(msg).mode),
-                });
-        } else if (cmd === "disable" && username) {
-            UsersRepository.setAutoinside(username, false);
-            message = t("status.autoinside.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
-        } else if (cmd === "status") {
-            if (userautoinside)
-                message = t("status.autoinside.isset", {
-                    usermac,
-                    username: helpers.formatUsername(username, bot.context(msg).mode),
-                });
-            else
-                message = t("status.autoinside.isnotset", {
-                    username: helpers.formatUsername(username, bot.context(msg).mode),
-                });
+        if (!username) return await bot.sendMessageExt(msg.chat.id, t("status.autoinside.notsupported"), msg);
+
+        const user = UsersRepository.getUserByName(username);
+
+        if (!user) return await bot.sendMessageExt(msg.chat.id, t("status.autoinside.nouser"), msg);
+
+        const usermac = user.mac;
+
+        let message = t("status.autoinside.fail");
+
+        try {
+            switch (cmd) {
+                case "enable":
+                case "ghost":
+                    if (!usermac) {
+                        message = t("status.autoinside.nomac");
+                    } else if (
+                        UsersRepository.setAutoinside(username, cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled)
+                    )
+                        message = t("status.autoinside.set", {
+                            usermac,
+                            username: helpers.formatUsername(username, mode),
+                        });
+                    break;
+                case "disable":
+                    UsersRepository.setAutoinside(username, AutoInsideMode.Disabled);
+                    message = t("status.autoinside.removed", { username: helpers.formatUsername(username, mode) });
+                    break;
+                case "status":
+                    message = TextGenerators.getAutoinsideMessageStatus(user.autoinside, usermac, username, mode);
+                    break;
+                case "help":
+                default:
+                    message =
+                        t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 }) +
+                        (mode.secret ? t("status.autoinside.ghost") : "");
+                    break;
+            }
+        } catch (error) {
+            logger.error(error);
         }
 
-        await bot.sendMessageExt(msg.chat.id, message, msg);
+        return await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
     static getStatusMessage(
@@ -523,29 +539,34 @@ export default class StatusHandlers implements BotHandlers {
 
             const devices = (await response.json()) as string[];
 
-            const insideusernames = findRecentStates(StatusRepository.getAllUserStates())
-                .filter(filterPeopleInside)
+            const insideusernames = UserStateService.getRecentUserStates()
+                .filter(filterAllPeopleInside)
                 .map(us => us.username);
-            const autousers = UsersRepository.getUsers().filter(u => u.autoinside && u.mac);
+            const autousers = UsersRepository.getAutoinsideUsers();
             const selectedautousers = isIn
-                ? autousers.filter(u => u.username && !insideusernames.includes(u.username))
-                : autousers.filter(u => u.username && insideusernames.includes(u.username));
+                ? autousers.filter(u => !insideusernames.includes(u.username as string))
+                : autousers.filter(u => insideusernames.includes(u.username as string));
 
             StatusHandlers.isStatusError = false;
 
             for (const user of selectedautousers) {
-                const hasDeviceInside = user.mac ? isMacInside(user.mac, devices) : false;
+                const hasDeviceInside = isMacInside(user.mac as string, devices);
                 if (isIn ? hasDeviceInside : !hasDeviceInside) {
-                    user.username &&
-                        StatusRepository.pushPeopleState({
-                            id: 0,
-                            status: isIn ? UserStateType.Inside : UserStateType.Outside,
-                            date: new Date(),
-                            until: null,
-                            username: user.username,
-                            type: UserStateChangeType.Auto,
-                            note: null,
-                        });
+                    const status = isIn
+                        ? user.autoinside === AutoInsideMode.Ghost
+                            ? UserStateType.InsideSecret
+                            : UserStateType.Inside
+                        : UserStateType.Outside;
+
+                    StatusRepository.pushPeopleState({
+                        id: 0,
+                        status,
+                        date: new Date(),
+                        until: null,
+                        username: user.username as string,
+                        type: UserStateChangeType.Auto,
+                        note: null,
+                    });
 
                     bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 

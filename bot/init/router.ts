@@ -253,6 +253,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["badum", "badumtss"], EmbassyHandlers.playinspaceHandler, null, () => ["badumtss"]);
     bot.addRoute(["sad", "sadtrombone"], EmbassyHandlers.playinspaceHandler, null, () => ["sad"]);
     bot.addRoute(["dushno", "openwindow"], EmbassyHandlers.playinspaceHandler, null, () => ["dushno"]);
+    bot.addRoute(["anthem", "uk", "british"], EmbassyHandlers.playinspaceHandler, null, () => ["anthem"]);
 
     // Funds
     bot.addRoute(["funds", "fs"], FundsHandlers.fundsHandler);

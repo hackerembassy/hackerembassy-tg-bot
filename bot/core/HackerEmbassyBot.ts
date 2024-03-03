@@ -21,7 +21,7 @@ import { BotConfig } from "../../config/schema";
 import logger from "../../services/logger";
 import { chunkSubstr } from "../../utils/common";
 import { OptionalRegExp } from "../../utils/text";
-import { hasRole, prepareMessageForMarkdown } from "../helpers";
+import { hasRole, isMember, isPrivateMessage, prepareMessageForMarkdown } from "../helpers";
 import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
 import { RateLimiter } from "./RateLimit";
@@ -127,7 +127,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (!this.contextMap.has(msg)) {
             const newContext: BotMessageContext = {
-                mode: { ...HackerEmbassyBot.defaultModes, secret: msg.chat.id === botConfig.chats.key },
+                mode: { ...HackerEmbassyBot.defaultModes },
                 messageThreadId: undefined,
                 clear() {
                     botthis.contextMap.delete(msg);
@@ -438,7 +438,9 @@ export default class HackerEmbassyBot extends TelegramBot {
             const route = this.routeMap.get(command);
             if (!route) return;
 
-            this.context(message).messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
+            const messageContext = this.context(message);
+
+            messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
             // check restritions
             if (route.restrictions.length > 0 && !this.canUserCall(message.from?.username, command)) {
@@ -449,10 +451,12 @@ export default class HackerEmbassyBot extends TelegramBot {
             // parse global modifiers
             let textToMatch = text.replace(commandWithCase, command);
 
-            for (const key of Object.keys(this.context(message).mode)) {
-                if (textToMatch.includes(`-${key}`)) this.context(message).mode[key as keyof BotMessageContextMode] = true;
+            for (const key of Object.keys(messageContext.mode)) {
+                if (textToMatch.includes(`-${key}`)) messageContext.mode[key as keyof BotMessageContextMode] = true;
                 textToMatch = textToMatch.replace(` -${key}`, "");
             }
+
+            messageContext.mode.secret = this.isSecretModeAllowed(message, messageContext);
 
             // call with or without params
             if (route.paramMapper) {
@@ -474,6 +478,18 @@ export default class HackerEmbassyBot extends TelegramBot {
         } finally {
             this.context(message).clear();
         }
+    }
+
+    private isSecretModeAllowed(message: TelegramBot.Message, messageContext: BotMessageContext): boolean {
+        const alwaysSecretChats = [botConfig.chats.key, botConfig.chats.alerts];
+
+        if (alwaysSecretChats.includes(message.chat.id)) return true;
+
+        if (message.from?.username && isMember(message.from.username)) {
+            return isPrivateMessage(message, messageContext) || messageContext.mode.secret;
+        }
+
+        return false;
     }
 
     private sendRestrictedMessage(message: TelegramBot.Message, route: BotRoute) {

@@ -160,6 +160,9 @@ export default class AdminHandlers implements BotHandlers {
 
         flags[flag as keyof StateFlags] = value === "true" || value === "1";
         await bot.botState.persistChanges();
+
+        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+
         await bot.sendMessageExt(msg.chat.id, `Flag ${flag} is set to ${value}`, msg);
     }
 

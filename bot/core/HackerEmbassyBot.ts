@@ -460,6 +460,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 const matchedParams = match ? route.paramMapper(match) : null;
 
                 if (matchedParams) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     await route.handler(this, message, ...matchedParams);
                     return;
                 } else if (!route.optional) {

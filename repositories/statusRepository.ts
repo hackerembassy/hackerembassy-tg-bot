@@ -42,6 +42,9 @@ class StatusRepository extends BaseRepository {
             .run(state.open ? 1 : 0, state.changedby, state.date.valueOf());
     }
 
+    /**
+     * @deprecated use UserStateService.pushPeopleState instead
+     */
     pushPeopleState(state: UserState): void {
         this.db
             .prepare("INSERT INTO userstates (status, username, date, until, type, note) VALUES (?, ?, ?, ?, ?, ?)")

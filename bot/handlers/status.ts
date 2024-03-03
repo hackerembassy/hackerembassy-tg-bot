@@ -20,7 +20,6 @@ import {
     filterAllPeopleInside,
     filterPeopleGoing,
     filterPeopleInside,
-    findRecentStates,
     getAllUsersTimes,
     getUserTimeDescriptor,
     isMacInside,
@@ -334,7 +333,7 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
-        evictPeople(findRecentStates(StatusRepository.getAllUserStates()).filter(filterPeopleInside));
+        evictPeople(UserStateService.getRecentUserStates().filter(filterPeopleInside));
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
@@ -376,7 +375,7 @@ export default class StatusHandlers implements BotHandlers {
               ]
             : [[InlineButton(t("status.buttons.repeat"), "in"), InlineButton(t("status.buttons.open"), "open")]];
 
-        await bot.sendMessageExt(msg.chat.id, message, msg, {
+        return await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard,
             },
@@ -430,7 +429,7 @@ export default class StatusHandlers implements BotHandlers {
             note: null,
         };
 
-        StatusRepository.pushPeopleState(userstate);
+        UserStateService.pushPeopleState(userstate);
 
         return true;
     }
@@ -446,7 +445,7 @@ export default class StatusHandlers implements BotHandlers {
             note: null,
         };
 
-        StatusRepository.pushPeopleState(userstate);
+        UserStateService.pushPeopleState(userstate);
 
         return true;
     }
@@ -464,7 +463,7 @@ export default class StatusHandlers implements BotHandlers {
             note: note ?? null,
         };
 
-        StatusRepository.pushPeopleState(userstate);
+        UserStateService.pushPeopleState(userstate);
     }
 
     static async goingHandler(bot: HackerEmbassyBot, msg: Message, note: string | undefined = undefined) {
@@ -558,7 +557,7 @@ export default class StatusHandlers implements BotHandlers {
                             : UserStateType.Inside
                         : UserStateType.Outside;
 
-                    StatusRepository.pushPeopleState({
+                    UserStateService.pushPeopleState({
                         id: 0,
                         status,
                         date: new Date(),

@@ -39,7 +39,7 @@ export function openSpace(opener: Optional<string>, options: { checkOpener: bool
         note: null,
     };
 
-    statusRepository.pushPeopleState(userstate);
+    UserStateService.pushPeopleState(userstate);
 }
 
 export function closeSpace(closer: Nullable<string> | undefined, options: { evict: boolean } = { evict: false }): void {
@@ -64,7 +64,7 @@ export async function hasDeviceInside(username: Optional<string>): Promise<boole
 
     try {
         const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
-        const devices = await response.json();
+        const devices = (await response.json()) as string[];
 
         const mac = usersRepository.getUserByName(username)?.mac;
 
@@ -153,7 +153,7 @@ export function evictPeople(insideStates: UserState[]): void {
     const date = Date.now();
 
     for (const userstate of insideStates) {
-        statusRepository.pushPeopleState({
+        UserStateService.pushPeopleState({
             id: 0,
             status: UserStateType.Outside,
             date: date,
@@ -166,9 +166,19 @@ export function evictPeople(insideStates: UserState[]): void {
 }
 
 export class UserStateService {
-    private static userStateCache: UserState[] = [];
+    private static lastUserStateCache: Map<string, UserState> = new Map();
 
     static getRecentUserStates(): UserState[] {
-        return findRecentStates(statusRepository.getAllUserStates());
+        if (this.lastUserStateCache.size === 0) {
+            const recentStates = findRecentStates(statusRepository.getAllUserStates());
+            this.lastUserStateCache = new Map(recentStates.map(us => [us.username, us]));
+        }
+
+        return Array.from(this.lastUserStateCache.values());
+    }
+
+    static pushPeopleState(state: UserState): void {
+        statusRepository.pushPeopleState(state);
+        this.lastUserStateCache.set(state.username, state);
     }
 }

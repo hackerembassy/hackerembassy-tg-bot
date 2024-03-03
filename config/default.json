@@ -33,7 +33,7 @@
             "appLink": "https://t.me/HackerEmbassyBot/calendar",
             "upcomingToLoad": 5
         },
-        "moderatedChats": [-1001605898533, -1001555805688],
+        "moderatedChats": [-1001605898533],
         "debug": false,
         "static": "../resources/static"
     },

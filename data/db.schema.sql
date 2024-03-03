@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS "userstates" (
 	"username"	TEXT,
 	"status"	INTEGER,
 	"date"	INTEGER,
+	"until"	INTEGER,
 	"type"	INTEGER DEFAULT 0,
 	"note"	TEXT DEFAULT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)

@@ -24,7 +24,7 @@ describe("Bot Status commands:", () => {
         ]);
     });
 
-    test("/status should mentio people inside if -mention key is used", async () => {
+    test("/status should mention people inside if -mention key is used", async () => {
         await botMock.processUpdate(createMockMessage("/open", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/in", ADMIN_USER_NAME));
         await botMock.processUpdate(createMockMessage("/status -mention"));
@@ -33,7 +33,7 @@ describe("Bot Status commands:", () => {
 
         expect(botMock.popResults()).toEqual([
             "status\\.open",
-            "status\\.in\\.gotin",
+            "status\\.in\\.gotin\n\nstatus\\.in\\.tryautoinside",
             "status\\.status\\.state\nstatus\\.status\\.insidechecked@adminusername 🔑📒\n\n\x1astatus\\.status\\.updated",
         ]);
     });
@@ -52,7 +52,7 @@ describe("Bot Status commands:", () => {
 
         expect(results).toEqual([
             "status\\.close",
-            "status\\.in\\.gotin",
+            "status\\.in\\.gotin\n\nstatus\\.in\\.tryautoinside",
             "status\\.inforce\\.gotin",
             "status\\.out\\.gotout",
             "status\\.out\\.gotout",

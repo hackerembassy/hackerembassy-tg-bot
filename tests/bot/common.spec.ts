@@ -90,7 +90,7 @@ describe("Bot behavior shared for all commands:", () => {
             "/outforce telegram_username",
             "/evict",
             "/residentsdonated",
-            "/getusers",
+            "/getuser",
             "/adduser telegram_username as user_role1|user_role2|user_role3",
             "/removeuser telegram_username",
             "/updateroles of telegram_username to user_role1|user_role2|user_role3",
@@ -108,7 +108,7 @@ describe("Bot behavior shared for all commands:", () => {
             "/closefund Fund_Name",
             "/removefund Fund_Name",
             "/setflag flag_name true",
-            "getflags",
+            "/getflags",
         ];
 
         for (const command of protectedCommands) {

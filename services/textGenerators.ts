@@ -467,9 +467,9 @@ export function getInMessage(
             memberusername: force ? formatUsername(inviter, mode) : undefined,
         });
         const untilPart = until ? t("status.in.until", { until: until.toLocaleString() }) : "";
-        const tryAutoInsidePart = !force ? t("status.in.tryautoinside") : "";
+        const tryAutoInsidePart = !force ? "\n\n" + t("status.in.tryautoinside") : "";
 
-        return insidePart + untilPart + "\n\n" + tryAutoInsidePart;
+        return insidePart + untilPart + tryAutoInsidePart;
     }
 
     return force ? t("status.inforce.notready") : t("status.in.notready");

@@ -171,7 +171,7 @@ export class UserStateService {
     static getRecentUserStates(): UserState[] {
         if (this.lastUserStateCache.size === 0) {
             const recentStates = findRecentStates(statusRepository.getAllUserStates());
-            this.lastUserStateCache = new Map(recentStates.map(us => [us.username, us]));
+            this.lastUserStateCache = new Map(recentStates.map(us => [us.username.toLowerCase(), us]));
         }
 
         return Array.from(this.lastUserStateCache.values());
@@ -179,6 +179,6 @@ export class UserStateService {
 
     static pushPeopleState(state: UserState): void {
         statusRepository.pushPeopleState(state);
-        this.lastUserStateCache.set(state.username, state);
+        this.lastUserStateCache.set(state.username.toLowerCase(), state);
     }
 }

@@ -65,7 +65,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["inforce", "goin"],
         StatusHandlers.inHandler,
-        RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))`),
+        RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`),
         match => [false, match[2], match[1]],
         ["member", "trusted"]
     );
@@ -395,8 +395,14 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["stoplive", "cleanlive"], AdminHandlers.stopLiveHandler, OptionalParam(/(\S+)/), match => [match[1]], [
         "admin",
     ]);
-    bot.addRoute(["setflag"], AdminHandlers.setFlagHandler, /(\S+?) (true|false|1|0)/, match => [match[1], match[2]], ["admin"]);
-    bot.addRoute(["getflags"], AdminHandlers.getFlagsHandler, null, null, ["admin"]);
+    bot.addRoute(
+        ["setflag", "setf", "set"],
+        AdminHandlers.setFlagHandler,
+        /(\S+?) (true|false|1|0)/,
+        match => [match[1], match[2]],
+        ["admin"]
+    );
+    bot.addRoute(["getflags", "getf"], AdminHandlers.getFlagsHandler, null, null, ["admin"]);
 
     // Memes
     bot.addRoute(["randomdog", "dog"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/dogs"]);

@@ -540,6 +540,7 @@ export default class StatusHandlers implements BotHandlers {
 
             const insideusernames = UserStateService.getRecentUserStates()
                 .filter(filterAllPeopleInside)
+                .filter(us => us.type === UserStateChangeType.Auto)
                 .map(us => us.username);
             const autousers = UsersRepository.getAutoinsideUsers();
             const selectedautousers = isIn

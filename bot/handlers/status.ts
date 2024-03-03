@@ -538,14 +538,13 @@ export default class StatusHandlers implements BotHandlers {
 
             const devices = (await response.json()) as string[];
 
-            const insideusernames = UserStateService.getRecentUserStates()
-                .filter(filterAllPeopleInside)
-                .filter(us => us.type === UserStateChangeType.Auto)
-                .map(us => us.username);
             const autousers = UsersRepository.getAutoinsideUsers();
+            const insideUserStates = UserStateService.getRecentUserStates().filter(filterAllPeopleInside);
+            const insideUserStatesMap = new Map(insideUserStates.map(u => [u.username, u]));
+
             const selectedautousers = isIn
-                ? autousers.filter(u => !insideusernames.includes(u.username as string))
-                : autousers.filter(u => insideusernames.includes(u.username as string));
+                ? autousers.filter(u => !insideUserStatesMap.has(u.username as string))
+                : autousers.filter(u => insideUserStatesMap.get(u.username as string)?.type === UserStateChangeType.Auto);
 
             StatusHandlers.isStatusError = false;
 

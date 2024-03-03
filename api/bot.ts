@@ -14,7 +14,7 @@ import { requestToEmbassy } from "../services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
 import { SpaceClimate } from "../services/hass";
 import logger from "../services/logger";
-import { closeSpace, filterPeopleGoing, filterPeopleInside, findRecentStates, openSpace } from "../services/statusHelper";
+import { closeSpace, filterPeopleGoing, filterPeopleInside, openSpace, UserStateService } from "../services/statusHelper";
 import * as TextGenerators from "../services/textGenerators";
 import { getEventsList } from "../services/textGenerators";
 import wiki from "../services/wiki";
@@ -91,7 +91,7 @@ app.get("/text/status", async (_, res) => {
     let content = `🔐 Статус спейса неопределен`;
 
     if (state) {
-        const allUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
+        const allUserStates = UserStateService.getRecentUserStates();
         const inside = allUserStates.filter(filterPeopleInside);
         const going = allUserStates.filter(filterPeopleGoing);
         const climateResponse = await requestToEmbassy(`/climate`);
@@ -124,7 +124,7 @@ app.get("/api/status", (_, res) => {
         return;
     }
 
-    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
+    const recentUserStates = UserStateService.getRecentUserStates();
 
     const inside = recentUserStates.filter(filterPeopleInside).map(p => {
         return {
@@ -150,7 +150,7 @@ app.get("/api/status", (_, res) => {
 
 app.get("/api/space", (_, res) => {
     const status = StatusRepository.getSpaceLastState();
-    const recentUserStates = findRecentStates(StatusRepository.getAllUserStates() ?? []);
+    const recentUserStates = UserStateService.getRecentUserStates();
 
     const inside = recentUserStates.filter(filterPeopleInside);
 
@@ -213,13 +213,13 @@ app.get("/api/space", (_, res) => {
 });
 
 app.get("/api/inside", (_, res) => {
-    const inside = findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside);
+    const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
     res.json(inside);
 });
 
 app.get("/api/insidecount", (_, res) => {
     try {
-        const inside = findRecentStates(StatusRepository.getAllUserStates() ?? []).filter(filterPeopleInside);
+        const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
         res.status(200).send(inside.length.toString());
     } catch {
         res.status(500).send("-1");

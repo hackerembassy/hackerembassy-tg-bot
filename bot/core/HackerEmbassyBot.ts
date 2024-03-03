@@ -480,7 +480,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         }
     }
 
-    private isSecretModeAllowed(message: TelegramBot.Message, messageContext: BotMessageContext): boolean {
+    public isSecretModeAllowed(message: TelegramBot.Message, messageContext: BotMessageContext): boolean {
         const alwaysSecretChats = [botConfig.chats.key, botConfig.chats.alerts];
 
         if (alwaysSecretChats.includes(message.chat.id)) return true;

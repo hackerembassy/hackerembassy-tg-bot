@@ -189,11 +189,13 @@ export default class ServiceHandlers implements BotHandlers {
 
         if (!bot.canUserCall(msg.from.username, command)) return;
 
-        bot.context(msg).isButtonResponse = true;
+        const context = bot.context(msg);
+        context.isButtonResponse = true;
+        context.mode.secret = bot.isSecretModeAllowed(msg, context);
 
         if (data.fs !== undefined) {
-            if (data.fs & Flags.Silent) bot.context(msg).mode.silent = true;
-            if (data.fs & Flags.Editing) bot.context(msg).isEditing = true;
+            if (data.fs & Flags.Silent) context.mode.silent = true;
+            if (data.fs & Flags.Editing) context.isEditing = true;
         }
 
         const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [bot, msg];

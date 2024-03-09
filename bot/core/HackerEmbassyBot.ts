@@ -26,6 +26,7 @@ import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
 import { RateLimiter } from "./RateLimit";
 import {
+    BotAllowedReaction,
     BotCallbackHandler,
     BotCustomEvent,
     BotHandler,
@@ -258,7 +259,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         photos: Buffer[] | ArrayBuffer[],
         msg: TelegramBot.Message,
         options: SendMediaGroupOptionsExt = {}
-    ): Promise<TelegramBot.Message> {
+    ): Promise<TelegramBot.Message[]> {
         const mode = this.context(msg).mode;
         const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
 
@@ -267,15 +268,17 @@ export default class HackerEmbassyBot extends TelegramBot {
         const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo)));
         const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
 
-        const message = await super.sendMediaGroup(chatIdToUse, imageOpts as InputMedia[], {
+        const messages = await super.sendMediaGroup(chatIdToUse, imageOpts as InputMedia[], {
             ...options,
             // @ts-ignore
             message_thread_id: this.context(msg).messageThreadId,
         });
 
-        this.messageHistory.push(chatId, message.message_id);
+        for (const message of messages) {
+            this.messageHistory.push(chatId, message.message_id);
+        }
 
-        return Promise.resolve(message);
+        return Promise.resolve(messages);
     }
 
     async editPhoto(
@@ -480,6 +483,18 @@ export default class HackerEmbassyBot extends TelegramBot {
         }
     }
 
+    reactToMessage(message: TelegramBot.Message) {
+        try {
+            if (message.text?.match(/(^|\s)(бот(е|у|а|ом)?|bot)(\s|$)/giu)) {
+                this.setMessageReaction(message.chat.id, message.message_id, "👀");
+            } else if (message.text?.match(/(^|\s)(\u0063\u006F\u0063\u006B|\u043A\u043E\u043A|\u0434\u0438\u043A)(\s|$)/giu)) {
+                this.setMessageReaction(message.chat.id, message.message_id, "🌭");
+            }
+        } catch (error) {
+            logger.error(error);
+        }
+    }
+
     public isSecretModeAllowed(message: TelegramBot.Message, messageContext: BotMessageContext): boolean {
         const alwaysSecretChats = [botConfig.chats.key, botConfig.chats.alerts];
 
@@ -649,6 +664,18 @@ export default class HackerEmbassyBot extends TelegramBot {
         options.disable_web_page_preview = true;
 
         return options;
+    }
+
+    setMessageReaction(chatId: ChatId, messageId: number, reaction: BotAllowedReaction): Promise<boolean> {
+        //@ts-ignore
+        return super.setMessageReaction(chatId, messageId, {
+            reaction: [
+                {
+                    type: "emoji",
+                    emoji: reaction,
+                },
+            ],
+        });
     }
 
     /*

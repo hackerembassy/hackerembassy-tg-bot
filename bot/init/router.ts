@@ -449,6 +449,7 @@ export function addEventHandlers(bot: HackerEmbassyBot) {
 export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {
     // Routing messages
     bot.on("message", message => bot.routeMessage(message));
+    bot.on("message", message => bot.reactToMessage(message));
 
     // Callbacks and events
     bot.onExt("callback_query", ServiceHandlers.callbackHandler);

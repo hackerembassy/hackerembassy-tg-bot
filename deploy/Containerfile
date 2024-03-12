@@ -17,6 +17,8 @@ RUN npm run build
 FROM docker.io/library/node:lts-alpine
 WORKDIR /app
 
+RUN apk add --update --no-cache ffmpeg
+
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./
 

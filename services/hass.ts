@@ -6,6 +6,14 @@ import { getBufferFromResponse } from "../utils/network";
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const climateConfig = embassyApiConfig.climate;
 
+import path from "node:path";
+
+import { promises as fs } from "fs";
+
+import { downloadTmpFile } from "../utils/filesystem";
+import { convertMedia } from "../utils/media";
+import { EmbassyBase } from "./embassy";
+
 // Types
 export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
 
@@ -69,10 +77,33 @@ export async function sayInSpace(text: string): Promise<void> {
     if (response.status !== 200) throw Error("Speaker request failed");
 }
 
+async function serveStaticFile(localPath: string, urlPath: string): Promise<string> {
+    const staticRootPath = path.join(__dirname, "..", embassyApiConfig.service.static);
+    const staticFilePath = path.join(staticRootPath, urlPath);
+
+    await fs.mkdir(path.parse(staticFilePath).dir, { recursive: true });
+    await fs.copyFile(localPath, staticFilePath);
+
+    return `${EmbassyBase}/${urlPath}`;
+}
+
 export async function playInSpace(link: string): Promise<void> {
+    const requiresConversion = link.endsWith(".oga");
+
+    let linkToPlay = link;
+
+    if (requiresConversion) {
+        const { tmpPath, cleanup } = await downloadTmpFile(link, ".oga");
+        const convertedFilePath = await convertMedia(tmpPath, "mp3");
+
+        linkToPlay = await serveStaticFile(convertedFilePath, `/tmp/${Date.now()}.mp3`);
+
+        cleanup();
+    }
+
     const response = await postToHass(embassyApiConfig.speaker.playpath, {
         entity_id: embassyApiConfig.speaker.entity,
-        media_content_id: link,
+        media_content_id: linkToPlay,
         media_content_type: "music",
     });
 

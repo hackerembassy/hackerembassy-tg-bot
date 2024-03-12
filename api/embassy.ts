@@ -41,7 +41,7 @@ app.get("/speaker/sounds", async (req, res, next) => {
     try {
         const availableFiles = await fs.readdir(staticPath);
         res.send({
-            sounds: availableFiles.map(filename => filename.replace(".mp3", "")),
+            sounds: availableFiles.filter(f => f.endsWith(".mp3")).map(filename => filename.replace(".mp3", "")),
         });
     } catch (error) {
         next(error);

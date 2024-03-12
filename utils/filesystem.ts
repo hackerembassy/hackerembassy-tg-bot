@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { file } from "tmp-promise";
 
 export function lastModifiedFilePath(logfolderpath: string): string | undefined {
     const files = fs.readdirSync(logfolderpath);
@@ -32,4 +33,14 @@ export async function getImageFromPath(path: string): Promise<Nullable<Buffer>> 
 export async function readFileAsBase64(path: string): Promise<string> {
     const file = await fs.promises.readFile(path);
     return file.toString("base64");
+}
+
+export async function downloadTmpFile(url: string, postfix: string) {
+    const { path: tmpPath, cleanup } = await file({ postfix });
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
+
+    await fs.promises.writeFile(tmpPath, Buffer.from(buffer));
+
+    return { tmpPath, cleanup };
 }

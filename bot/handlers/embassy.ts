@@ -441,6 +441,17 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
+        const fromUsername = msg.from?.username;
+        const voiceFileId = msg.voice?.file_id;
+
+        if (!voiceFileId || !fromUsername || !helpers.isMember(fromUsername)) return;
+
+        const link = await bot.getFileLink(voiceFileId);
+
+        await EmbassyHandlers.playinspaceHandler(bot, msg, link);
+    }
+
     static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, linkOrName: string, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 

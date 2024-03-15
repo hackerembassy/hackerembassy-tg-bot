@@ -445,7 +445,8 @@ export default class EmbassyHandlers implements BotHandlers {
         const fromUsername = msg.from?.username;
         const voiceFileId = msg.voice?.file_id;
 
-        if (!voiceFileId || !fromUsername || !helpers.isMember(fromUsername)) return;
+        if (!helpers.isPrivateMessage(msg, bot.context(msg)) || !voiceFileId || !fromUsername || !helpers.isMember(fromUsername))
+            return;
 
         const link = await bot.getFileLink(voiceFileId);
 

@@ -22,6 +22,7 @@ import { file } from "tmp-promise";
 import { BotConfig } from "../../config/schema";
 import User from "../../models/User";
 import UsersRepository from "../../repositories/usersRepository";
+import { DEFAULT_LANGUAGE } from "../../services/localization";
 import logger from "../../services/logger";
 import { chunkSubstr } from "../../utils/common";
 import { OptionalRegExp } from "../../utils/text";
@@ -144,7 +145,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 },
                 isEditing: false,
                 isButtonResponse: false,
-                language: "ru",
+                language: DEFAULT_LANGUAGE,
             };
 
             this.contextMap.set(msg, newContext);
@@ -457,7 +458,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             }
 
             const messageContext = this.context(message);
-            messageContext.language = dbuser?.language ?? "ru";
+            messageContext.language = dbuser?.language ?? DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
             // check restritions

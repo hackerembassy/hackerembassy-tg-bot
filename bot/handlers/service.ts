@@ -3,11 +3,12 @@ import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import t from "../../services/localization";
+import t, { DEFAULT_LANGUAGE } from "../../services/localization";
 import logger from "../../services/logger";
 import { OpenAI } from "../../services/neural";
 import { sleep } from "../../utils/common";
 import HackerEmbassyBot, {
+    asyncMessageLocalStorage,
     FULL_PERMISSIONS,
     MAX_MESSAGE_LENGTH_WITH_TAGS,
     RESTRICTED_PERMISSIONS,
@@ -193,6 +194,7 @@ export default class ServiceHandlers implements BotHandlers {
         const context = bot.context(msg);
         context.isButtonResponse = true;
         context.mode.secret = bot.isSecretModeAllowed(msg, context);
+        context.language = user?.language ?? DEFAULT_LANGUAGE;
 
         if (data.fs !== undefined) {
             if (data.fs & Flags.Silent) context.mode.silent = true;
@@ -205,7 +207,7 @@ export default class ServiceHandlers implements BotHandlers {
             params.push(data.params);
         }
 
-        await handler.apply(bot, params);
+        await asyncMessageLocalStorage.run(context, () => handler.apply(bot, params));
     }
 
     private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {

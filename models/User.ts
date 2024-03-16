@@ -15,6 +15,7 @@ class User {
     birthday: Nullable<string>;
     autoinside: AutoInsideMode;
     emoji: Nullable<string>;
+    language: Nullable<string>;
 
     constructor({
         id,
@@ -25,6 +26,7 @@ class User {
         autoinside = AutoInsideMode.Disabled,
         emoji = null,
         userid = null,
+        language = "ru",
     }: User) {
         this.id = id;
         this.username = username;
@@ -34,6 +36,7 @@ class User {
         this.autoinside = autoinside;
         this.emoji = emoji;
         this.userid = userid;
+        this.language = language;
     }
 }
 

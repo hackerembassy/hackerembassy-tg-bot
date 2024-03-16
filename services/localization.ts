@@ -1,24 +1,31 @@
 import config from "config";
-import { t, TFunction, use } from "i18next";
+import { t, TOptions, use } from "i18next";
 import Backend from "i18next-fs-backend";
 import { join } from "path";
 
+import { asyncMessageLocalStorage } from "../bot/core/HackerEmbassyBot";
 import { BotConfig } from "../config/schema";
 
 const botConfig = config.get<BotConfig>("bot");
 const DEFAULT_LOCALES_PATH_PATTERN = "../resources/locales/{{lng}}/{{ns}}.yaml";
 
-// @ts-ignore
 use(Backend).init({
     returnNull: false,
     backend: {
         loadPath: join(__dirname, botConfig.locales ?? DEFAULT_LOCALES_PATH_PATTERN),
     },
+    supportedLngs: ["en", "ru"],
+    preload: ["en", "ru"],
+    fallbackLng: "ru",
     interpolation: {
         escapeValue: false,
     },
-    lng: "ru",
     debug: false,
 });
 
-export default t as TFunction;
+const translateWithDetectedLanguage = (key: string, options?: any): string => {
+    const state = asyncMessageLocalStorage.getStore() as { language: string } | undefined;
+    return t<string, TOptions, string>(key, { ...options, lng: state?.language } as TOptions);
+};
+
+export default translateWithDetectedLanguage;

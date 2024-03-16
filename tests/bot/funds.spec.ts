@@ -1,7 +1,7 @@
 import fundsRepository from "../../repositories/fundsRepository";
 import { sleep } from "../../utils/common";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { ADMIN_USER_NAME, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
+import { ADMIN_USER, createBotMock, createMockMessage, prepareDb } from "../mocks/mockHelpers";
 
 describe("Bot Funds commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
@@ -15,7 +15,7 @@ describe("Bot Funds commands:", () => {
 
     test("/addfund should properly add a fund to a list returned by /funds", async () => {
         await botMock.processUpdate(createMockMessage("/funds"));
-        await botMock.processUpdate(createMockMessage("/addfund Test_Fund with target 500 USD", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/addfund Test_Fund with target 500 USD", ADMIN_USER));
         await botMock.processUpdate(createMockMessage("/funds"));
 
         await jest.runAllTimersAsync();
@@ -30,9 +30,9 @@ describe("Bot Funds commands:", () => {
     });
 
     test("/adddonation should properly add a donation to an added fund to a list returned by /funds", async () => {
-        await botMock.processUpdate(createMockMessage("/addfund Test_Fund_With_Donations with target 500 USD", ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage("/addfund Test_Fund_With_Donations with target 500 USD", ADMIN_USER));
         await botMock.processUpdate(
-            createMockMessage("/adddonation 5000 USD from @user1 to Test_Fund_With_Donations", ADMIN_USER_NAME)
+            createMockMessage("/adddonation 5000 USD from @user1 to Test_Fund_With_Donations", ADMIN_USER)
         );
         // Send photo delay
         await sleep(100);

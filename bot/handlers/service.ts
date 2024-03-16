@@ -186,8 +186,9 @@ export default class ServiceHandlers implements BotHandlers {
         if (!route) throw Error(`Calback route for ${command} does not exist`);
 
         const handler = route.handler;
+        const user = UsersRepository.getByUserId(msg.from.id);
 
-        if (!bot.canUserCall(msg.from.username, command)) return;
+        if (!bot.canUserCall(user, command)) return;
 
         const context = bot.context(msg);
         context.isButtonResponse = true;

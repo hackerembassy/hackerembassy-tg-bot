@@ -4,8 +4,14 @@ import TelegramBot from "node-telegram-bot-api";
 import { addRoutes, startRouting } from "../../bot/init/router";
 import { HackerEmbassyBotMock } from "./HackerEmbassyBotMock";
 
-export const ADMIN_USER_NAME = "adminusername";
-export const GUEST_USER_NAME = "guestusername";
+export const ADMIN_USER = {
+    username: "adminusername",
+    userid: 1,
+};
+export const GUEST_USER = {
+    username: "guestusername",
+    userid: 2,
+};
 
 export function mockTelegramApiRequests() {
     nock("https://api.telegram.org")
@@ -27,7 +33,7 @@ export function mockTelegramApiRequests() {
 
 export async function prepareDb() {
     const usersRepository = (await import("../../repositories/usersRepository")).default;
-    usersRepository.addUser(ADMIN_USER_NAME, ["admin|member|accountant"], 123);
+    usersRepository.addUser(ADMIN_USER.username, ["admin|member|accountant"], ADMIN_USER.userid);
 }
 
 export function createBotMock() {
@@ -39,26 +45,22 @@ export function createBotMock() {
     return botMock;
 }
 
-export function createMockMessage(
-    text: string,
-    fromUsername: string = GUEST_USER_NAME,
-    timestamp: number = Date.now()
-): TelegramBot.Update {
+export function createMockMessage(text: string, fromUser = GUEST_USER, timestamp: number = Date.now()): TelegramBot.Update {
     return {
         update_id: 0,
         message: {
             message_id: 1,
             from: {
-                id: 1,
+                id: fromUser.userid,
                 is_bot: false,
                 first_name: "First Name",
-                username: fromUsername,
+                username: fromUser.username,
                 language_code: "ru-RU",
             },
             chat: {
-                id: 1,
+                id: fromUser.userid,
                 first_name: "First Name",
-                username: fromUsername,
+                username: fromUser.username,
                 type: "private",
             },
             date: timestamp / 1000,

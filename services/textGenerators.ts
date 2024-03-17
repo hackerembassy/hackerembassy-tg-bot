@@ -176,7 +176,7 @@ export function getStatusMessage(
     stateText += climateInfo ? getClimateMessage(climateInfo, options) : REPLACE_MARKER;
     stateText += !options.isApi
         ? t("status.status.updated", {
-              updatedDate: new Date().toLocaleString("RU-ru").replace(",", " в").substring(0, 21),
+              updatedDate: new Date().toLocaleString("RU-ru").replace(",", "").substring(0, 21),
           })
         : "";
     return stateText;

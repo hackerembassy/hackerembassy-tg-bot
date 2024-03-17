@@ -134,6 +134,7 @@ basic:
 
             🔖 To get a complete list of commands available to you, enter /help. Some commands are only visible to residents.
             📮 Is something wrong in the space? Enter /issue in the bot. It's anonymous.
+            🗣 Change bot language / Сменить язык бота - /lang
         buttons:
             status: 📯 Status
             events: 🗓 Events

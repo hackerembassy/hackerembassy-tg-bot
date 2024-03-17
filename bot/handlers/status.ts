@@ -173,11 +173,18 @@ export default class StatusHandlers implements BotHandlers {
         return inlineKeyboard;
     }
 
-    static async liveStatusHandler(bot: HackerEmbassyBot, resultMessage: Message, short: boolean, mode: BotMessageContextMode) {
+    static async liveStatusHandler(
+        bot: HackerEmbassyBot,
+        resultMessage: Message,
+        short: boolean,
+        mode: BotMessageContextMode,
+        language: string
+    ) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
         const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
         const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+        bot.context(resultMessage).language = language;
 
         const statusMessage = StatusHandlers.getStatusMessage(
             state,
@@ -211,8 +218,10 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
-        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
-        const mode = bot.context(msg).mode;
+        const context = bot.context(msg);
+        if (!context.isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
+        const mode = context.mode;
+        const language = context.language;
 
         const state = StatusRepository.getSpaceLastState();
         const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
@@ -259,11 +268,11 @@ export default class StatusHandlers implements BotHandlers {
             bot.addLiveMessage(
                 resultMessage,
                 BotCustomEvent.statusLive,
-                () => StatusHandlers.liveStatusHandler(bot, resultMessage, short, mode),
+                () => StatusHandlers.liveStatusHandler(bot, resultMessage, short, mode, language),
                 {
                     functionName: StatusHandlers.liveStatusHandler.name,
                     module: __filename,
-                    params: [resultMessage, short, mode],
+                    params: [resultMessage, short, mode, language],
                 }
             );
         }

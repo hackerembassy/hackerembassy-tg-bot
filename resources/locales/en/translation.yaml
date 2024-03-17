@@ -54,7 +54,7 @@ basic:
         💵 Cash upon meeting (the best option).
           {{donateCashCommand}}
 
-        📊 You can see our current fees and your contribution by command
+        📊 You can see our current donations and your contribution by command
           {{fundsCommand}}
 
         💌 For donation questions, please contact our accountants, they will help:
@@ -138,7 +138,7 @@ basic:
         buttons:
             status: 📯 Status
             events: 🗓 Events
-            funds: 💸 Fees
+            funds: 💸 Donations
             control: 🕹 Control
             info: 📚 Info
             birthdays: 🎉 Birthdays
@@ -540,7 +540,7 @@ status:
         outandin: 🤝 And I'm in space
         outandout: 👋 I'm not there either
         going: 🚕 Planning to come
-        notgoing: 🛌 Not planning anymore
+        notgoing: 🛌 Not planning
         andgoing: 🚕 And I'm planning
         refresh: 🔃 Refresh
         repeat: 🔃 Repeat the command
@@ -603,7 +603,7 @@ status:
             {{statusMessage}}
         messageopened: This is a great reason to come in, so ring the bell or write to those inside - they will open it for you
         messageclosed: We are waiting for one of the residents to open it. Maybe there is no one inside, or there is a closed meeting of residents, or they forgot to do /open again? Who knows... Better ask them in chat or tag them with the /knock command.
-        updated: ⏱ Updated {{updatedDate}}
+        updated: ⏱ Updated at {{updatedDate}}
         opened: "#*opened#*"
         closed: "#*closed#*"
         state: |
@@ -614,7 +614,7 @@ status:
         state_pin: "{{stateEmoji}} {{state}}"
         insidechecked_pin: "👨‍💻 inside {{count}}"
         insidechecked: |
-            👨‍💻 [{{count}}] were marked inside:
+            👨‍💻 [{{count}}] were checked inside:
         nooneinside: 🛌 No one checked in inside
         nooneinside_pin: 🛌 no one
         going_pin: "🚕 planning {{count}}"

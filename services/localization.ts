@@ -26,9 +26,9 @@ use(Backend).init({
     debug: false,
 });
 
-const translateWithDetectedLanguage = (key: string, options?: any): string => {
+const translateWithDetectedLanguage = (key: string, options?: any, lang?: string): string => {
     const state = asyncMessageLocalStorage.getStore() as { language: string } | undefined;
-    return t<string, TOptions, string>(key, { ...options, lng: state?.language } as TOptions);
+    return t<string, TOptions, string>(key, { ...options, lng: lang ?? state?.language } as TOptions);
 };
 
 export default translateWithDetectedLanguage;

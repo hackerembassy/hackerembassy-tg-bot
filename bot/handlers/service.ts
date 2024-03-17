@@ -170,6 +170,9 @@ export default class ServiceHandlers implements BotHandlers {
 
     static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
         const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
+        const context = bot.context(msg);
+        context.isButtonResponse = true;
+
         if (!data) throw Error("Missing calback query data");
 
         msg.from = callbackQuery.from;
@@ -177,7 +180,9 @@ export default class ServiceHandlers implements BotHandlers {
         if (data.vId) {
             if (callbackQuery.from.id !== data.vId) return;
 
-            return ServiceHandlers.handleUserVerification(bot, data.vId, data.params.language, msg);
+            asyncMessageLocalStorage.run(context, () =>
+                ServiceHandlers.handleUserVerification(bot, data.vId as number, data.params as string, msg)
+            );
         }
 
         const command = data.cmd;
@@ -191,8 +196,6 @@ export default class ServiceHandlers implements BotHandlers {
 
         if (!bot.canUserCall(user, command)) return;
 
-        const context = bot.context(msg);
-        context.isButtonResponse = true;
         context.mode.secret = bot.isSecretModeAllowed(msg, context);
         context.language = user?.language ?? DEFAULT_LANGUAGE;
 
@@ -219,8 +222,9 @@ export default class ServiceHandlers implements BotHandlers {
                     bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
                 );
 
-                await bot.deleteMessage(msg.chat.id, msg.message_id);
+                bot.context(msg).language = language;
                 await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
+                await bot.deleteMessage(msg.chat.id, msg.message_id);
             } catch (error) {
                 logger.error(error);
             }
@@ -287,12 +291,10 @@ export default class ServiceHandlers implements BotHandlers {
             logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 
-        await ServiceHandlers.setLanguageHandler(
-            bot,
-            { chat, from: user, message_id: 0, date: memberUpdated.date },
-            undefined,
-            user.id
-        );
+        await ServiceHandlers.setLanguageHandler(bot, { chat, from: user, message_id: 0, date: memberUpdated.date }, undefined, {
+            vId: user.id,
+            name: userLink(user),
+        });
     }
 
     static verifyAndAddUser(tgUser: ITelegramUser, language: string = DEFAULT_LANGUAGE) {
@@ -334,18 +336,30 @@ export default class ServiceHandlers implements BotHandlers {
         await bot.sendMessageExt(chat.id, welcomeText, null);
     }
 
-    static async setLanguageHandler(bot: HackerEmbassyBot, msg: Message, lang?: string, vId?: number) {
+    static async setLanguageHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        lang?: string,
+        verificationDetails?: { vId: number; name: string }
+    ) {
         if (!lang) {
             const inline_keyboard = [
                 [
-                    InlineButton("🇷🇺 Русский", "setlanguage", Flags.Simple, { params: "ru", vId }),
-                    InlineButton("🇺🇸 English", "setlanguage", Flags.Simple, { params: "en", vId }),
+                    InlineButton("🇷🇺 Русский", "setlanguage", Flags.Simple, { params: "ru", vId: verificationDetails?.vId }),
+                    InlineButton("🇺🇸 English", "setlanguage", Flags.Simple, { params: "en", vId: verificationDetails?.vId }),
                 ],
             ];
 
-            return await bot.sendMessageExt(msg.chat.id, t(vId ? "service.welcome.confirm" : "service.setlanguage.select"), msg, {
-                reply_markup: { inline_keyboard },
-            });
+            return await bot.sendMessageExt(
+                msg.chat.id,
+                t(verificationDetails ? "service.welcome.confirm" : "service.setlanguage.select", {
+                    newMember: verificationDetails?.name,
+                }),
+                msg,
+                {
+                    reply_markup: { inline_keyboard },
+                }
+            );
         }
 
         if (!SUPPORTED_LANGUAGES.includes(lang)) {

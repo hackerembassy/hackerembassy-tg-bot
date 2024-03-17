@@ -3,7 +3,7 @@ import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import t, { DEFAULT_LANGUAGE } from "../../services/localization";
+import t, { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "../../services/localization";
 import logger from "../../services/logger";
 import { OpenAI } from "../../services/neural";
 import { sleep } from "../../utils/common";
@@ -177,7 +177,7 @@ export default class ServiceHandlers implements BotHandlers {
         if (data.vId) {
             if (callbackQuery.from.id !== data.vId) return;
 
-            return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
+            return ServiceHandlers.handleUserVerification(bot, data.vId, data.params.language, msg);
         }
 
         const command = data.cmd;
@@ -210,10 +210,10 @@ export default class ServiceHandlers implements BotHandlers {
         await asyncMessageLocalStorage.run(context, () => handler.apply(bot, params));
     }
 
-    private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {
+    private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, language: string, msg: TelegramBot.Message) {
         const tgUser = (await bot.getChat(vId)) as ITelegramUser;
 
-        if (ServiceHandlers.verifyAndAddUser(tgUser)) {
+        if (ServiceHandlers.verifyAndAddUser(tgUser, language)) {
             try {
                 botConfig.moderatedChats.forEach(chatId =>
                     bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
@@ -287,15 +287,15 @@ export default class ServiceHandlers implements BotHandlers {
             logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 
-        const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
-        const inline_keyboard = [[InlineButton(t("service.welcome.captcha"), undefined, Flags.Simple, { vId: user.id })]];
-
-        await bot.sendMessageExt(chat.id, welcomeText, null, {
-            reply_markup: { inline_keyboard },
-        });
+        await ServiceHandlers.setLanguageHandler(
+            bot,
+            { chat, from: user, message_id: 0, date: memberUpdated.date },
+            undefined,
+            user.id
+        );
     }
 
-    static verifyAndAddUser(tgUser: ITelegramUser) {
+    static verifyAndAddUser(tgUser: ITelegramUser, language: string = DEFAULT_LANGUAGE) {
         const user = UsersRepository.getByUserId(tgUser.id);
 
         if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
@@ -307,7 +307,7 @@ export default class ServiceHandlers implements BotHandlers {
 
         logger.info(`User [${tgUser.id}](${tgUser.username}) passed the verification`);
 
-        return UsersRepository.updateUser({ ...user, roles: "default" });
+        return UsersRepository.updateUser({ ...user, roles: "default", language });
     }
 
     static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser) {
@@ -332,6 +332,35 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         await bot.sendMessageExt(chat.id, welcomeText, null);
+    }
+
+    static async setLanguageHandler(bot: HackerEmbassyBot, msg: Message, lang?: string, vId?: number) {
+        if (!lang) {
+            const inline_keyboard = [
+                [
+                    InlineButton("🇷🇺 Русский", "setlanguage", Flags.Simple, { params: "ru", vId }),
+                    InlineButton("🇺🇸 English", "setlanguage", Flags.Simple, { params: "en", vId }),
+                ],
+            ];
+
+            return await bot.sendMessageExt(msg.chat.id, t(vId ? "service.welcome.confirm" : "service.setlanguage.select"), msg, {
+                reply_markup: { inline_keyboard },
+            });
+        }
+
+        if (!SUPPORTED_LANGUAGES.includes(lang)) {
+            return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.notsupported", { language: lang }), msg);
+        }
+
+        const userId = msg.from?.id;
+        const user = userId ? UsersRepository.getByUserId(userId) : null;
+
+        if (user && UsersRepository.updateUser({ ...user, language: lang })) {
+            bot.context(msg).language = lang;
+            return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.success", { language: lang }), msg);
+        }
+
+        return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
     }
 
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {

@@ -7,6 +7,8 @@ import { asyncMessageLocalStorage } from "../bot/core/HackerEmbassyBot";
 import { BotConfig } from "../config/schema";
 
 export const DEFAULT_LANGUAGE = "ru";
+export const SUPPORTED_LANGUAGES = ["en", "ru"];
+
 const botConfig = config.get<BotConfig>("bot");
 const DEFAULT_LOCALES_PATH_PATTERN = "../resources/locales/{{lng}}/{{ns}}.yaml";
 
@@ -15,8 +17,8 @@ use(Backend).init({
     backend: {
         loadPath: join(__dirname, botConfig.locales ?? DEFAULT_LOCALES_PATH_PATTERN),
     },
-    supportedLngs: ["en", "ru"],
-    preload: ["en", "ru"],
+    supportedLngs: SUPPORTED_LANGUAGES,
+    preload: SUPPORTED_LANGUAGES,
     fallbackLng: DEFAULT_LANGUAGE,
     interpolation: {
         escapeValue: false,

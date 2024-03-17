@@ -485,8 +485,10 @@ needs:
         undo: ❌ Cancel purchase
 service:
     welcome:
-        confirm: 🇬🇧 Hello {{newMember}}. Click the button if you are not a bot, otherwise you won’t be able to write here :)
-        captcha: Poke
+        confirm: |
+            🇬🇧 Hello {{newMember}}. Select your language if you are not a bot, otherwise you won’t be able to write here :)
+            🇷🇺 Привет, {{newMember}}. Выбери свой язык, если ты не бот, иначе не сможешь тут писать :)
+        captcha: Click me
         main: |
             🇬🇧 Welcome to our cozy corner, {{newMember}}
 
@@ -511,6 +513,12 @@ service:
             Take a look at my /help commands again, a lot of new things are now available to you. Pay attention to /control, which gives you unlimited (or not so much) power over the space itself. Use it wisely.
 
             🎉🎉🎉 Residents, raise your sausages for {{newMember}}
+    setlanguage:
+        select: 🗣 Select your language
+        success: ✅ Language is set as {{language}}
+        error: ⚠️ Failed to set language
+        notsupported: |
+            ⚠️ Language {{language}} is not supported, only #`ru#` and #`en#` are available
     openai:
         help: |
             🔮 Ask a question to the neural network. Available only in group space chats.

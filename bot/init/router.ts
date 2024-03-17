@@ -430,6 +430,16 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler, null, null, ["admin"]);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, ["member"]);
 
+    // Language
+    bot.addRoute(
+        ["setlanguage", "setlang", "lang", "language"],
+        ServiceHandlers.setLanguageHandler,
+        OptionalParam(/(\S+)/),
+        match => [match[1]]
+    );
+    bot.addRoute(["ru", "russian"], ServiceHandlers.setLanguageHandler, null, () => ["ru"]);
+    bot.addRoute(["en", "english"], ServiceHandlers.setLanguageHandler, null, () => ["en"]);
+
     // Checks
     bot.addRoute(["ena", "checkena", "checkoutages", "outages"], EmbassyHandlers.checkOutageMentionsHandler);
 }

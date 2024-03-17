@@ -10,6 +10,7 @@ const botConfig = config.get<BotConfig>("bot");
 
 const defaultCommands = [
     { command: "start", description: "Панель управления" },
+    { command: "lang", description: "Change bot language / Сменить язык бота" },
     { command: "help", description: "Помощь" },
     {
         command: "status",

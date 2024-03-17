@@ -1,7 +1,7 @@
 import { IGNORE_UPDATE_TIMEOUT } from "../../bot/core/HackerEmbassyBot";
 import fundsRepository from "../../repositories/fundsRepository";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { ADMIN_USER_NAME, createBotMock, createMockMessage, GUEST_USER_NAME, prepareDb } from "../mocks/mockHelpers";
+import { ADMIN_USER, createBotMock, createMockMessage, GUEST_USER, prepareDb } from "../mocks/mockHelpers";
 
 describe("Bot behavior shared for all commands:", () => {
     const botMock: HackerEmbassyBotMock = createBotMock();
@@ -15,7 +15,7 @@ describe("Bot behavior shared for all commands:", () => {
     afterEach(() => fundsRepository.clearFunds());
 
     test("old messages should be ignored", async () => {
-        await botMock.processUpdate(createMockMessage("/status", GUEST_USER_NAME, mockDate.getTime() - 10000));
+        await botMock.processUpdate(createMockMessage("/status", GUEST_USER, mockDate.getTime() - 10000));
 
         await jest.advanceTimersByTimeAsync(IGNORE_UPDATE_TIMEOUT);
 
@@ -34,7 +34,7 @@ describe("Bot behavior shared for all commands:", () => {
     test("bot should respond to commands with any case and not miss parameters", async () => {
         await botMock.processUpdate(createMockMessage(`/StAtUs`));
         await botMock.processUpdate(createMockMessage(`/status`));
-        await botMock.processUpdate(createMockMessage(`/inForce abc`, ADMIN_USER_NAME));
+        await botMock.processUpdate(createMockMessage(`/inForce abc`, ADMIN_USER));
 
         await jest.runAllTimersAsync();
 

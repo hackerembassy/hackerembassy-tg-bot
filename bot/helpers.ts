@@ -19,9 +19,21 @@ export function InlineButton(text: string, command?: string, flags?: Flags, opti
     };
 }
 
+// TODO: deprecate and replace with hasUserRole
 export function hasRole(username: Optional<string>, ...roles: string[]) {
     if (!username) return false;
     const userRoles = toRolesList(UsersRepository.getUserByName(username)?.roles);
+
+    if (userRoles.length === 0) return false;
+
+    const intersection = userRoles.filter(r => roles.includes(r));
+
+    return intersection.length > 0;
+}
+
+export function hasUserRole(user?: User, ...roles: string[]) {
+    if (!user) return false;
+    const userRoles = toRolesList(user.roles);
 
     if (userRoles.length === 0) return false;
 

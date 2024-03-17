@@ -1,0 +1,751 @@
+general:
+    error: Something went wrong
+    buttons:
+        menu: 🏠 Menu
+        back: ↩️ Back
+        cancel: ❌ Cancel
+        ok: 🆗 Ok
+        yes: ✅ Yes
+        no: ❌ No
+        more: 📖 Read more
+basic:
+    help: "{{availableCommands}}{{globalModifiers}}"
+    about: |
+        🏫 Hacker Embassy (Yerevan Hackerspace) is a space where like-minded people passionate about technology and creativity gather. We work on projects together, share ideas and knowledge, and just communicate.
+
+        💻 You can read more about us on our website https://hackerembassy.site/
+
+        📓 We store information about our projects, equipment and rules on our wiki https://wiki.hackerembassy.site/
+
+        🤖 My code is open and free, development is carried out on GitHub: https://github.com/hackerembassy/hackerembassy-tg-bot
+
+        🍕 We always welcome new residents. Want to know how to become a member? Press the /join command
+    issue:
+        help: |
+            📮 Using this command, you can anonymously report any problem in the space (something is missing, something doesn’t work, someone is doing something very wrong in the space).
+            Residents will definitely consider it and try to resolve it.
+            You can send a problem to the bot, for example, like this:
+
+            #`/issue The air conditioner does not work well and it is very hot on the first floor#`
+            #`/issue Out of toilet paper#`
+            #`/issue It would be nice to have a map of the internal network on the wiki#`
+        sent: 💌 The problem has been sent to residents, they will definitely consider it. Thank you for helping our community.
+        report: |
+            📩 You have a new issue!
+            "{{issue}}"
+    residents: |
+        👥 Here they are, our magnificent residents:
+        {{userList}}
+        🧠 You can contact them for any Space question
+    location:
+        address: |
+            🗺 Our address: Armenia, Yerevan, Pushkina 38/18 (entrance from the yard)
+        caption: 🏫 This house is one of a kind
+    donate: |
+        💸 Hackspace is not a commercial project and exists solely on donations from participants.
+        We contribute to the development of the space: paying rent and utilities, taking care of the space, helping in purchasing equipment.
+        We will be glad to receive any support.
+
+        You can donate to us in the following ways:
+        💳 Bank card Visa/Mastercard of Armenia.
+          {{donateCardCommand}}
+        💰 Cryptocurrency
+          {{cryptoCommands}}
+        💵 Cash upon meeting (the best option).
+          {{donateCashCommand}}
+
+        📊 You can see our current fees and your contribution by command
+          {{fundsCommand}}
+
+        💌 For donation questions, please contact our accountants, they will help:
+        {{accountantsList}}
+    donateCoin: |
+        🪙 Use this QR code or address below to donate to us at {{coin.fullname}}.
+          
+        ⚠️ Please note that the network is {{coin.network}} and you are using the correct address:
+        `{{coin.address}}`
+              
+        ⚠️ Wallets are still working in test mode, before sending a large amount, try something very small or write to an accountant
+
+        💌 Don’t forget to write to the accountant that you donated (la/lo) and send the transaction code or link
+        in https://mempool.space/ or a similar service
+
+        🛍 If you want to donate in kind (ohh my) or in another way - click /donate
+    donateCard: |
+        💌 In order to donate this way, write to our accountants. They will tell you the current details or you can agree on the time and place of the transfer.
+
+        Here they are:
+        {{accountantsList}}
+        🛍 If you want to donate in kind or in another way, click /donate
+    join: |
+        🧑🏻‍🏫 If you are in Yerevan, passionate about technology and looking for like-minded people, come visit us.
+        - We hold a regular open day every Friday at 20.00.
+        - On Sundays at 20.00 we have an English Club, where you can practice your English.
+        - We often hold musical meetings on Mondays at 20.00: we bring guitars, play Rocksmith and jam.
+        - On any other day, the space can also receive guests, enter the command {{statusCommand}} to find out if the space is open and if there is anyone there.
+
+        💸 Visits are free (free), but any donations to help our projects and rentals are very welcome.
+        More details can be found using the command {{donateCommand}}
+
+        🗺 To find out how to find us, press {{locationCommand}}
+
+        🔑 If you want to become a permanent member - a full-fledged resident of the community, i.e. have your own key, your own place to store things (tools, servers, etc.), participate in decision-making on the development of the space,\
+        then our requirements are simple:
+        - Friendliness and non-conflict.
+        - Willingness to participate in community life.
+        - Regular donations (of course, within your capabilities).
+
+        🧙🏻‍♂️ Contact any Space resident, he will present your candidacy to the Space Council.
+    events:
+        text: |
+            🗓You can follow our events on the calendar
+            {{calendarLink}}
+            Sign up with a plus sign ➕ at the bottom of the page or take {{iCalLink}}
+            Or even open the calendar directly in the cart {{openCalendarInTelegram}}
+            Upcoming events can be found by the command /upcoming, today's events - by the command /today
+
+            🎭 What's happening here:
+            - Master classes and presentations on various topics from 3D printing, modeling and soldering to neural networks, theorem proving algorithms and shibari. We will announce the date in advance in the chat.
+            - We often hold musical meetings on Mondays at 21.00: we bring guitars, play Rocksmith and jam.
+            - Every Friday at 20.00 we have a traditional open day, we communicate, get to know each other and hang out.
+            - On any other day, the space can also receive guests, see the space status to find out more.
+
+            💸 Visits are free (free), but any donations to help our projects and rentals are very welcome.
+            More details can be found using the command {{donateCommand}}
+        buttons:
+            today: 📣 Today
+            upcoming: 📆 Upcoming
+        opencalendar: Open calendar
+        upcoming: |
+            🗓 Our upcoming events:
+        today: |
+            📣 Today the following events are taking place in the space:
+        entrance: |
+            🎁 Admission is free as always, but we will welcome any donations to support the space. See /donate for more information.
+        notoday: |
+            🏖 There are no planned events on Space today.
+
+            But, if the space is open to guests, then you can just come to work on interesting projects or hang out. Check /status throughout the day.
+        error: 📂 No events found
+    start:
+        text: |
+            🇬🇧 Hello hacker. I am a bot for managing all sorts of processes in space.
+            [I am in development, you can participate in my development in the repository on the Space GitHub, contact #[korn9509#]#(t.me/korn9509#)].
+
+            🔖 To get a complete list of commands available to you, enter /help. Some commands are only visible to residents.
+            📮 Is something wrong in the space? Enter /issue in the bot. It's anonymous.
+            🗣 Change bot language / Сменить язык бота - /lang
+        buttons:
+            status: 📯 Status
+            events: 🗓 Events
+            funds: 💸 Fees
+            control: 🕹 Control
+            info: 📚 Info
+            birthdays: 🎉 Birthdays
+            needs: 🛍 Needs
+            printers: 🖨 3D Printers
+            topics: 📭 Topics
+            me: 🧙‍♂️ My profile
+            help: 📝 Commands
+    control:
+        text: 🕹 Hackerspace control panel for residents
+        buttons:
+            unlock: 🔑 Castle
+            doorbell: 🔔 Bell
+            downstairs: 📹 1st floor
+            kitchen: 📹Kitchen
+            jigglycam: 📹Jiglypuff
+            upstairs: 📹2nd floor
+            outdoors: 📹 Login
+            printers: 📹 Printers
+            superstatus: 🩻 Superstatus
+            conditioner: ❄️ Conde
+            meme: 🔫 Meme
+            back: ↩️ Back
+    info:
+        text: |
+            📚 Here you can read about us.
+            If you want to know more, feel free to visit our website and wiki https://hackerembassy.site/
+        buttons:
+            about: 🏠 About space and bot
+            join: 🙋‍♀️ How to join
+            location: 🗺 How to find
+            donate: 🎁 How to donate
+            residents: 👩‍💻 Our residents
+            back: ↩️ Back
+    meme:
+        text: |
+            🔫 Meme panel
+        buttons:
+            moan: 😮 Moan
+            fart: 💩 Fart
+            adler: 🤤 Adler
+            rickroll: 🕺 Rickroll
+            rzd: 🚇 Rzd
+            zhuchok: 🤰 Zhuchok
+            rfoxed: 🦊 Rfoxed
+            nani: 💥 Nani
+            cat: 🐱 Cat
+            dog: 🐶 Dog
+            cab: ​​🥷 Cab
+            cock: 🐔 Cock
+            sad: 🎺 Sad
+            badumtss: 🥁 Badumtss
+            dushno: 🪟 Dushno
+            all: 🎶 List of all sounds
+            stop: 🔇 STOOOOP
+            back: ↩️ Back
+admin:
+    addUser:
+        success: ✅ User {{username}} added as {{roles}}
+        fail: ⚠️ Failed to add user (maybe there is already one?)
+    getUsers:
+        text: |
+            👩‍💻 Current users:
+    getRestrictedUsers:
+        text: |
+            👻 Current users with limited rights:
+    updateRoles:
+        success: ✅ {{username}} roles are set to {{roles}}
+        fail: ⚠️ Failed to update roles
+    removeUser:
+        success: 🗑 User {{username}} deleted
+        fail: ⚠️ Failed to delete the user (maybe he didn’t exist?)
+    messages:
+        restricted: "📵 Sorry, you need to be {{required}} to run this command"
+birthday:
+    nextbirthdays: |
+        🎂 This month they celebrate their birthdays:
+    noone: Nobody? Strange...
+    help: |
+        {{usersList}}
+        Would you like to be congratulated too? Add your birthday with a command in the following formats:
+        #`/mybirthday YYYY-MM-DD#`
+        #`/mybirthday MM-DD#`
+        Tired of congratulating yourself? Enter the command:
+        #`/mybirthday remove#`
+    fail: |
+        🛂 Enter the date in the format #`YYYY-MM-DD#`, #`MM-DD#` or specify #`remove#`
+    set: 🎂 {{username}}'s birthday is set to {{date}}
+    remove: 🎂 {{username}}'s birthday has been reset
+    months:
+        january: January
+        february: February
+        march: March
+        april: April
+        may: may
+        june: June
+        july: july
+        august: August
+        september: September
+        october: October
+        november: November
+        december: December
+embassy:
+    common:
+        fail: ⚠️ Service unavailable
+    unlock:
+        success: 🔑 The door is open
+        success-alert: 🚪 The door was opened by user {{user}}
+        nomac: ❌ Your MAC address was not detected by the router. You have to be near the space to open it
+    webcam:
+        location:
+            downstairs: Ground floor
+            kitchen: Kitchen
+            jigglycam: Jigglypuff
+            upstairs: Second floor
+            outdoors: Entrance door
+            printers: Printer
+        fail: |
+            ⚠️ {{camLocationName}}: Camera not available yet
+        failall: "⚠️ All cameras are unavailable"
+    climate:
+        data: |
+            🌦 Climate in space:
+            Ground floor 🌡️ {{climateInfo.firstFloor.temperature}}ºC 💦 {{climateInfo.firstFloor.humidity}}% 💨 {{climateInfo.firstFloor.co2}}ppm
+            Second floor 🌡️ {{climateInfo.secondFloor.temperature}}ºC 💦 {{climateInfo.secondFloor.humidity}}%
+        secretdata: |
+            Fun room 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%
+        nodata: 🌚 Climate data not available
+    conditioner:
+        status: |
+            ❄️ Midea condo status:
+            Mode: {{conditionerStatus.state}}
+            Target temperature: {{conditionerStatus.attributes.temperature}}°C
+            Current temperature: {{conditionerStatus.attributes.current_temperature}}°C
+
+            ℹ️ Commands:
+            /mideaon - Turn on
+            /mideaoff - Disable
+            /preheat - Preheat the space in advance
+            #`/mideamode cool#` - Mode ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/mideatemp 24#` - Target temperature (16-28°C)
+        success: ✅ It worked
+        fail: ⚠️ It didn’t work out
+        unavailable: ⚠️ Air conditioning is not available
+        buttons:
+            turnon: 🌀 Enable
+            turnoff: ⛔️ Turn off
+            preheat: ☀️ Preheat
+            more: 🔼 +1°C
+            less: 🔽 -1°C
+            auto: ♻️ Auto
+            heat: 🔥Heat
+            cool: 🥶 Cool
+            dry: ♨️ Dry
+    printers:
+        help: |
+            🖨 We have two 3D printers:
+
+            🚺 Anette from ubershy and cake64
+            Documentation for it is available here:
+            https://wiki.hackerembassy.site/ru/equipment/anette
+            The web interface is available within the space network at {{anetteApi}}
+            The printer status can be found using the /anette command.
+
+            🚹 Plumbus by the_mihalich
+            Documentation for it is available here:
+            https://wiki.hackerembassy.site/ru/equipment/plumbus
+            The web interface is available within the space network at {{plumbusApi}}
+            The printer status can be found using the /plumbus command.
+        anettestatus: Anette status
+        plumbusstatus: Plumbus status
+    printerstatus:
+        statusheader: "💤 Printer status: {{state}}"
+        status: |
+            🖨 The file {{print_stats.filename}} is printed
+
+            🕔 Completion percentage {{progress}}%
+            🕔 Passed {{past}}
+            🕔 Approximately {{estimate}} left
+
+            📏 {{usedFilament}} meters of filament used
+
+            🔥 Extruder temperature {{extruder.temperature}}ºC, target {{extruder.target}}ºC
+            🔥 Table temperature {{heater_bed.temperature}}ºC, target {{heater_bed.target}}ºC
+        update: Update the status of {{printername}}
+        fail: ⚠️ Printer is not available yet
+        undefinedtime: Xs
+    doorbell:
+        success: 🔔 Ring the doorbell
+        fail: 🔕 Failed to call
+    device:
+        help: |
+            🖥 Device {{deviceName}} can be controlled over the network using the following commands:
+            #`/{{deviceName}} up#` - Enable
+            #`/{{deviceName}} down#` - Turn off
+            #`/{{deviceName}} status#` - Check availability
+            #`/{{deviceName}} help#` - Display this message
+        notfound: ⚠️ The device is not known to the system or something went very wrong
+        wake:
+            success: ⏰ Tried to wake up the device, monitor its status
+            fail: ⚠️ Failed to wake up the device
+        shutdown:
+            success: 📴 Shutdown command sent
+            fail: ⚠️ Something went wrong, maybe the device is already turned off?
+        alive:
+            up: 🟢 Device available ({{time}} ms)
+            down: 🔴 Device unavailable
+            fail: ⚠️ It was not possible to find out the status of the device
+    say:
+        help: |
+            🗣 Using this command you can say something on the speaker in space, for example #`/say Hello, hackers#`
+        success: 🗣 Message sent to speaker
+        fail: ⚠️ Couldn't say
+    play:
+        help: 🗣 Using this command you can play any sound from the link
+        success: 🗣 Sound sent to speaker
+        fail: ⚠️ Failed to play
+    stop:
+        success: 🔇 Playback on speaker is stopped
+        fail: ⚠️ Failed to stop playback
+    availablesounds:
+        success: |
+            🎶 List of available sounds
+            {{sounds}}
+        fail: ⚠️ Could not find available sounds
+    knock:
+        knock: |
+            📢 Knock-knock {{residentsInside}}
+        noresidents: 🛏 And the residents didn’t check in inside
+    neural:
+        sd:
+            help: |
+                🏞 This command allows you to generate an image using StableDiffusion.
+
+                #`/txt2img cute cat drawing#`
+                #`/img2img cute cat#` (as a caption to an uploaded photo)
+                #`/sd race car != red#`
+
+                🖥 The model is hosted in our space on a gaming machine
+                on the second floor, so don't forget to turn it on before
+                use and turn it off after if no one is using it.
+                Car control in the /gaming team
+            fail: ⚠️ It was not possible to generate an image, but /gaming is definitely turned on and has not yet died from a ton of requests?
+    ena:
+        street: Pushkina
+        mentioned: |
+            ⚡️ Oops, {{street}} Street ({{hystreet}}) was mentioned on the website of Armenian power grids https://www.ena.am/Info.aspx?id=5&lang=1
+            I hope this is not in Yerevan 😅
+        notmentioned: |
+            ⚡️ {{street}} ({{hystreet}}) is no longer mentioned on the Armenian Electricity Networks website. Everything is fine 👌
+        fail: ⚠️ Failed to check street
+funds:
+    funds: |
+        💰 Here are our current fees:
+
+        {{list}}💸 To find out how to help us, click /donate
+    fund:
+        nofund: Fund not found
+        text: |
+            {{fundlist}}💸 To find out how to help us, click /donate
+        buttons:
+            csv: 🧾 Export to CSV
+            donut: 📊 View chart
+        collected: Collected
+        postponed: postponed
+        closed: closed
+        open: open
+        from: from
+    fundsall: |
+        💾 Here is an archive of all our fees
+
+        {{list}}
+    addfund:
+        success: 💰 Added collection {{fundName}} with target in {{targetValue}} {{currency}}
+        fail: ⚠️ Failed to add fee (maybe it already exists?)
+    updatefund:
+        success: 🔄 Updated {{fundName}} collection with a new target in {{targetValue}} {{currency}}
+        fail: ⚠️ Failed to update collection (maybe wrong name?)
+    removefund:
+        success: 🗑 {{fundName}} collection removed
+        fail: ⚠️ Failed to delete collection
+    closefund:
+        success: ☑️ {{fundName}} collection closed
+        fail: ⚠️ Failed to close collection
+    changestatus:
+        success: 🔄 Collection status {{fundName}} changed to {{fundStatus}}
+        fail: ⚠️ Failed to change collection status
+    transferdonation:
+        success: |
+            ↪️ Donation [id:{{id}}] transferred to {{accountant}}
+            {{username}} donated to {{fund.name}} in the amount of {{donation.value}} {{donation.currency}}
+        fail: ⚠️ Failed to transfer donation
+        nothing: ⚠️ Nothing transferred, fucker
+    adddonation:
+        success: 💸 {{username}} donated {{value}} {{currency}} to {{fundName}}
+        increased: 💸 {{username}} increased his donation to the {{fundName}} collection by another {{value}} {{currency}}
+        fail: ⚠️ Failed to add donation (maybe something is wrong with the currency or amount?)
+    removedonation:
+        success: 🗑 Donation removed [id:{{donationId}}]
+        fail: ⚠️ Failed to delete the donation (maybe it didn’t exist?)
+    changedonation:
+        success: 🔄 Updated donation [id:{{donationId}}]
+        fail: ⚠️ Failed to update the donation (maybe it didn’t exist?)
+    showcosts:
+        fail: Current rental fee not found
+    residentsdonated: |
+        💰 Resident donations this month:
+    residentshistory:
+        fail: ⚠️ Failed to generate donation schedule
+        empty: ⚠️ No donations found for this period
+    export:
+        empty: ⚠️ Nothing to export
+        fail: ⚠️ Something is wrong
+    debt:
+        text: |
+            🧾 Accountant {{username}} has the following donations:
+
+            {{donationList}}
+            💰 Total {{total}} {{currency}} day
+
+            🛂 You can transfer a donation using the following commands:
+            #`/tocab id#` - Separate donation to Kabu by id
+            #`/tocaball fund_name#` - All Kabu donations from a certain collection
+            #`/tocaball#` - In general, all Kabu donations (carefully)
+            #`/tonic id#` - Separate donation to Kole by id
+            #`/paid id#` - Mark the donation as paid by id (went to the collection purpose)
+            #`/transferdonation donation_id to username#` (td) - Transfer donation to another accountant
+        empty: 📂 You don’t have anything on you
+needs:
+    buy:
+        nothing: 👌 No one has asked for anything yet
+        pleasebuy: |
+            🙏 Someone buy this on your way to space:
+        byrequest: upon request
+        helpbuy: |
+            ℹ️ You can ask to buy something on the way to the space using the command #`/buy item_name#`
+        helpbought: "✅ You can mark your purchase as completed by clicking on the button below:"
+        success: |
+            🙏 {{username}} asked someone to buy #`{{item}}#` on the way to space.
+        fail: Failed to add purchase request
+    bought:
+        success: |
+            ✅ {{username}} bought #`{{item}}#` in space
+        notfound: 🙄 There was no open purchase request with this name, probably already purchased
+        undo: ❌ Cancel purchase
+service:
+    welcome:
+        confirm: |
+            🇬🇧 Hello {{newMember}}. Select your language if you are not a bot, otherwise you won’t be able to write here :)
+            🇷🇺 Привет, {{newMember}}. Выбери свой язык, если ты не бот, иначе не сможешь тут писать :)
+        captcha: Click me
+        main: |
+            🇬🇧 Welcome to our cozy corner, {{newMember}}
+
+            I'm @{{botName}}, hackerspace bot manager. You can PM me to chat so I can briefly tell you about us.
+            Don't forget to also visit our second chat @hackem_foo! There you will find different topics on the main space projects, discussions of future events, news, memes, and so on.
+
+            🎉🎉🎉 Hackers, welcome {{newMember}}
+        offtopic: |
+            🫖 Welcome to the chat topic of our hackspace, {{newMember}}
+
+            Here you will find different topics on the main space projects, discussions of future events, news, memes, and so on.
+            Anything that doesn’t fit the topic of the topic is better to write in general, don’t spawn topics unnecessarily and be a bunny.
+            It is better to write organizational questions and questions regarding the space itself in the main chat @hacker_embassy
+        horny: |
+            🍆 Ohh, myyy. We have {{newMember}} cuming into our hot and cozy place.
+            Welcum to the club, buddy/gal!
+
+            🍑 Members, please /slap our new guest as juicy as you can.
+        key: |
+            🌭 Welcome to the Residents, {{newMember}}. Now you too are the sacred keeper of the key!
+
+            Take a look at my /help commands again, a lot of new things are now available to you. Pay attention to /control, which gives you unlimited (or not so much) power over the space itself. Use it wisely.
+
+            🎉🎉🎉 Residents, raise your sausages for {{newMember}}
+    setlanguage:
+        select: 🗣 Select your language
+        success: ✅ Language is set as {{language}}
+        error: ⚠️ Failed to set language
+        notsupported: |
+            ⚠️ Language {{language}} is not supported, only #`ru#` and #`en#` are available
+    openai:
+        help: |
+            🔮 Ask a question to the neural network. Available only in group space chats.
+
+            #`/ask How to patch KDE under FreeBSD#`
+            #`/ask Write code in Python that inverts the input string#`
+        notset: ⚠️ Bot is not yet configured for this functionality
+        chatnotallowed: ⚠️ The command is only available in group space chats
+        error: ⚠️ Something went wrong, probably took too long to respond
+    removebuttons:
+        error: ⚠️ Failed to remove buttons
+status:
+    buttons:
+        in: 🤝 I'm in space
+        out: 👋 I'm not in space
+        inandin: 🤝 And I'm in space
+        inandout: 👋 I’m not there anymore
+        outandin: 🤝 And I'm in space
+        outandout: 👋 I'm not there either
+        going: 🚕 Planning to come
+        notgoing: 🛌 Not planning anymore
+        andgoing: 🚕 And I'm planning
+        refresh: 🔃 Refresh
+        repeat: 🔃 Repeat the command
+        open: 🚪 Open space
+        close: 🔒 Close space
+        reopen: 🚪 Open again
+        reclose: 🔒 Close again
+        whoinside: 📹Who's inside
+        whoelse: ❓Who else will be there?
+        save: 📷 Save
+    profile:
+        donated: |
+            💵 The following donations were made:
+            {{donationList}}
+        total: 💰 Total added to space {{total}} {{currency}}
+    mac:
+        help: |
+            📡 Using this command you can set MAC addresses for auto-login and lock control functions
+
+            #`/setmac mac_address#` - Set your MAC address (or several, separated by commas)
+            #`/setmac status#` - View your MAC address set in the bot
+            #`/setmac remove#` - Remove your MAC addresses from the bot
+        fail: |
+            ⚠️ It was not possible to add this MAC. Maybe it's invalid?
+            Examples of correct address settings:
+            #`/setmac xx:xx:xx:xx:xx:xx#`
+            #`/setmac xx:xx:xx:xx:xx:xx, xx:xx:xx:xx:xx:xx#`
+        set: 📡 MAC addresses {{cmd}} were successfully set for user {{username}}.
+        removed: |
+            🗑 MAC addresses have been removed for user {{username}}. Auto-login will no longer work.
+        isset: 📲 The MAC addresses {{usermac}} are specified for the user {{username}}
+        isnotset: 📲 MAC address is not set for user {{username}}
+    autoinside:
+        help: |
+            ⏲ ​​Using this command, you can automatically register in the space as soon as the MAC address of your device is detected on the network.
+            📌 If the device is inactive on the space network for {{timeout}} minutes, the user will be automatically logged out.
+            📌 When the feature is enabled, the current status of the device on the network takes precedence over manual login/logout commands.
+            ⚠️ To work, be sure to set the MAC address of your device and disable its randomization for the space network.
+
+            #`/setmac#` - Managing your MAC address
+            #`/autoinside status#` - Autoinside and autoout status
+            #`/autoinside enable#` - Enable auto login and auto logout
+            #`/autoinside disable#` - Disable auto-in and auto-out
+        ghost: "#`/autoinside ghost#` - Check in for residents only"
+        fail: ⚠️ Failed to enable auto-login, although MAC is set. Someone give my developer a hard time.
+        nomac: |
+            ⚠️ Your MAC address is not set. Add it with the command /setmac
+        set: 🕺 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}}
+        removed: 🚷 Auto login and auto logout are disabled for user {{username}}
+        isset: 🕺 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}}
+        isghost: 👻 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}} for residents only
+        isnotset: 🚷 Auto login and auto logout are disabled for user {{username}}
+        nouser: ⚠️ Your user was not found in the database (bug?)
+        notsupported: ⚠️ This command is not yet supported for users without a username
+    status:
+        undefined: 🔐 Space status is undefined. Someone open it with /open
+        noconnection: |
+            📵 Failed to contact space. Visitor data may not be current.
+
+            {{statusMessage}}
+        messageopened: This is a great reason to come in, so ring the bell or write to those inside - they will open it for you
+        messageclosed: We are waiting for one of the residents to open it. Maybe there is no one inside, or there is a closed meeting of residents, or they forgot to do /open again? Who knows... Better ask them in chat or tag them with the /knock command.
+        updated: ⏱ Updated {{updatedDate}}
+        opened: "#*opened#*"
+        closed: "#*closed#*"
+        state: |
+            {{stateEmoji}} Space is {{state}} for guests {{changedBy}}
+
+            {{stateMessage}}
+
+        state_pin: "{{stateEmoji}} {{state}}"
+        insidechecked_pin: "👨‍💻 inside {{count}}"
+        insidechecked: |
+            👨‍💻 [{{count}}] were marked inside:
+        nooneinside: 🛌 No one checked in inside
+        nooneinside_pin: 🛌 no one
+        going_pin: "🚕 planning {{count}}"
+        going: |
+            🚕 Planning to visit today [{{count}}]:
+    open: |
+        🔑 Space #*open#* for {{username}} guests. A great reason to come!
+    open-alert: 🔑 Space was opened by user {{user}}
+    close: |
+        🔒 Space #*closed#* {{username}}. All those who checked in were sent home.
+    close-alert: 🔒 Space was closed by user {{user}}
+    evict: 🔒 The check-in list has been cleared.
+    in:
+        notready: 🔐 Now the space is not ready to receive guests... or the residents forgot to do /open again
+        gotin: 🤝 {{username}} is now in space
+        until: " until {{until}}"
+        tryautoinside: 📲 Try the /autoinside command to check in to space automatically.
+    out:
+        shouldnot: 🔐 And you are not on the list of marked people anyway (when the space is closed, it is cleared)
+        gotout: 👋 {{username}} is no longer in space. We hope he will come back again...
+    inforce:
+        notready: 🔐 Sorry, you can’t bring this person now.
+        gotin: 🟢 {{memberusername}} brought {{username}} to space
+    outforce:
+        shouldnot: 🔐 Uh no, you can’t send him home.
+        gotout: 🔴 {{memberusername}} sent {{username}} home.
+    going: 🚕 {{username}} plans to go to space today {{note}}
+    notgoing: 🛌 {{username}} is no longer planning to go to space today.
+    emoji:
+        help: |
+            🐥 Using this command you can set an emoji
+
+            #`/setemoji 🍗#` - Set your emoji
+            #`/setemoji status#` - View your installed emoji in the bot
+            #`/setemoji remove#` - Remove your emoji from the bot
+        fail: ⚠️ Please enter a valid emoji.
+        set: 🐥 Emoji {{emoji}} was successfully installed for user {{username}}.
+        removed: 🗑 Emoji removed for user {{username}}.
+        isset: 🐥 The emoji {{emoji}} is set for the user {{username}}.
+        isnotset: 🐥 Emoji not set for user {{username}}.
+    statsof: "🕔 {{username}} spent in space during the bot's existence (since January 2023) (based on marks)"
+    stats:
+        start: "🕔 During the existence of the bot (since January 2023), these users spent time in space (based on marks)"
+        invaliddates: "🕔 I can’t understand the dates, try in YYYY-MM-DD format"
+        nousertimes: "📭 No marks found for this period"
+        hoursinspace: "Hours spent in space from {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{ to.year}}"
+        period: "🕔 From {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{to.year }} these users spent in space (based on marks)"
+        tryautoinside: "📲 Do you want to know accurate statistics about yourself? Don't forget to check in with /in and /out, or better yet, use /autoinside to do it automatically"
+        help: "ℹ️ You can also get statistics for the current month /month, the previous month /lastmonth, and for any period #`/stats from 2023-05-01 to 2023-05-25#`"
+meme:
+    its_wednesday: 🐸 Kwa-kwa, today is Wednesday! The chance of getting /zhabka from me today is higher than ever (even where they are not usually found)!
+    not_wednesday: 🐸 Oh, the toads are sleeping today. Come back on Wednesday!
+    slap:
+        user: |
+            🖐 {{from}} slaps {{target}}
+        help: |
+            🖐 Using this command you can slap someone
+            #`/slap username#`
+topics:
+    general:
+        error: ⚠️ Something went wrong
+        notfound: ⚠️ Topic not found
+        empty: There is nothing yet
+        nosubscribers: 🌚 There are no subscribers to the topic {{topic}}
+    buttons:
+        topics: 🗃 All topics
+        subscriptions: 💌 Subscriptions
+    topics:
+        list: |
+            📭 Using this feature, you can subscribe to the newsletter on topics that interest you.
+            Topic authors will be able to easily mention you in group chats and send you personal notifications.
+
+            🗃 List of available topics:
+            {{topics}}
+
+            📟 Commands:
+            View the list of available topics - /topics
+            View current subscriptions - /subscriptions
+            Subscribe to the newsletter - #`/subscribe topicname#`
+            Unsubscribe from the mailing list - #`/unsubscribe topicname#`
+            Tag all subscribers of the topic - #`/tag topicname#`
+        member: |
+            📯 Resident teams:
+            Add a topic - #`/addtopic topicname topicdescription#`
+            Remove topic - #`/removetopic topicname#`
+            Personal messages to subscribers - #`/notify topicname message#`
+    subscriptions:
+        list: |
+            📭 You are subscribed to the following topics:
+            {{topics}}
+
+            📟 Commands:
+            View the list of available topics - /topics
+            Unsubscribe from the mailing list - #`/unsubscribe topicname#`
+        empty: 🗿 You are not subscribed to any topic
+    subscribe:
+        success: |
+            📭 Subscription to topic {{topic}} is completed
+
+            📟 My subscriptions - /subscriptions
+        already: |
+            👌 You are already subscribed to {{topic}}
+
+            📟 My subscriptions - /subscriptions
+        fail: ⚠️ Failed to subscribe to topic {{topic}}
+    unsubscribe:
+        success: |
+            🗑 Subscription to topic {{topic}} has been removed
+
+            📟 My subscriptions - /subscriptions
+        notsubscribed: |
+            🙅‍♀️ You are not subscribed to {{topic}}
+
+            📟 My subscriptions - /subscriptions
+        fail: ⚠️ Failed to unsubscribe from topic {{topic}}
+    add:
+        success: 📭 Topic {{topic}} added
+        exists: 👌 Topic {{topic}} already exists
+        fail: ⚠️ Failed to add topic {{topic}}
+    delete:
+        success: 🗑 Topic {{topic}} deleted
+        fail: ⚠️ Failed to delete topic {{topic}}
+    notify:
+        help: |
+            📭 Using this command you can send personal messages to all subscribers of the topic
+            #`/notify topicname message#`
+        message: |
+            📭 A message for you from the topic {{topic}}:
+
+            {{text}}
+
+            📟 My subscriptions - /subscriptions
+        started: 📯 Mailing list to {{topic}} subscribers has begun. Private messages will receive {{count}} followers within {{eta}} seconds
+        finished: ✅ Distribution to {{topic}} subscribers has been completed. Private messages successfully received {{received}}/{{count}} subscribers

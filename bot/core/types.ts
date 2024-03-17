@@ -149,6 +149,7 @@ export interface BotMessageContext {
     isAdminMode(): boolean;
     isEditing: boolean;
     isButtonResponse: boolean;
+    language: string;
 }
 
 export interface EditMessageMediaOptionsExt extends EditMessageMediaOptions {

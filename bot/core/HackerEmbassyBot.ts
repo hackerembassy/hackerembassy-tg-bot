@@ -1,4 +1,6 @@
 // Imports
+import { AsyncLocalStorage } from "node:async_hooks";
+
 import config from "config";
 import { promises as fs } from "fs";
 import { t } from "i18next";
@@ -18,10 +20,13 @@ import { EventEmitter, Stream } from "stream";
 import { file } from "tmp-promise";
 
 import { BotConfig } from "../../config/schema";
+import User from "../../models/User";
+import UsersRepository from "../../repositories/usersRepository";
+import { DEFAULT_LANGUAGE } from "../../services/localization";
 import logger from "../../services/logger";
 import { chunkSubstr } from "../../utils/common";
 import { OptionalRegExp } from "../../utils/text";
-import { hasRole, isMember, isPrivateMessage, prepareMessageForMarkdown } from "../helpers";
+import { hasRole, hasUserRole, isMember, isPrivateMessage, prepareMessageForMarkdown } from "../helpers";
 import BotState from "./BotState";
 import MessageHistory from "./MessageHistory";
 import { RateLimiter } from "./RateLimit";
@@ -40,6 +45,8 @@ import {
     SendMediaGroupOptionsExt,
     SerializedFunction,
 } from "./types";
+
+export const asyncMessageLocalStorage = new AsyncLocalStorage();
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -113,12 +120,12 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.CustomEmitter = new EventEmitter();
     }
 
-    canUserCall(username: string | undefined, command: string): boolean {
+    canUserCall(user: Nullable<User>, command: string): boolean {
         const savedRestrictions = this.routeMap.get(command)?.restrictions;
 
         if (!savedRestrictions || savedRestrictions.length === 0) return true;
 
-        if (username) return hasRole(username, "admin", ...savedRestrictions);
+        if (user) return hasUserRole(user, "admin", ...savedRestrictions);
 
         return savedRestrictions.includes("default");
     }
@@ -138,6 +145,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 },
                 isEditing: false,
                 isButtonResponse: false,
+                language: DEFAULT_LANGUAGE,
             };
 
             this.contextMap.set(msg, newContext);
@@ -441,12 +449,20 @@ export default class HackerEmbassyBot extends TelegramBot {
             const route = this.routeMap.get(command);
             if (!route) return;
 
-            const messageContext = this.context(message);
+            const userId = message.from?.id as number;
+            const dbuser = UsersRepository.getByUserId(userId);
 
+            if (!dbuser) {
+                logger.info(`User [${userId}]${message.from?.username} not found in the database. Adding...`);
+                UsersRepository.addUser(message.from?.username, ["default"], userId);
+            }
+
+            const messageContext = this.context(message);
+            messageContext.language = dbuser?.language ?? DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
             // check restritions
-            if (route.restrictions.length > 0 && !this.canUserCall(message.from?.username, command)) {
+            if (route.restrictions.length > 0 && !this.canUserCall(dbuser, command)) {
                 this.sendRestrictedMessage(message, route);
                 return;
             }
@@ -468,14 +484,14 @@ export default class HackerEmbassyBot extends TelegramBot {
 
                 if (matchedParams) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    await route.handler(this, message, ...matchedParams);
+                    await asyncMessageLocalStorage.run(messageContext, () => route.handler(this, message, ...matchedParams));
                     return;
                 } else if (!route.optional) {
                     return;
                 }
             }
 
-            await route.handler(this, message);
+            await asyncMessageLocalStorage.run(messageContext, () => route.handler(this, message));
         } catch (error) {
             logger.error(error);
         } finally {

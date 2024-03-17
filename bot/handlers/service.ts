@@ -3,11 +3,12 @@ import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import t from "../../services/localization";
+import t, { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "../../services/localization";
 import logger from "../../services/logger";
 import { OpenAI } from "../../services/neural";
 import { sleep } from "../../utils/common";
 import HackerEmbassyBot, {
+    asyncMessageLocalStorage,
     FULL_PERMISSIONS,
     MAX_MESSAGE_LENGTH_WITH_TAGS,
     RESTRICTED_PERMISSIONS,
@@ -169,6 +170,9 @@ export default class ServiceHandlers implements BotHandlers {
 
     static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
         const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
+        const context = bot.context(msg);
+        context.isButtonResponse = true;
+
         if (!data) throw Error("Missing calback query data");
 
         msg.from = callbackQuery.from;
@@ -176,7 +180,9 @@ export default class ServiceHandlers implements BotHandlers {
         if (data.vId) {
             if (callbackQuery.from.id !== data.vId) return;
 
-            return ServiceHandlers.handleUserVerification(bot, data.vId, msg);
+            asyncMessageLocalStorage.run(context, () =>
+                ServiceHandlers.handleUserVerification(bot, data.vId as number, data.params as string, msg)
+            );
         }
 
         const command = data.cmd;
@@ -186,12 +192,12 @@ export default class ServiceHandlers implements BotHandlers {
         if (!route) throw Error(`Calback route for ${command} does not exist`);
 
         const handler = route.handler;
+        const user = UsersRepository.getByUserId(msg.from.id);
 
-        if (!bot.canUserCall(msg.from.username, command)) return;
+        if (!bot.canUserCall(user, command)) return;
 
-        const context = bot.context(msg);
-        context.isButtonResponse = true;
         context.mode.secret = bot.isSecretModeAllowed(msg, context);
+        context.language = user?.language ?? DEFAULT_LANGUAGE;
 
         if (data.fs !== undefined) {
             if (data.fs & Flags.Silent) context.mode.silent = true;
@@ -204,20 +210,21 @@ export default class ServiceHandlers implements BotHandlers {
             params.push(data.params);
         }
 
-        await handler.apply(bot, params);
+        await asyncMessageLocalStorage.run(context, () => handler.apply(bot, params));
     }
 
-    private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, msg: TelegramBot.Message) {
+    private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, language: string, msg: TelegramBot.Message) {
         const tgUser = (await bot.getChat(vId)) as ITelegramUser;
 
-        if (ServiceHandlers.verifyAndAddUser(tgUser)) {
+        if (ServiceHandlers.verifyAndAddUser(tgUser, language)) {
             try {
                 botConfig.moderatedChats.forEach(chatId =>
                     bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
                 );
 
-                await bot.deleteMessage(msg.chat.id, msg.message_id);
+                bot.context(msg).language = language;
                 await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
+                await bot.deleteMessage(msg.chat.id, msg.message_id);
             } catch (error) {
                 logger.error(error);
             }
@@ -284,15 +291,13 @@ export default class ServiceHandlers implements BotHandlers {
             logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 
-        const welcomeText = t("service.welcome.confirm", { newMember: userLink(user) });
-        const inline_keyboard = [[InlineButton(t("service.welcome.captcha"), undefined, Flags.Simple, { vId: user.id })]];
-
-        await bot.sendMessageExt(chat.id, welcomeText, null, {
-            reply_markup: { inline_keyboard },
+        await ServiceHandlers.setLanguageHandler(bot, { chat, from: user, message_id: 0, date: memberUpdated.date }, undefined, {
+            vId: user.id,
+            name: userLink(user),
         });
     }
 
-    static verifyAndAddUser(tgUser: ITelegramUser) {
+    static verifyAndAddUser(tgUser: ITelegramUser, language: string = DEFAULT_LANGUAGE) {
         const user = UsersRepository.getByUserId(tgUser.id);
 
         if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
@@ -304,7 +309,7 @@ export default class ServiceHandlers implements BotHandlers {
 
         logger.info(`User [${tgUser.id}](${tgUser.username}) passed the verification`);
 
-        return UsersRepository.updateUser({ ...user, roles: "default" });
+        return UsersRepository.updateUser({ ...user, roles: "default", language });
     }
 
     static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser) {
@@ -329,6 +334,47 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         await bot.sendMessageExt(chat.id, welcomeText, null);
+    }
+
+    static async setLanguageHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        lang?: string,
+        verificationDetails?: { vId: number; name: string }
+    ) {
+        if (!lang) {
+            const inline_keyboard = [
+                [
+                    InlineButton("🇷🇺 Русский", "setlanguage", Flags.Simple, { params: "ru", vId: verificationDetails?.vId }),
+                    InlineButton("🇺🇸 English", "setlanguage", Flags.Simple, { params: "en", vId: verificationDetails?.vId }),
+                ],
+            ];
+
+            return await bot.sendMessageExt(
+                msg.chat.id,
+                t(verificationDetails ? "service.welcome.confirm" : "service.setlanguage.select", {
+                    newMember: verificationDetails?.name,
+                }),
+                msg,
+                {
+                    reply_markup: { inline_keyboard },
+                }
+            );
+        }
+
+        if (!SUPPORTED_LANGUAGES.includes(lang)) {
+            return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.notsupported", { language: lang }), msg);
+        }
+
+        const userId = msg.from?.id;
+        const user = userId ? UsersRepository.getByUserId(userId) : null;
+
+        if (user && UsersRepository.updateUser({ ...user, language: lang })) {
+            bot.context(msg).language = lang;
+            return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.success", { language: lang }), msg);
+        }
+
+        return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
     }
 
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {

@@ -6,6 +6,7 @@ import { fetchWithTimeout } from "../utils/network";
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
 export const EmbassyBase = `${embassyApiConfig.service.host}:${embassyApiConfig.service.port}`;
+export const EmbassyBaseIP = `${embassyApiConfig.service.ip}:${embassyApiConfig.service.port}`;
 
 export async function requestToEmbassy(
     endpoint: string,

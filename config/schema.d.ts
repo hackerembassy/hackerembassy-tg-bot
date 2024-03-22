@@ -90,6 +90,7 @@ export interface DoorbellConfig {
 
 export interface EmbassyServiceConfig {
     host: string;
+    ip: string;
     queryMonitorInterval: number;
     statusCheckInterval: number;
     port: number;

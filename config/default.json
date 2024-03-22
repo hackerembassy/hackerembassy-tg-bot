@@ -77,7 +77,7 @@
             "kitchen": "http://hass.lan:8123/api/camera_proxy/camera.kitchen"
         },
         "speaker": {
-            "entity": "media_player.cum_pod",
+            "entity": "media_player.downstairs_speaker",
             "ttspath": "http://hass.lan:8123/api/services/script/announce_in_space",
             "playpath": "http://hass.lan:8123/api/services/media_player/play_media",
             "stoppath": "http://hass.lan:8123/api/services/media_player/media_stop"

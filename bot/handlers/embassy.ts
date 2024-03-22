@@ -6,7 +6,7 @@ import { dir } from "tmp-promise";
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import statusRepository from "../../repositories/statusRepository";
 import usersRepository from "../../repositories/usersRepository";
-import { EmbassyBase, requestToEmbassy } from "../../services/embassy";
+import { EmbassyBaseIP, requestToEmbassy } from "../../services/embassy";
 import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/hass";
 import t from "../../services/localization";
 import logger from "../../services/logger";
@@ -462,7 +462,8 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const link = linkOrName.startsWith("http") ? linkOrName : `${EmbassyBase}/${linkOrName}.mp3`;
+            // google speaker cannot use our dns
+            const link = linkOrName.startsWith("http") ? linkOrName : `${EmbassyBaseIP}/${linkOrName}.mp3`;
 
             const response = await requestToEmbassy(`/speaker/play`, "POST", { link });
 

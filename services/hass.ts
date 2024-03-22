@@ -12,7 +12,7 @@ import { promises as fs } from "fs";
 
 import { downloadTmpFile } from "../utils/filesystem";
 import { convertMedia } from "../utils/media";
-import { EmbassyBase } from "./embassy";
+import { EmbassyBaseIP } from "./embassy";
 
 // Types
 export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
@@ -84,7 +84,7 @@ async function serveStaticFile(localPath: string, urlPath: string): Promise<stri
     await fs.mkdir(path.parse(staticFilePath).dir, { recursive: true });
     await fs.copyFile(localPath, staticFilePath);
 
-    return `${EmbassyBase}/${urlPath}`;
+    return `${EmbassyBaseIP}/${urlPath}`;
 }
 
 export async function playInSpace(link: string): Promise<void> {

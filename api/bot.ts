@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 
+import EmbassyHandlers from "../bot/handlers/embassy";
 import StatusHandlers from "../bot/handlers/status";
 import { BotApiConfig, BotConfig } from "../config/schema";
 import FundsRepository from "../repositories/fundsRepository";
@@ -14,12 +15,21 @@ import { requestToEmbassy } from "../services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
 import { SpaceClimate } from "../services/hass";
 import logger from "../services/logger";
-import { closeSpace, filterPeopleGoing, filterPeopleInside, openSpace, UserStateService } from "../services/statusHelper";
+import { PutObject, SearchUsersByImage } from "../services/rekognition";
+import {
+    closeSpace,
+    filterPeopleGoing,
+    filterPeopleInside,
+    hasDeviceInside,
+    openSpace,
+    UserStateService,
+} from "../services/statusHelper";
 import * as TextGenerators from "../services/textGenerators";
 import { getEventsList } from "../services/textGenerators";
 import wiki from "../services/wiki";
 import { stripCustomMarkup } from "../utils/common";
 import { createErrorMiddleware, createTokenSecuredMiddleware } from "../utils/middleware";
+import { encrypt } from "../utils/security";
 
 const apiConfig = config.get<BotApiConfig>("api");
 const botConfig = config.get<BotConfig>("bot");
@@ -265,6 +275,52 @@ app.post("/api/open", tokenHassSecured, (_, res) => {
     openSpace("hass");
 
     return res.send({ message: "Success" });
+});
+
+app.get("/api/facial", async (_, res) => {
+    /*  #swagger.requestBody = {
+                required: true,
+                content: {
+                    "application/json": {
+                        schema: { $ref : '#/definitions/withHassToken' }  
+                    }
+                }
+            
+        } */
+
+    const unlockKey = process.env["UNLOCKKEY"];
+    const faceBucket = process.env["FACEBUCKET"];
+
+    if (!unlockKey) throw Error("Environment variable UNLOCKKEY is not provided");
+    if (!faceBucket) throw Error("Environment variable FACEBUCKET is not provided");
+
+    const cam = await EmbassyHandlers.getWebcamImage("facecontrol");
+    await PutObject(cam, faceBucket, "face.jpg");
+    const rekognitionResult = await SearchUsersByImage(faceBucket, "face.jpg");
+    const userMatched = rekognitionResult.UserMatches?.[0];
+
+    if (!userMatched) {
+        return res.send({ message: "User not found", rekognitionResult });
+    }
+
+    const similarity = userMatched.Similarity ?? 0;
+    const username = userMatched.User?.UserId;
+
+    if (!username || similarity < 98 || !(await hasDeviceInside(username))) {
+        return res.send({ message: "User is not inside", rekognitionResult });
+    }
+
+    try {
+        const token = await encrypt(unlockKey);
+        const response = await requestToEmbassy(`/space/unlock`, "POST", { token, from: username });
+
+        if (response.ok) {
+            return res.send({ message: "Success", rekognitionResult });
+        } else throw Error("Request error");
+    } catch (error) {
+        logger.error(error);
+        return res.send({ message: "Failed", rekognitionResult });
+    }
 });
 
 app.post("/api/close", tokenHassSecured, (_, res) => {

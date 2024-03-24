@@ -75,6 +75,7 @@
             "jigglycam": "http://hass.lan:8123/api/camera_proxy/camera.jigglypuff_2",
             "printers": "http://hass.lan:8123/api/camera_proxy/camera.le_fail_lan",
             "outdoors": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
+            "facecontrol": "http://hass.lan:8123/api/camera_proxy/camera.facecontrol",
             "kitchen": "http://hass.lan:8123/api/camera_proxy/camera.kitchen"
         },
         "speaker": {

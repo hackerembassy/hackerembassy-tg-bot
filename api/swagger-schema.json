@@ -125,6 +125,26 @@
         }
       }
     },
+    "/api/facial": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/withHassToken"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/close": {
       "post": {
         "description": "",

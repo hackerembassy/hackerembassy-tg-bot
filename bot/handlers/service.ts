@@ -36,6 +36,15 @@ export enum Flags {
     Silent = 1 << 1, // 10
 }
 
+const WelcomeMessageMap: {
+    [x: number]: string | undefined;
+} = {
+    [botConfig.chats.main]: "service.welcome.main",
+    [botConfig.chats.offtopic]: "service.welcome.offtopic",
+    [botConfig.chats.key]: "service.welcome.key",
+    [botConfig.chats.horny]: "service.welcome.horny",
+};
+
 export default class ServiceHandlers implements BotHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
@@ -183,6 +192,8 @@ export default class ServiceHandlers implements BotHandlers {
             asyncMessageLocalStorage.run(context, () =>
                 ServiceHandlers.handleUserVerification(bot, data.vId as number, data.params as string, msg)
             );
+
+            return;
         }
 
         const command = data.cmd;
@@ -222,8 +233,7 @@ export default class ServiceHandlers implements BotHandlers {
                     bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
                 );
 
-                bot.context(msg).language = language;
-                await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser);
+                await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser, language);
                 await bot.deleteMessage(msg.chat.id, msg.message_id);
             } catch (error) {
                 logger.error(error);
@@ -270,12 +280,11 @@ export default class ServiceHandlers implements BotHandlers {
 
         const user = memberUpdated.new_chat_member.user;
         const chat = memberUpdated.chat;
+        const currentUser = UsersRepository.getByUserId(user.id);
 
         if (!botConfig.moderatedChats.includes(chat.id)) {
-            return await ServiceHandlers.welcomeHandler(bot, chat, user);
+            return await ServiceHandlers.welcomeHandler(bot, chat, user, currentUser?.language ?? DEFAULT_LANGUAGE);
         }
-
-        const currentUser = UsersRepository.getByUserId(user.id);
 
         if (currentUser === null) {
             UsersRepository.addUser(user.username, ["restricted"], user.id);
@@ -312,28 +321,12 @@ export default class ServiceHandlers implements BotHandlers {
         return UsersRepository.updateUser({ ...user, roles: "default", language });
     }
 
-    static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser) {
-        const newMember = userLink(tgUser);
-        const botName = bot.Name;
-
-        let welcomeText: string;
-
-        switch (chat.id) {
-            case botConfig.chats.offtopic:
-                welcomeText = t("service.welcome.offtopic", { botName, newMember });
-                break;
-            case botConfig.chats.key:
-                welcomeText = t("service.welcome.key", { botName, newMember });
-                break;
-            case botConfig.chats.horny:
-                welcomeText = t("service.welcome.horny", { botName, newMember });
-                break;
-            case botConfig.chats.main:
-            default:
-                welcomeText = t("service.welcome.main", { botName, newMember });
-        }
-
-        await bot.sendMessageExt(chat.id, welcomeText, null);
+    static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser, language?: string) {
+        await bot.sendMessageExt(
+            chat.id,
+            t(WelcomeMessageMap[chat.id] ?? "service.welcome.main", { botName: bot.Name, newMember: userLink(tgUser) }, language),
+            null
+        );
     }
 
     static async setLanguageHandler(

@@ -392,7 +392,7 @@ embassy:
         fail: ⚠️ Failed to check street
 funds:
     funds: |
-        💰 Here are our current fees:
+        💰 Here are our current funds:
 
         {{list}}💸 To find out how to help us, click /donate
     fund:
@@ -408,7 +408,7 @@ funds:
         open: open
         from: from
     fundsall: |
-        💾 Here is an archive of all our fees
+        💾 Here is an archive of all our funds
 
         {{list}}
     addfund:
@@ -494,7 +494,7 @@ service:
             🇬🇧 Welcome to our cozy corner, {{newMember}}
 
             I'm @{{botName}}, hackerspace bot manager. You can PM me to chat so I can briefly tell you about us.
-            Don't forget to also visit our second chat @hackem_foo! There you will find different topics on the main space projects, discussions of future events, news, memes, and so on.
+            Don't forget to also visit our second chat (link in the chat description above)! There you will find different topics on the main space projects, discussions of future events, news, memes, and so on.
 
             🎉🎉🎉 Hackers, welcome {{newMember}}
         offtopic: |
@@ -533,23 +533,23 @@ service:
         error: ⚠️ Failed to remove buttons
 status:
     buttons:
-        in: 🤝 I'm in space
-        out: 👋 I'm not in space
-        inandin: 🤝 And I'm in space
-        inandout: 👋 I’m not there anymore
-        outandin: 🤝 And I'm in space
-        outandout: 👋 I'm not there either
+        in: 🤝 I am in
+        out: 👋 I am out
+        inandin: 🤝 And I am in
+        inandout: 👋 But I am out
+        outandin: 🤝 But I am in
+        outandout: 👋 I am out as well
         going: 🚕 Planning to come
         notgoing: 🛌 Not planning
-        andgoing: 🚕 And I'm planning
+        andgoing: 🚕 And I am planning
         refresh: 🔃 Refresh
-        repeat: 🔃 Repeat the command
+        repeat: 🔃 Repeat
         open: 🚪 Open space
         close: 🔒 Close space
         reopen: 🚪 Open again
         reclose: 🔒 Close again
-        whoinside: 📹Who's inside
-        whoelse: ❓Who else will be there?
+        whoinside: 📹 Who is inside
+        whoelse: ❓ Who else?
         save: 📷 Save
     profile:
         donated: |
@@ -607,7 +607,7 @@ status:
         opened: "#*opened#*"
         closed: "#*closed#*"
         state: |
-            {{stateEmoji}} Space is {{state}} for guests {{changedBy}}
+            {{stateEmoji}} Space is {{state}} for guests by {{changedBy}}
 
             {{stateMessage}}
 
@@ -621,7 +621,7 @@ status:
         going: |
             🚕 Planning to visit today [{{count}}]:
     open: |
-        🔑 Space #*open#* for {{username}} guests. A great reason to come!
+        🔑 Space #*open#* for guests by {{username}}. A great reason to come!
     open-alert: 🔑 Space was opened by user {{user}}
     close: |
         🔒 Space #*closed#* {{username}}. All those who checked in were sent home.

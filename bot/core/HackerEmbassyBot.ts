@@ -629,7 +629,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.CustomEmitter.on(event, handler);
         const newChatRecord = {
             chatId: liveMessage.chat.id,
-            expires: Date.now() + EDIT_MESSAGE_TIME_LIMIT,
             handler,
             event,
             serializationData,

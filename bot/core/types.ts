@@ -99,7 +99,6 @@ export type BotMessageContextMode = {
 
 export type LiveChatHandler = {
     chatId: ChatId;
-    expires: number;
     handler: (...args: any[]) => void;
     event: BotCustomEvent;
     serializationData: SerializedFunction;

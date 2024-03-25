@@ -34,7 +34,7 @@ export default class BotState {
                 const persistedState = JSON.parse(serializedState) as BotState;
 
                 this.history = persistedState.history;
-                this.liveChats = persistedState.liveChats.filter(lc => lc.expires > Date.now());
+                this.liveChats = persistedState.liveChats;
                 this.lastBirthdayWishTimestamp = persistedState.lastBirthdayWishTimestamp;
                 this.initLiveChats();
                 this.flags = persistedState.flags;
@@ -73,11 +73,6 @@ export default class BotState {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             lc.handler = () => restoredHandler(this.bot, ...lc.serializationData.params);
             this.bot.CustomEmitter.on(lc.event, lc.handler);
-
-            setTimeout(() => {
-                this.bot.CustomEmitter.removeListener(lc.event, lc.handler);
-                this.liveChats = this.liveChats.splice(chatRecordIndex, 1);
-            }, lc.expires - Date.now());
         }
     }
 

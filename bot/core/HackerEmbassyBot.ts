@@ -501,10 +501,14 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     reactToMessage(message: TelegramBot.Message) {
         try {
-            if (message.text?.match(/(^|\s)(бот(е|у|а|ом)?|bot)(\s|$)/giu)) {
+            if (message.text?.match(/(^|\s)(бот([еуа]|ом)?|bot)(\s|,|\.|$)/giu)) {
                 this.setMessageReaction(message.chat.id, message.message_id, "👀");
-            } else if (message.text?.match(/(^|\s)(\u0063\u006F\u0063\u006B|\u043A\u043E\u043A|\u0434\u0438\u043A)(\s|$)/giu)) {
+            } else if (
+                message.text?.match(/(^|\s)(\u0063\u006F\u0063\u006B|\u043A\u043E\u043A|\u0434\u0438\u043A)(\s|,|\.|$)/giu)
+            ) {
                 this.setMessageReaction(message.chat.id, message.message_id, "🌭");
+            } else if (message.text?.match(/(^|\s)([Кк]аб([еуа]|ом)?)(\s|,|\.|$)/giu)) {
+                this.setMessageReaction(message.chat.id, message.message_id, "🦄");
             }
         } catch (error) {
             logger.error(error);

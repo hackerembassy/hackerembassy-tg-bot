@@ -14,7 +14,14 @@ import { requestToEmbassy } from "../services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
 import { SpaceClimate } from "../services/hass";
 import logger from "../services/logger";
-import { closeSpace, filterPeopleGoing, filterPeopleInside, openSpace, UserStateService } from "../services/statusHelper";
+import {
+    closeSpace,
+    filterAllPeopleInside,
+    filterPeopleGoing,
+    filterPeopleInside,
+    openSpace,
+    UserStateService,
+} from "../services/statusHelper";
 import * as TextGenerators from "../services/textGenerators";
 import { getEventsList } from "../services/textGenerators";
 import wiki from "../services/wiki";
@@ -28,6 +35,7 @@ const app = express();
 const port = apiConfig.port;
 const tokenHassSecured = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
 const tokenGuestSecured = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
+const tokenPresent = (req: express.Request, token?: string) => token && (req.body as { token?: string }).token === token;
 
 app.use(cors());
 app.use(express.json());
@@ -114,7 +122,8 @@ app.get("/text/status", async (_, res) => {
     res.send(stripCustomMarkup(content));
 });
 
-app.get("/api/status", (_, res) => {
+app.get("/api/status", (req, res) => {
+    const showAllPeople = tokenPresent(req, process.env["UNLOCKKEY"]);
     const status = StatusRepository.getSpaceLastState();
 
     if (!status) {
@@ -126,7 +135,7 @@ app.get("/api/status", (_, res) => {
 
     const recentUserStates = UserStateService.getRecentUserStates();
 
-    const inside = recentUserStates.filter(filterPeopleInside).map(p => {
+    const inside = recentUserStates.filter(showAllPeople ? filterAllPeopleInside : filterPeopleInside).map(p => {
         return {
             username: p.username,
             dateChanged: p.date,
@@ -212,14 +221,16 @@ app.get("/api/space", (_, res) => {
     });
 });
 
-app.get("/api/inside", (_, res) => {
-    const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
+app.get("/api/inside", (req, res) => {
+    const showAllPeople = tokenPresent(req, process.env["UNLOCKKEY"]);
+    const inside = UserStateService.getRecentUserStates().filter(showAllPeople ? filterAllPeopleInside : filterPeopleInside);
     res.json(inside);
 });
 
-app.get("/api/insidecount", (_, res) => {
+app.get("/api/insidecount", (req, res) => {
     try {
-        const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
+        const showAllPeople = tokenPresent(req, process.env["UNLOCKKEY"]);
+        const inside = UserStateService.getRecentUserStates().filter(showAllPeople ? filterAllPeopleInside : filterPeopleInside);
         res.status(200).send(inside.length.toString());
     } catch {
         res.status(500).send("-1");

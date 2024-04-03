@@ -26,7 +26,7 @@ import * as TextGenerators from "../services/textGenerators";
 import { getEventsList } from "../services/textGenerators";
 import wiki from "../services/wiki";
 import { stripCustomMarkup } from "../utils/common";
-import { createErrorMiddleware, createTokenSecuredMiddleware } from "../utils/middleware";
+import { createErrorMiddleware, createTokenSecuredMiddleware, tokenPresent } from "../utils/middleware";
 
 const apiConfig = config.get<BotApiConfig>("api");
 const botConfig = config.get<BotConfig>("bot");
@@ -35,7 +35,6 @@ const app = express();
 const port = apiConfig.port;
 const tokenHassSecured = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
 const tokenGuestSecured = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
-const tokenPresent = (req: express.Request, token?: string) => token && (req.body as { token?: string }).token === token;
 
 app.use(cors());
 app.use(express.json());

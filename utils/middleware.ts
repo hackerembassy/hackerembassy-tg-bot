@@ -1,4 +1,6 @@
 import { ErrorRequestHandler, RequestHandler } from "express";
+import { ParamsDictionary, Request } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 import { Logger } from "winston";
 
 export function createErrorMiddleware(logger: Logger): ErrorRequestHandler {
@@ -12,9 +14,7 @@ export function createErrorMiddleware(logger: Logger): ErrorRequestHandler {
 export function createTokenSecuredMiddleware(logger: Logger, token: string | undefined): RequestHandler {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return function tokenSecured(req, res, next): void {
-        const body = req.body as { token?: string };
-
-        if (!body.token || body.token !== token) {
+        if (!tokenPresent(req, token)) {
             logger.info(`Got request with invalid token`);
             res.status(401).send({ message: "Invalid token" });
             return;
@@ -22,4 +22,9 @@ export function createTokenSecuredMiddleware(logger: Logger, token: string | und
 
         next();
     };
+}
+
+export function tokenPresent(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, token?: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return token && (req.body?.token === token || req.headers["token"] === token);
 }

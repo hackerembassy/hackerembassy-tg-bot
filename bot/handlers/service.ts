@@ -93,7 +93,6 @@ export default class ServiceHandlers implements BotHandlers {
         } while (!foundLast);
 
         const preparedMessages = [];
-        preparedMessages.push(lastMessageToEdit);
 
         let messagesRemained = countToCombine - 1;
         let combinedMessageLength = 0;
@@ -101,23 +100,29 @@ export default class ServiceHandlers implements BotHandlers {
         // TODO allow combining images into one message
         while (messagesRemained > 0) {
             const message = bot.messageHistory.get(msg.chat.id, orderOfLastMessageToEdit);
+            const messageLength = message?.text?.length ?? 0;
+
             if (!message) break;
-
-            combinedMessageLength += message.text?.length ?? 0;
-
-            if (combinedMessageLength > MAX_MESSAGE_LENGTH_WITH_TAGS) break;
-
-            const success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
-            await sleep(750); // prevent 429 because of telegram rate limit
-
-            if (!success) break;
+            if (combinedMessageLength + messageLength > MAX_MESSAGE_LENGTH_WITH_TAGS) break;
 
             bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            combinedMessageLength += messageLength;
             preparedMessages.push(message);
             messagesRemained--;
         }
 
+        try {
+            await bot.deleteMessages(
+                msg.chat.id,
+                preparedMessages.map(m => m.messageId)
+            );
+        } catch (error) {
+            logger.error(error);
+        }
+
+        preparedMessages.unshift(lastMessageToEdit);
         preparedMessages.reverse();
+
         const combinedMessageText = preparedMessages
             .map(m => {
                 const datePrefix = `[${new Date(m.datetime).toLocaleString("RU-ru").substring(12, 17)}]: `;

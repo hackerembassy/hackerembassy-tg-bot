@@ -697,6 +697,12 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
+    deleteMessages(chatId: ChatId, messageIds: number[]): Promise<boolean> {
+        //@ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        return super.deleteMessages(chatId, messageIds);
+    }
+
     /*
      * Deprecated base TelegramBot methods.
      * They don't know how to properly handle message context, message modes,

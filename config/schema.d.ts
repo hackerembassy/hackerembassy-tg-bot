@@ -128,8 +128,8 @@ export interface DeviceDescriptor {
 
 export interface CamConfig {
     downstairs: string;
+    downstairs2: string;
     upstairs: string;
-    jigglycam: string;
     printers: string;
     outdoors: string;
     kitchen: string;

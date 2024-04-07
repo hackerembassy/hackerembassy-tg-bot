@@ -153,8 +153,8 @@ basic:
             unlock: 🔑 Замок
             doorbell: 🔔 Звонок
             downstairs: 📹 I этаж
+            downstairs2: 📹 I этаж 2
             kitchen: 📹 Кухня
-            jigglycam: 📹 Jiglypuff
             upstairs: 📹 II этаж
             outdoors: 📹 Вход
             printers: 📹 Принтеры
@@ -251,8 +251,8 @@ embassy:
     webcam:
         location:
             downstairs: Первый этаж
+            downstairs2: Первый этаж 2
             kitchen: Кухня
-            jigglycam: Jigglypuff
             upstairs: Второй этаж
             outdoors: Входная дверь
             printers: Принтерная

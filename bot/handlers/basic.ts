@@ -183,7 +183,7 @@ export default class BasicHandlers implements BotHandlers {
             ],
             [
                 InlineButton(t("basic.control.buttons.downstairs"), "webcam", Flags.Simple, { params: "downstairs" }),
-                InlineButton(t("basic.control.buttons.jigglycam"), "webcam", Flags.Simple, { params: "jigglycam" }),
+                InlineButton(t("basic.control.buttons.downstairs2"), "webcam", Flags.Simple, { params: "downstairs2" }),
                 InlineButton(t("basic.control.buttons.kitchen"), "webcam", Flags.Simple, { params: "kitchen" }),
             ],
             [

@@ -152,14 +152,14 @@ basic:
         buttons:
             unlock: 🔑 Castle
             doorbell: 🔔 Bell
-            downstairs: 📹 1st floor
-            kitchen: 📹Kitchen
-            jigglycam: 📹Jiglypuff
-            upstairs: 📹2nd floor
-            outdoors: 📹 Login
+            downstairs: 📹 I floor
+            downstairs2: 📹 I floor 2
+            kitchen: 📹 Kitchen
+            upstairs: 📹 II floor
+            outdoors: 📹 Entrance
             printers: 📹 Printers
             superstatus: 🩻 Superstatus
-            conditioner: ❄️ Conde
+            conditioner: ❄️ AC
             meme: 🔫 Meme
             back: ↩️ Back
     info:
@@ -251,8 +251,8 @@ embassy:
     webcam:
         location:
             downstairs: Ground floor
+            downstairs2: Ground floor 2
             kitchen: Kitchen
-            jigglycam: Jigglypuff
             upstairs: Second floor
             outdoors: Entrance door
             printers: Printer

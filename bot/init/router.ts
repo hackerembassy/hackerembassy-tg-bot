@@ -127,9 +127,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         () => ["downstairs"],
         ["member"]
     );
-    bot.addRoute(["jigglycam", "jigglycum", "firstfloor2", "ff2"], EmbassyHandlers.webcamHandler, null, () => ["jigglycam"], [
-        "member",
-    ]);
+    bot.addRoute(["downstairs2", "firstfloor2", "ff2"], EmbassyHandlers.webcamHandler, null, () => ["downstairs2"], ["member"]);
     bot.addRoute(
         ["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"],
         EmbassyHandlers.webcamHandler,

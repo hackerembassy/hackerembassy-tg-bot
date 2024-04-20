@@ -308,16 +308,21 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         let message: Message | boolean = false;
 
-        message = await super.editMessageMedia(imageOption, {
-            ...options,
-            reply_markup: {
-                inline_keyboard,
-            },
-            chat_id: msg.chat.id,
-            message_id: msg.message_id,
-            //@ts-ignore
-            message_thread_id: this.context(msg).messageThreadId,
-        });
+        try {
+            message = await super.editMessageMedia(imageOption, {
+                ...options,
+                reply_markup: {
+                    inline_keyboard,
+                },
+                chat_id: msg.chat.id,
+                message_id: msg.message_id,
+                //@ts-ignore
+                message_thread_id: this.context(msg).messageThreadId,
+            });
+        } catch (e) {
+            // only ignore not modified error
+            if (e instanceof Error && !e.message.includes("message is not modified")) throw e;
+        }
 
         if (options.caption) {
             super.editMessageCaption(options.caption, {

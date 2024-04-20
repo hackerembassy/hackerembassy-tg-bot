@@ -74,8 +74,7 @@
             "downstairs2": "http://hass.lan:8123/api/camera_proxy/camera.downstairs_2",
             "upstairs": "http://hass.lan:8123/api/camera_proxy/camera.upstairs",
             "printers": "http://hass.lan:8123/api/camera_proxy/camera.le_fail_lan",
-            "outdoors": "http://hass.lan:8123/api/camera_proxy/camera.outdoor",
-            "kitchen": "http://hass.lan:8123/api/camera_proxy/camera.kitchen"
+            "outdoors": "http://hass.lan:8123/api/camera_proxy/camera.outdoor"
         },
         "speaker": {
             "entity": "media_player.downstairs_speaker",

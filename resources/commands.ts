@@ -103,6 +103,19 @@ export const MemberCommandsList: string = `
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
 /removebuttons (rb) - Убрать кнопки из сообщения бота (команду нужно отправлять как ответ)
 
+Кастомные сообщения в главный чат:
+- C веб-ссылками в два ряда:
+#\`/custom Some text
+[{"text":"site","url":"https://hackerembassy.site"}]
+[{"text":"wiki","url":"https://wiki.hackerembassy.site"}]#\`
+- C командами в один ряд:
+#\`/custom Some text
+[{"text":"start","cmd":"start"},{"text":"status","cmd":"status"}]#\`
+- В свой чат для теста:
+#\`/customtest Some text#\`
+#\`/customt Some text#\`
+- Можно добавить одно изображение к сообщению
+
 Инфа:
 /residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце
 /historycosts year - График донатов резидентов на аренду (без указания года будет выбран текущий)
@@ -143,7 +156,6 @@ export const AdminCommandsList: string = `
 #\`/unblock telegram_username#\`
 #\`/unblockbyid telegram_user_id#\`
 /forcebirthdaywishes
-#\`/forward some_text#\`
 /getlogs
 /getstate
 /cleanstate

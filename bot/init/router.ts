@@ -387,7 +387,14 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["unblockbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "default"], ["admin"]);
     bot.addRoute(["removeuser"], AdminHandlers.removeUserHandler, /(\S+)/, match => [match[1]], ["admin"]);
     bot.addRoute(["removeuserbyid"], AdminHandlers.removeUserByIdHandler, /(\d+)/, match => [match[1]], ["admin"]);
-    bot.addRoute(["forward"], AdminHandlers.forwardHandler, /(.*)/, match => [match[1]], ["admin"]);
+    bot.addRoute(["custom", "forward"], AdminHandlers.customHandler, OptionalParam(/(.*)/ims), match => [match[1]], ["admin"]);
+    bot.addRoute(
+        ["customtest", "customt", "forwardtest", "forwardt"],
+        AdminHandlers.customHandler,
+        OptionalParam(/(.*)/ims),
+        match => [match[1], true],
+        ["member"]
+    );
     bot.addRoute(["getlogs", "logs", "log"], AdminHandlers.getLogHandler, null, null, ["admin"]);
     bot.addRoute(["getstate", "state"], AdminHandlers.getStateHandler, null, null, ["admin"]);
     bot.addRoute(["cleanstate", "clearstate"], AdminHandlers.cleanStateHandler, null, null, ["admin"]);

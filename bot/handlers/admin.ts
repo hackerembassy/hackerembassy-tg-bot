@@ -1,6 +1,6 @@
 import config from "config";
 import fs from "fs";
-import { Message } from "node-telegram-bot-api";
+import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 import path from "path";
 
 import { BotConfig } from "../../config/schema";
@@ -15,9 +15,63 @@ import * as helpers from "../helpers";
 const botConfig = config.get<BotConfig>("bot");
 
 export default class AdminHandlers implements BotHandlers {
-    static async forwardHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        await bot.sendMessageExt(botConfig.chats.main, text, msg);
-        await bot.sendMessageExt(msg.chat.id, "Message is forwarded", msg);
+    /**
+     * Sends a custom message. It can contain text, one image and buttons.
+     * Button rows should be in the following format:
+     * ```
+     * [ {text:text, callback_data:callback_data, url:url, cmd:cmd}, ... ]
+     */
+    static async customHandler(bot: HackerEmbassyBot, msg: Message, text?: string, isTest: boolean = false) {
+        const targetChatId = isTest ? msg.chat.id : botConfig.chats.main;
+        const selfChatId = msg.chat.id;
+
+        try {
+            const photoId = msg.photo?.[0]?.file_id;
+
+            if (!text) {
+                if (photoId) {
+                    await bot.sendPhotoExt(targetChatId, photoId, msg);
+                    await bot.sendMessageExt(targetChatId, "Photo is forwarded", msg);
+                } else {
+                    await bot.sendMessageExt(selfChatId, "Nothing to forward", msg);
+                }
+                return;
+            }
+
+            const lines = text.split("\n").map(l => l.trim());
+            const textLines = lines.filter(l => !l.startsWith("[") && !l.endsWith("]"));
+            const buttonLines = lines.filter(l => l.startsWith("[") && l.endsWith("]"));
+
+            const inline_keyboard = buttonLines.map(
+                line =>
+                    JSON.parse(line, (key, value) => {
+                        if (key === "callback_data") {
+                            return JSON.stringify(value);
+                        }
+                        return value;
+                    }) as (InlineKeyboardButton & { cmd?: string })[]
+            );
+            // Allow simplified button definition
+            inline_keyboard.forEach(row => {
+                row.forEach(button => {
+                    button.callback_data =
+                        button.cmd && !button.callback_data ? JSON.stringify({ cmd: button.cmd }) : button.callback_data;
+                });
+            });
+
+            const messageText = textLines.join("\n");
+
+            photoId
+                ? await bot.sendPhotoExt(targetChatId, photoId, msg, {
+                      reply_markup: { inline_keyboard },
+                      caption: messageText,
+                  })
+                : await bot.sendMessageExt(targetChatId, messageText, msg, { reply_markup: { inline_keyboard } });
+            await bot.sendMessageExt(selfChatId, "Message is forwarded", msg);
+        } catch (error) {
+            const errorMessage = (error as { message?: string }).message;
+            await bot.sendMessageExt(selfChatId, `Failed to forward the message: ${errorMessage}`, msg);
+        }
     }
 
     static async getLogHandler(bot: HackerEmbassyBot, msg: Message) {

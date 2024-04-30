@@ -27,13 +27,16 @@ export default class AdminHandlers implements BotHandlers {
 
         try {
             const photoId = msg.photo?.[0]?.file_id;
+            const example = `#\`/${
+                isTest ? "customt" : "custom"
+            } Some text\n[{"text":"start","cmd":"start"},{"text":"status","cmd":"status"}]#\``;
 
             if (!text) {
                 if (photoId) {
                     await bot.sendPhotoExt(targetChatId, photoId, msg);
-                    await bot.sendMessageExt(targetChatId, "Photo is forwarded", msg);
+                    if (!isTest) await bot.sendMessageExt(targetChatId, "Photo is forwarded", msg);
                 } else {
-                    await bot.sendMessageExt(selfChatId, "Nothing to forward", msg);
+                    await bot.sendMessageExt(selfChatId, `Example:\n${example}`, msg);
                 }
                 return;
             }
@@ -67,9 +70,14 @@ export default class AdminHandlers implements BotHandlers {
                       caption: messageText,
                   })
                 : await bot.sendMessageExt(targetChatId, messageText, msg, { reply_markup: { inline_keyboard } });
-            await bot.sendMessageExt(selfChatId, "Message is forwarded", msg);
+
+            bot.context(msg).mode.pin = false;
+
+            if (!isTest) await bot.sendMessageExt(selfChatId, "Message is forwarded", msg);
         } catch (error) {
             const errorMessage = (error as { message?: string }).message;
+
+            bot.context(msg).mode.pin = false;
             await bot.sendMessageExt(selfChatId, `Failed to forward the message: ${errorMessage}`, msg);
         }
     }

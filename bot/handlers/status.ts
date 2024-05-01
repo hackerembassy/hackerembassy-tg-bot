@@ -367,7 +367,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const eventDate = new Date();
         const force = username !== undefined;
-        const usernameOrFirstname = username ?? msg.from?.username ?? msg.from?.first_name;
+        const usernameOrFirstname = username?.replace("@", "") ?? msg.from?.username ?? msg.from?.first_name;
         const inviter = force ? msg.from?.username : undefined;
         const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
         const until = durationMs ? new Date(eventDate.getTime() + durationMs) : undefined;
@@ -394,7 +394,7 @@ export default class StatusHandlers implements BotHandlers {
     static async outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const eventDate = new Date();
         const force = username !== undefined;
-        const usernameOrFirstname = username ?? msg.from?.username ?? msg.from?.first_name;
+        const usernameOrFirstname = username?.replace("@", "") ?? msg.from?.username ?? msg.from?.first_name;
         const gotOut = usernameOrFirstname ? StatusHandlers.LetOut(usernameOrFirstname, eventDate, force) : false;
         let message: string;
 

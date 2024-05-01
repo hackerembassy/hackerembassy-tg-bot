@@ -63,7 +63,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         ["member", "trusted"]
     );
     bot.addRoute(
-        ["inforce", "goin"],
+        ["inforce", "inf", "goin"],
         StatusHandlers.inHandler,
         RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`),
         match => [false, match[2], match[1]],
@@ -71,7 +71,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     );
     bot.addRoute(["open", "o"], StatusHandlers.openHandler, null, null, ["member"]);
     bot.addRoute(["close", "c"], StatusHandlers.closeHandler, null, null, ["member"]);
-    bot.addRoute(["outforce", "gohome"], StatusHandlers.outHandler, /(\S+)/, match => [match[1]], ["member", "trusted"]);
+    bot.addRoute(["outforce", "outf", "gohome"], StatusHandlers.outHandler, /(\S+)/, match => [match[1]], ["member", "trusted"]);
     bot.addRoute(["out", "iamleaving"], StatusHandlers.outHandler);
     bot.addRoute(["evict", "outforceall"], StatusHandlers.evictHandler, null, null, ["member"]);
     bot.addRoute(["going", "coming", "cuming", "g"], StatusHandlers.goingHandler, OptionalParam(/(.*)/), match => [match[1]]);

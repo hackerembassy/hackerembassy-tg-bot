@@ -110,7 +110,7 @@ export const MemberCommandsList: string = `
 [{"text":"wiki","url":"https://wiki.hackerembassy.site"}]#\`
 - C командами в один ряд:
 #\`/custom Some text
-[{"text":"start","cmd":"start"},{"text":"status","cmd":"status"}]#\`
+[{"text":"public","cmd":"status"},{"text":"private","bot":"status"}]#\`
 - В свой чат для теста:
 #\`/customtest Some text#\`
 #\`/customt Some text#\`

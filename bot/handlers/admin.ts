@@ -29,7 +29,7 @@ export default class AdminHandlers implements BotHandlers {
             const photoId = msg.photo?.[0]?.file_id;
             const example = `#\`/${
                 isTest ? "customt" : "custom"
-            } Some text\n[{"text":"start","cmd":"start"},{"text":"status","cmd":"status"}]#\``;
+            } Some text\n\n[{"text":"link","url":"https://hackerembassy.site"}]\n\n[{"text":"public cmd","cmd":"join"},{"text":"private cmd","bot":"join"}]#\``;
 
             if (!text) {
                 if (photoId) {
@@ -52,13 +52,13 @@ export default class AdminHandlers implements BotHandlers {
                             return JSON.stringify(value);
                         }
                         return value;
-                    }) as (InlineKeyboardButton & { cmd?: string })[]
+                    }) as (InlineKeyboardButton & { cmd?: string; bot?: string })[]
             );
             // Allow simplified button definition
             inline_keyboard.forEach(row => {
                 row.forEach(button => {
-                    button.callback_data =
-                        button.cmd && !button.callback_data ? JSON.stringify({ cmd: button.cmd }) : button.callback_data;
+                    if (!button.callback_data && button.cmd) button.callback_data = JSON.stringify({ cmd: button.cmd });
+                    if (!button.url && button.bot) button.url = `t.me/${bot.Name}?start=${button.bot}`;
                 });
             });
 

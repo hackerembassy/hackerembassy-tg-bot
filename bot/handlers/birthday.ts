@@ -9,11 +9,10 @@ import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import { hasBirthdayToday, isToday, MINUTE } from "../../utils/date";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
-import { InlineButton } from "../helpers";
-import { Flags } from "./service";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -28,7 +27,7 @@ export default class BirthdayHandlers implements BotHandlers {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
 
-        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)]];
+        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)]];
 
         await bot.sendOrEditMessage(
             msg.chat.id,

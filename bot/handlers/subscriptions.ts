@@ -7,10 +7,10 @@ import t from "../../services/localization";
 import logger from "../../services/logger";
 import { listTopics } from "../../services/textGenerators";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
-import { hasRole, InlineButton, userLink } from "../helpers";
-import { Flags } from "./service";
+import { hasRole, userLink } from "../helpers";
 
 export default class TopicsHandlers implements BotHandlers {
     static async mySubscriptionsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -36,8 +36,8 @@ export default class TopicsHandlers implements BotHandlers {
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("topics.buttons.topics"), "topics", Flags.Editing),
-                    InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
+                    InlineButton(t("topics.buttons.topics"), "topics", ButtonFlags.Editing),
+                    InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
                 ],
             ];
 
@@ -157,8 +157,8 @@ export default class TopicsHandlers implements BotHandlers {
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("topics.buttons.subscriptions"), "subscriptions", Flags.Editing),
-                    InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
+                    InlineButton(t("topics.buttons.subscriptions"), "subscriptions", ButtonFlags.Editing),
+                    InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
                 ],
             ];
 

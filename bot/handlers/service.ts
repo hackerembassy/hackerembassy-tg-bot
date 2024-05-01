@@ -13,9 +13,10 @@ import HackerEmbassyBot, {
     MAX_MESSAGE_LENGTH_WITH_TAGS,
     RESTRICTED_PERMISSIONS,
 } from "../core/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { UserRateLimiter } from "../core/RateLimit";
 import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
-import { InlineButton, userLink } from "../helpers";
+import { userLink } from "../helpers";
 import { setMenu } from "../init/menu";
 import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
@@ -23,18 +24,12 @@ import StatusHandlers from "./status";
 const botConfig = config.get<BotConfig>("bot");
 
 type CallbackData = {
-    fs?: Flags;
+    fs?: ButtonFlags;
     vId?: number;
     cmd?: string;
 
     params?: any;
 };
-
-export enum Flags {
-    Simple = 0,
-    Editing = 1 << 0, // 01
-    Silent = 1 << 1, // 10
-}
 
 const WelcomeMessageMap: {
     [x: number]: string | undefined;
@@ -216,8 +211,8 @@ export default class ServiceHandlers implements BotHandlers {
         context.language = user?.language ?? DEFAULT_LANGUAGE;
 
         if (data.fs !== undefined) {
-            if (data.fs & Flags.Silent) context.mode.silent = true;
-            if (data.fs & Flags.Editing) context.isEditing = true;
+            if (data.fs & ButtonFlags.Silent) context.mode.silent = true;
+            if (data.fs & ButtonFlags.Editing) context.isEditing = true;
         }
 
         const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [bot, msg];
@@ -343,8 +338,14 @@ export default class ServiceHandlers implements BotHandlers {
         if (!lang) {
             const inline_keyboard = [
                 [
-                    InlineButton("🇷🇺 Русский", "setlanguage", Flags.Simple, { params: "ru", vId: verificationDetails?.vId }),
-                    InlineButton("🇺🇸 English", "setlanguage", Flags.Simple, { params: "en", vId: verificationDetails?.vId }),
+                    InlineButton("🇷🇺 Русский", "setlanguage", ButtonFlags.Simple, {
+                        params: "ru",
+                        vId: verificationDetails?.vId,
+                    }),
+                    InlineButton("🇺🇸 English", "setlanguage", ButtonFlags.Simple, {
+                        params: "en",
+                        vId: verificationDetails?.vId,
+                    }),
                 ],
             ];
 

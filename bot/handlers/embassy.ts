@@ -19,10 +19,10 @@ import { readFileAsBase64 } from "../../utils/filesystem";
 import { filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
-import { hasRole, InlineButton } from "../helpers";
+import { hasRole } from "../helpers";
 import * as helpers from "../helpers";
-import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -115,7 +115,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const inline_keyboard = mode.static
                 ? []
-                : [[InlineButton(t("status.buttons.refresh"), `webcam`, Flags.Editing, { params: camName })]];
+                : [[InlineButton(t("status.buttons.refresh"), `webcam`, ButtonFlags.Editing, { params: camName })]];
 
             await bot.editPhoto(webcamImage, msg, {
                 reply_markup: {
@@ -137,7 +137,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("status.buttons.refresh"), "webcam", Flags.Editing, { params: camName }),
+                    InlineButton(t("status.buttons.refresh"), "webcam", ButtonFlags.Editing, { params: camName }),
                     InlineButton(t("status.buttons.save"), "removebuttons"),
                 ],
             ];
@@ -184,10 +184,10 @@ export default class EmbassyHandlers implements BotHandlers {
         const text = TextGenerators.getPrintersInfo();
         const inline_keyboard = [
             [
-                InlineButton(t("embassy.printers.anettestatus"), "printerstatus", Flags.Simple, { params: "anette" }),
-                InlineButton(t("embassy.printers.plumbusstatus"), "printerstatus", Flags.Simple, { params: "plumbus" }),
+                InlineButton(t("embassy.printers.anettestatus"), "printerstatus", ButtonFlags.Simple, { params: "anette" }),
+                InlineButton(t("embassy.printers.plumbusstatus"), "printerstatus", ButtonFlags.Simple, { params: "plumbus" }),
             ],
-            [InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)],
+            [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
         await bot.sendOrEditMessage(
@@ -241,7 +241,7 @@ export default class EmbassyHandlers implements BotHandlers {
             const caption = TextGenerators.getPrinterStatusText(status);
             const inline_keyboard = [
                 [
-                    InlineButton(t("embassy.printerstatus.update", { printername }), "printerstatus", Flags.Editing, {
+                    InlineButton(t("embassy.printerstatus.update", { printername }), "printerstatus", ButtonFlags.Editing, {
                         params: printername,
                     }),
                 ],
@@ -482,41 +482,81 @@ export default class EmbassyHandlers implements BotHandlers {
 
         const inline_keyboard = [
             [
-                InlineButton(t("embassy.conditioner.buttons.turnon"), "turnconditioner", Flags.Silent | Flags.Editing, {
-                    params: true,
-                }),
-                InlineButton(t("embassy.conditioner.buttons.turnoff"), "turnconditioner", Flags.Silent | Flags.Editing, {
+                InlineButton(
+                    t("embassy.conditioner.buttons.turnon"),
+                    "turnconditioner",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: true,
+                    }
+                ),
+                InlineButton(
+                    t("embassy.conditioner.buttons.turnoff"),
+                    "turnconditioner",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: false,
+                    }
+                ),
+                InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", ButtonFlags.Silent | ButtonFlags.Editing, {
                     params: false,
                 }),
-                InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", Flags.Silent | Flags.Editing, {
-                    params: false,
-                }),
             ],
             [
-                InlineButton(t("embassy.conditioner.buttons.more"), "addconditionertemp", Flags.Silent | Flags.Editing, {
-                    params: 1,
-                }),
-                InlineButton(t("embassy.conditioner.buttons.less"), "addconditionertemp", Flags.Silent | Flags.Editing, {
-                    params: -1,
-                }),
+                InlineButton(
+                    t("embassy.conditioner.buttons.more"),
+                    "addconditionertemp",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: 1,
+                    }
+                ),
+                InlineButton(
+                    t("embassy.conditioner.buttons.less"),
+                    "addconditionertemp",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: -1,
+                    }
+                ),
             ],
             [
-                InlineButton(t("embassy.conditioner.buttons.auto"), "setconditionermode", Flags.Silent | Flags.Editing, {
-                    params: "heat_cool",
-                }),
-                InlineButton(t("embassy.conditioner.buttons.heat"), "setconditionermode", Flags.Silent | Flags.Editing, {
-                    params: "heat",
-                }),
-                InlineButton(t("embassy.conditioner.buttons.cool"), "setconditionermode", Flags.Silent | Flags.Editing, {
-                    params: "cool",
-                }),
-                InlineButton(t("embassy.conditioner.buttons.dry"), "setconditionermode", Flags.Silent | Flags.Editing, {
-                    params: "dry",
-                }),
+                InlineButton(
+                    t("embassy.conditioner.buttons.auto"),
+                    "setconditionermode",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: "heat_cool",
+                    }
+                ),
+                InlineButton(
+                    t("embassy.conditioner.buttons.heat"),
+                    "setconditionermode",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: "heat",
+                    }
+                ),
+                InlineButton(
+                    t("embassy.conditioner.buttons.cool"),
+                    "setconditionermode",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: "cool",
+                    }
+                ),
+                InlineButton(
+                    t("embassy.conditioner.buttons.dry"),
+                    "setconditionermode",
+                    ButtonFlags.Silent | ButtonFlags.Editing,
+                    {
+                        params: "dry",
+                    }
+                ),
             ],
             [
-                InlineButton(t("status.buttons.refresh"), "conditioner", Flags.Editing),
-                InlineButton(t("basic.control.buttons.back"), "controlpanel", Flags.Editing),
+                InlineButton(t("status.buttons.refresh"), "conditioner", ButtonFlags.Editing),
+                InlineButton(t("basic.control.buttons.back"), "controlpanel", ButtonFlags.Editing),
             ],
         ];
 

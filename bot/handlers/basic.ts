@@ -11,10 +11,10 @@ import * as TextGenerators from "../../services/textGenerators";
 import { getEventsList } from "../../services/textGenerators";
 import * as CoinsHelper from "../../utils/coins";
 import HackerEmbassyBot, { MAX_MESSAGE_LENGTH } from "../core/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
-import { InlineButton, isPrivateMessage } from "../helpers";
-import { Flags } from "./service";
+import { isPrivateMessage } from "../helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -47,10 +47,10 @@ export default class BasicHandlers implements BotHandlers {
 
         const defaultInlineKeyboard = [
             [
-                InlineButton(t("basic.events.buttons.today"), "today", Flags.Editing),
-                InlineButton(t("basic.events.buttons.upcoming"), "upcoming", Flags.Editing),
+                InlineButton(t("basic.events.buttons.today"), "today", ButtonFlags.Editing),
+                InlineButton(t("basic.events.buttons.upcoming"), "upcoming", ButtonFlags.Editing),
             ],
-            [InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)],
+            [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
         const inline_keyboard = isPrivateMessage(msg, bot.context(msg))
@@ -144,22 +144,22 @@ export default class BasicHandlers implements BotHandlers {
         }
 
         const inline_keyboard = [
-            [InlineButton(t("basic.start.buttons.status"), "status", Flags.Editing)],
+            [InlineButton(t("basic.start.buttons.status"), "status", ButtonFlags.Editing)],
             [
-                InlineButton(t("basic.start.buttons.events"), "events", Flags.Editing),
-                InlineButton(t("basic.start.buttons.funds"), "funds", Flags.Editing),
+                InlineButton(t("basic.start.buttons.events"), "events", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.funds"), "funds", ButtonFlags.Editing),
             ],
             [
-                InlineButton(t("basic.start.buttons.control"), "controlpanel", Flags.Editing),
-                InlineButton(t("basic.start.buttons.info"), "infopanel", Flags.Editing),
+                InlineButton(t("basic.start.buttons.control"), "controlpanel", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.info"), "infopanel", ButtonFlags.Editing),
             ],
             [
-                InlineButton(t("basic.start.buttons.birthdays"), "birthdays", Flags.Editing),
-                InlineButton(t("basic.start.buttons.needs"), "needs", Flags.Editing),
+                InlineButton(t("basic.start.buttons.birthdays"), "birthdays", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.needs"), "needs", ButtonFlags.Editing),
             ],
             [
-                InlineButton(t("basic.start.buttons.printers"), "printers", Flags.Editing),
-                InlineButton(t("basic.start.buttons.topics"), "topics", Flags.Editing),
+                InlineButton(t("basic.start.buttons.printers"), "printers", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.topics"), "topics", ButtonFlags.Editing),
             ],
             [InlineButton(t("basic.start.buttons.me"), "me"), InlineButton(t("basic.start.buttons.help"), "help")],
         ];
@@ -184,21 +184,21 @@ export default class BasicHandlers implements BotHandlers {
             [
                 InlineButton(t("basic.control.buttons.unlock"), "unlock"),
                 InlineButton(t("basic.control.buttons.doorbell"), "doorbell"),
-                InlineButton(t("basic.control.buttons.conditioner"), "conditioner", Flags.Editing),
+                InlineButton(t("basic.control.buttons.conditioner"), "conditioner", ButtonFlags.Editing),
             ],
             [
-                InlineButton(t("basic.control.buttons.downstairs"), "webcam", Flags.Simple, { params: "downstairs" }),
-                InlineButton(t("basic.control.buttons.downstairs2"), "webcam", Flags.Simple, { params: "downstairs2" }),
-                InlineButton(t("basic.control.buttons.kitchen"), "webcam", Flags.Simple, { params: "kitchen" }),
+                InlineButton(t("basic.control.buttons.downstairs"), "webcam", ButtonFlags.Simple, { params: "downstairs" }),
+                InlineButton(t("basic.control.buttons.downstairs2"), "webcam", ButtonFlags.Simple, { params: "downstairs2" }),
+                InlineButton(t("basic.control.buttons.kitchen"), "webcam", ButtonFlags.Simple, { params: "kitchen" }),
             ],
             [
-                InlineButton(t("basic.control.buttons.upstairs"), "webcam", Flags.Simple, { params: "upstairs" }),
-                InlineButton(t("basic.control.buttons.printers"), "webcam", Flags.Simple, { params: "printers" }),
-                InlineButton(t("basic.control.buttons.outdoors"), "webcam", Flags.Simple, { params: "outdoors" }),
+                InlineButton(t("basic.control.buttons.upstairs"), "webcam", ButtonFlags.Simple, { params: "upstairs" }),
+                InlineButton(t("basic.control.buttons.printers"), "webcam", ButtonFlags.Simple, { params: "printers" }),
+                InlineButton(t("basic.control.buttons.outdoors"), "webcam", ButtonFlags.Simple, { params: "outdoors" }),
             ],
             [
-                InlineButton(t("basic.control.buttons.meme"), "memepanel", Flags.Editing),
-                InlineButton(t("general.buttons.back"), "startpanel", Flags.Editing),
+                InlineButton(t("basic.control.buttons.meme"), "memepanel", ButtonFlags.Editing),
+                InlineButton(t("general.buttons.back"), "startpanel", ButtonFlags.Editing),
             ],
         ];
 
@@ -221,7 +221,7 @@ export default class BasicHandlers implements BotHandlers {
             [InlineButton(t("basic.info.buttons.location"), "location"), InlineButton(t("basic.info.buttons.donate"), "donate")],
             [
                 InlineButton(t("basic.info.buttons.residents"), "getresidents"),
-                InlineButton(t("general.buttons.back"), "startpanel", Flags.Editing),
+                InlineButton(t("general.buttons.back"), "startpanel", ButtonFlags.Editing),
             ],
         ];
 
@@ -241,32 +241,32 @@ export default class BasicHandlers implements BotHandlers {
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
-                InlineButton(t("basic.meme.buttons.moan"), "playinspace", Flags.Silent, { params: "moan" }),
-                InlineButton(t("basic.meme.buttons.fart"), "playinspace", Flags.Silent, { params: "fart" }),
-                InlineButton(t("basic.meme.buttons.adler"), "playinspace", Flags.Silent, { params: "adler" }),
-                InlineButton(t("basic.meme.buttons.rzd"), "playinspace", Flags.Silent, { params: "rzd" }),
+                InlineButton(t("basic.meme.buttons.moan"), "playinspace", ButtonFlags.Silent, { params: "moan" }),
+                InlineButton(t("basic.meme.buttons.fart"), "playinspace", ButtonFlags.Silent, { params: "fart" }),
+                InlineButton(t("basic.meme.buttons.adler"), "playinspace", ButtonFlags.Silent, { params: "adler" }),
+                InlineButton(t("basic.meme.buttons.rzd"), "playinspace", ButtonFlags.Silent, { params: "rzd" }),
             ],
             [
-                InlineButton(t("basic.meme.buttons.rickroll"), "playinspace", Flags.Silent, { params: "rickroll" }),
-                InlineButton(t("basic.meme.buttons.zhuchok"), "playinspace", Flags.Silent, { params: "zhuchok" }),
-                InlineButton(t("basic.meme.buttons.rfoxed"), "playinspace", Flags.Silent, { params: "rfoxed" }),
-                InlineButton(t("basic.meme.buttons.nani"), "playinspace", Flags.Silent, { params: "nani" }),
+                InlineButton(t("basic.meme.buttons.rickroll"), "playinspace", ButtonFlags.Silent, { params: "rickroll" }),
+                InlineButton(t("basic.meme.buttons.zhuchok"), "playinspace", ButtonFlags.Silent, { params: "zhuchok" }),
+                InlineButton(t("basic.meme.buttons.rfoxed"), "playinspace", ButtonFlags.Silent, { params: "rfoxed" }),
+                InlineButton(t("basic.meme.buttons.nani"), "playinspace", ButtonFlags.Silent, { params: "nani" }),
             ],
             [
-                InlineButton(t("basic.meme.buttons.cat"), "cat", Flags.Simple, { params: "./resources/images/cats" }),
-                InlineButton(t("basic.meme.buttons.dog"), "dog", Flags.Simple, { params: "./resources/images/dogs" }),
-                InlineButton(t("basic.meme.buttons.cab"), "cab", Flags.Simple, { params: "./resources/images/cab" }),
-                InlineButton(t("basic.meme.buttons.cock"), "cock", Flags.Simple, { params: "./resources/images/roosters" }),
+                InlineButton(t("basic.meme.buttons.cat"), "cat", ButtonFlags.Simple, { params: "./resources/images/cats" }),
+                InlineButton(t("basic.meme.buttons.dog"), "dog", ButtonFlags.Simple, { params: "./resources/images/dogs" }),
+                InlineButton(t("basic.meme.buttons.cab"), "cab", ButtonFlags.Simple, { params: "./resources/images/cab" }),
+                InlineButton(t("basic.meme.buttons.cock"), "cock", ButtonFlags.Simple, { params: "./resources/images/roosters" }),
             ],
             [
-                InlineButton(t("basic.meme.buttons.sad"), "playinspace", Flags.Silent, { params: "sad" }),
-                InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", Flags.Silent, { params: "badumtss" }),
-                InlineButton(t("basic.meme.buttons.dushno"), "playinspace", Flags.Silent, { params: "dushno" }),
+                InlineButton(t("basic.meme.buttons.sad"), "playinspace", ButtonFlags.Silent, { params: "sad" }),
+                InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", ButtonFlags.Silent, { params: "badumtss" }),
+                InlineButton(t("basic.meme.buttons.dushno"), "playinspace", ButtonFlags.Silent, { params: "dushno" }),
             ],
             [InlineButton(t("basic.meme.buttons.all"), "availablesounds")],
             [
-                InlineButton(t("basic.meme.buttons.stop"), "stopmedia", Flags.Silent),
-                InlineButton(t("general.buttons.back"), "controlpanel", Flags.Editing),
+                InlineButton(t("basic.meme.buttons.stop"), "stopmedia", ButtonFlags.Silent),
+                InlineButton(t("general.buttons.back"), "controlpanel", ButtonFlags.Editing),
             ],
         ];
 
@@ -290,7 +290,7 @@ export default class BasicHandlers implements BotHandlers {
     ) {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
-        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", Flags.Editing)]];
+        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", ButtonFlags.Editing)]];
 
         try {
             const events = await getClosestEventsFromCalendar(numberOfEvents);
@@ -316,7 +316,7 @@ export default class BasicHandlers implements BotHandlers {
     static async todayEventsHandler(bot: HackerEmbassyBot, msg: Message) {
         let messageText: string = "";
 
-        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", Flags.Editing)]];
+        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", ButtonFlags.Editing)]];
 
         try {
             messageText = TextGenerators.getTodayEventsText(await getTodayEvents());

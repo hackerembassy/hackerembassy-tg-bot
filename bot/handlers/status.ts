@@ -32,10 +32,9 @@ import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "../../utils/date";
 import { isEmoji, REPLACE_MARKER } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../helpers";
-import { InlineButton } from "../helpers";
-import { Flags } from "./service";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -163,10 +162,10 @@ export default class StatusHandlers implements BotHandlers {
 
         inlineKeyboard.push(
             short
-                ? [InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short })]
+                ? [InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short })]
                 : [
-                      InlineButton(t("status.buttons.refresh"), "status", Flags.Editing, { params: short }),
-                      InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing),
+                      InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short }),
+                      InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
                   ]
         );
 
@@ -284,7 +283,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const inline_keyboard = [
             [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.reclose"), "close")],
-            [InlineButton(t("status.buttons.whoinside"), "status")],
+            [AnnoyingInlineButton(bot, msg, t("status.buttons.whoelse"), "status")],
         ];
 
         await bot.sendMessageExt(
@@ -380,7 +379,7 @@ export default class StatusHandlers implements BotHandlers {
         const inline_keyboard = gotIn
             ? [
                   [InlineButton(t("status.buttons.inandin"), "in"), InlineButton(t("status.buttons.inandout"), "out")],
-                  [InlineButton(t("status.buttons.whoinside"), "status")],
+                  [AnnoyingInlineButton(bot, msg, t("status.buttons.whoinside"), "status")],
               ]
             : [[InlineButton(t("status.buttons.repeat"), "in"), InlineButton(t("status.buttons.open"), "open")]];
 
@@ -411,7 +410,11 @@ export default class StatusHandlers implements BotHandlers {
         const inline_keyboard = gotOut
             ? [
                   [InlineButton(t("status.buttons.outandout"), "out"), InlineButton(t("status.buttons.outandin"), "in")],
-                  [InlineButton(t("status.buttons.whoinside"), "status")],
+                  [
+                      msg.chat.id === botConfig.chats.main
+                          ? InlineDeepLinkButton(t("status.buttons.whoinside"), bot.Name!, "status")
+                          : InlineButton(t("status.buttons.whoinside"), "status"),
+                  ],
               ]
             : [[InlineButton(t("status.buttons.repeat"), "out"), InlineButton(t("status.buttons.open"), "open")]];
 
@@ -490,7 +493,10 @@ export default class StatusHandlers implements BotHandlers {
         });
 
         const inline_keyboard = [
-            [InlineButton(t("status.buttons.andgoing"), "going"), InlineButton(t("status.buttons.whoelse"), "status")],
+            [
+                InlineButton(t("status.buttons.andgoing"), "going"),
+                AnnoyingInlineButton(bot, msg, t("status.buttons.whoelse"), "status"),
+            ],
         ];
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {

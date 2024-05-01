@@ -11,11 +11,11 @@ import { getToday } from "../../utils/date";
 import { getImageFromPath } from "../../utils/filesystem";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
-import { InlineButton, isPrivateMessage } from "../helpers";
-import { Flags } from "./service";
+import { isPrivateMessage } from "../helpers";
 
 const CALLBACK_DATA_RESTRICTION = 21;
 
@@ -32,7 +32,7 @@ export default class FundsHandlers implements BotHandlers {
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, bot.context(msg).mode);
 
-        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)]];
+        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)]];
 
         await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg, {
             reply_markup: {

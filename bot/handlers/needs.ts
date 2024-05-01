@@ -4,10 +4,9 @@ import NeedsRepository from "../../repositories/needsRepository";
 import t from "../../services/localization";
 import * as TextGenerators from "../../services/textGenerators";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
-import { InlineButton } from "../helpers";
-import { Flags } from "./service";
 
 export default class NeedsHandlers implements BotHandlers {
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -15,10 +14,10 @@ export default class NeedsHandlers implements BotHandlers {
         const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
 
         const needs_keyboard = needs
-            ? needs.map(need => [InlineButton(need.text, "boughtbutton", Flags.Simple, { params: need.id })])
+            ? needs.map(need => [InlineButton(need.text, "boughtbutton", ButtonFlags.Simple, { params: need.id })])
             : [];
 
-        const default_inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", Flags.Editing)]];
+        const default_inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)]];
 
         await bot.sendOrEditMessage(
             msg.chat.id,
@@ -76,7 +75,7 @@ export default class NeedsHandlers implements BotHandlers {
             username: helpers.formatUsername(buyer, bot.context(msg).mode),
             item,
         });
-        const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", Flags.Simple, { params: need.id })]];
+        const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", ButtonFlags.Simple, { params: need.id })]];
 
         await bot.sendMessageExt(msg.chat.id, successText, msg, {
             reply_markup: { inline_keyboard },

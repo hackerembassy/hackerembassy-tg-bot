@@ -68,10 +68,10 @@
             "wifiip": "192.168.1.2",
             "unifihost": "https://unifi.lan:8443"
         },
-        "mqtthost": "minimi.lan",
+        "mqtthost": "hass.lan",
         "cams": {
-            "downstairs": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
-            "downstairs2": "http://hass.lan:8123/api/camera_proxy/camera.downstairs_2",
+            "downstairs": "http://hass.lan:8123/api/camera_proxy/camera.downstairs_2",
+            "downstairs2": "http://hass.lan:8123/api/camera_proxy/camera.first_floor",
             "upstairs": "http://hass.lan:8123/api/camera_proxy/camera.upstairs",
             "printers": "http://hass.lan:8123/api/camera_proxy/camera.le_fail_lan",
             "outdoors": "http://hass.lan:8123/api/camera_proxy/camera.outdoor"

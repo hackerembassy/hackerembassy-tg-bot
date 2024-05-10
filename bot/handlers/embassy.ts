@@ -361,6 +361,19 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
+        const allowedChats = [
+            botConfig.chats.main,
+            botConfig.chats.horny,
+            botConfig.chats.offtopic,
+            botConfig.chats.key,
+            botConfig.chats.test,
+        ];
+
+        if (!allowedChats.includes(msg.chat.id)) {
+            await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
+            return;
+        }
+
         const residents = usersRepository.getUsers().filter(u => hasRole(u.username, "member"));
         const recentUserStates = findRecentStates(statusRepository.getAllUserStates());
         const residentsInside = recentUserStates

@@ -16,6 +16,7 @@ import {
     DateBoundary,
     ElapsedTimeObject,
     hasBirthdayToday,
+    onlyDateOptions,
     onlyTimeOptions,
     shortDateTimeOptions,
 } from "../utils/date";
@@ -414,12 +415,12 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
 }
 
 export function HSEventToString(event: HSEvent, timeOnly: boolean = false): string {
-    const dateTimeOptions = timeOnly ? onlyTimeOptions : shortDateTimeOptions;
+    const dateTimeOptions = event.allDay ? onlyDateOptions : timeOnly ? onlyTimeOptions : shortDateTimeOptions;
+    const eventStart = event.start.toLocaleString("RU-ru", dateTimeOptions);
+    const eventEnd = event.end.toLocaleString("RU-ru", dateTimeOptions);
+    const eventTime = event.allDay ? eventStart : `${eventStart} - ${eventEnd}`;
 
-    let result = `${event.summary}: ${event.start.toLocaleString("RU-ru", dateTimeOptions)} - ${event.end.toLocaleString(
-        "RU-ru",
-        dateTimeOptions
-    )}`;
+    let result = `${event.summary}: ${eventTime}`;
 
     if (event.description) {
         result += `\n${toEscapedTelegramMarkdown(event.description)}`;

@@ -16,12 +16,14 @@ export type HSEvent = {
     description?: string;
     start: Date;
     end: Date;
+    allDay: boolean;
 };
 
 type CalendarListResponse = { items: HSEventFromJSON[] };
 
 type JsonDate = {
-    dateTime: string;
+    dateTime?: string;
+    date?: string;
     timeZone: string;
 };
 
@@ -78,14 +80,14 @@ function extractICalDateFromExdate(exdateString: string): string | null {
 /** @deprecated */
 function getAllEventOcurrencesFromEvent<T extends HSEventFromJSON>(event: T): Array<Date> {
     if (!event.recurrence) {
-        return [new Date(event.start.dateTime)];
+        return [new Date(event.start.dateTime ?? 0)];
     }
 
     const rruleset: RRuleSet = new RRuleSet();
     const recurrenceRRuleStr = isRecurrenceFieldIllFormed(event.recurrence) ? event.recurrence[1] : event.recurrence[0];
     rruleset.rrule(
         rrulestr(recurrenceRRuleStr, {
-            dtstart: new Date(event.start.dateTime),
+            dtstart: new Date(event.start.dateTime ?? 0),
             cache: true,
         })
     );
@@ -114,8 +116,8 @@ function getEventsMap(eventsJson: CalendarListResponse): Map<number, HSEvent> {
     const currentDate = new Date();
 
     for (const event of eventsJson.items) {
-        const startDate = new Date(event.start.dateTime);
-        const endDate = new Date(event.end.dateTime);
+        const startDate = new Date(event.start.dateTime ?? event.start.date ?? 0);
+        const endDate = new Date(event.end.dateTime ?? event.end.date ?? 0);
         const eventDuration = endDate.valueOf() - startDate.valueOf();
         const ocurrencesDates = getAllEventOcurrencesFromEvent(event);
 
@@ -130,6 +132,7 @@ function getEventsMap(eventsJson: CalendarListResponse): Map<number, HSEvent> {
                     description: event.description,
                     start: ocurrenceDate,
                     end: ocurrenceEndDate,
+                    allDay: false,
                 });
             }
         }
@@ -144,8 +147,9 @@ export async function getClosestEventsFromCalendar(numberOfEvents: number, from:
     return eventsJson.items.map((event: HSEventFromJSON) => ({
         summary: event.summary,
         description: event.description,
-        start: new Date(event.start.dateTime),
-        end: new Date(event.end.dateTime),
+        allDay: !event.start.dateTime,
+        start: new Date(event.start.dateTime ?? event.start.date ?? 0),
+        end: new Date(event.end.dateTime ?? event.end.date ?? 0),
     }));
 }
 

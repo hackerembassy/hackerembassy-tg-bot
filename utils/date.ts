@@ -34,6 +34,11 @@ export const onlyTimeOptions: Intl.DateTimeFormatOptions = {
     timeStyle: "short",
 };
 
+export const onlyDateOptions: Intl.DateTimeFormatOptions = {
+    dateStyle: "short",
+    timeStyle: undefined,
+};
+
 export function toDateObject(date: Date): DateObject {
     return { day: date.getDate(), month: date.getMonth() + 1, year: date.getFullYear() };
 }

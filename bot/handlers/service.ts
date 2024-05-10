@@ -397,7 +397,7 @@ export default class ServiceHandlers implements BotHandlers {
             }
 
             if (!allowedChats.includes(msg.chat.id)) {
-                await bot.sendMessageExt(msg.chat.id, t("service.openai.chatnotallowed"), msg);
+                await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
                 return;
             }
 

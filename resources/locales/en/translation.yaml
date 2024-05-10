@@ -1,5 +1,6 @@
 general:
     error: Something went wrong
+    chatnotallowed: ⚠️ The command is only available in group space chats
     buttons:
         menu: 🏠 Menu
         back: ↩️ Back
@@ -527,7 +528,6 @@ service:
             #`/ask How to patch KDE under FreeBSD#`
             #`/ask Write code in Python that inverts the input string#`
         notset: ⚠️ Bot is not yet configured for this functionality
-        chatnotallowed: ⚠️ The command is only available in group space chats
         error: ⚠️ Something went wrong, probably took too long to respond
     removebuttons:
         error: ⚠️ Failed to remove buttons

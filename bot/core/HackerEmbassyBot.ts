@@ -462,6 +462,11 @@ export default class HackerEmbassyBot extends TelegramBot {
                 UsersRepository.addUser(message.from?.username, ["default"], userId);
             }
 
+            // Update username if it was changed
+            if (dbuser && message.from?.username && dbuser.username !== message.from.username) {
+                UsersRepository.updateUser({ ...dbuser, username: message.from.username });
+            }
+
             const messageContext = this.context(message);
             messageContext.language = dbuser?.language ?? DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;

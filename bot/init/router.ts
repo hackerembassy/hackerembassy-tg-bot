@@ -22,13 +22,22 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["about"], BasicHandlers.aboutHandler);
     bot.addRoute(["join"], BasicHandlers.joinHandler);
     bot.addRoute(["events"], BasicHandlers.eventsHandler);
-    bot.addRoute(["donate"], BasicHandlers.donateHandler);
     bot.addRoute(["location", "where"], BasicHandlers.locationHandler);
-    bot.addRoute(["donatecash", "donatecard"], BasicHandlers.donateCardHandler);
-
-    bot.addRoute(["donatecrypto"], BasicHandlers.donateCoinHandler, /(btc|eth|usdc|usdt)/, match => [match[1]]);
-
     bot.addRoute(["getresidents", "gr"], BasicHandlers.getResidentsHandler);
+
+    // Donations
+    bot.addRoute(["donate"], BasicHandlers.donateHandler);
+    bot.addRoute(["donatecash", "cash", "donatecard", "card"], BasicHandlers.donateCardHandler);
+    bot.addRoute(["donatecrypto", "crypto"], BasicHandlers.donateCoinHandler, /(btc|eth|usdc|usdt|trx|ton)/, match => [match[1]]);
+    bot.addRoute(["btc"], BasicHandlers.donateCoinHandler, null, () => ["btc"]);
+    bot.addRoute(["eth"], BasicHandlers.donateCoinHandler, null, () => ["eth"]);
+    bot.addRoute(["usdc"], BasicHandlers.donateCoinHandler, null, () => ["usdc"]);
+    bot.addRoute(["usdt"], BasicHandlers.donateCoinHandler, null, () => ["usdt"]);
+    bot.addRoute(["trx"], BasicHandlers.donateCoinHandler, null, () => ["trx"]);
+    bot.addRoute(["ton"], BasicHandlers.donateCoinHandler, null, () => ["ton"]);
+    bot.addRoute(["donateequipment", "equipment"], BasicHandlers.donateEquipmentHandler);
+
+    // Events
     bot.addRoute(
         ["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"],
         BasicHandlers.upcomingEventsHandler,

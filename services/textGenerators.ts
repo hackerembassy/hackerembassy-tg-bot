@@ -10,6 +10,7 @@ import Topic from "../models/Topic";
 import User, { AutoInsideMode } from "../models/User";
 import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
+import { Coins } from "../utils/coins";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
 import {
     convertMinutesToHours,
@@ -214,12 +215,7 @@ export function getUserBadgesWithStatus(userStatus: UserState): string {
 }
 
 export function getAccountsList(accountants: Optional<User[]>, mode: { mention: boolean }, isApi = false): string {
-    return accountants
-        ? accountants.reduce(
-              (list, user) => `${list}${formatUsername(user.username, mode, isApi)} ${getUserBadges(user.username)}\n`,
-              ""
-          )
-        : "";
+    return accountants ? accountants.reduce((list, user) => `${list}${formatUsername(user.username, mode, isApi)}  `, "") : "";
 }
 
 export function getResidentsList(residents: Optional<User[]>, mode: { mention: boolean }): string {
@@ -254,16 +250,12 @@ export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }
 }
 
 export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = false): string {
-    const cryptoCommands = !isApi
-        ? `#\`/donatecrypto btc#\`
-  #\`/donatecrypto eth#\`
-  #\`/donatecrypto usdc#\`
-  #\`/donatecrypto usdt#\``
-        : "";
+    const cryptoCommands = !isApi ? Coins.map(coin => `/${coin.shortname}`).join("  ") : "";
 
     return t("basic.donate", {
-        donateCashCommand: !isApi ? "/donatecash" : "",
-        donateCardCommand: !isApi ? "/donatecard" : "",
+        donateCashCommand: !isApi ? "/cash" : "",
+        donateCardCommand: !isApi ? "/card" : "",
+        donateEquipmentCommand: !isApi ? "/equipment" : "",
         fundsCommand: !isApi ? "/funds" : "funds",
         cryptoCommands,
         accountantsList: accountants ? getAccountsList(accountants, { mention: false }, isApi) : "",

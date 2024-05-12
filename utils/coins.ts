@@ -6,6 +6,7 @@ export type CoinDefinition = {
     shortname: string;
     address: string;
     network: string;
+    explorer: string;
     qrfile: string;
 };
 
@@ -18,6 +19,7 @@ export const Coins: CoinDefinition[] = [
         address: "bc1q8d4y2hza9yeevjp7fyvndd6tc6pmt8k9jk70vf",
         network: "BTC",
         qrfile: "btc.jpg",
+        explorer: "https://memepool.space",
     },
     {
         fullname: "Ethereum",
@@ -25,6 +27,7 @@ export const Coins: CoinDefinition[] = [
         address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b",
         network: "ETH",
         qrfile: "eth.jpg",
+        explorer: "https://etherscan.io",
     },
     {
         fullname: "USD Coin",
@@ -32,6 +35,7 @@ export const Coins: CoinDefinition[] = [
         address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b",
         network: "ERC20",
         qrfile: "usdc.jpg",
+        explorer: "https://etherscan.io",
     },
     {
         fullname: "Tether",
@@ -39,6 +43,23 @@ export const Coins: CoinDefinition[] = [
         address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b",
         network: "BEP20",
         qrfile: "usdt.jpg",
+        explorer: "https://bscscan.com",
+    },
+    {
+        fullname: "Tron",
+        shortname: "trx",
+        address: "TEfXwMLXyTuhAhwNCvJm7acxtW3zHvabhu",
+        network: "TRX",
+        qrfile: "trx.jpg",
+        explorer: "https://tronscan.io/",
+    },
+    {
+        fullname: "Ton",
+        shortname: "ton",
+        address: "EQDWp5mlGr9oNR_LGxvT1N4MEIqboRuCE35SZI2NTsH8QeO1",
+        network: "TON",
+        qrfile: "ton.jpg",
+        explorer: "https://tonscan.com/",
     },
 ];
 

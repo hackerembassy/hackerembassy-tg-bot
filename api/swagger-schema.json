@@ -145,6 +145,42 @@
         }
       }
     },
+    "/api/donations": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "fund",
+            "in": "query",
+            "description": "Fund name to show donations for. By default shows the latest fund for costs",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit of donations to show. By default shows all donations",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/text/join": {
       "get": {
         "description": "",

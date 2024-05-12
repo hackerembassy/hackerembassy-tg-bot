@@ -11,7 +11,7 @@ import * as TextGenerators from "../../services/textGenerators";
 import { getEventsList } from "../../services/textGenerators";
 import * as CoinsHelper from "../../utils/coins";
 import HackerEmbassyBot, { MAX_MESSAGE_LENGTH } from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/InlineButtons";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 import { isPrivateMessage } from "../helpers";
@@ -116,7 +116,6 @@ export default class BasicHandlers implements BotHandlers {
         const qrImage = await CoinsHelper.getQR(coinDefinition);
 
         await bot.sendPhotoExt(msg.chat.id, qrImage, msg, {
-            parse_mode: "Markdown",
             caption: t("basic.donateCoin", { coin: coinDefinition }),
         });
     }
@@ -128,6 +127,11 @@ export default class BasicHandlers implements BotHandlers {
         );
 
         await bot.sendMessageExt(msg.chat.id, t("basic.donateCard", { accountantsList }), msg);
+    }
+
+    static async donateEquipmentHandler(bot: HackerEmbassyBot, msg: Message) {
+        const inline_keyboard = [[AnnoyingInlineButton(bot, msg, t("basic.info.buttons.residents"), "getresidents")]];
+        await bot.sendMessageExt(msg.chat.id, t("basic.donateEquipment"), msg, { reply_markup: { inline_keyboard } });
     }
 
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {

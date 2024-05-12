@@ -537,14 +537,14 @@ export default class HackerEmbassyBot extends TelegramBot {
         return false;
     }
 
-    private sendRestrictedMessage(message: TelegramBot.Message, route: BotRoute) {
+    public sendRestrictedMessage(message: TelegramBot.Message, route?: BotRoute) {
         this.restrictedImage
             ? this.sendPhotoExt(message.chat.id, this.restrictedImage, message, {
-                  caption: t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
+                  caption: t("admin.messages.restricted", { required: route ? route.restrictions.join(", ") : "someone else" }),
               })
             : this.sendMessageExt(
                   message.chat.id,
-                  t("admin.messages.restricted", { required: route.restrictions.join(", ") }),
+                  t("admin.messages.restricted", { required: route ? route.restrictions.join(", ") : "someone else" }),
                   message
               );
     }

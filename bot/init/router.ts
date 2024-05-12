@@ -441,7 +441,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         "member",
     ]);
     bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, ["member"]);
-    bot.addRoute(["chatid"], ServiceHandlers.chatidHandler, null, null, ["admin"]);
+    bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, ["member"]);
 
     // Language

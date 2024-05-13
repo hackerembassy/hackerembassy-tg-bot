@@ -69,7 +69,7 @@ class FundsRepository extends BaseRepository {
     getFundDonationsOf(username: string): Nullable<FundDonation[]> {
         return this.db
             .prepare(
-                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE LOWER(d.username) = ?"
+                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE LOWER(d.username) = ? ORDER BY d.fund_id"
             )
             .all(username.toLowerCase()) as Nullable<FundDonation[]>;
     }

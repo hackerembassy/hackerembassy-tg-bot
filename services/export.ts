@@ -278,13 +278,17 @@ export function prepareCostsForExport(donations: FundDonation[], costsPrefix: st
         .filter(d => d.name.startsWith(costsPrefix))
         .map(d => {
             const dateString = d.name.replace(costsPrefix, "").trim();
+            const splitDate = dateString.split(" ");
+
             return {
                 ...d,
                 name: dateString,
-                extractedMonthName: dateString.split(" ")[0],
+                extractedMonthName: splitDate[0],
+                extractedYear: Number(splitDate[1]),
             };
         })
-        .sort((a, b) => compareMonthNames(a.extractedMonthName, b.extractedMonthName));
+        .sort((a, b) => compareMonthNames(a.extractedMonthName, b.extractedMonthName))
+        .sort((a, b) => a.extractedYear - b.extractedYear);
 }
 
 export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDonation[] {

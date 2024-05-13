@@ -133,5 +133,13 @@
     "wiki": {
         "endpoint": "http://172.17.0.1/graphql",
         "defaultLocale": "ru"
+    },
+    "github": {
+        "organization": "hackerembassy",
+        "repos": {
+            "bot": "hackerembassy-tg-bot",
+            "space": "space"
+        },
+        "maintainer": "korn9509"
     }
 }

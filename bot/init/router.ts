@@ -53,7 +53,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["memepanel", "meme", "memes", "mp"], BasicHandlers.memePanelHandler, null, null, ["member", "trusted"]);
 
     // Issues
-    bot.addRoute(["issue"], BasicHandlers.issueHandler, OptionalParam(/(.*)/), match => [match[1]]);
+    bot.addRoute(["issue", "report"], BasicHandlers.issueHandler, OptionalParam(/(.*)/ims), match => ["space", match[1]]);
+    bot.addRoute(["bug", "bugreport"], BasicHandlers.issueHandler, OptionalParam(/(.*)/ims), match => ["bot", match[1]]);
+
     // Status
     bot.addRoute(["status", "s"], StatusHandlers.statusHandler, OptionalParam(/(short)/), match => [match[1] === "short"]);
     bot.addRoute(["shortstatus", "statusshort", "shs"], StatusHandlers.statusHandler, null, () => [true]);

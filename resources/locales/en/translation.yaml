@@ -22,18 +22,40 @@ basic:
 
         🍕 We always welcome new residents. Want to know how to become a member? Press the /join command
     issue:
-        help: |
-            📮 Using this command, you can anonymously report any problem in the space (something is missing, something doesn’t work, someone is doing something very wrong in the space).
-            Residents will definitely consider it and try to resolve it.
-            You can send a problem to the bot, for example, like this:
+        space:
+            help: |
+                📮 Using this command, you can #*anonymously#* report any problem in the space (something is missing, something doesn’t work, someone is doing something very wrong in the space).
+                Residents will definitely consider it and try to resolve it.
 
-            #`/issue The air conditioner does not work well and it is very hot on the first floor#`
-            #`/issue Out of toilet paper#`
-            #`/issue It would be nice to have a map of the internal network on the wiki#`
-        sent: 💌 The problem has been sent to residents, they will definitely consider it. Thank you for helping our community.
-        report: |
-            📩 You have a new issue!
-            "{{issue}}"
+                You can send a problem to the bot, for example, like this:
+                #`/issue The air conditioner does not work well and it is very hot on the first floor#`
+                #`/issue Out of toilet paper#`
+                #`/issue It would be nice to have a map of the internal network on the wiki#`
+
+                If the issue is related to our bot, then it is better to use the /bug command
+            sent: 💌 The problem has been sent to residents, they will definitely consider it. Thank you for helping our community.
+            report: |
+                📩 You have a new issue!
+
+                "{{issue}}"
+        bot:
+            help: |
+                📮 Using this command, you can report a bug in the bot.
+
+                You can create a new issue on GitHub if it doesn't already exist. Or you can send a bug report directly in Telegram, for example, like this:
+                #`/bug The automatic check-in doesn't work when I come to the space#`
+
+                Your #*username will be automatically added#* to the message so that residents can contact you if they need additional information.
+
+                If the issue is related to the space itself, then it is better to use the /issue command
+            sent: 💌 The bug report has been sent to the maintainers, they will definitely review it. Thank you for helping our community.
+            report: |
+                📩 {{reporter}} has encountered a problem with the bot! Could it be a bug?
+
+                "{{issue}}"
+        buttons:
+            new: Create on GitHub
+            current: GitHub issues
     residents: |
         👥 Here they are, our magnificent residents:
         {{userList}}
@@ -140,6 +162,7 @@ basic:
 
             🔖 To get a complete list of commands available to you, enter /help. Some commands are only visible to residents.
             📮 Is something wrong in the space? Enter /issue in the bot. It's anonymous.
+            🐞 Found a bug in the bot? Enter /bug.
             🗣 Change bot language / Сменить язык бота - /lang
         buttons:
             status: 📯 Status

@@ -4,15 +4,17 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import * as Commands from "../../resources/commands";
+import * as GitHub from "../../services/github";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../../services/googleCalendar";
 import t from "../../services/localization";
 import logger from "../../services/logger";
 import * as TextGenerators from "../../services/textGenerators";
 import { getEventsList } from "../../services/textGenerators";
 import * as CoinsHelper from "../../utils/coins";
+import { cropStringAtSpace } from "../../utils/text";
 import HackerEmbassyBot, { MAX_MESSAGE_LENGTH } from "../core/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/InlineButtons";
-import { BotHandlers } from "../core/types";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/InlineButtons";
+import { BotHandlers, ITelegramUser } from "../core/types";
 import * as helpers from "../helpers";
 import { isPrivateMessage } from "../helpers";
 
@@ -80,16 +82,28 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
-    static async issueHandler(bot: HackerEmbassyBot, msg: Message, issueText: string) {
-        const helpMessage = t("basic.issue.help");
-        const sentMessage = t("basic.issue.sent");
-        const report = t("basic.issue.report", { issue: issueText });
+    static async issueHandler(bot: HackerEmbassyBot, msg: Message, target: "bot" | "space", issueText: string) {
         if (issueText) {
+            const sentMessage = t(`basic.issue.${target}.sent`);
+            const report = t(`basic.issue.${target}.report`, {
+                issue: issueText,
+                reporter: target === "bot" ? helpers.userLink(msg.from as ITelegramUser) : "",
+            });
+            const shortenedTitle = cropStringAtSpace(issueText, 30);
+            const newIssueUrl = GitHub.newSpaceIssueUrl(target, shortenedTitle, issueText);
+            const reportTarget = target === "bot" ? botConfig.chats.alerts : botConfig.chats.key;
+            const reportKeyboard = [[InlineLinkButton(t("basic.issue.buttons.new"), newIssueUrl)]];
+
             await bot.sendMessageExt(msg.chat.id, sentMessage, msg);
             delete bot.context(msg).messageThreadId;
-            await bot.sendMessageExt(botConfig.chats.key, report, msg);
+            await bot.sendMessageExt(reportTarget, report, msg, { reply_markup: { inline_keyboard: reportKeyboard } });
         } else {
-            await bot.sendMessageExt(msg.chat.id, helpMessage, msg);
+            const helpMessage = t(`basic.issue.${target}.help`);
+            const helpKeyboard = [[InlineLinkButton(t("basic.issue.buttons.current"), GitHub.getSpaceIssuesUrl(target))]];
+
+            await bot.sendMessageExt(msg.chat.id, helpMessage, msg, {
+                reply_markup: { inline_keyboard: helpKeyboard },
+            });
         }
     }
 

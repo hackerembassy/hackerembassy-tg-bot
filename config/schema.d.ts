@@ -6,6 +6,7 @@ export interface Config {
     api: BotApiConfig;
     network: NetworkConfig;
     wiki: WikiConfig;
+    github: GithubConfig;
 }
 
 export interface WikiConfig {
@@ -177,4 +178,13 @@ export interface StableDiffusionConfig {
     steps?: 15;
     denoising?: 0.57;
     sampler?: string;
+}
+
+export interface GithubConfig {
+    organization: string;
+    repos: {
+        bot: string;
+        space: string;
+    };
+    maintainer: string;
 }

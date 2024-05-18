@@ -391,8 +391,6 @@ export default class EmbassyHandlers implements BotHandlers {
         if (residentsInside.length > 0) {
             bot.context(msg).mode.silent = true;
 
-            await EmbassyHandlers.playinspaceHandler(bot, msg, "knock", true);
-            await sleep(9000);
             await EmbassyHandlers.sayinspaceHandler(
                 bot,
                 msg,

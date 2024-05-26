@@ -241,6 +241,10 @@ export default class FundsHandlers implements BotHandlers {
     }
 
     static async costsHandler(bot: HackerEmbassyBot, msg: Message, valueString: string, currency: string, userName: string) {
+        if (!helpers.hasRole(msg.from?.username, "accountant") || !valueString || !currency || !userName) {
+            return FundsHandlers.showCostsHandler(bot, msg);
+        }
+
         const latestCostsFund = FundsRepository.getLatestCosts();
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);

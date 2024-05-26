@@ -9,6 +9,7 @@ general:
         yes: ✅ Yes
         no: ❌ No
         more: 📖 Read more
+        readmore: 📚 Read more
 basic:
     help: "{{availableCommands}}{{globalModifiers}}"
     about: |
@@ -58,12 +59,12 @@ basic:
             current: GitHub issues
     residents: |
         👥 Here they are, our magnificent residents:
+
         {{userList}}
         🧠 You can contact them for any Space question
     location:
         address: |
-            🗺 Our address: Armenia, Yerevan, Pushkina 38/18 (entrance from the yard)
-        caption: 🏫 This house is one of a kind
+            🏫 This house is one of a kind. Its address: Armenia, Yerevan, Pushkina 38/18 (entrance from the yard)
     donate: |
         💸 Hackspace is not a commercial project and exists solely on donations from participants.
         We contribute to the development of the space: paying rent and utilities, taking care of the space, helping in purchasing equipment.
@@ -520,12 +521,7 @@ service:
             🇷🇺 Привет, {{newMember}}. Выбери свой язык, если ты не бот, иначе не сможешь тут писать :)
         captcha: Click me
         main: |
-            🇬🇧 Welcome to our cozy corner, {{newMember}}
-
-            I'm @{{botName}}, hackerspace bot manager. You can PM me to chat so I can briefly tell you about us.
-            Don't forget to also visit our second chat (link in the chat description above)! There you will find different topics on the main space projects, discussions of future events, news, memes, and so on.
-
-            🎉🎉🎉 Hackers, welcome {{newMember}}
+            🇬🇧 Welcome to our cozy corner, {{newMember}}. I'm hackerspace bot manager. You can PM me to chat so I can briefly tell you about us
         offtopic: |
             🫖 Welcome to the chat topic of our hackspace, {{newMember}}
 
@@ -543,6 +539,8 @@ service:
             Take a look at my /help commands again, a lot of new things are now available to you. Pay attention to /control, which gives you unlimited (or not so much) power over the space itself. Use it wisely.
 
             🎉🎉🎉 Residents, raise your sausages for {{newMember}}
+        buttons:
+            about: 📚 Read more
     setlanguage:
         select: 🗣 Select your language
         success: ✅ Language is set as {{language}}

@@ -13,7 +13,7 @@ import HackerEmbassyBot, {
     MAX_MESSAGE_LENGTH_WITH_TAGS,
     RESTRICTED_PERMISSIONS,
 } from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import { ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
 import { UserRateLimiter } from "../core/RateLimit";
 import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
 import { userLink } from "../helpers";
@@ -328,10 +328,17 @@ export default class ServiceHandlers implements BotHandlers {
     }
 
     static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser, language?: string) {
+        const inline_keyboard = [[InlineDeepLinkButton(t("service.welcome.buttons.about"), bot.Name!, "about")]];
+
         await bot.sendMessageExt(
             chat.id,
             t(WelcomeMessageMap[chat.id] ?? "service.welcome.main", { botName: bot.Name, newMember: userLink(tgUser) }, language),
-            null
+            null,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            }
         );
     }
 

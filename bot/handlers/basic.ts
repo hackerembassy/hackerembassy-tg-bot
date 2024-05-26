@@ -36,12 +36,40 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {
-        await bot.sendMessageExt(msg.chat.id, t("basic.about"), msg);
+        const inline_keyboard = [
+            [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
+        ];
+
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            t("basic.about"),
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            },
+            msg.message_id
+        );
     }
 
     static async joinHandler(bot: HackerEmbassyBot, msg: Message) {
+        const inline_keyboard = [
+            [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
+        ];
         const message = TextGenerators.getJoinText();
-        await bot.sendMessageExt(msg.chat.id, message, msg);
+
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            message,
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            },
+            msg.message_id
+        );
     }
 
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -108,15 +136,31 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async donateHandler(bot: HackerEmbassyBot, msg: Message) {
+        const inline_keyboard = [
+            [
+                AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing),
+                AnnoyingInlineButton(bot, msg, t("basic.start.buttons.funds"), "funds"),
+            ],
+        ];
+
         const accountants = UsersRepository.getUsersByRole("accountant");
         const message = TextGenerators.getDonateText(accountants);
-        await bot.sendMessageExt(msg.chat.id, message, msg);
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            message,
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            },
+            msg.message_id
+        );
     }
 
     static async locationHandler(bot: HackerEmbassyBot, msg: Message) {
-        await bot.sendMessageExt(msg.chat.id, t("basic.location.address"), msg);
+        await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.address") });
         await bot.sendLocationExt(msg.chat.id, 40.18258, 44.51338, msg);
-        await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.caption") });
     }
 
     static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname: string) {
@@ -140,19 +184,28 @@ export default class BasicHandlers implements BotHandlers {
             bot.context(msg).mode
         );
 
-        await bot.sendMessageExt(msg.chat.id, t("basic.donateCard", { accountantsList }), msg);
+        await bot.sendOrEditMessage(msg.chat.id, t("basic.donateCard", { accountantsList }), msg, {}, msg.message_id);
     }
 
     static async donateEquipmentHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [[AnnoyingInlineButton(bot, msg, t("basic.info.buttons.residents"), "getresidents")]];
-        await bot.sendMessageExt(msg.chat.id, t("basic.donateEquipment"), msg, { reply_markup: { inline_keyboard } });
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            t("basic.donateEquipment"),
+            msg,
+            { reply_markup: { inline_keyboard } },
+            msg.message_id
+        );
     }
 
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
+        const inline_keyboard = [
+            [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
+        ];
         const users = UsersRepository.getUsers().filter(u => helpers.hasRole(u.username, "member"));
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
-        await bot.sendLongMessage(msg.chat.id, message, msg);
+        await bot.sendOrEditMessage(msg.chat.id, message, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
     }
 
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message, deepLinkCmd?: string) {
@@ -235,10 +288,16 @@ export default class BasicHandlers implements BotHandlers {
 
     static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
-            [InlineButton(t("basic.info.buttons.about"), "about"), InlineButton(t("basic.info.buttons.join"), "join")],
-            [InlineButton(t("basic.info.buttons.location"), "location"), InlineButton(t("basic.info.buttons.donate"), "donate")],
             [
-                InlineButton(t("basic.info.buttons.residents"), "getresidents"),
+                InlineButton(t("basic.info.buttons.about"), "about", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.join"), "join", ButtonFlags.Editing),
+            ],
+            [
+                InlineButton(t("basic.info.buttons.location"), "location", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
+            ],
+            [
+                InlineButton(t("basic.info.buttons.residents"), "getresidents", ButtonFlags.Editing),
                 InlineButton(t("general.buttons.back"), "startpanel", ButtonFlags.Editing),
             ],
         ];

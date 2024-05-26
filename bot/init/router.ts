@@ -23,7 +23,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["join"], BasicHandlers.joinHandler);
     bot.addRoute(["events"], BasicHandlers.eventsHandler);
     bot.addRoute(["location", "where"], BasicHandlers.locationHandler);
-    bot.addRoute(["getresidents", "gr"], BasicHandlers.getResidentsHandler);
+    bot.addRoute(["getresidents", "gr", "residents", "members"], BasicHandlers.getResidentsHandler);
 
     // Donations
     bot.addRoute(["donate"], BasicHandlers.donateHandler);
@@ -48,7 +48,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
 
     // Panels
     bot.addRoute(["start", "startpanel", "sp"], BasicHandlers.startPanelHandler, OptionalParam(/(.*)/), match => [match[1]]);
-    bot.addRoute(["infopanel", "ip"], BasicHandlers.infoPanelHandler);
+    bot.addRoute(["infopanel", "info", "ip", "faq"], BasicHandlers.infoPanelHandler);
     bot.addRoute(["controlpanel", "cp"], BasicHandlers.controlPanelHandler, null, null, ["member"]);
     bot.addRoute(["memepanel", "meme", "memes", "mp"], BasicHandlers.memePanelHandler, null, null, ["member", "trusted"]);
 
@@ -314,9 +314,8 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["costs", "cs", "rent"],
         FundsHandlers.costsHandler,
-        /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/,
-        match => [match[1], match[2], match[3]],
-        ["accountant"]
+        OptionalParam(/(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/),
+        match => [match[1], match[2], match[3]]
     );
     bot.addRoute(
         ["adddonation", "ad"],

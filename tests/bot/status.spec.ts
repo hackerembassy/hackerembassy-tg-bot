@@ -1,22 +1,20 @@
+import { ADMIN_USER, GUEST_USER, prepareDb } from "../dbSetup";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { ADMIN_USER, createBotMock, createMockMessage, GUEST_USER, prepareDb } from "../mocks/mockHelpers";
+import { createMockBot, createMockMessage } from "../mocks/mockHelpers";
 
 describe("Bot Status commands:", () => {
-    const botMock: HackerEmbassyBotMock = createBotMock();
+    const mockBot: HackerEmbassyBotMock = createMockBot();
 
     beforeAll(() => {
         fetchMock.mockReject(new Error("Mocked rejected embassyApi response"));
         prepareDb();
-        jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
     });
 
     test("/open should change the /status of space to opened", async () => {
-        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/status"));
+        await mockBot.processUpdate(createMockMessage("/open", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/status"));
 
-        await jest.runAllTimersAsync();
-
-        const results = botMock.popResults();
+        const results = mockBot.popResults();
 
         expect(results).toEqual([
             "status\\.open",
@@ -25,13 +23,11 @@ describe("Bot Status commands:", () => {
     });
 
     test("/status should mention people inside if -mention key is used", async () => {
-        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/in", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/status -mention"));
+        await mockBot.processUpdate(createMockMessage("/open", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/in", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/status -mention"));
 
-        await jest.runAllTimersAsync();
-
-        expect(botMock.popResults()).toEqual([
+        expect(mockBot.popResults()).toEqual([
             "status\\.open",
             "status\\.in\\.gotin\n\nstatus\\.in\\.tryautoinside",
             "status\\.status\\.state\nstatus\\.status\\.insidechecked@adminusername 🔑📒\n\n\x1astatus\\.status\\.updated",
@@ -39,16 +35,14 @@ describe("Bot Status commands:", () => {
     });
 
     test("/out and /outforce should allow to leave anyone no matter if the space is opened or closed ", async () => {
-        await botMock.processUpdate(createMockMessage("/close", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/in", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage(`/inforce ${GUEST_USER.username}`, ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/out", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/out", GUEST_USER));
-        await botMock.processUpdate(createMockMessage("/status"));
+        await mockBot.processUpdate(createMockMessage("/close", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/in", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage(`/inforce ${GUEST_USER.username}`, ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/out", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/out", GUEST_USER));
+        await mockBot.processUpdate(createMockMessage("/status"));
 
-        await jest.runAllTimersAsync();
-
-        const results = botMock.popResults();
+        const results = mockBot.popResults();
 
         expect(results).toEqual([
             "status\\.close",
@@ -61,16 +55,14 @@ describe("Bot Status commands:", () => {
     });
 
     test("username case should not matter when executing /inforce and /outforce", async () => {
-        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/out", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/inforce caseuser", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/inforce regularuser", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/outforce CASEUSER", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/status", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/open", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/out", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/inforce caseuser", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/inforce regularuser", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/outforce CASEUSER", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/status", ADMIN_USER));
 
-        await jest.runAllTimersAsync();
-
-        const results = botMock.popResults();
+        const results = mockBot.popResults();
 
         expect(results).toEqual([
             "status\\.open",
@@ -83,16 +75,14 @@ describe("Bot Status commands:", () => {
     });
 
     test("/close should change the /status of space to closed and remove users inside", async () => {
-        await botMock.processUpdate(createMockMessage("/open", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/inforce user1", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/inforce user2", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/inforce user3", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/close", ADMIN_USER));
-        await botMock.processUpdate(createMockMessage("/status"));
+        await mockBot.processUpdate(createMockMessage("/open", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/inforce user1", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/inforce user2", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/inforce user3", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/close", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/status"));
 
-        await jest.runAllTimersAsync();
-
-        const results = botMock.popResults();
+        const results = mockBot.popResults();
 
         expect(results).toEqual([
             "status\\.open",

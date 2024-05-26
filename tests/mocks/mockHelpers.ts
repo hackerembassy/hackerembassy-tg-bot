@@ -2,16 +2,8 @@ import nock from "nock";
 import TelegramBot from "node-telegram-bot-api";
 
 import { addRoutes, startRouting } from "../../bot/init/router";
+import { GUEST_USER } from "../dbSetup";
 import { HackerEmbassyBotMock } from "./HackerEmbassyBotMock";
-
-export const ADMIN_USER = {
-    username: "adminusername",
-    userid: 1,
-};
-export const GUEST_USER = {
-    username: "guestusername",
-    userid: 2,
-};
 
 export function mockTelegramApiRequests() {
     nock("https://api.telegram.org")
@@ -31,12 +23,7 @@ export function mockTelegramApiRequests() {
         .persist();
 }
 
-export async function prepareDb() {
-    const usersRepository = (await import("../../repositories/usersRepository")).default;
-    usersRepository.addUser(ADMIN_USER.username, ["admin|member|accountant"], ADMIN_USER.userid);
-}
-
-export function createBotMock() {
+export function createMockBot() {
     mockTelegramApiRequests();
     const botMock = new HackerEmbassyBotMock("TOKEN", {});
     addRoutes(botMock);

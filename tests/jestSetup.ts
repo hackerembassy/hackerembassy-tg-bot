@@ -45,6 +45,7 @@ jest.mock("../services/logger", () => {
 beforeAll(async () => {
     // Artificial wait for translations to load
     await sleep(100);
+    jest.useFakeTimers({ advanceTimers: 1, doNotFake: ["setTimeout"] });
 });
 
 process.on("unhandledRejection", (reason: Error) => {

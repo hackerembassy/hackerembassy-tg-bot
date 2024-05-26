@@ -33,9 +33,9 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
     }
 
     async processUpdate(update: TelegramBot.Update) {
-        // Artificially slowing down process update to prevent db update with the same datetime
-        await sleep(1);
         super.processUpdate(update);
+        await sleep(5); // Simulating async processing and clearing microtasks
+
         return;
     }
 

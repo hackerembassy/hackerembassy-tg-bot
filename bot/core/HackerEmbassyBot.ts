@@ -109,6 +109,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public botState: BotState;
     public routeMap = new Map<string, BotRoute>();
     public restrictedImage: Nullable<Buffer> = null;
+    public pollingError: Error | null = null;
 
     private contextMap = new Map();
 
@@ -118,6 +119,17 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.messageHistory = new MessageHistory(this.botState);
         this.Name = undefined;
         this.CustomEmitter = new EventEmitter();
+
+        this.on("error", error => logger.error(error));
+        this.on("polling_error", error => {
+            this.pollingError = error;
+            logger.error(error);
+        });
+    }
+
+    processUpdate(update: TelegramBot.Update): void {
+        this.pollingError = null;
+        super.processUpdate(update);
     }
 
     canUserCall(user: Nullable<User>, command: string): boolean {

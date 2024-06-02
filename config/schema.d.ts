@@ -15,6 +15,7 @@ export interface WikiConfig {
 }
 
 export interface BotConfig {
+    instance: InstanceConfig;
     timezone: string;
     chats: ChatsConfig;
     timeouts: AutoinsideTimeouts;
@@ -29,6 +30,13 @@ export interface BotConfig {
     debug: boolean;
     moderatedChats: number[];
     static: string;
+}
+
+export interface InstanceConfig {
+    type: "master" | "slave";
+    masterHost: string;
+    retryInterval: number;
+    maxRetryCount: number;
 }
 
 export interface RateLimits {

@@ -1,5 +1,11 @@
 {
     "bot": {
+        "instance": {
+            "type": "master",
+            "masterHost": "gateway.hackerembassy.site",
+            "retryInterval": 10000,
+            "maxRetryCount": 5
+        },
         "timezone": "Asia/Yerevan",
         "chats": {
             "main": -1001605898533,

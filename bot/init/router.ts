@@ -493,9 +493,4 @@ export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {
             logger.debug(`message: ${JSON.stringify(message)};\nmetadata: ${JSON.stringify(metadata)}`);
         });
     }
-
-    // Errors
-    bot.on("error", error => {
-        logger.error(error);
-    });
 }

@@ -6,6 +6,7 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 
 import StatusHandlers from "../bot/handlers/status";
+import bot from "../bot/init/instance";
 import { BotApiConfig, BotConfig } from "../config/schema";
 import Donation from "../models/Donation";
 import FundsRepository from "../repositories/fundsRepository";
@@ -395,7 +396,9 @@ app.get("/text/donate", (_, res) => {
 
 app.get("/healthcheck", (_, res, next) => {
     try {
-        res.sendStatus(200);
+        if (bot.pollingError) {
+            res.status(500).send({ error: "Polling error" });
+        } else res.sendStatus(200);
     } catch (error) {
         next(error);
     }

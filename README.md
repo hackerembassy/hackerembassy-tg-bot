@@ -31,7 +31,10 @@ This bot is built to handle various tasks related to managing our hackerspace. I
 -   The ability to send sounds and text messages to the speakers in the space
 -   Generating space attendance stats with infographics
 -   Waking up, shutting down and probing internal devices
+-   Integration with Stable Diffusion (local) and GPT-3.5 Turbo
+-   Topics and Subscriptions for a DM newsletter
 -   Antispam in our public chats
+-   English and Russian languages
 
 An sqlite database is used to store data in the file ./data/db/data.db.
 Test file with the correct schema ./data/sample.db.
@@ -51,13 +54,13 @@ The bot is hosted on a VPS located at gateway.hackerembassy.site. The service, e
 
 ## Dependencies
 
-Node 18+
+Node v20.10.0
 All main dependencies in the cloud and internal service are installed using npm i
 [Deprecated] To convert the doorcam stream to jpg, you need to install ffmpeg on the bot service and add it to PATH.
 
 ## Local deployment:
 
-1. Install nodejs version 18+
+1. Install nodejs version 20+
 2. Go to the cloned repository folder
 3. Install dependencies with the command
    npm install
@@ -75,8 +78,8 @@ All main dependencies in the cloud and internal service are installed using npm 
 
 bot/core/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality  
 bot/init/instance.ts - initialization of a singleton for working with a bot  
-bot/core/routes.ts - mapping text commands to their handlers  
-bot/core/recurring-actions.ts - setting up actions that the bot performs automatically according to a timer  
+bot/init/routes.ts - mapping text commands to their handlers  
+bot/init/recurring-actions.ts - setting up actions that the bot performs automatically according to a timer  
 bot/handlers/\*.ts - user command handlers
 
 data/sample.db - base template for updating the schema (TODO proper migrations)  
@@ -90,9 +93,8 @@ utils - common reusable utilities
 deploy - auxiliary files for deploying the bot and service  
 scripts - scripts for automating some dev manipulations
 
-app.ts - bot start file  
-botApi.ts - node express service launched by a bot to communicate with it via the API  
-embassyApi.ts - start file of the internal space service
+bot.ts - bot start file  
+embassy.ts - start file of the internal space service
 
 ## Environment variables needed
 

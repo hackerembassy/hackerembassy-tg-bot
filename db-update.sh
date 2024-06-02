@@ -19,7 +19,7 @@ while getopts "duc:p:o:h" opt
 do
     case "$opt" in
         d) action=download ;;
-        u) action=upload ;;
+        # u) action=upload ;; # now sqlite base is replicated by litestream, don't upload it manually
         c) container_name=$OPTARG ;;
         p) container_path=$OPTARG ;;
         o) local_path=$OPTARG ;;

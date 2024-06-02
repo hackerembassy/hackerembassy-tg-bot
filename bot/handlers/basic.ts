@@ -298,7 +298,7 @@ export default class BasicHandlers implements BotHandlers {
             ],
             [
                 InlineButton(t("basic.info.buttons.residents"), "getresidents", ButtonFlags.Editing),
-                InlineButton(t("general.buttons.back"), "startpanel", ButtonFlags.Editing),
+                InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
             ],
         ];
 

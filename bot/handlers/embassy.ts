@@ -410,7 +410,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const response = await requestToEmbassy(`/speaker/tts`, "POST", { text });
+            const response = await requestToEmbassy(`/speaker/tts`, "POST", { text }, 30000);
 
             if (response.ok) await bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
             else throw Error("Failed to say in space");

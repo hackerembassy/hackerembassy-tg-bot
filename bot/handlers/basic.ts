@@ -5,18 +5,18 @@ import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import * as Commands from "../../resources/commands";
 import * as GitHub from "../../services/github";
-import { getClosestEventsFromCalendar, getTodayEvents } from "../../services/googleCalendar";
-import t from "../../services/localization";
+import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "../../services/googleCalendar";
 import logger from "../../services/logger";
-import * as TextGenerators from "../../services/textGenerators";
-import { getEventsList } from "../../services/textGenerators";
 import * as CoinsHelper from "../../utils/coins";
 import { cropStringAtSpace } from "../../utils/text";
-import HackerEmbassyBot, { MAX_MESSAGE_LENGTH } from "../core/HackerEmbassyBot";
+import { MAX_MESSAGE_LENGTH } from "../core/constants";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/InlineButtons";
+import t from "../core/localization";
 import { BotHandlers, ITelegramUser } from "../core/types";
 import * as helpers from "../helpers";
-import { isPrivateMessage } from "../helpers";
+import * as TextGenerators from "../textGenerators";
+import { getEventsList } from "../textGenerators";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -73,7 +73,8 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const message = TextGenerators.getEventsText(false, botConfig.calendar.appLink);
+        const calendarAppLink = `${bot.url}/calendar`;
+        const message = TextGenerators.getEventsText(false, calendarAppLink);
 
         const defaultInlineKeyboard = [
             [
@@ -83,13 +84,13 @@ export default class BasicHandlers implements BotHandlers {
             [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
-        const inline_keyboard = isPrivateMessage(msg, bot.context(msg))
+        const inline_keyboard = bot.context(msg).isPrivate()
             ? [
                   [
                       {
                           text: t("basic.events.opencalendar"),
                           web_app: {
-                              url: botConfig.calendar.url,
+                              url: calendarUrl,
                           },
                       },
                   ],
@@ -360,11 +361,7 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
-    static async upcomingEventsHandler(
-        bot: HackerEmbassyBot,
-        msg: Message,
-        numberOfEvents: number = botConfig.calendar.upcomingToLoad
-    ) {
+    static async upcomingEventsHandler(bot: HackerEmbassyBot, msg: Message, numberOfEvents?: number) {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
         const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", ButtonFlags.Editing)]];

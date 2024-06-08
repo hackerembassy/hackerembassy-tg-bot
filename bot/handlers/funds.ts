@@ -3,19 +3,18 @@ import { Message } from "node-telegram-bot-api";
 import FundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
 import UsersRepository from "../../repositories/usersRepository";
 import * as ExportHelper from "../../services/export";
-import t from "../../services/localization";
 import logger from "../../services/logger";
-import * as TextGenerators from "../../services/textGenerators";
 import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../utils/currency";
 import { getToday } from "../../utils/date";
 import { getImageFromPath } from "../../utils/filesystem";
 import { equalsIns } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/InlineButtons";
+import t from "../core/localization";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
-import { isPrivateMessage } from "../helpers";
+import * as TextGenerators from "../textGenerators";
 
 const CALLBACK_DATA_RESTRICTION = 21;
 
@@ -24,15 +23,20 @@ initConvert();
 
 export default class FundsHandlers implements BotHandlers {
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {
+        const context = bot.context(msg);
         const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
         const donations = FundsRepository.getDonations();
         const showAdmin =
-            helpers.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isPrivateMessage(msg, bot.context(msg)) || bot.context(msg).isAdminMode());
+            helpers.hasRole(msg.from?.username, "admin", "accountant") && (context.isPrivate() || context.isAdminMode());
 
-        const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, bot.context(msg).mode);
+        const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, context.mode);
 
-        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)]];
+        const inline_keyboard = [
+            [
+                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate"),
+                InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+            ],
+        ];
 
         await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg, {
             reply_markup: {
@@ -42,6 +46,7 @@ export default class FundsHandlers implements BotHandlers {
     }
 
     static async fundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
+        const context = bot.context(msg);
         const fund = FundsRepository.getFundByName(fundName);
 
         if (!fund) {
@@ -51,8 +56,7 @@ export default class FundsHandlers implements BotHandlers {
 
         const donations = FundsRepository.getDonationsForName(fundName);
         const showAdmin =
-            helpers.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isPrivateMessage(msg, bot.context(msg)) || bot.context(msg).isAdminMode());
+            helpers.hasRole(msg.from?.username, "admin", "accountant") && (context.isPrivate() || bot.context(msg).isAdminMode());
 
         // telegram callback_data is restricted to 64 bytes
         const inline_keyboard =
@@ -79,8 +83,7 @@ export default class FundsHandlers implements BotHandlers {
         const funds = FundsRepository.getFunds();
         const donations = FundsRepository.getDonations();
         const showAdmin =
-            helpers.hasRole(msg.from?.username, "admin", "accountant") &&
-            (isPrivateMessage(msg, context) || bot.context(msg).isAdminMode());
+            helpers.hasRole(msg.from?.username, "admin", "accountant") && (context.isPrivate() || context.isAdminMode());
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true }, context.mode);
 

@@ -3,21 +3,17 @@ import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import t, { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "../../services/localization";
 import logger from "../../services/logger";
 import { OpenAI } from "../../services/neural";
 import { sleep } from "../../utils/common";
-import HackerEmbassyBot, {
-    asyncMessageLocalStorage,
-    FULL_PERMISSIONS,
-    MAX_MESSAGE_LENGTH_WITH_TAGS,
-    RESTRICTED_PERMISSIONS,
-} from "../core/HackerEmbassyBot";
+import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
+import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
+import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
 import { UserRateLimiter } from "../core/RateLimit";
 import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
 import { userLink } from "../helpers";
-import { setMenu } from "../init/menu";
+import { setMenu } from "../menu";
 import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
 
@@ -179,7 +175,7 @@ export default class ServiceHandlers implements BotHandlers {
         } catch (error) {
             logger.error(error);
         } finally {
-            msg && bot.context(msg).clear();
+            msg && bot.clearContext(msg);
         }
     }
 
@@ -195,7 +191,7 @@ export default class ServiceHandlers implements BotHandlers {
         if (data.vId) {
             if (callbackQuery.from.id !== data.vId) return;
 
-            asyncMessageLocalStorage.run(context, () =>
+            bot.asyncContext.run(context, () =>
                 ServiceHandlers.handleUserVerification(bot, data.vId as number, data.params as string, msg)
             );
 
@@ -214,7 +210,7 @@ export default class ServiceHandlers implements BotHandlers {
         if (!bot.canUserCall(user, command)) return;
 
         context.mode.secret = bot.isSecretModeAllowed(msg, context);
-        context.language = user?.language ?? DEFAULT_LANGUAGE;
+        context.language = isSupportedLanguage(user?.language) ? user.language : DEFAULT_LANGUAGE;
 
         if (data.fs !== undefined) {
             if (data.fs & ButtonFlags.Silent) context.mode.silent = true;
@@ -227,7 +223,7 @@ export default class ServiceHandlers implements BotHandlers {
             params.push(data.params);
         }
 
-        await asyncMessageLocalStorage.run(context, () => handler.apply(bot, params));
+        await bot.asyncContext.run(context, () => handler.apply(bot, params));
     }
 
     private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, language: string, msg: TelegramBot.Message) {
@@ -236,7 +232,7 @@ export default class ServiceHandlers implements BotHandlers {
         if (ServiceHandlers.verifyAndAddUser(tgUser, language)) {
             try {
                 botConfig.moderatedChats.forEach(chatId =>
-                    bot.restrictChatMember(chatId, tgUser.id as number, FULL_PERMISSIONS).catch(error => logger.error(error))
+                    bot.unlockChatMember(chatId, tgUser.id as number).catch(error => logger.error(error))
                 );
 
                 await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser, language);
@@ -294,7 +290,7 @@ export default class ServiceHandlers implements BotHandlers {
 
         if (currentUser === null) {
             UsersRepository.addUser(user.username, ["restricted"], user.id);
-            bot.restrictChatMember(chat.id, user.id, RESTRICTED_PERMISSIONS);
+            bot.lockChatMember(chat.id, user.id);
             logger.info(`New user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
         } else if (!currentUser.roles.includes("restricted")) {
             logger.info(
@@ -302,7 +298,7 @@ export default class ServiceHandlers implements BotHandlers {
             );
             return await ServiceHandlers.welcomeHandler(bot, chat, user);
         } else {
-            bot.restrictChatMember(chat.id, user.id, RESTRICTED_PERMISSIONS);
+            bot.lockChatMember(chat.id, user.id);
             logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 
@@ -374,7 +370,7 @@ export default class ServiceHandlers implements BotHandlers {
             );
         }
 
-        if (!SUPPORTED_LANGUAGES.includes(lang)) {
+        if (!isSupportedLanguage(lang)) {
             return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.notsupported", { language: lang }), msg);
         }
 

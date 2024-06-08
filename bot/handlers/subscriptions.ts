@@ -3,14 +3,14 @@ import { Message } from "node-telegram-bot-api";
 import { SubscriptionExtended } from "../../models/Subscription";
 import Topic from "../../models/Topic";
 import subscriptionsRepository from "../../repositories/subscriptionsRepository";
-import t from "../../services/localization";
 import logger from "../../services/logger";
-import { listTopics } from "../../services/textGenerators";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import t from "../core/localization";
 import { DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import { hasRole, userLink } from "../helpers";
+import { listTopics } from "../textGenerators";
 
 export default class TopicsHandlers implements BotHandlers {
     static async mySubscriptionsHandler(bot: HackerEmbassyBot, msg: Message) {

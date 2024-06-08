@@ -5,14 +5,14 @@ import path from "path";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import t from "../../services/localization";
-import * as TextGenerators from "../../services/textGenerators";
 import { hasBirthdayToday, isToday, MINUTE } from "../../utils/date";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import t from "../core/localization";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
+import * as TextGenerators from "../textGenerators";
 
 const botConfig = config.get<BotConfig>("bot");
 

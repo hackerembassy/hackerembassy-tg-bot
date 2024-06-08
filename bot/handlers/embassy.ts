@@ -8,11 +8,9 @@ import statusRepository from "../../repositories/statusRepository";
 import usersRepository from "../../repositories/usersRepository";
 import { EmbassyBaseIP, requestToEmbassy } from "../../services/embassy";
 import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/hass";
-import t from "../../services/localization";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
 import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../services/statusHelper";
-import * as TextGenerators from "../../services/textGenerators";
 import broadcast, { BroadcastEvents } from "../../utils/broadcast";
 import { sleep } from "../../utils/common";
 import { readFileAsBase64 } from "../../utils/filesystem";
@@ -20,9 +18,11 @@ import { filterFulfilled } from "../../utils/network";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import { hasRole } from "../helpers";
 import * as helpers from "../helpers";
+import * as TextGenerators from "../textGenerators";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -456,8 +456,7 @@ export default class EmbassyHandlers implements BotHandlers {
         const fromUsername = msg.from?.username;
         const voiceFileId = msg.voice?.file_id;
 
-        if (!helpers.isPrivateMessage(msg, bot.context(msg)) || !voiceFileId || !fromUsername || !helpers.isMember(fromUsername))
-            return;
+        if (!bot.context(msg).isPrivate() || !voiceFileId || !fromUsername || !helpers.isMember(fromUsername)) return;
 
         const link = await bot.getFileLink(voiceFileId);
 

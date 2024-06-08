@@ -16,7 +16,6 @@
             "alerts": -1002083039447,
             "status": -1001942114189
         },
-        "locales": "../resources/locales/{{lng}}/{{ns}}.yaml",
         "timeouts": {
             "in": 60000,
             "out": 300000
@@ -27,21 +26,28 @@
             "notifications": 5000
         },
         "autoWish": true,
-        "logfolderpath": "log/application",
         "persistedfolderpath": "data/db",
         "maxchathistory": 50,
         "live": {
             "camRefreshInterval": 10000,
             "statusRefreshInterval": 600000
         },
-        "calendar": {
-            "url": "https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan&hl=en",
-            "appLink": "https://t.me/HackerEmbassyBot/calendar",
-            "upcomingToLoad": 5
-        },
         "moderatedChats": [-1001605898533],
-        "debug": false,
+        "debug": false
+    },
+    "api": {
+        "port": 3000,
         "static": "../resources/static"
+    },
+    "calendar": {
+        "url": "https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan&hl=en",
+        "defaultRequestAmount": 5
+    },
+    "logger": {
+        "level": "info",
+        "logFolder": "log/application",
+        "maxSize": "20m",
+        "maxFiles": "14d"
     },
     "printers": {
         "anette": {
@@ -132,9 +138,6 @@
     },
     "network": {
         "timeout": 7000
-    },
-    "api": {
-        "port": 3000
     },
     "wiki": {
         "endpoint": "http://172.17.0.1/graphql",

@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import logger from "../../services/logger";
-import broadcast, { BroadcastEvents } from "../../utils/broadcast";
-import { DURATION_STRING_REGEX } from "../../utils/date";
-import { OptionalParam } from "../../utils/text";
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import AdminHandlers from "../handlers/admin";
-import BasicHandlers from "../handlers/basic";
-import BirthdayHandlers from "../handlers/birthday";
-import EmbassyHandlers from "../handlers/embassy";
-import FundsHandlers from "../handlers/funds";
-import MemeHandlers from "../handlers/meme";
-import NeedsHandlers from "../handlers/needs";
-import ServiceHandlers from "../handlers/service";
-import StatusHandlers from "../handlers/status";
-import TopicsHandlers from "../handlers/subscriptions";
+import logger from "../services/logger";
+import broadcast, { BroadcastEvents } from "../utils/broadcast";
+import { DURATION_STRING_REGEX } from "../utils/date";
+import { OptionalParam } from "../utils/text";
+import HackerEmbassyBot from "./core/HackerEmbassyBot";
+import AdminHandlers from "./handlers/admin";
+import BasicHandlers from "./handlers/basic";
+import BirthdayHandlers from "./handlers/birthday";
+import EmbassyHandlers from "./handlers/embassy";
+import FundsHandlers from "./handlers/funds";
+import MemeHandlers from "./handlers/meme";
+import NeedsHandlers from "./handlers/needs";
+import ServiceHandlers from "./handlers/service";
+import StatusHandlers from "./handlers/status";
+import TopicsHandlers from "./handlers/subscriptions";
 
 export function addRoutes(bot: HackerEmbassyBot): void {
     // Info

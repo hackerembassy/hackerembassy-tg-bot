@@ -1,7 +1,7 @@
 {
     "bot": {
-        "timezone" : "Asia/Yerevan",
-        "locales": "../resources/locales/test/translation.yaml"
+        "timezone": "Asia/Yerevan",
+        "defaultLocale": "test"
     },
     "embassy-api": {
         "timeout": 100

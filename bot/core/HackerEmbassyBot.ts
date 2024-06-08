@@ -1,6 +1,3 @@
-// Imports
-import { AsyncLocalStorage } from "node:async_hooks";
-
 import config from "config";
 import { promises as fs } from "fs";
 import { t } from "i18next";
@@ -51,8 +48,6 @@ import {
 const botConfig = config.get<BotConfig>("bot");
 
 export default class HackerEmbassyBot extends TelegramBot {
-    public asyncContext = new AsyncLocalStorage();
-
     public messageHistory: MessageHistory;
     public Name: Optional<string>;
     public CustomEmitter: EventEmitter;
@@ -395,7 +390,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         return text[0] !== "/" || forAnotherBot;
     }
 
-    async routeMessage(message: TelegramBot.Message) {
+    routeMessage(message: TelegramBot.Message) {
         try {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
@@ -456,14 +451,14 @@ export default class HackerEmbassyBot extends TelegramBot {
 
                 if (matchedParams) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    await this.asyncContext.run(messageContext, () => route.handler(this, message, ...matchedParams));
+                    messageContext.run(() => route.handler(this, message, ...matchedParams));
                     return;
                 } else if (!route.optional) {
                     return;
                 }
             }
 
-            await this.asyncContext.run(messageContext, () => route.handler(this, message));
+            messageContext.run(() => route.handler(this, message));
         } catch (error) {
             logger.error(error);
         } finally {

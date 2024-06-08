@@ -191,9 +191,7 @@ export default class ServiceHandlers implements BotHandlers {
         if (data.vId) {
             if (callbackQuery.from.id !== data.vId) return;
 
-            bot.asyncContext.run(context, () =>
-                ServiceHandlers.handleUserVerification(bot, data.vId as number, data.params as string, msg)
-            );
+            context.run(() => ServiceHandlers.handleUserVerification(bot, data.vId as number, data.params as string, msg));
 
             return;
         }
@@ -223,7 +221,7 @@ export default class ServiceHandlers implements BotHandlers {
             params.push(data.params);
         }
 
-        await bot.asyncContext.run(context, () => handler.apply(bot, params));
+        await context.run(() => handler.apply(bot, params));
     }
 
     private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, language: string, msg: TelegramBot.Message) {

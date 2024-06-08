@@ -71,6 +71,15 @@ export function convertMinutesToHours(minutes: number): string | undefined {
     return hours + "h " + remainingMinutes.toFixed(0) + "m";
 }
 
+export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
+    return {
+        days: Math.floor(seconds / (3600 * 24)),
+        hours: Math.floor((seconds % (3600 * 24)) / 3600),
+        minutes: Math.floor((seconds % 3600) / 60),
+        totalSeconds: seconds,
+    };
+}
+
 export function getMonthBoundaries(date: Date): { startMonthDate: Date; endMonthDate: Date } {
     const startMonthDate = new Date(date);
     startMonthDate.setDate(1);

@@ -6,9 +6,8 @@ import { FundDonation } from "../models/Donation";
 import FundsRepository from "../repositories/fundsRepository";
 import { onlyUniqueInsFilter } from "../utils/common";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
-import { compareMonthNames, DateBoundary } from "../utils/date";
+import { compareMonthNames } from "../utils/date";
 import { equalsIns } from "../utils/text";
-import t from "./localization";
 
 interface SimplifiedDonation {
     username: string;
@@ -150,12 +149,12 @@ export async function exportDonationsToLineChart(donations: FundDonation[], titl
 
 export async function createUserStatsDonut(
     userTimes: { username: string; usertime: { totalSeconds: number } }[],
-    dateBoundaries: DateBoundary
+    title: string
 ): Promise<Buffer> {
     return await createDonut(
         userTimes.map(ut => ut.username),
         userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
-        `${t("status.stats.hoursinspace", dateBoundaries)}`,
+        title,
         { height: 1500, width: 2500 }
     ).toBinary();
 }

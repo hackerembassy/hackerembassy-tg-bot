@@ -12,7 +12,6 @@ import { requestToEmbassy } from "../../services/embassy";
 import { createUserStatsDonut } from "../../services/export";
 import * as ExportHelper from "../../services/export";
 import { SpaceClimate } from "../../services/hass";
-import t from "../../services/localization";
 import logger from "../../services/logger";
 import {
     closeSpace,
@@ -26,15 +25,16 @@ import {
     openSpace,
     UserStateService,
 } from "../../services/statusHelper";
-import * as TextGenerators from "../../services/textGenerators";
 import { sleep } from "../../utils/common";
 import { sumDonations } from "../../utils/currency";
 import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "../../utils/date";
 import { isEmoji, REPLACE_MARKER } from "../../utils/text";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
+import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../helpers";
+import * as TextGenerators from "../textGenerators";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -177,7 +177,7 @@ export default class StatusHandlers implements BotHandlers {
         resultMessage: Message,
         short: boolean,
         mode: BotMessageContextMode,
-        language: string
+        language: SupportedLanguage
     ) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState() as State;
@@ -356,12 +356,7 @@ export default class StatusHandlers implements BotHandlers {
     ) {
         const context = bot.context(msg);
 
-        if (
-            ghost &&
-            msg.chat.id !== botConfig.chats.key &&
-            msg.chat.id !== botConfig.chats.alerts &&
-            !helpers.isPrivateMessage(msg, context)
-        )
+        if (ghost && msg.chat.id !== botConfig.chats.key && msg.chat.id !== botConfig.chats.alerts && !context.isPrivate())
             return await bot.sendMessageExt(msg.chat.id, "👻", msg);
 
         const eventDate = new Date();
@@ -699,7 +694,8 @@ export default class StatusHandlers implements BotHandlers {
         }
 
         const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod);
-        const statsDonut = await createUserStatsDonut(userTimes, dateBoundaries);
+        const statsTitle = t("status.stats.hoursinspace", dateBoundaries);
+        const statsDonut = await createUserStatsDonut(userTimes, statsTitle);
 
         await bot.sendLongMessage(msg.chat.id, statsText, msg);
         await bot.sendPhotoExt(msg.chat.id, statsDonut, msg);

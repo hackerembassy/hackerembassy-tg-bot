@@ -29,3 +29,8 @@ export async function requestToEmbassy(
 
     return await fetchWithTimeout(`${EmbassyBase}${endpoint}`, options);
 }
+
+export async function fetchDevicesInside() {
+    const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
+    return (await response.json()) as string[];
+}

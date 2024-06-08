@@ -1,5 +1,7 @@
 export interface Config {
     bot: BotConfig;
+    logger: LoggerConfig;
+    calendar: CalendarConfig;
     printers: PrintersConfig;
     embassyApi: EmbassyApiConfig;
     currency: CurrencyConfig;
@@ -21,15 +23,23 @@ export interface BotConfig {
     timeouts: AutoinsideTimeouts;
     rateLimits: RateLimits;
     autoWish: boolean;
-    logfolderpath: string;
     persistedfolderpath: string;
     maxchathistory: number;
-    calendar: CalendarConfig;
-    locales?: string;
     live: LiveConfig;
     debug: boolean;
     moderatedChats: number[];
+}
+
+export interface BotApiConfig {
+    port: number;
     static: string;
+}
+
+export interface LoggerConfig {
+    level: string;
+    logFolder: string;
+    maxSize: string;
+    maxFiles: string;
 }
 
 export interface InstanceConfig {
@@ -52,8 +62,7 @@ export interface LiveConfig {
 
 export interface CalendarConfig {
     url: string;
-    appLink: string;
-    upcomingToLoad: number;
+    defaultRequestAmount: number;
 }
 
 export interface ChatsConfig {
@@ -171,10 +180,6 @@ export interface CurrencyConfig {
     default: string;
     cryptoUpdateInterval: number;
     fiatUpdateInterval: number;
-}
-
-export interface BotApiConfig {
-    port: number;
 }
 
 export interface NeuralConfig {

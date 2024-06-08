@@ -1,18 +1,15 @@
-import config from "config";
-
-import { EmbassyApiConfig } from "../config/schema";
 import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import statusRepository from "../repositories/statusRepository";
 import usersRepository from "../repositories/usersRepository";
 import broadcast, { BroadcastEvents } from "../utils/broadcast";
 import { anyItemIsInList, onlyUniqueInsFilter } from "../utils/common";
-import { ElapsedTimeObject, isToday } from "../utils/date";
+import { convertToElapsedObject, ElapsedTimeObject, isToday } from "../utils/date";
 import { equalsIns } from "../utils/text";
-import { requestToEmbassy } from "./embassy";
-
-const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+import { fetchDevicesInside } from "./embassy";
 
 export type UserStatsTime = { username: string; usertime: ElapsedTimeObject };
+
+const ANON_USERNAME = "anon";
 
 export function openSpace(opener: Optional<string>, options: { checkOpener: boolean } = { checkOpener: false }): void {
     const opendate = new Date();
@@ -20,7 +17,7 @@ export function openSpace(opener: Optional<string>, options: { checkOpener: bool
         id: 0,
         open: true,
         date: opendate,
-        changedby: opener ?? "anon",
+        changedby: opener ?? ANON_USERNAME,
     };
 
     statusRepository.pushSpaceState(state);
@@ -34,7 +31,7 @@ export function openSpace(opener: Optional<string>, options: { checkOpener: bool
         status: UserStateType.Inside,
         date: opendate,
         until: null,
-        username: opener ?? "anon",
+        username: opener ?? ANON_USERNAME,
         type: UserStateChangeType.Opened,
         note: null,
     };
@@ -47,7 +44,7 @@ export function closeSpace(closer: Nullable<string> | undefined, options: { evic
         id: 0,
         open: false,
         date: new Date(),
-        changedby: closer ?? "anon",
+        changedby: closer ?? ANON_USERNAME,
     };
 
     statusRepository.pushSpaceState(state);
@@ -63,9 +60,7 @@ export async function hasDeviceInside(username: Optional<string>): Promise<boole
     if (!username) return false;
 
     try {
-        const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
-        const devices = (await response.json()) as string[];
-
+        const devices = await fetchDevicesInside();
         const mac = usersRepository.getUserByName(username)?.mac;
 
         return mac ? isMacInside(mac, devices) : false;
@@ -98,15 +93,6 @@ export function getUserTimeDescriptor(userStates: UserState[]): ElapsedTimeObjec
     return convertToElapsedObject(totalTime / 1000);
 }
 
-export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
-    return {
-        days: Math.floor(seconds / (3600 * 24)),
-        hours: Math.floor((seconds % (3600 * 24)) / 3600),
-        minutes: Math.floor((seconds % 3600) / 60),
-        totalSeconds: seconds,
-    };
-}
-
 export function findRecentStates(allUserStates: UserState[]) {
     const usersLastStates: UserState[] = [];
 
@@ -137,6 +123,8 @@ export function getAllUsersTimes(allUserStates: UserState[], fromDate: Date, toD
         .sort((a, b) => (a.usertime.totalSeconds > b.usertime.totalSeconds ? -1 : 1));
 }
 
+// Filters
+
 export function filterPeopleInside(userState: UserState): boolean {
     return userState.status === UserStateType.Inside;
 }
@@ -148,6 +136,8 @@ export function filterAllPeopleInside(userState: UserState): boolean {
 export function filterPeopleGoing(userState: UserState): boolean {
     return userState.status === UserStateType.Going && isToday(new Date(userState.date));
 }
+
+// Classes
 
 export function evictPeople(insideStates: UserState[]): void {
     const date = Date.now();

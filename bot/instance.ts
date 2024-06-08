@@ -2,10 +2,10 @@ import config from "config";
 import { promises as fs } from "fs";
 import { PollingOptions } from "node-telegram-bot-api";
 
-import { BotConfig } from "../../config/schema";
-import logger from "../../services/logger";
-import { fetchWithTimeout } from "../../utils/network";
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { BotConfig } from "../config/schema";
+import logger from "../services/logger";
+import { fetchWithTimeout } from "../utils/network";
+import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import { setMenu } from "./menu";
 import { setAutomaticFeatures } from "./recurring-actions";
 import { addEventHandlers, addRoutes, startRouting } from "./router";

@@ -2,10 +2,10 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "../../config/schema";
-import t from "../../services/localization";
 import { getToday } from "../../utils/date";
 import { getImageFromPath, getRandomImageFromFolder } from "../../utils/filesystem";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import t from "../core/localization";
 import { BotHandlers } from "../core/types";
 import { formatUsername } from "../helpers";
 

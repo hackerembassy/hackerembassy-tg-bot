@@ -1,7 +1,7 @@
 import nock from "nock";
 import TelegramBot from "node-telegram-bot-api";
 
-import { addRoutes, startRouting } from "../../bot/init/router";
+import { addRoutes, startRouting } from "../../bot/router";
 import { GUEST_USER } from "../dbSetup";
 import { HackerEmbassyBotMock } from "./HackerEmbassyBotMock";
 

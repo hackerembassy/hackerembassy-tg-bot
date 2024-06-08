@@ -141,16 +141,6 @@ export interface ITelegramUser {
     first_name?: string;
 }
 
-export interface BotMessageContext {
-    mode: BotMessageContextMode;
-    messageThreadId: number | undefined;
-    clear(): void;
-    isAdminMode(): boolean;
-    isEditing: boolean;
-    isButtonResponse: boolean;
-    language: string;
-}
-
 export interface EditMessageMediaOptionsExt extends EditMessageMediaOptions {
     caption?: string;
     message_thread_id?: number;

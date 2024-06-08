@@ -6,8 +6,10 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 
 import StatusHandlers from "../bot/handlers/status";
-import bot from "../bot/init/instance";
-import { BotApiConfig, BotConfig } from "../config/schema";
+import bot from "../bot/instance";
+import * as TextGenerators from "../bot/textGenerators";
+import { getEventsList } from "../bot/textGenerators";
+import { BotApiConfig } from "../config/schema";
 import Donation from "../models/Donation";
 import FundsRepository from "../repositories/fundsRepository";
 import StatusRepository from "../repositories/statusRepository";
@@ -24,15 +26,12 @@ import {
     openSpace,
     UserStateService,
 } from "../services/statusHelper";
-import * as TextGenerators from "../services/textGenerators";
-import { getEventsList } from "../services/textGenerators";
 import wiki from "../services/wiki";
 import { stripCustomMarkup } from "../utils/common";
 import { convertCurrency } from "../utils/currency";
 import { createErrorMiddleware, createTokenSecuredMiddleware, tokenPresent } from "../utils/middleware";
 
 const apiConfig = config.get<BotApiConfig>("api");
-const botConfig = config.get<BotConfig>("bot");
 
 const app = express();
 const port = apiConfig.port;
@@ -42,7 +41,7 @@ const tokenGuestSecured = createTokenSecuredMiddleware(logger, process.env["GUES
 app.use(cors());
 app.use(express.json());
 app.use(createErrorMiddleware(logger));
-app.use("/static", express.static(path.join(__dirname, botConfig.static)));
+app.use("/static", express.static(path.join(__dirname, apiConfig.static)));
 
 // Add Swagger if exists
 try {
@@ -365,7 +364,7 @@ app.get("/text/events", (_, res) => {
 });
 
 app.get("/text/upcoming", async (_, res) => {
-    const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad);
+    const events = await getClosestEventsFromCalendar();
     const messageText = getEventsList(events);
     res.send(messageText);
 });

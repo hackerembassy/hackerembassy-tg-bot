@@ -1,7 +1,5 @@
 import config from "config";
 
-import { BotMessageContextMode } from "../bot/core/types";
-import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "../bot/helpers";
 import { PrintersConfig } from "../config/schema";
 import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
@@ -10,6 +8,9 @@ import Topic from "../models/Topic";
 import User, { AutoInsideMode } from "../models/User";
 import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
+import { HSEvent } from "../services/googleCalendar";
+import { SpaceClimate } from "../services/hass";
+import { PrinterStatus } from "../services/printer3d";
 import { Coins } from "../utils/coins";
 import { formatValueForCurrency, sumDonations } from "../utils/currency";
 import {
@@ -22,10 +23,9 @@ import {
     shortDateTimeOptions,
 } from "../utils/date";
 import { REPLACE_MARKER } from "../utils/text";
-import { HSEvent } from "./googleCalendar";
-import { SpaceClimate } from "./hass";
-import t from "./localization";
-import { PrinterStatus } from "./printer3d";
+import t from "./core/localization";
+import { BotMessageContextMode } from "./core/types";
+import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "./helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 

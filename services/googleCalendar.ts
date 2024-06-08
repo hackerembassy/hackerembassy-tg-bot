@@ -3,13 +3,15 @@ import { DateTime } from "luxon";
 import fetch from "node-fetch";
 import { RRuleSet, rrulestr } from "rrule";
 
-import { BotConfig } from "../config/schema";
+import { CalendarConfig } from "../config/schema";
 import { getToday } from "../utils/date";
 import logger from "./logger";
 
-const botConfig = config.get<BotConfig>("bot");
-const calendarURL = new URL(botConfig.calendar.url);
-const calendarID: string = calendarURL.searchParams.get("src")!;
+const calendarConfig = config.get<CalendarConfig>("calendar");
+
+export const calendarUrl = calendarConfig.url;
+
+const calendarID: string = new URL(calendarUrl).searchParams.get("src")!;
 
 export type HSEvent = {
     summary: string;
@@ -141,7 +143,10 @@ function getEventsMap(eventsJson: CalendarListResponse): Map<number, HSEvent> {
     return eventsMap;
 }
 
-export async function getClosestEventsFromCalendar(numberOfEvents: number, from: Date = new Date()): Promise<HSEvent[]> {
+export async function getClosestEventsFromCalendar(
+    numberOfEvents: number = calendarConfig.defaultRequestAmount,
+    from: Date = new Date()
+): Promise<HSEvent[]> {
     const eventsJson = await getEventsJSON(calendarID, numberOfEvents, from);
 
     return eventsJson.items.map((event: HSEventFromJSON) => ({
@@ -156,7 +161,7 @@ export async function getClosestEventsFromCalendar(numberOfEvents: number, from:
 export async function getTodayEvents(): Promise<HSEvent[]> {
     const todayDate = getToday();
     const tomorrowDate = new Date(getToday().setDate(todayDate.getDate() + 1));
-    const events = await getClosestEventsFromCalendar(botConfig.calendar.upcomingToLoad, todayDate);
+    const events = await getClosestEventsFromCalendar(calendarConfig.defaultRequestAmount, todayDate);
 
     return events.filter(e => e.start < tomorrowDate);
 }

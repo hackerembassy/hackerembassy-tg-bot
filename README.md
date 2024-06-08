@@ -77,9 +77,9 @@ All main dependencies in the cloud and internal service are installed using npm 
 ## Main files
 
 bot/core/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality  
-bot/init/instance.ts - initialization of a singleton for working with a bot  
-bot/init/routes.ts - mapping text commands to their handlers  
-bot/init/recurring-actions.ts - setting up actions that the bot performs automatically according to a timer  
+bot/instance.ts - initialization of a singleton for working with a bot  
+bot/routes.ts - mapping text commands to their handlers  
+bot/recurring-actions.ts - setting up actions that the bot performs automatically according to a timer  
 bot/handlers/\*.ts - user command handlers
 
 data/sample.db - base template for updating the schema (TODO proper migrations)  

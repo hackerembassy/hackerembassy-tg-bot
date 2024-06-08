@@ -1,14 +1,13 @@
 import config from "config";
 import fs from "fs";
 import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
-import path from "path";
 
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
-import t from "../../services/localization";
-import { lastModifiedFilePath } from "../../utils/filesystem";
+import { getLatestLogFilePath } from "../../services/logger";
 import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import t from "../core/localization";
 import { BotCustomEvent, BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 
@@ -83,13 +82,10 @@ export default class AdminHandlers implements BotHandlers {
     }
 
     static async getLogHandler(bot: HackerEmbassyBot, msg: Message) {
-        const logFolderPath = path.join(__dirname, "../..", botConfig.logfolderpath);
-        const lastModifiedFile = lastModifiedFilePath(logFolderPath);
-        const lastLogFilePath = lastModifiedFile
-            ? path.join(__dirname, "../..", botConfig.logfolderpath, lastModifiedFile)
-            : undefined;
+        const lastLogFilePath = getLatestLogFilePath();
 
-        if (lastLogFilePath && fs.existsSync(lastLogFilePath)) await bot.sendDocument(msg.chat.id, lastLogFilePath);
+        if (!lastLogFilePath) await bot.sendMessageExt(msg.chat.id, "Log file not found", msg);
+        else await bot.sendDocument(msg.chat.id, lastLogFilePath);
     }
 
     static async getStateHandler(bot: HackerEmbassyBot, msg: Message) {

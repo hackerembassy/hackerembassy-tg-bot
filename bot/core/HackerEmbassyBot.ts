@@ -22,12 +22,14 @@ import { file } from "tmp-promise";
 import { BotConfig } from "../../config/schema";
 import User from "../../models/User";
 import UsersRepository from "../../repositories/usersRepository";
-import { DEFAULT_LANGUAGE } from "../../services/localization";
 import logger from "../../services/logger";
 import { chunkSubstr } from "../../utils/common";
 import { OptionalRegExp } from "../../utils/text";
-import { hasRole, hasUserRole, isMember, isPrivateMessage, prepareMessageForMarkdown } from "../helpers";
+import { hasRole, hasUserRole, isMember, prepareMessageForMarkdown } from "../helpers";
+import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
+import { FULL_PERMISSIONS, IGNORE_UPDATE_TIMEOUT, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "./constants";
+import { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
 import MessageHistory from "./MessageHistory";
 import { RateLimiter } from "./RateLimit";
 import {
@@ -35,7 +37,6 @@ import {
     BotCallbackHandler,
     BotCustomEvent,
     BotHandler,
-    BotMessageContext,
     BotMessageContextMode,
     BotRole,
     BotRoute,
@@ -46,62 +47,11 @@ import {
     SerializedFunction,
 } from "./types";
 
-export const asyncMessageLocalStorage = new AsyncLocalStorage();
-
 const botConfig = config.get<BotConfig>("bot");
-
-// Consts
-export const MAX_MESSAGE_LENGTH = 3500;
-export const MAX_MESSAGE_LENGTH_WITH_TAGS = 3200;
-const EDIT_MESSAGE_TIME_LIMIT = 48 * 60 * 60 * 1000;
-export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 const defaultForwardTarget = botConfig.chats.main;
 
-export const RESTRICTED_PERMISSIONS = {
-    can_send_messages: false,
-    can_send_audios: false,
-    can_send_documents: false,
-    can_send_photos: false,
-    can_send_videos: false,
-    can_send_video_notes: false,
-    can_send_voice_notes: false,
-    can_send_polls: false,
-    can_send_other_messages: false,
-    can_add_web_page_previews: false,
-    can_change_info: false,
-    can_invite_users: false,
-    can_pin_messages: false,
-    can_manage_topics: false,
-};
-
-export const FULL_PERMISSIONS = {
-    can_send_messages: true,
-    can_send_audios: true,
-    can_send_documents: true,
-    can_send_photos: true,
-    can_send_videos: true,
-    can_send_video_notes: true,
-    can_send_voice_notes: true,
-    can_send_polls: true,
-    can_send_other_messages: true,
-    can_add_web_page_previews: true,
-    can_change_info: true,
-    can_invite_users: true,
-    can_pin_messages: true,
-    can_manage_topics: true,
-};
-
 export default class HackerEmbassyBot extends TelegramBot {
-    static defaultModes: BotMessageContextMode = {
-        silent: false,
-        mention: false,
-        admin: false,
-        pin: false,
-        live: false,
-        static: false,
-        forward: false,
-        secret: false,
-    };
+    public asyncContext = new AsyncLocalStorage();
 
     public messageHistory: MessageHistory;
     public Name: Optional<string>;
@@ -127,6 +77,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
+    public get url(): string {
+        return `https://t.me/${this.Name}`;
+    }
+
     processUpdate(update: TelegramBot.Update): void {
         this.pollingError = null;
         super.processUpdate(update);
@@ -143,29 +97,18 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     context(msg: TelegramBot.Message): BotMessageContext {
-        const botthis = this;
-
         if (!this.contextMap.has(msg)) {
-            const newContext: BotMessageContext = {
-                mode: { ...HackerEmbassyBot.defaultModes },
-                messageThreadId: undefined,
-                clear() {
-                    botthis.contextMap.delete(msg);
-                },
-                isAdminMode() {
-                    return this.mode.admin && !this.mode.forward;
-                },
-                isEditing: false,
-                isButtonResponse: false,
-                language: DEFAULT_LANGUAGE,
-            };
-
+            const newContext: BotMessageContext = new BotMessageContext(msg);
             this.contextMap.set(msg, newContext);
 
             return newContext;
         }
 
         return this.contextMap.get(msg) as BotMessageContext;
+    }
+
+    clearContext(msg: TelegramBot.Message): void {
+        this.contextMap.delete(msg);
     }
 
     onExt(
@@ -181,7 +124,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     get addedModifiersString(): string {
-        return Object.keys(HackerEmbassyBot.defaultModes)
+        return Object.keys(DefaultModes)
             .reduce((acc, key) => {
                 return `${acc} -${key}|`;
             }, "(")
@@ -480,7 +423,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             }
 
             const messageContext = this.context(message);
-            messageContext.language = dbuser?.language ?? DEFAULT_LANGUAGE;
+            messageContext.language = isSupportedLanguage(dbuser?.language) ? dbuser.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
             // check restritions
@@ -506,18 +449,18 @@ export default class HackerEmbassyBot extends TelegramBot {
 
                 if (matchedParams) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    await asyncMessageLocalStorage.run(messageContext, () => route.handler(this, message, ...matchedParams));
+                    await this.asyncContext.run(messageContext, () => route.handler(this, message, ...matchedParams));
                     return;
                 } else if (!route.optional) {
                     return;
                 }
             }
 
-            await asyncMessageLocalStorage.run(messageContext, () => route.handler(this, message));
+            await this.asyncContext.run(messageContext, () => route.handler(this, message));
         } catch (error) {
             logger.error(error);
         } finally {
-            this.context(message).clear();
+            this.clearContext(message);
         }
     }
 
@@ -543,7 +486,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (alwaysSecretChats.includes(message.chat.id)) return true;
 
         if (message.from?.username && isMember(message.from.username)) {
-            return isPrivateMessage(message, messageContext) || messageContext.mode.secret;
+            return messageContext.isPrivate() || messageContext.mode.secret;
         }
 
         return false;
@@ -667,12 +610,14 @@ export default class HackerEmbassyBot extends TelegramBot {
         }
 
         this.botState.debouncedPersistChanges();
+    }
 
-        // TODO Remove duplication
-        setTimeout(() => {
-            this.CustomEmitter.removeListener(event, handler);
-            this.botState.liveChats = this.botState.liveChats.splice(chatRecordIndex, 1);
-        }, EDIT_MESSAGE_TIME_LIMIT);
+    lockChatMember(chatId: ChatId, userId: number) {
+        return this.restrictChatMember(chatId, userId, RESTRICTED_PERMISSIONS);
+    }
+
+    unlockChatMember(chatId: ChatId, userId: number) {
+        return this.restrictChatMember(chatId, userId, FULL_PERMISSIONS);
     }
 
     //@ts-ignore

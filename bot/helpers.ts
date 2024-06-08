@@ -1,15 +1,9 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
-import { Message } from "node-telegram-bot-api";
 
 import { BotRole, ITelegramUser } from "../bot/core/types";
 import User from "../models/User";
 import UsersRepository from "../repositories/usersRepository";
 import { CommandsMap } from "../resources/commands";
-import { BotMessageContext } from "./core/types";
-
-export function isPrivateMessage(msg: Message, context: BotMessageContext): boolean {
-    return msg.chat.type === "private" && !context.mode.forward;
-}
 
 // TODO: deprecate and replace with hasUserRole
 export function hasRole(username: Optional<string>, ...roles: string[]) {

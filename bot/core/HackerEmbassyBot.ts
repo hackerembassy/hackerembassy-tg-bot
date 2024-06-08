@@ -14,6 +14,7 @@ import {
     InputMedia,
     InputMediaPhoto,
     Message,
+    ReplyKeyboardMarkup,
     SendMessageOptions,
 } from "node-telegram-bot-api";
 import { EventEmitter, Stream } from "stream";
@@ -48,7 +49,6 @@ import {
 } from "./types";
 
 const botConfig = config.get<BotConfig>("bot");
-const defaultForwardTarget = botConfig.chats.main;
 
 export default class HackerEmbassyBot extends TelegramBot {
     public asyncContext = new AsyncLocalStorage();
@@ -62,6 +62,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public pollingError: Error | null = null;
 
     private contextMap = new Map();
+    public forwardTarget = botConfig.chats.main;
 
     constructor(token: string, options: TelegramBot.ConstructorOptions) {
         super(token, options);
@@ -153,7 +154,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         fileOptions: TelegramBot.FileOptions = {}
     ): Promise<TelegramBot.Message> {
         const mode = this.context(msg).mode;
-        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
+        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
         const inline_keyboard =
             mode.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
 
@@ -194,7 +195,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options?: TelegramBot.SendAnimationOptions | undefined
     ): Promise<TelegramBot.Message> {
         const mode = this.context(msg).mode;
-        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
+        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
 
         if (options?.caption) {
             options.caption = prepareMessageForMarkdown(options.caption);
@@ -224,7 +225,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: SendMediaGroupOptionsExt = {}
     ): Promise<TelegramBot.Message[]> {
         const mode = this.context(msg).mode;
-        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
+        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
@@ -315,17 +316,18 @@ export default class HackerEmbassyBot extends TelegramBot {
         options = this.prepareOptionsForMarkdown({ ...options });
 
         const mode = msg && this.context(msg).mode;
-        const chatIdToUse = mode?.forward ? defaultForwardTarget : chatId;
-        const inline_keyboard =
-            mode?.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
+        const chatIdToUse = mode?.forward ? this.forwardTarget : chatId;
+
+        const reply_markup = !mode?.static
+            ? (options.reply_markup as InlineKeyboardMarkup | ReplyKeyboardMarkup | undefined)
+            : undefined;
+
         const message_thread_id = msg ? this.context(msg).messageThreadId : undefined;
 
         if (!msg || !mode?.silent) {
             const message = await this.sendMessage(chatIdToUse, preparedText, {
                 ...options,
-                reply_markup: {
-                    inline_keyboard,
-                },
+                reply_markup,
                 message_thread_id,
             });
 
@@ -358,7 +360,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: TelegramBot.SendChatActionOptions = {}
     ): Promise<boolean> {
         const mode = this.context(msg).mode;
-        const chatIdToUse = mode.forward ? defaultForwardTarget : chatId;
+        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
 
         return super.sendChatAction(chatIdToUse, action, {
             ...options,
@@ -397,6 +399,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         try {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
+
+            if (message.chat_shared?.chat_id) {
+                this.forwardTarget = message.chat_shared.chat_id;
+                return;
+            }
 
             const text = (message.text ?? message.caption) as string;
 

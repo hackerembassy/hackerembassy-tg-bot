@@ -1,8 +1,6 @@
-import config from "config";
 import fs from "fs";
-import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
+import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 
-import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import { getLatestLogFilePath } from "../../services/logger";
 import { StateFlags } from "../core/BotState";
@@ -10,8 +8,6 @@ import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotCustomEvent, BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
-
-const botConfig = config.get<BotConfig>("bot");
 
 export default class AdminHandlers implements BotHandlers {
     /**
@@ -21,7 +17,7 @@ export default class AdminHandlers implements BotHandlers {
      * [ {text:text, callback_data:callback_data, url:url, cmd:cmd}, ... ]
      */
     static async customHandler(bot: HackerEmbassyBot, msg: Message, text?: string, isTest: boolean = false) {
-        const targetChatId = isTest ? msg.chat.id : botConfig.chats.main;
+        const targetChatId = isTest ? msg.chat.id : bot.forwardTarget;
         const selfChatId = msg.chat.id;
 
         try {
@@ -33,7 +29,7 @@ export default class AdminHandlers implements BotHandlers {
             if (!text) {
                 if (photoId) {
                     await bot.sendPhotoExt(targetChatId, photoId, msg);
-                    if (!isTest) await bot.sendMessageExt(targetChatId, "Photo is forwarded", msg);
+                    if (!isTest) await bot.sendMessageExt(selfChatId, `Photo is forwarded to ${targetChatId}`, msg);
                 } else {
                     await bot.sendMessageExt(selfChatId, `Example:\n${example}`, msg);
                 }
@@ -72,13 +68,28 @@ export default class AdminHandlers implements BotHandlers {
 
             bot.context(msg).mode.pin = false;
 
-            if (!isTest) await bot.sendMessageExt(selfChatId, "Message is forwarded", msg);
+            if (!isTest) await bot.sendMessageExt(selfChatId, `Message is forwarded to ${targetChatId}`, msg);
         } catch (error) {
             const errorMessage = (error as { message?: string }).message;
 
             bot.context(msg).mode.pin = false;
             await bot.sendMessageExt(selfChatId, `Failed to forward the message: ${errorMessage}`, msg);
         }
+    }
+
+    static async selectForwardTargetHandler(bot: HackerEmbassyBot, msg: Message) {
+        const keyboardButton: KeyboardButton = {
+            text: "Select target chat",
+            request_chat: {
+                request_id: 1,
+                bot_is_member: true,
+                chat_is_channel: false,
+            },
+        };
+
+        await bot.sendMessageExt(msg.chat.id, "Changing forward target", msg, {
+            reply_markup: { keyboard: [[keyboardButton]], one_time_keyboard: true },
+        });
     }
 
     static async getLogHandler(bot: HackerEmbassyBot, msg: Message) {

@@ -163,6 +163,7 @@ export const AdminCommandsList: string = `
 /stoplive
 /setflag flag_name flag_value
 /getflags
+/target - Сменить чат для пересылки сообщений
 
 \\* Roles: admin, accountant, member, trusted, default
 

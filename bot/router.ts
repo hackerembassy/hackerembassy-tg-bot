@@ -405,6 +405,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1], true],
         ["member"]
     );
+    bot.addRoute(["selecttarget", "target"], AdminHandlers.selectForwardTargetHandler, null, null, ["admin"]);
     bot.addRoute(["getlogs", "logs", "log"], AdminHandlers.getLogHandler, null, null, ["admin"]);
     bot.addRoute(["getstate", "state"], AdminHandlers.getStateHandler, null, null, ["admin"]);
     bot.addRoute(["cleanstate", "clearstate"], AdminHandlers.cleanStateHandler, null, null, ["admin"]);

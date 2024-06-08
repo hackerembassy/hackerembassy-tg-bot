@@ -1,12 +1,16 @@
+import config from "config";
 import { t, TOptions, use } from "i18next";
 import Backend from "i18next-fs-backend";
 import { join } from "path";
 
-import bot from "../instance";
+import { BotConfig } from "../../config/schema";
+import BotMessageContext from "./BotMessageContext";
+
+const botConfig = config.get<BotConfig>("bot");
 
 // Supported languages
-export const DEFAULT_LANGUAGE = "ru";
-export const SUPPORTED_LANGUAGES = ["en", "ru"] as const;
+export const DEFAULT_LANGUAGE = botConfig.defaultLocale as SupportedLanguage;
+export const SUPPORTED_LANGUAGES = ["en", "ru", "test"] as const;
 
 // Type for supported languages
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -33,8 +37,8 @@ use(Backend).init({
 });
 
 const translateWithDetectedLanguage = (key: string, options?: any, lang?: string): string => {
-    const state = bot.asyncContext.getStore() as { language: string } | undefined;
-    return t<string, TOptions, string>(key, { ...options, lng: lang ?? state?.language } as TOptions);
+    const state = BotMessageContext.async.getStore();
+    return t<string, TOptions, string>(key, { ...options, lng: lang ?? state?.language ?? DEFAULT_LANGUAGE } as TOptions);
 };
 
 export default translateWithDetectedLanguage;

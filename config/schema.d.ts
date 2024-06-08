@@ -19,6 +19,7 @@ export interface WikiConfig {
 export interface BotConfig {
     instance: InstanceConfig;
     timezone: string;
+    defaultLocale: string;
     chats: ChatsConfig;
     timeouts: AutoinsideTimeouts;
     rateLimits: RateLimits;

@@ -180,7 +180,9 @@ export default class StatusHandlers implements BotHandlers {
         language: SupportedLanguage
     ) {
         sleep(1000); // Delay to prevent sending too many requests at once
-        const state = StatusRepository.getSpaceLastState() as State;
+        const state = StatusRepository.getSpaceLastState();
+        if (!state) return;
+
         const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
         const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
         bot.context(resultMessage).language = language;

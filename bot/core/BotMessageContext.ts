@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "async_hooks";
 import TelegramBot from "node-telegram-bot-api";
 
 import { DEFAULT_LANGUAGE, SupportedLanguage } from "./localization";
@@ -15,6 +16,8 @@ export const DefaultModes: BotMessageContextMode = {
 };
 
 export default class BotMessageContext {
+    static async = new AsyncLocalStorage<BotMessageContext>();
+
     public mode: BotMessageContextMode = { ...DefaultModes };
     public messageThreadId?: number;
     public isEditing: boolean = false;
@@ -22,6 +25,10 @@ export default class BotMessageContext {
     public language: SupportedLanguage = DEFAULT_LANGUAGE;
 
     constructor(private msg: TelegramBot.Message) {}
+
+    public run<R>(callback: () => R) {
+        return BotMessageContext.async.run(this, callback);
+    }
 
     public isAdminMode() {
         return this.mode.admin && !this.mode.forward;

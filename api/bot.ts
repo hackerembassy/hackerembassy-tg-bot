@@ -168,8 +168,8 @@ app.get("/api/space", (_, res) => {
         api: "0.13",
         api_compatibility: ["14"],
         space: "Hacker Embassy",
-        logo: "https://gateway.hackerembassy.site/static/hackemlogo.jpg",
-        url: "https://hackerembassy.site/",
+        logo: "https://gateway.hackem.cc/static/hackemlogo.jpg",
+        url: "https://hackem.cc/",
         location: {
             address: "Pushkina str. 38/18, Yerevan, Armenia",
             lon: 44.51338,
@@ -200,7 +200,7 @@ app.get("/api/space", (_, res) => {
         links: [
             {
                 name: "Wiki",
-                url: "https://wiki.hackerembassy.site/ru/home",
+                url: "https://wiki.hackem.cc/ru/home",
             },
             {
                 name: "Status of public services",

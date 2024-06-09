@@ -50,7 +50,7 @@ User roles:
 
 ## Hosting
 
-The bot is hosted on a VPS located at gateway.hackerembassy.site. The service, embassy-api is hosted on the le-fail space computer by the window on the first floor and it helps bot to communicate with internal systems of the space, such as 3D printers, routers, cameras, doorbells, sensors, etc.. If you need any help with deployment, CI/CD or a test bot token, reach out to @tectonick and @Himura2la. You can also create your own test bot using the BotFather bot in Telegram.
+The bot is hosted on a VPS located at gateway.hackem.cc. The service, embassy-api is hosted on the le-fail space computer by the window on the first floor and it helps bot to communicate with internal systems of the space, such as 3D printers, routers, cameras, doorbells, sensors, etc.. If you need any help with deployment, CI/CD or a test bot token, reach out to @tectonick and @Himura2la. You can also create your own test bot using the BotFather bot in Telegram.
 
 ## Dependencies
 

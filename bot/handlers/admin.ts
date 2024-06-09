@@ -24,7 +24,7 @@ export default class AdminHandlers implements BotHandlers {
             const photoId = msg.photo?.[0]?.file_id;
             const example = `#\`/${
                 isTest ? "customt" : "custom"
-            } Some text\n\n[{"text":"link","url":"https://hackerembassy.site"}]\n\n[{"text":"public cmd","cmd":"join"},{"text":"private cmd","bot":"join"}]#\``;
+            } Some text\n\n[{"text":"link","url":"https://hackem.cc"}]\n\n[{"text":"public cmd","cmd":"join"},{"text":"private cmd","bot":"join"}]#\``;
 
             if (!text) {
                 if (photoId) {

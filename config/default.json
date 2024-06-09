@@ -2,7 +2,7 @@
     "bot": {
         "instance": {
             "type": "master",
-            "masterHost": "gateway.hackerembassy.site",
+            "masterHost": "gateway.hackem.cc",
             "retryInterval": 10000,
             "maxRetryCount": 5
         },

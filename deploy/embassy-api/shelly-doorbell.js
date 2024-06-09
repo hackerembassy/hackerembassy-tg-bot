@@ -20,7 +20,7 @@ Shelly.addEventHandler(function (e) {
             Shelly.call(
                 "HTTP.POST",
                 {
-                    url: "https://gateway.hackerembassy.site:9000/doorbell",
+                    url: "https://gateway.hackem.cc:9000/doorbell",
                     body: '{"token":"VkVSWUJJR0RJQ0s="}',
                 },
                 function () {

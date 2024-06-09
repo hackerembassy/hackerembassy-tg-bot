@@ -34,7 +34,7 @@ export default class FundsHandlers implements BotHandlers {
         const inline_keyboard = [
             [
                 AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate"),
-                InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+                AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
             ],
         ];
 

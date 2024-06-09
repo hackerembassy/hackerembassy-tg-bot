@@ -78,10 +78,10 @@ export default class BasicHandlers implements BotHandlers {
 
         const defaultInlineKeyboard = [
             [
-                InlineButton(t("basic.events.buttons.today"), "today", ButtonFlags.Editing),
-                InlineButton(t("basic.events.buttons.upcoming"), "upcoming", ButtonFlags.Editing),
+                AnnoyingInlineButton(bot, msg, t("basic.events.buttons.today"), "today", ButtonFlags.Editing),
+                AnnoyingInlineButton(bot, msg, t("basic.events.buttons.upcoming"), "upcoming", ButtonFlags.Editing),
             ],
-            [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
+            [AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
         const inline_keyboard = bot.context(msg).isPrivate()
@@ -364,7 +364,9 @@ export default class BasicHandlers implements BotHandlers {
     static async upcomingEventsHandler(bot: HackerEmbassyBot, msg: Message, numberOfEvents?: number) {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
-        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", ButtonFlags.Editing)]];
+        const inline_keyboard = [
+            [AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing)],
+        ];
 
         try {
             const events = await getClosestEventsFromCalendar(numberOfEvents);
@@ -390,7 +392,9 @@ export default class BasicHandlers implements BotHandlers {
     static async todayEventsHandler(bot: HackerEmbassyBot, msg: Message) {
         let messageText: string = "";
 
-        const inline_keyboard = [[InlineButton(t("basic.start.buttons.events"), "events", ButtonFlags.Editing)]];
+        const inline_keyboard = [
+            [AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing)],
+        ];
 
         try {
             messageText = TextGenerators.getTodayEventsText(await getTodayEvents());

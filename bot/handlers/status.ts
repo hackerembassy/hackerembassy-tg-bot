@@ -1,5 +1,5 @@
 import config from "config";
-import TelegramBot, { Message } from "node-telegram-bot-api";
+import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import State from "../../models/State";
@@ -150,8 +150,8 @@ export default class StatusHandlers implements BotHandlers {
         return climateInfo;
     }
 
-    static getStatusInlineKeyboard(state: State, short: boolean) {
-        const inlineKeyboard = state.open
+    static getStatusInlineKeyboard(bot: HackerEmbassyBot, msg: Message, state: State, short: boolean) {
+        const inlineKeyboard: InlineKeyboardButton[][] = state.open
             ? [[InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]]
             : [];
 
@@ -165,7 +165,7 @@ export default class StatusHandlers implements BotHandlers {
                 ? [InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short })]
                 : [
                       InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short }),
-                      InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+                      AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
                   ]
         );
 
@@ -195,7 +195,7 @@ export default class StatusHandlers implements BotHandlers {
             climateInfo,
             resultMessage.chat.id === botConfig.chats.horny
         );
-        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(bot, resultMessage, state, short);
 
         try {
             await bot.editMessageTextExt(statusMessage, resultMessage, {
@@ -233,7 +233,7 @@ export default class StatusHandlers implements BotHandlers {
         }
 
         const statusMessage = StatusHandlers.getStatusMessage(state, recentUserStates, mode, short);
-        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(state, short);
+        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(bot, msg, state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
             msg.chat.id,

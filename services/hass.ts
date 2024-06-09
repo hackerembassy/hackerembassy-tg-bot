@@ -201,9 +201,9 @@ class Conditioner {
 export const conditioner = new Conditioner();
 
 // Hass requests
-export async function getFromHass(url: string): Promise<Response> {
+export async function getFromHass(path: string): Promise<Response> {
     // @ts-ignore
-    return await fetch(`${url}`, {
+    return await fetch(embassyApiConfig.hassorigin + path, {
         headers: {
             Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
             "Content-Type": "application/json",
@@ -211,9 +211,9 @@ export async function getFromHass(url: string): Promise<Response> {
     });
 }
 
-export async function postToHass(url: string, body: any): Promise<Response> {
+export async function postToHass(path: string, body: any): Promise<Response> {
     // @ts-ignore
-    return await fetch(url, {
+    return await fetch(embassyApiConfig.hassorigin + path, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${process.env["HASSTOKEN"]}`,

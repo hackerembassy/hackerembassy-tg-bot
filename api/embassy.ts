@@ -220,7 +220,7 @@ app.get("/devices", async (req, res, next) => {
 
                 res.json(
                     await NeworkDevicesLocator.getDevicesFromUnifiController(
-                        embassyApiConfig.spacenetwork.unifihost,
+                        embassyApiConfig.spacenetwork.unifiorigin,
                         unifiUser,
                         unifiPassword
                     )

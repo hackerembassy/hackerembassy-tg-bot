@@ -95,6 +95,7 @@ export interface EmbassyApiConfig {
     service: EmbassyServiceConfig;
     spacenetwork: SpaceNetworkConfig;
     mqtthost: string;
+    hassorigin: string;
     speaker: SpeakerConfig;
     cams: CamConfig;
     doorbell: DoorbellConfig;
@@ -121,7 +122,7 @@ export interface SpaceNetworkConfig {
     networkRange: string;
     routerip: string;
     wifiip: string;
-    unifihost: string;
+    unifiorigin: string;
 }
 
 export interface SpeakerConfig {

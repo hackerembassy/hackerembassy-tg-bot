@@ -107,8 +107,8 @@ export const MemberCommandsList: string = `
 Кастомные сообщения в главный чат:
 - C веб-ссылками в два ряда:
 #\`/custom Some text
-[{"text":"site","url":"https://hackerembassy.site"}]
-[{"text":"wiki","url":"https://wiki.hackerembassy.site"}]#\`
+[{"text":"site","url":"https://hackem.cc"}]
+[{"text":"wiki","url":"https://wiki.hackem.cc"}]#\`
 - C командами в один ряд:
 #\`/custom Some text
 [{"text":"public","cmd":"status"},{"text":"private","bot":"status"}]#\`

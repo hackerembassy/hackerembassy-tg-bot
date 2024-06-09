@@ -15,9 +15,9 @@ basic:
     about: |
         🏫 Hacker Embassy (Yerevan Hackerspace) is a space where like-minded people passionate about technology and creativity gather. We work on projects together, share ideas and knowledge, and just communicate.
 
-        💻 You can read more about us on our website https://hackerembassy.site/
+        💻 You can read more about us on our website https://hackem.cc/
 
-        📓 We store information about our projects, equipment and rules on our wiki https://wiki.hackerembassy.site/
+        📓 We store information about our projects, equipment and rules on our wiki https://wiki.hackem.cc/
 
         🤖 My code is open and free, development is carried out on GitHub: https://github.com/hackerembassy/hackerembassy-tg-bot
 
@@ -195,7 +195,7 @@ basic:
     info:
         text: |
             📚 Here you can read about us.
-            If you want to know more, feel free to visit our website and wiki https://hackerembassy.site/
+            If you want to know more, feel free to visit our website and wiki https://hackem.cc/
         buttons:
             about: 🏠 About space and bot
             join: 🙋‍♀️ How to join
@@ -329,13 +329,13 @@ embassy:
 
             🚺 Anette from ubershy and cake64
             Documentation for it is available here:
-            https://wiki.hackerembassy.site/ru/equipment/anette
+            https://wiki.hackem.cc/ru/equipment/anette
             The web interface is available within the space network at {{anetteApi}}
             The printer status can be found using the /anette command.
 
             🚹 Plumbus by the_mihalich
             Documentation for it is available here:
-            https://wiki.hackerembassy.site/ru/equipment/plumbus
+            https://wiki.hackem.cc/ru/equipment/plumbus
             The web interface is available within the space network at {{plumbusApi}}
             The printer status can be found using the /plumbus command.
         anettestatus: Anette status

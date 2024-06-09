@@ -2,7 +2,7 @@
     auto_https disable_redirects
 }
 
-https://gateway.hackerembassy.site:9000 {
+https://gateway.hackem.cc:9000 {
     reverse_proxy http://localhost:3000 {
         header_up Host {upstream_hostport}
     }

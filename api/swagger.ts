@@ -7,7 +7,7 @@ const doc = {
     },
     servers: [
         {
-            url: "https://gateway.hackerembassy.site:9000/",
+            url: "https://gateway.hackem.cc:9000/",
             description: "Gateway",
         },
         {

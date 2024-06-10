@@ -101,7 +101,7 @@
             "hasspath": "/api/services/switch/turn_on"
         },
         "alarm": {
-            "disarmpath": "api/services/script/external_disarm"
+            "disarmpath": "/api/services/script/external_disarm"
         },
         "climate": {
             "conditioner": {

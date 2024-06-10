@@ -5,6 +5,7 @@ import { getBufferFromResponse } from "../utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const climateConfig = embassyApiConfig.climate;
+const alarmConfig = embassyApiConfig.alarm;
 
 import path from "node:path";
 
@@ -161,6 +162,12 @@ function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue
     return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }
 
+class Alarm {
+    async disarm() {
+        await postToHass(alarmConfig.disarmpath, {});
+    }
+}
+
 class Conditioner {
     async getState(): Promise<ConditionerStatus> {
         const response = await getFromHass(climateConfig.conditioner.statePath);
@@ -199,6 +206,7 @@ class Conditioner {
 }
 
 export const conditioner = new Conditioner();
+export const alarm = new Alarm();
 
 // Hass requests
 export async function getFromHass(path: string): Promise<Response> {

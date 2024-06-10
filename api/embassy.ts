@@ -11,6 +11,7 @@ import path from "path";
 
 import { CamConfig, EmbassyApiConfig } from "../config/schema";
 import {
+    alarm,
     conditioner,
     getClimate,
     getWebcamImage,
@@ -158,10 +159,37 @@ app.post("/space/unlock", async (req, res, next) => {
         const token = await decrypt(req.body.token);
 
         if (token === process.env["UNLOCKKEY"]) {
+            alarm.disarm();
+
             mqttSendOnce(embassyApiConfig.mqtthost, "door", "1", process.env["MQTTUSER"], process.env["MQTTPASSWORD"]);
             logger.info("Door is opened");
             res.send("Success");
         } else res.sendStatus(401);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/space/alarm", async (req, res, next) => {
+    try {
+        const token = await decrypt(req.body.token);
+
+        if (token !== process.env["UNLOCKKEY"]) {
+            res.sendStatus(401);
+            return;
+        }
+
+        const alarmState = req.body?.state as "disarm" | undefined;
+
+        if (alarmState === "disarm") {
+            alarm.disarm();
+        } else {
+            res.sendStatus(400);
+            return;
+        }
+
+        logger.info(`Alarm is ${alarmState}`);
+        res.send("Success");
     } catch (error) {
         next(error);
     }

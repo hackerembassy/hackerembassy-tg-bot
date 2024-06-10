@@ -99,6 +99,7 @@ export interface EmbassyApiConfig {
     speaker: SpeakerConfig;
     cams: CamConfig;
     doorbell: DoorbellConfig;
+    alarm: AlarmConfig;
     climate: ClimateConfig;
     hostsToMonitor?: string[] | null;
 }
@@ -106,6 +107,10 @@ export interface EmbassyApiConfig {
 export interface DoorbellConfig {
     host: string;
     hasspath: string;
+}
+
+export interface AlarmConfig {
+    disarmpath: string;
 }
 
 export interface EmbassyServiceConfig {

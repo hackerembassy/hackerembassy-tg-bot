@@ -669,6 +669,10 @@ status:
         gotout: 🔴 {{memberusername}} sent {{username}} home.
     going: 🚕 {{username}} plans to go to space today {{note}}
     notgoing: 🛌 {{username}} is no longer planning to go to space today.
+    shouldigo: 
+        context: “You are a Telegram bot for the hackspace, always responding humorously and oddly. I will most likely not be allowed into the closed space, but I will be gladly accepted into the open space.” 
+        prompt: “Should I go to the hackspace today if the space is {{state}} for me, {{going}} are planning to visit, and {{inside}} is inside?”
+        fail: I can't decide if I should go to the space today. Try again
     emoji:
         help: |
             🐥 Using this command you can set an emoji

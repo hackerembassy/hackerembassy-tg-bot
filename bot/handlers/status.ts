@@ -13,6 +13,7 @@ import { createUserStatsDonut } from "../../services/export";
 import * as ExportHelper from "../../services/export";
 import { SpaceClimate } from "../../services/hass";
 import logger from "../../services/logger";
+import { openAI } from "../../services/neural";
 import {
     closeSpace,
     evictPeople,
@@ -276,6 +277,46 @@ export default class StatusHandlers implements BotHandlers {
                     params: [resultMessage, short, mode, language],
                 }
             );
+        }
+    }
+
+    static async shouldIGoHandler(bot: HackerEmbassyBot, msg: Message) {
+        const allowedChats = [
+            botConfig.chats.main,
+            botConfig.chats.horny,
+            botConfig.chats.key,
+            botConfig.chats.alerts,
+            botConfig.chats.offtopic,
+            botConfig.chats.test,
+        ];
+
+        if (!allowedChats.includes(msg.chat.id)) {
+            await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
+            return;
+        }
+
+        try {
+            bot.sendChatAction(msg.chat.id, "typing", msg);
+
+            const state = StatusRepository.getSpaceLastState();
+            const recentUserStates = UserStateService.getRecentUserStates();
+            const inside = recentUserStates.filter(filterPeopleInside);
+            const going = recentUserStates.filter(filterPeopleGoing);
+            const user = msg.from?.id ? UsersRepository.getByUserId(msg.from.id) : null;
+
+            const prompt = t("status.shouldigo.prompt", {
+                state: state?.open || (user && helpers.isMember(user)) ? t("status.status.opened") : t("status.status.closed"),
+                going: going.length ? going.map(u => u.username).join(", ") : 0,
+                inside: inside.length ? inside.map(u => u.username).join(", ") : 0,
+            });
+            const context = t("status.shouldigo.context");
+
+            const aiResponse = await openAI.askChat(prompt, context);
+
+            await bot.sendMessageExt(msg.chat.id, aiResponse.content, msg);
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("status.shouldigo.fail"), msg);
         }
     }
 

@@ -185,6 +185,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         "member",
         "trusted",
     ]);
+    bot.addRoute(["shouldigo", "shouldvisit", "shouldgo", "should"], StatusHandlers.shouldIGoHandler);
 
     // Printers
     bot.addRoute(["printers"], EmbassyHandlers.printersHandler);

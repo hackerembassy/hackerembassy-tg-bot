@@ -4,7 +4,7 @@ import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import logger from "../../services/logger";
-import { OpenAI } from "../../services/neural";
+import { openAI } from "../../services/neural";
 import { sleep } from "../../utils/common";
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -389,7 +389,6 @@ export default class ServiceHandlers implements BotHandlers {
         try {
             bot.sendChatAction(msg.chat.id, "typing", msg);
 
-            const apiKey = process.env["OPENAIAPIKEY"];
             const allowedChats = [
                 botConfig.chats.main,
                 botConfig.chats.horny,
@@ -397,11 +396,6 @@ export default class ServiceHandlers implements BotHandlers {
                 botConfig.chats.key,
                 botConfig.chats.test,
             ];
-
-            if (!apiKey) {
-                await bot.sendMessageExt(msg.chat.id, t("service.openai.notset"), msg);
-                return;
-            }
 
             if (!allowedChats.includes(msg.chat.id)) {
                 await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
@@ -414,7 +408,6 @@ export default class ServiceHandlers implements BotHandlers {
             }
 
             const loading = setTimeout(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
-            const openAI = new OpenAI(apiKey);
             const response = await openAI.askChat(prompt);
 
             clearInterval(loading);

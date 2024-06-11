@@ -45,7 +45,11 @@ type ApiErrorResponse = {
 export class OpenAI {
     constructor(private apiKey: string) {}
 
-    async askChat(prompt: string) {
+    static defaultContext = "Ты телеграм бот хакерспейса, ты всегда отвечаешь кратко, смешно и иногда как гопник";
+
+    async askChat(prompt: string, context: string = OpenAI.defaultContext) {
+        if (!this.apiKey) throw Error("OpenAI API key is not set");
+
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
         myHeaders.append("Authorization", `Bearer ${this.apiKey}`);
@@ -55,7 +59,7 @@ export class OpenAI {
             messages: [
                 {
                     role: "system",
-                    content: "Ты телеграм бот хакерспейса, ты всегда отвечаешь кратко, смешно и иногда как гопник",
+                    content: context,
                 },
                 {
                     role: "user",
@@ -86,6 +90,8 @@ export class OpenAI {
         return body.choices[0].message;
     }
 }
+
+export const openAI = new OpenAI(process.env["OPENAIAPIKEY"] ?? "");
 
 class StableDiffusion {
     public base: string;

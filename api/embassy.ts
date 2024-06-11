@@ -24,6 +24,7 @@ import logger from "../services/logger";
 import { stableDiffusion } from "../services/neural";
 import printer3d from "../services/printer3d";
 import { sleep } from "../utils/common";
+import { catErrorPage } from "../utils/meme";
 import { createErrorMiddleware } from "../utils/middleware";
 import { mqttSendOnce, NeworkDevicesLocator, ping, wakeOnLan } from "../utils/network";
 import { decrypt } from "../utils/security";
@@ -445,6 +446,10 @@ app.post("/conditioner/temperature", async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+});
+
+app.get("*", (_, res) => {
+    res.status(404).send(catErrorPage(404));
 });
 
 export function StartEmbassyApi() {

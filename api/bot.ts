@@ -29,6 +29,7 @@ import {
 import wiki from "../services/wiki";
 import { stripCustomMarkup } from "../utils/common";
 import { convertCurrency } from "../utils/currency";
+import { catErrorPage } from "../utils/meme";
 import { createErrorMiddleware, createTokenSecuredMiddleware, tokenPresent } from "../utils/middleware";
 
 const apiConfig = config.get<BotApiConfig>("api");
@@ -445,6 +446,10 @@ app.get("/api/wiki/page/:id", async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+});
+
+app.get("*", (_, res) => {
+    res.status(404).send(catErrorPage(404));
 });
 
 export function StartSpaceApi() {

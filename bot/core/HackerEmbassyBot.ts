@@ -390,7 +390,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         return text[0] !== "/" || forAnotherBot;
     }
 
-    routeMessage(message: TelegramBot.Message) {
+    async routeMessage(message: TelegramBot.Message) {
         try {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
@@ -451,14 +451,14 @@ export default class HackerEmbassyBot extends TelegramBot {
 
                 if (matchedParams) {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                    messageContext.run(() => route.handler(this, message, ...matchedParams));
+                    await messageContext.run(() => route.handler(this, message, ...matchedParams));
                     return;
                 } else if (!route.optional) {
                     return;
                 }
             }
 
-            messageContext.run(() => route.handler(this, message));
+            await messageContext.run(() => route.handler(this, message));
         } catch (error) {
             logger.error(error);
         } finally {

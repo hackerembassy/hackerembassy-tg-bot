@@ -255,18 +255,17 @@ export default class BasicHandlers implements BotHandlers {
 
             [
                 InlineButton(t("basic.control.buttons.unlock"), "unlock"),
-                InlineButton(t("basic.control.buttons.doorbell"), "doorbell"),
                 InlineButton(t("basic.control.buttons.conditioner"), "conditioner", ButtonFlags.Editing),
             ],
             [
                 InlineButton(t("basic.control.buttons.downstairs"), "webcam", ButtonFlags.Simple, { params: "downstairs" }),
                 InlineButton(t("basic.control.buttons.downstairs2"), "webcam", ButtonFlags.Simple, { params: "downstairs2" }),
-                InlineButton(t("basic.control.buttons.kitchen"), "webcam", ButtonFlags.Simple, { params: "kitchen" }),
+                InlineButton(t("basic.control.buttons.upstairs"), "webcam", ButtonFlags.Simple, { params: "upstairs" }),
             ],
             [
-                InlineButton(t("basic.control.buttons.upstairs"), "webcam", ButtonFlags.Simple, { params: "upstairs" }),
                 InlineButton(t("basic.control.buttons.printers"), "webcam", ButtonFlags.Simple, { params: "printers" }),
                 InlineButton(t("basic.control.buttons.outdoors"), "webcam", ButtonFlags.Simple, { params: "outdoors" }),
+                InlineButton(t("basic.control.buttons.facecontrol"), "webcam", ButtonFlags.Simple, { params: "facecontrol" }),
             ],
             [
                 InlineButton(t("basic.control.buttons.meme"), "memepanel", ButtonFlags.Editing),

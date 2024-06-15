@@ -88,7 +88,8 @@
             "downstairs2": "/api/camera_proxy/camera.first_floor",
             "upstairs": "/api/camera_proxy/camera.upstairs",
             "printers": "/api/camera_proxy/camera.le_fail_lan",
-            "outdoors": "/api/camera_proxy/camera.outdoor"
+            "outdoors": "/api/camera_proxy/camera.outdoor",
+            "facecontrol": "/api/camera_proxy/camera.facecontrol"
         },
         "speaker": {
             "entity": "media_player.downstairs",
@@ -99,6 +100,9 @@
         "doorbell": {
             "host": "doorbell-shelly.lan",
             "hasspath": "/api/services/switch/turn_on"
+        },
+        "ledmatrix": {
+            "textpath": "/api/services/script/send_to_display"
         },
         "alarm": {
             "disarmpath": "/api/services/script/external_disarm"

@@ -99,6 +99,7 @@ export interface EmbassyApiConfig {
     speaker: SpeakerConfig;
     cams: CamConfig;
     doorbell: DoorbellConfig;
+    ledmatrix: LedMatrixConfig;
     alarm: AlarmConfig;
     climate: ClimateConfig;
     hostsToMonitor?: string[] | null;
@@ -107,6 +108,10 @@ export interface EmbassyApiConfig {
 export interface DoorbellConfig {
     host: string;
     hasspath: string;
+}
+
+export interface LedMatrixConfig {
+    textpath: "/api/services/script/send_to_display";
 }
 
 export interface AlarmConfig {
@@ -157,6 +162,7 @@ export interface CamConfig {
     upstairs: string;
     printers: string;
     outdoors: string;
+    facecontrol: string;
     kitchen: string;
 }
 

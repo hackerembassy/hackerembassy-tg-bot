@@ -4,9 +4,11 @@ import { PingResponse } from "ping";
 import { dir } from "tmp-promise";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
+import fundsRepository from "../../repositories/fundsRepository";
 import statusRepository from "../../repositories/statusRepository";
 import usersRepository from "../../repositories/usersRepository";
 import { EmbassyBaseIP, requestToEmbassy } from "../../services/embassy";
+import { getDonationsSummary } from "../../services/export";
 import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/hass";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
@@ -417,6 +419,44 @@ export default class EmbassyHandlers implements BotHandlers {
         } catch (error) {
             logger.error(error);
             await bot.sendMessageExt(msg.chat.id, t("embassy.say.fail"), msg);
+        }
+    }
+
+    static async textinspaceHandler(bot: HackerEmbassyBot, msg: Message, text?: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            if (!text || text.length === 0) {
+                bot.sendMessageExt(msg.chat.id, t("embassy.text.help"), msg);
+                return;
+            }
+
+            const response = await requestToEmbassy(`/space/led-matrix`, "POST", { message: text }, 30000);
+
+            if (response.ok) await bot.sendMessageExt(msg.chat.id, t("embassy.text.success"), msg);
+            else throw Error("Failed to send a message to the led matrix");
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.text.fail"), msg);
+        }
+    }
+
+    static async sendDonationsSummaryHandler(bot: HackerEmbassyBot, msg: Message, fund?: string) {
+        try {
+            const selectedFund = fund ? fundsRepository.getFundByName(fund) : fundsRepository.getLatestCosts();
+
+            if (!selectedFund) throw Error(`No fund ${fund} found`);
+
+            const donationsSummary = await getDonationsSummary(selectedFund);
+
+            await EmbassyHandlers.textinspaceHandler(
+                bot,
+                msg,
+                `${donationsSummary.strings.fund_stats}    ${donationsSummary.strings.ranked_donations}`
+            );
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("funds.export.fail"), msg);
         }
     }
 

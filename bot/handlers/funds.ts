@@ -15,6 +15,7 @@ import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import * as helpers from "../helpers";
 import * as TextGenerators from "../textGenerators";
+import EmbassyHandlers from "./embassy";
 
 const CALLBACK_DATA_RESTRICTION = 21;
 
@@ -233,6 +234,12 @@ export default class FundsHandlers implements BotHandlers {
             }
 
             if (!animeImage) throw new Error("Failed to get image");
+
+            const context = bot.context(msg);
+
+            context.mode.silent = true;
+            await EmbassyHandlers.sendDonationsSummaryHandler(bot, msg, fundName);
+            context.mode.silent = false;
 
             await bot.sendPhotoExt(msg.chat.id, animeImage, msg, {
                 caption: text,

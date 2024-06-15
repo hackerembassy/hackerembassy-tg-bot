@@ -182,11 +182,12 @@ basic:
         buttons:
             unlock: 🔑 Castle
             doorbell: 🔔 Bell
-            downstairs: 📹 I floor
-            downstairs2: 📹 I floor 2
+            downstairs: 📹 Ia floor
+            downstairs2: 📹 Ib floor
             kitchen: 📹 Kitchen
             upstairs: 📹 II floor
             outdoors: 📹 Entrance
+            facecontrol: 📹 Face
             printers: 📹 Printers
             superstatus: 🩻 Superstatus
             conditioner: ❄️ AC
@@ -285,6 +286,7 @@ embassy:
             kitchen: Kitchen
             upstairs: Second floor
             outdoors: Entrance door
+            facecontrol: Face control
             printers: Printer
         fail: |
             ⚠️ {{camLocationName}}: Camera not available yet
@@ -382,6 +384,11 @@ embassy:
             🗣 Using this command you can say something on the speaker in space, for example #`/say Hello, hackers#`
         success: 🗣 Message sent to speaker
         fail: ⚠️ Couldn't say
+    text:
+        help: |
+            🗣 Using this command you can display a text message on a space led matrix, for example #`/text Hello, hackers#`
+        success: 🗣 Message sent to led-matrix
+        fail: ⚠️ Couldn't send message
     play:
         help: 🗣 Using this command you can play any sound from the link
         success: 🗣 Sound sent to speaker

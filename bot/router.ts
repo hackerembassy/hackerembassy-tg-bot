@@ -153,6 +153,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         () => ["outdoors"],
         ["member"]
     );
+    bot.addRoute(["face", "facecam", "facecum", "facecontrol"], EmbassyHandlers.webcamHandler, null, () => ["facecontrol"], [
+        "member",
+    ]);
     bot.addRoute(["kitchen", "kitchencam", "kitchencum"], EmbassyHandlers.webcamHandler, null, () => ["kitchen"], ["member"]);
     bot.addRoute(["printerscam", "funroom"], EmbassyHandlers.webcamHandler, null, () => ["printers"], ["member"]);
     bot.addRoute(["allcams", "cams", "allcums", "cums", "allc"], EmbassyHandlers.allCamsHandler, null, null, ["member"]);
@@ -248,7 +251,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["preheat"], EmbassyHandlers.preheatHandler, null, null, ["member"]);
 
     // Sounds
-    bot.addRoute(["sayinspace", "say", "announce"], EmbassyHandlers.sayinspaceHandler, /(.*)/ims, match => [match[1]]);
+    bot.addRoute(["sayinspace", "say", "announce"], EmbassyHandlers.sayinspaceHandler, OptionalParam(/(.*)/ims), match => [
+        match[1],
+    ]);
     bot.addRoute(["playinspace", "play"], EmbassyHandlers.playinspaceHandler, /(.*)/ims, match => [match[1]]);
     bot.addRoute(["stopmedia", "stop"], EmbassyHandlers.stopMediaHandler);
     bot.addRoute(["availablesounds", "sounds"], EmbassyHandlers.availableSoundsHandler);
@@ -264,6 +269,15 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["sad", "sadtrombone"], EmbassyHandlers.playinspaceHandler, null, () => ["sad"]);
     bot.addRoute(["dushno", "openwindow"], EmbassyHandlers.playinspaceHandler, null, () => ["dushno"]);
     bot.addRoute(["anthem", "uk", "british"], EmbassyHandlers.playinspaceHandler, null, () => ["anthem"]);
+
+    // Text
+    bot.addRoute(["textinspace", "text"], EmbassyHandlers.textinspaceHandler, OptionalParam(/(.*)/ims), match => [match[1]]);
+    bot.addRoute(
+        ["donationsummary", "textdonations"],
+        EmbassyHandlers.sendDonationsSummaryHandler,
+        OptionalParam(/(.*)/),
+        match => [match[1]]
+    );
 
     // Funds
     bot.addRoute(["funds", "fs"], FundsHandlers.fundsHandler);

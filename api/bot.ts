@@ -10,11 +10,11 @@ import bot from "../bot/instance";
 import * as TextGenerators from "../bot/textGenerators";
 import { getEventsList } from "../bot/textGenerators";
 import { BotApiConfig } from "../config/schema";
-import Donation from "../models/Donation";
 import FundsRepository from "../repositories/fundsRepository";
 import StatusRepository from "../repositories/statusRepository";
 import UsersRepository from "../repositories/usersRepository";
 import { requestToEmbassy } from "../services/embassy";
+import { getDonationsSummary } from "../services/export";
 import { getClosestEventsFromCalendar, getTodayEvents } from "../services/googleCalendar";
 import { SpaceClimate } from "../services/hass";
 import logger from "../services/logger";
@@ -28,7 +28,6 @@ import {
 } from "../services/statusHelper";
 import wiki from "../services/wiki";
 import { stripCustomMarkup } from "../utils/common";
-import { convertCurrency } from "../utils/currency";
 import { catErrorPage } from "../utils/meme";
 import { createErrorMiddleware, createTokenSecuredMiddleware, tokenPresent } from "../utils/middleware";
 
@@ -315,43 +314,7 @@ app.get("/api/donations", async (req, res) => {
     const fund = req.query.fund ? FundsRepository.getFundByName(req.query.fund as string) : FundsRepository.getLatestCosts();
     if (!fund) return res.status(500).send({ error: "Costs fund is not found" });
 
-    const donations = FundsRepository.getDonationsForName(fund.name) as (Donation & { converted_value?: number })[];
-
-    for (const donation of donations) {
-        donation.converted_value = (await convertCurrency(donation.value, donation.currency, fund.target_currency)) ?? -1;
-    }
-
-    const resultDonations = donations
-        .sort((a, b) => b.converted_value! - a.converted_value!)
-        .slice(0, limit)
-        .map((d, index) => ({
-            rank: index + 1,
-            username: d.username,
-            value: d.value,
-            currency: d.currency,
-            converted_value: d.converted_value,
-            combined_value: `${d.value} ${d.currency}`,
-        }));
-
-    // Processing data for HASS
-    const collected_value = parseFloat(resultDonations.reduce((acc, d) => acc + d.converted_value!, 0).toFixed(2));
-    const ranked_donations = resultDonations.map(d => `${d.rank}. ${d.username} - ${d.combined_value}`).join("    ");
-    const fund_stats = `${fund.name} - ${collected_value} out of ${fund.target_value} ${fund.target_currency}`;
-
-    return res.send({
-        fund: {
-            name: fund.name,
-            target_value: fund.target_value,
-            collected_value,
-            target_currency: fund.target_currency,
-            status: fund.status,
-        },
-        donations: resultDonations,
-        strings: {
-            ranked_donations,
-            fund_stats,
-        },
-    });
+    return res.json(await getDonationsSummary(fund, limit));
 });
 
 app.get("/text/join", (_, res) => {

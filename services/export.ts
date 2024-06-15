@@ -2,7 +2,8 @@ import { writeToBuffer } from "@fast-csv/format";
 // @ts-ignore
 import ChartJsImage from "chartjs-to-image";
 
-import { FundDonation } from "../models/Donation";
+import Donation, { FundDonation } from "../models/Donation";
+import Fund from "../models/Fund";
 import FundsRepository from "../repositories/fundsRepository";
 import { onlyUniqueInsFilter } from "../utils/common";
 import { convertCurrency, formatValueForCurrency } from "../utils/currency";
@@ -301,4 +302,44 @@ export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDon
     }
 
     return combinedDonations;
+}
+
+export async function getDonationsSummary(fund: Fund, limit?: number) {
+    const donations = FundsRepository.getDonationsForName(fund.name) as (Donation & { converted_value?: number })[];
+
+    for (const donation of donations) {
+        donation.converted_value = (await convertCurrency(donation.value, donation.currency, fund.target_currency)) ?? -1;
+    }
+
+    const resultDonations = donations
+        .sort((a, b) => b.converted_value! - a.converted_value!)
+        .slice(0, limit)
+        .map((d, index) => ({
+            rank: index + 1,
+            username: d.username,
+            value: d.value,
+            currency: d.currency,
+            converted_value: d.converted_value,
+            combined_value: `${d.value} ${d.currency}`,
+        }));
+
+    // Processing data for HASS
+    const collected_value = parseFloat(resultDonations.reduce((acc, d) => acc + (d.converted_value ?? 0), 0).toFixed(2));
+    const ranked_donations = resultDonations.map(d => `${d.rank}. ${d.username} - ${d.combined_value}`).join("    ");
+    const fund_stats = `${fund.name} - ${collected_value} out of ${fund.target_value} ${fund.target_currency}`;
+
+    return {
+        fund: {
+            name: fund.name,
+            target_value: fund.target_value,
+            collected_value,
+            target_currency: fund.target_currency,
+            status: fund.status,
+        },
+        donations: resultDonations,
+        strings: {
+            ranked_donations,
+            fund_stats,
+        },
+    };
 }

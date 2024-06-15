@@ -127,6 +127,14 @@ export async function ringDoorbell(): Promise<void> {
     if (response.status !== 200) throw Error("Ringing request failed");
 }
 
+export async function displayTextOnMatrix(text: string): Promise<void> {
+    const response = await postToHass(embassyApiConfig.ledmatrix.textpath, {
+        message: text,
+    });
+
+    if (response.status !== 200) throw Error("Matrix request failed");
+}
+
 // Climate
 export async function getClimate(): Promise<Nullable<SpaceClimate>> {
     const queries = [

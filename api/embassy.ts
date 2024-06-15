@@ -13,6 +13,7 @@ import { CamConfig, EmbassyApiConfig } from "../config/schema";
 import {
     alarm,
     conditioner,
+    displayTextOnMatrix,
     getClimate,
     getWebcamImage,
     playInSpace,
@@ -213,6 +214,23 @@ app.get("/space/doorbell", async (req, res, next) => {
             default:
                 await ringDoorbell();
         }
+        res.send({ message: "Success" });
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post("/space/led-matrix", async (req, res, next) => {
+    try {
+        const message = req.body.message as string | undefined;
+
+        if (!message) {
+            res.sendStatus(400);
+            return;
+        }
+
+        await displayTextOnMatrix(message);
+
         res.send({ message: "Success" });
     } catch (error) {
         next(error);

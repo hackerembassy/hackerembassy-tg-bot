@@ -239,6 +239,7 @@ export default class FundsHandlers implements BotHandlers {
 
             context.mode.silent = true;
             await EmbassyHandlers.sendDonationsSummaryHandler(bot, msg, fundName);
+            await EmbassyHandlers.playinspaceHandler(bot, msg, "money", true);
             context.mode.silent = false;
 
             await bot.sendPhotoExt(msg.chat.id, animeImage, msg, {

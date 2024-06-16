@@ -235,16 +235,13 @@ export default class FundsHandlers implements BotHandlers {
 
             if (!animeImage) throw new Error("Failed to get image");
 
-            const context = bot.context(msg);
-
-            context.mode.silent = true;
-            await EmbassyHandlers.sendDonationsSummaryHandler(bot, msg, fundName);
-            await EmbassyHandlers.playinspaceHandler(bot, msg, "money", true);
-            context.mode.silent = false;
-
             await bot.sendPhotoExt(msg.chat.id, animeImage, msg, {
                 caption: text,
             });
+
+            bot.context(msg).mode.silent = true;
+            await EmbassyHandlers.sendDonationsSummaryHandler(bot, msg, fundName);
+            await EmbassyHandlers.playinspaceHandler(bot, msg, "money", true);
         } catch (error) {
             await bot.sendMessageExt(msg.chat.id, text, msg);
             logger.error(error);

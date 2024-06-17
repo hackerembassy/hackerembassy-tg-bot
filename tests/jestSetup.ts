@@ -6,9 +6,9 @@ import { sleep } from "../utils/common";
 
 fetchMock.enableMocks();
 
-jest.mock("../utils/currency", () => {
+jest.mock("../services/currency", () => {
     return {
-        ...jest.requireActual("../utils/currency"),
+        ...jest.requireActual("../services/currency"),
         convert: jest.fn(),
         initConvert: jest.fn(),
         convertCurrency: jest.fn((amount: number) => amount),

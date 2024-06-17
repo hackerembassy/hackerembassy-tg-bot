@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import statusRepository from "../repositories/statusRepository";
+import statusRepository from "@repositories/statusRepository";
 
 function migrateUserStatuses(from: string, to: string) {
     console.log("Migrating user statuses usernames");

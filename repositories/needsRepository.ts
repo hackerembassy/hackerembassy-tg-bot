@@ -1,4 +1,5 @@
-import Need from "../models/Need";
+import Need from "@models/Need";
+
 import BaseRepository from "./baseRepository";
 
 class NeedsRepository extends BaseRepository {

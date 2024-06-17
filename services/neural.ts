@@ -1,7 +1,7 @@
 import config from "config";
 
-import { NeuralConfig } from "../config/schema";
-import { fetchWithTimeout } from "../utils/network";
+import { NeuralConfig } from "@config";
+import { fetchWithTimeout } from "@utils/network";
 
 const neuralConfig = config.get<NeuralConfig>("neural");
 

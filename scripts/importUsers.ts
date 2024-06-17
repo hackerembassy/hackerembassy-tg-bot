@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import fs from "fs";
 
-import usersRepository from "../repositories/usersRepository";
+import usersRepository from "@repositories/usersRepository";
 
 function importUsers(fromFile: string) {
     console.log("Importing users from: ", fromFile);

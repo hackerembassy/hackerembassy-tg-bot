@@ -1,8 +1,10 @@
 import fs from "fs";
+
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 
-import UsersRepository from "../../repositories/usersRepository";
-import { getLatestLogFilePath } from "../../services/logger";
+import UsersRepository from "@repositories/usersRepository";
+import { getLatestLogFilePath } from "@services/logger";
+
 import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";

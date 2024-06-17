@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import broadcast, { BroadcastEvents } from "../services/broadcast";
-import logger from "../services/logger";
-import { DURATION_STRING_REGEX } from "../utils/date";
-import { OptionalParam } from "../utils/text";
+import broadcast, { BroadcastEvents } from "@services/broadcast";
+import logger from "@services/logger";
+import { DURATION_STRING_REGEX } from "@utils/date";
+import { OptionalParam } from "@utils/text";
+
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import AdminHandlers from "./handlers/admin";
 import BasicHandlers from "./handlers/basic";

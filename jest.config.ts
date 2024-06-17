@@ -7,6 +7,13 @@ const jestConfig: JestConfigWithTsJest = {
     reporters: [["github-actions", { silent: false }], "default", "summary"],
     testLocationInResults: true,
     testPathIgnorePatterns: ["<rootDir>/dist/"],
+    moduleNameMapper: {
+        "^@utils/(.*)$": "<rootDir>/utils/$1",
+        "^@services/(.*)$": "<rootDir>/services/$1",
+        "^@models/(.*)$": "<rootDir>/models/$1",
+        "^@repositories/(.*)$": "<rootDir>/repositories/$1",
+        "^@config": "<rootDir>/config/schema",
+    },
 };
 
 export default jestConfig;

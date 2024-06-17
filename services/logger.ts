@@ -1,12 +1,12 @@
 import "winston-daily-rotate-file";
-
-import config from "config";
 import fs from "fs";
 import path from "path";
+
+import config from "config";
 import { createLogger, format, transports } from "winston";
 
-import { LoggerConfig } from "../config/schema";
-import { lastModifiedFilePath } from "../utils/filesystem";
+import { LoggerConfig } from "@config";
+import { lastModifiedFilePath } from "@utils/filesystem";
 
 const loggerConfig = config.get<LoggerConfig>("logger");
 const datePattern = "YYYY-MM-DD";

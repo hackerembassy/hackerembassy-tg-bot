@@ -2,7 +2,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 
-import fundsRepository from "../repositories/fundsRepository";
+import fundsRepository from "@repositories/fundsRepository";
 
 async function exportDonations() {
     console.log("Extracting funds with donations");

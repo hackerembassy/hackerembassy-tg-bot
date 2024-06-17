@@ -1,6 +1,6 @@
 import config from "config";
 
-import { GithubConfig } from "../config/schema";
+import { GithubConfig } from "@config";
 
 const githubConfig = config.get<GithubConfig>("github");
 

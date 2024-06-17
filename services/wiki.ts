@@ -1,6 +1,6 @@
 import config from "config";
 
-import { WikiConfig } from "../config/schema";
+import { WikiConfig } from "@config";
 
 const wikiConfig = config.get<WikiConfig>("wiki");
 

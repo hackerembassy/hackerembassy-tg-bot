@@ -1,18 +1,18 @@
+import path from "node:path";
+import { promises as fs } from "fs";
+
 import config from "config";
 
-import { CamConfig, EmbassyApiConfig } from "../config/schema";
-import { getBufferFromResponse } from "../utils/network";
+import { CamConfig, EmbassyApiConfig } from "@config";
+import { getBufferFromResponse } from "@utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const climateConfig = embassyApiConfig.climate;
 const alarmConfig = embassyApiConfig.alarm;
 
-import path from "node:path";
+import { downloadTmpFile } from "@utils/filesystem";
+import { convertMedia } from "@utils/media";
 
-import { promises as fs } from "fs";
-
-import { downloadTmpFile } from "../utils/filesystem";
-import { convertMedia } from "../utils/media";
 import { EmbassyBaseIP } from "./embassy";
 
 // Types

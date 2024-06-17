@@ -1,5 +1,6 @@
-import Subscription, { SubscriptionExtended } from "../models/Subscription";
-import Topic from "../models/Topic";
+import Subscription, { SubscriptionExtended } from "@models/Subscription";
+import Topic from "@models/Topic";
+
 import BaseRepository from "./baseRepository";
 
 class SubscriptionsRepository extends BaseRepository {

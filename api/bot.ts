@@ -1,15 +1,17 @@
+import fs from "fs";
+import path from "path";
+
 import config from "config";
 import cors from "cors";
 import express from "express";
-import fs from "fs";
-import path from "path";
 import swaggerUi from "swagger-ui-express";
 
+import { BotApiConfig } from "@config";
+import logger from "@services/logger";
+import { catErrorPage } from "@utils/meme";
+import { createErrorMiddleware } from "@utils/middleware";
+
 import bot from "../bot/instance";
-import { BotApiConfig } from "../config/schema";
-import logger from "../services/logger";
-import { catErrorPage } from "../utils/meme";
-import { createErrorMiddleware } from "../utils/middleware";
 import apiRouter from "./routers/api";
 import textRouter from "./routers/text";
 

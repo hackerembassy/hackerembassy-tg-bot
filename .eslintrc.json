@@ -6,10 +6,18 @@
     },
     "extends": [
         "eslint:recommended",
+        "plugin:import/typescript",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended-type-checked"
       ],
-    "plugins": ["prettier", "simple-import-sort", "@typescript-eslint"],
+    "settings": {
+        "import/resolver": {
+            "typescript": true,
+            "node": true
+        }
+    },
+    "ignorePatterns": ["dist/", "node_modules/", "coverage/"],
+    "plugins": ["prettier", "@typescript-eslint", "import"],
     "parserOptions": {
         "project": true,
         "ecmaVersion": "latest",
@@ -18,8 +26,6 @@
     },
     "rules": {
         "prettier/prettier": ["warn"],
-        "simple-import-sort/imports": "error",
-        "simple-import-sort/exports": "error",
         "@typescript-eslint/no-unnecessary-condition": "error",
         "@typescript-eslint/no-unsafe-argument": "warn",
         "@typescript-eslint/no-unsafe-assignment": "warn",
@@ -40,6 +46,31 @@
         "no-var":"error",
         "prefer-const":"error",
         "no-console":"warn",
-        "no-unexpected-multiline": "warn"
+        "no-unexpected-multiline": "warn",
+        "import/order": [
+            "error",
+            {
+                "groups": [
+                    "builtin",
+                    "external", 
+                    "internal", 
+                    [
+                        "parent",
+                        "sibling", 
+                        "index", 
+                        "object" 
+                    ]
+                ],
+                "pathGroups": [
+                    {
+                        "pattern": "^@.+",
+                        "group": "internal",
+                        "position": "after"
+                    }
+                ],
+                "newlines-between": "always-and-inside-groups",
+                "alphabetize": {"order": "ignore", "caseInsensitive": true}
+            }
+        ]
     }
 }

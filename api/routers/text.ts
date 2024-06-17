@@ -1,14 +1,15 @@
 import { Router } from "express";
 
+import FundsRepository from "@repositories/fundsRepository";
+import StatusRepository from "@repositories/statusRepository";
+import UsersRepository from "@repositories/usersRepository";
+import { requestToEmbassy } from "@services/embassy";
+import { getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
+import { SpaceClimate } from "@services/hass";
+import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/statusHelper";
+import { stripCustomMarkup } from "@utils/text";
+
 import * as TextGenerators from "../../bot/textGenerators";
-import FundsRepository from "../../repositories/fundsRepository";
-import StatusRepository from "../../repositories/statusRepository";
-import UsersRepository from "../../repositories/usersRepository";
-import { requestToEmbassy } from "../../services/embassy";
-import { getClosestEventsFromCalendar, getTodayEvents } from "../../services/googleCalendar";
-import { SpaceClimate } from "../../services/hass";
-import { filterPeopleGoing, filterPeopleInside, UserStateService } from "../../services/statusHelper";
-import { stripCustomMarkup } from "../../utils/text";
 
 const router = Router();
 

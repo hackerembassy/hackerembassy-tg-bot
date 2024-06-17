@@ -1,6 +1,7 @@
 import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
-import NeedsRepository from "../../repositories/needsRepository";
+import NeedsRepository from "@repositories/needsRepository";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";

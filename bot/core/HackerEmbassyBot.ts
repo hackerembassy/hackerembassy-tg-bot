@@ -1,6 +1,9 @@
-import config from "config";
 import { promises as fs } from "fs";
+import { EventEmitter, Stream } from "stream";
+
+import config from "config";
 import { t } from "i18next";
+
 import {
     CallbackQuery,
     ChatId,
@@ -14,14 +17,15 @@ import {
     ReplyKeyboardMarkup,
     SendMessageOptions,
 } from "node-telegram-bot-api";
-import { EventEmitter, Stream } from "stream";
+
 import { file } from "tmp-promise";
 
-import { BotConfig } from "../../config/schema";
-import User from "../../models/User";
-import UsersRepository from "../../repositories/usersRepository";
-import logger from "../../services/logger";
-import { chunkSubstr, OptionalRegExp } from "../../utils/text";
+import { BotConfig } from "@config";
+import User from "@models/User";
+import UsersRepository from "@repositories/usersRepository";
+import logger from "@services/logger";
+import { chunkSubstr, OptionalRegExp } from "@utils/text";
+
 import { hasRole, hasUserRole, isMember, prepareMessageForMarkdown } from "../helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";

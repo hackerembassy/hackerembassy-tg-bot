@@ -1,17 +1,17 @@
 import config from "config";
 
-import { PrintersConfig } from "../config/schema";
-import Donation, { FundDonation } from "../models/Donation";
-import Fund from "../models/Fund";
-import Need from "../models/Need";
-import Topic from "../models/Topic";
-import User, { AutoInsideMode } from "../models/User";
-import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
-import usersRepository from "../repositories/usersRepository";
-import { Coins, formatValueForCurrency, sumDonations } from "../services/currency";
-import { HSEvent } from "../services/googleCalendar";
-import { SpaceClimate } from "../services/hass";
-import { PrinterStatus } from "../services/printer3d";
+import { PrintersConfig } from "@config";
+import Donation, { FundDonation } from "@models/Donation";
+import Fund from "@models/Fund";
+import Need from "@models/Need";
+import Topic from "@models/Topic";
+import User, { AutoInsideMode } from "@models/User";
+import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
+import usersRepository from "@repositories/usersRepository";
+import { Coins, formatValueForCurrency, sumDonations } from "@services/currency";
+import { HSEvent } from "@services/googleCalendar";
+import { SpaceClimate } from "@services/hass";
+import { PrinterStatus } from "@services/printer3d";
 import {
     convertMinutesToHours,
     DateBoundary,
@@ -20,8 +20,9 @@ import {
     onlyDateOptions,
     onlyTimeOptions,
     shortDateTimeOptions,
-} from "../utils/date";
-import { REPLACE_MARKER } from "../utils/text";
+} from "@utils/date";
+import { REPLACE_MARKER } from "@utils/text";
+
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
 import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "./helpers";

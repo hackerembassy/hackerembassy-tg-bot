@@ -1,15 +1,17 @@
 // TODO add type checking to request bodies and remove disables below
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { promises as fs } from "fs";
+import path from "path";
+
 import config from "config";
 import cors from "cors";
 import express from "express";
-import { promises as fs } from "fs";
+
 import { default as fetch } from "node-fetch";
 import { NodeSSH } from "node-ssh";
-import path from "path";
 
-import { CamConfig, EmbassyApiConfig } from "../config/schema";
+import { CamConfig, EmbassyApiConfig } from "@config";
 import {
     alarm,
     conditioner,
@@ -20,15 +22,15 @@ import {
     ringDoorbell,
     sayInSpace,
     stopMediaInSpace,
-} from "../services/hass";
-import logger from "../services/logger";
-import { stableDiffusion } from "../services/neural";
-import printer3d from "../services/printer3d";
-import { sleep } from "../utils/common";
-import { catErrorPage } from "../utils/meme";
-import { createErrorMiddleware } from "../utils/middleware";
-import { mqttSendOnce, NeworkDevicesLocator, ping, wakeOnLan } from "../utils/network";
-import { decrypt } from "../utils/security";
+} from "@services/hass";
+import logger from "@services/logger";
+import { stableDiffusion } from "@services/neural";
+import printer3d from "@services/printer3d";
+import { sleep } from "@utils/common";
+import { catErrorPage } from "@utils/meme";
+import { createErrorMiddleware } from "@utils/middleware";
+import { mqttSendOnce, NeworkDevicesLocator, ping, wakeOnLan } from "@utils/network";
+import { decrypt } from "@utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const port = embassyApiConfig.service.port;

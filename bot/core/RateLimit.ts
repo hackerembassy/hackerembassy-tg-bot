@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import config from "config";
 
-import { BotConfig } from "../../config/schema";
-import { sleep } from "../../utils/common";
+import { BotConfig } from "@config";
+import { sleep } from "@utils/common";
 
 const botConfig = config.get<BotConfig>("bot");
 

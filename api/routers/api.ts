@@ -1,22 +1,24 @@
 import { Router } from "express";
-const app = Router();
-import StatusHandlers from "../../bot/handlers/status";
-import State from "../../models/State";
-import UserState from "../../models/UserState";
-import FundsRepository from "../../repositories/fundsRepository";
-import StatusRepository from "../../repositories/statusRepository";
-import { getDonationsSummary } from "../../services/export";
-import logger from "../../services/logger";
+
+import State from "@models/State";
+import UserState from "@models/UserState";
+import FundsRepository from "@repositories/fundsRepository";
+import StatusRepository from "@repositories/statusRepository";
+import { getDonationsSummary } from "@services/export";
+import logger from "@services/logger";
 import {
     filterAllPeopleInside,
     filterPeopleGoing,
     filterPeopleInside,
     SpaceStateService,
     UserStateService,
-} from "../../services/statusHelper";
-import wiki from "../../services/wiki";
-import { createTokenSecuredMiddleware } from "../../utils/middleware";
-import router from "./text";
+} from "@services/statusHelper";
+import wiki from "@services/wiki";
+import { createTokenSecuredMiddleware } from "@utils/middleware";
+
+import StatusHandlers from "../../bot/handlers/status";
+
+const router = Router();
 
 const hassTokenRequired = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
 const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
@@ -79,14 +81,14 @@ const createSpaceApiResponse = (status: Nullable<State>, inside: UserState[]) =>
     ],
 });
 
-app.get("/space", (_, res) => {
+router.get("/space", (_, res) => {
     const status = StatusRepository.getSpaceLastState();
     const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
 
     res.json(createSpaceApiResponse(status, inside));
 });
 
-app.get("/status", hassTokenOptional, (req, res) => {
+router.get("/status", hassTokenOptional, (req, res) => {
     const status = StatusRepository.getSpaceLastState();
 
     if (!status) {
@@ -120,13 +122,13 @@ app.get("/status", hassTokenOptional, (req, res) => {
     });
 });
 
-app.get("/inside", hassTokenOptional, (req, res) => {
+router.get("/inside", hassTokenOptional, (req, res) => {
     const inside = UserStateService.getRecentUserStates().filter(req.authenticated ? filterAllPeopleInside : filterPeopleInside);
     res.json(inside);
 });
 
 // Legacy HASS api
-app.get("/insidecount", hassTokenOptional, (req, res) => {
+router.get("/insidecount", hassTokenOptional, (req, res) => {
     try {
         const inside = UserStateService.getRecentUserStates().filter(
             req.authenticated ? filterAllPeopleInside : filterPeopleInside
@@ -137,7 +139,7 @@ app.get("/insidecount", hassTokenOptional, (req, res) => {
     }
 });
 
-app.post("/setgoing", guestTokenRequired, (req, res) => {
+router.post("/setgoing", guestTokenRequired, (req, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -163,7 +165,7 @@ app.post("/setgoing", guestTokenRequired, (req, res) => {
     }
 });
 
-app.post("/open", hassTokenRequired, (_, res) => {
+router.post("/open", hassTokenRequired, (_, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -178,7 +180,7 @@ app.post("/open", hassTokenRequired, (_, res) => {
     return res.send({ message: "Success" });
 });
 
-app.post("/close", hassTokenRequired, (_, res) => {
+router.post("/close", hassTokenRequired, (_, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -194,7 +196,7 @@ app.post("/close", hassTokenRequired, (_, res) => {
     return res.send({ message: "Success" });
 });
 
-app.get("/donations", async (req, res) => {
+router.get("/donations", async (req, res) => {
     /*  #swagger.parameters['fund'] = {
                 in: 'query',
                 description: 'Fund name to show donations for. By default shows the latest fund for costs',
@@ -217,7 +219,7 @@ app.get("/donations", async (req, res) => {
     return res.json(await getDonationsSummary(fund, limit));
 });
 
-app.get("/wiki/list", async (req, res, next) => {
+router.get("/wiki/list", async (req, res, next) => {
     try {
         const lang = req.query.lang as string | undefined;
         const list = await wiki.listPages(lang);
@@ -228,7 +230,7 @@ app.get("/wiki/list", async (req, res, next) => {
     }
 });
 
-app.get("/wiki/tree", async (req, res, next) => {
+router.get("/wiki/tree", async (req, res, next) => {
     try {
         const lang = req.query.lang as string | undefined;
         const list = await wiki.listPagesAsTree(lang);
@@ -239,7 +241,7 @@ app.get("/wiki/tree", async (req, res, next) => {
     }
 });
 
-app.get("/wiki/page/:id", async (req, res, next) => {
+router.get("/wiki/page/:id", async (req, res, next) => {
     try {
         if (!req.params.id) {
             res.status(400).send({ error: "Missing page id" });

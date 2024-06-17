@@ -1,7 +1,7 @@
 import config from "config";
 import { Blob, default as fetch } from "node-fetch";
 
-import { PrintersConfig } from "../config/schema";
+import { PrintersConfig } from "@config";
 
 export type TemperatureStatus = {
     temperature: number;

@@ -1,20 +1,21 @@
 import config from "config";
+
 import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
-import { BotConfig, EmbassyApiConfig } from "../../config/schema";
-import State from "../../models/State";
-import { AutoInsideMode } from "../../models/User";
-import UserState, { UserStateChangeType, UserStateType } from "../../models/UserState";
-import fundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
-import StatusRepository from "../../repositories/statusRepository";
-import UsersRepository from "../../repositories/usersRepository";
-import { sumDonations } from "../../services/currency";
-import { requestToEmbassy } from "../../services/embassy";
-import { createUserStatsDonut } from "../../services/export";
-import * as ExportHelper from "../../services/export";
-import { SpaceClimate } from "../../services/hass";
-import logger from "../../services/logger";
-import { openAI } from "../../services/neural";
+import { BotConfig, EmbassyApiConfig } from "@config";
+import State from "@models/State";
+import { AutoInsideMode } from "@models/User";
+import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
+import fundsRepository, { COSTS_PREFIX } from "@repositories/fundsRepository";
+import StatusRepository from "@repositories/statusRepository";
+import UsersRepository from "@repositories/usersRepository";
+import { sumDonations } from "@services/currency";
+import { requestToEmbassy } from "@services/embassy";
+import { createUserStatsDonut } from "@services/export";
+import * as ExportHelper from "@services/export";
+import { SpaceClimate } from "@services/hass";
+import logger from "@services/logger";
+import { openAI } from "@services/neural";
 import {
     filterAllPeopleInside,
     filterPeopleGoing,
@@ -22,10 +23,11 @@ import {
     isMacInside,
     SpaceStateService,
     UserStateService,
-} from "../../services/statusHelper";
-import { sleep } from "../../utils/common";
-import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "../../utils/date";
-import { isEmoji, REPLACE_MARKER } from "../../utils/text";
+} from "@services/statusHelper";
+import { sleep } from "@utils/common";
+import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
+import { isEmoji, REPLACE_MARKER } from "@utils/text";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
 import t, { SupportedLanguage } from "../core/localization";

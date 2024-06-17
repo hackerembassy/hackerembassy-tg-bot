@@ -1,5 +1,6 @@
+import fundsRepository from "@repositories/fundsRepository";
+
 import { IGNORE_UPDATE_TIMEOUT } from "../../bot/core/constants";
-import fundsRepository from "../../repositories/fundsRepository";
 import { ADMIN_USER, GUEST_USER, prepareDb } from "../dbSetup";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
 import { createMockBot, createMockMessage } from "../mocks/mockHelpers";

@@ -1,9 +1,10 @@
 import { Message } from "node-telegram-bot-api";
 
-import { SubscriptionExtended } from "../../models/Subscription";
-import Topic from "../../models/Topic";
-import subscriptionsRepository from "../../repositories/subscriptionsRepository";
-import logger from "../../services/logger";
+import { SubscriptionExtended } from "@models/Subscription";
+import Topic from "@models/Topic";
+import subscriptionsRepository from "@repositories/subscriptionsRepository";
+import logger from "@services/logger";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";

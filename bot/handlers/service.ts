@@ -1,11 +1,13 @@
 import config from "config";
+
 import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
-import { BotConfig } from "../../config/schema";
-import UsersRepository from "../../repositories/usersRepository";
-import logger from "../../services/logger";
-import { openAI } from "../../services/neural";
-import { sleep } from "../../utils/common";
+import { BotConfig } from "@config";
+import UsersRepository from "@repositories/usersRepository";
+import logger from "@services/logger";
+import { openAI } from "@services/neural";
+import { sleep } from "@utils/common";
+
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";

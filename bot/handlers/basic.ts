@@ -1,14 +1,16 @@
 import config from "config";
+
 import { Message } from "node-telegram-bot-api";
 
-import { BotConfig } from "../../config/schema";
-import UsersRepository from "../../repositories/usersRepository";
+import { BotConfig } from "@config";
+import UsersRepository from "@repositories/usersRepository";
+import { getCoinDefinition, getCoinQR } from "@services/currency";
+import * as GitHub from "@services/github";
+import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
+import logger from "@services/logger";
+import { cropStringAtSpace } from "@utils/text";
+
 import * as Commands from "../../resources/commands";
-import { getCoinDefinition, getCoinQR } from "../../services/currency";
-import * as GitHub from "../../services/github";
-import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "../../services/googleCalendar";
-import logger from "../../services/logger";
-import { cropStringAtSpace } from "../../utils/text";
 import { MAX_MESSAGE_LENGTH } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/InlineButtons";

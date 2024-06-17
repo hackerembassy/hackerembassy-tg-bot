@@ -1,13 +1,14 @@
 import { Message } from "node-telegram-bot-api";
 
-import FundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
-import UsersRepository from "../../repositories/usersRepository";
-import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "../../services/currency";
-import * as ExportHelper from "../../services/export";
-import logger from "../../services/logger";
-import { getToday } from "../../utils/date";
-import { getImageFromPath } from "../../utils/filesystem";
-import { equalsIns } from "../../utils/text";
+import FundsRepository, { COSTS_PREFIX } from "@repositories/fundsRepository";
+import UsersRepository from "@repositories/usersRepository";
+import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "@services/currency";
+import * as ExportHelper from "@services/export";
+import logger from "@services/logger";
+import { getToday } from "@utils/date";
+import { getImageFromPath } from "@utils/filesystem";
+import { equalsIns } from "@utils/text";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";

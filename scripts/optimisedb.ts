@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-import UserState from "../models/UserState";
-import statusRepository from "../repositories/statusRepository";
+import UserState from "@models/UserState";
+import statusRepository from "@repositories/statusRepository";
 
 function removeUserStateDuplicates() {
     const allUserStates = statusRepository.getAllUserStates();
-    if (!allUserStates) {
+    if (allUserStates.length === 0) {
         console.log("No user states found");
         return;
     }

@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import config from "config";
-import CryptoConvert from "crypto-convert";
-import { Convert } from "easy-currencies";
 import { promises as fs } from "fs";
 import path from "path";
 
-import { CurrencyConfig } from "../config/schema";
+import config from "config";
+import CryptoConvert from "crypto-convert";
+import { Convert } from "easy-currencies";
+
+import { CurrencyConfig } from "@config";
+
 import logger from "./logger";
 
 export type CoinDefinition = {

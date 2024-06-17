@@ -97,6 +97,8 @@ const MediatorCurrency = "USD";
 const currencyConfig = config.get<CurrencyConfig>("currency");
 const QRBaseFolder = "../resources/coins/qr";
 
+export const DefaultCurrency = currencyConfig.default;
+
 export function formatValueForCurrency(value: number, currency: string): number {
     const fraction = CurrencyFractionDigits.find(fd => fd.currency === currency)?.fraction ?? 4;
     return Number(value.toFixed(fraction));
@@ -153,7 +155,7 @@ export async function initConvert() {
 export async function convertCurrency(
     amount: number,
     from: string | number,
-    to: string = currencyConfig.default
+    to: string = DefaultCurrency
 ): Promise<Optional<number>> {
     try {
         if (from === to) return amount;
@@ -181,7 +183,10 @@ export async function convertCurrency(
     }
 }
 
-export async function sumDonations(fundDonations: { value: number; currency: string }[], targetCurrency: string = "AMD") {
+export async function sumDonations(
+    fundDonations: { value: number; currency: string }[],
+    targetCurrency: string = DefaultCurrency
+) {
     return await fundDonations.reduce(async (prev, current) => {
         const newValue = await convertCurrency(current.value, current.currency, targetCurrency);
         const prevValue = await prev;

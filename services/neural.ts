@@ -108,7 +108,7 @@ class StableDiffusion {
         this.defaultDenoising = neuralConfig.stableDiffusion.denoising ?? 0.57;
     }
 
-    async img2image(prompt: string, negative_prompt: string = "", image: string) {
+    async img2image(prompt: string = "", negative_prompt: string = "", image: string) {
         const raw = JSON.stringify({
             prompt,
             negative_prompt: `${this.nsfw} ${negative_prompt}`,

@@ -30,6 +30,6 @@ const doc = {
 };
 
 const outputFile = "./swagger-schema.json";
-const routes = ["./api/bot.ts"];
+const routes = ["./api/bot/index.ts"];
 
 swaggerAutogen({ openapi: "3.0.0" })(outputFile, routes, doc);

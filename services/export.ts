@@ -8,7 +8,7 @@ import { compareMonthNames } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
 
-import { convertCurrency, formatValueForCurrency } from "./currency";
+import { DefaultCurrency, convertCurrency, formatValueForCurrency } from "./currency";
 
 interface SimplifiedDonation {
     username: string;
@@ -141,7 +141,7 @@ export async function exportDonationsToLineChart(donations: FundDonation[], titl
         uniqueData.push({ label: username, data: userData });
     }
 
-    const chart = createLines(uniqueMonthLabels, uniqueData, title, { height: 900, width: 1400 }, { y: "AMD" });
+    const chart = createLines(uniqueMonthLabels, uniqueData, title, { height: 900, width: 1400 }, { y: DefaultCurrency });
 
     return await chart.toBinary();
 }

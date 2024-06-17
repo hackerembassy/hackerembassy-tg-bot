@@ -2,15 +2,15 @@ import config from "config";
 
 import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
-import { BotConfig, EmbassyApiConfig } from "@config";
+import { BotConfig } from "@config";
 import State from "@models/State";
 import { AutoInsideMode } from "@models/User";
 import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
 import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 import fundsRepository, { COSTS_PREFIX } from "@repositories/funds";
-import { sumDonations } from "@services/currency";
-import { requestToEmbassy } from "@services/embassy";
+import { DefaultCurrency, sumDonations } from "@services/currency";
+import { fetchDevicesInside, requestToEmbassy } from "@services/embassy";
 import { createUserStatsDonut } from "@services/export";
 import * as ExportHelper from "@services/export";
 import { SpaceClimate } from "@services/hass";
@@ -35,7 +35,6 @@ import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/type
 import * as helpers from "../helpers";
 import * as TextGenerators from "../textGenerators";
 
-const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
 const statsStartDateString = "2023-01-01";
 
@@ -585,12 +584,7 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinout(bot: HackerEmbassyBot, isIn: boolean): Promise<void> {
         try {
-            const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
-
-            if (!response.ok) throw Error("Failed to get devices inside");
-
-            const devices = (await response.json()) as string[];
-
+            const devices = await fetchDevicesInside();
             const autousers = UsersRepository.getAutoinsideUsers();
             const insideUserStates = UserStateService.getRecentUserStates().filter(filterAllPeopleInside);
             const insideUserStatesMap = new Map(insideUserStates.map(u => [u.username, u]));
@@ -661,7 +655,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
             total: totalDonated.toFixed(2),
-            currency: "AMD",
+            currency: DefaultCurrency,
         })}`;
 
         await bot.sendLongMessage(msg.chat.id, message, msg);

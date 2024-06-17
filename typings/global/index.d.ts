@@ -11,6 +11,8 @@ declare global {
             authenticated?: boolean;
         }
     }
+
+    type RequestWithBody<T> = import("express").Request<import("express-serve-static-core").ParamsDictionary, any, T, any>;
 }
 
 export {};

@@ -9,9 +9,9 @@ import fundsRepository from "@repositories/funds";
 import broadcast, { BroadcastEvents } from "@services/broadcast";
 import { EmbassyBaseIP, requestToEmbassy } from "@services/embassy";
 import { getDonationsSummary } from "@services/export";
-import { ConditionerMode, ConditionerStatus, SpaceClimate } from "@services/hass";
+import { AvailableConditioner, ConditionerActions, ConditionerMode, ConditionerStatus, SpaceClimate } from "@services/hass";
 import logger from "@services/logger";
-import { PrinterStatusResponse } from "@services/printer3d";
+import { PrinterStatusResult } from "@services/printer3d";
 import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services/statusHelper";
 import { sleep } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
@@ -86,7 +86,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             const camNames = Object.keys(embassyApiConfig.cams);
-            const camResponses = await Promise.allSettled(camNames.map(name => requestToEmbassy(`/webcam/${name}`)));
+            const camResponses = await Promise.allSettled(camNames.map(name => requestToEmbassy(`/cameras/${name}`)));
 
             const images: ArrayBuffer[] = await Promise.all(
                 filterFulfilled(camResponses)
@@ -104,7 +104,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async getWebcamImage(camName: string) {
-        const response = await (await requestToEmbassy(`/webcam/${camName}`)).arrayBuffer();
+        const response = await (await requestToEmbassy(`/cameras/${camName}`)).arrayBuffer();
 
         return Buffer.from(response);
     }
@@ -232,11 +232,11 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/printer/${printername}`);
+            const response = await requestToEmbassy(`/printers/${printername}`);
 
             if (!response.ok) throw Error();
 
-            const { status, thumbnailBuffer, cam } = (await response.json()) as PrinterStatusResponse;
+            const { status, thumbnailBuffer, cam } = (await response.json()) as PrinterStatusResult;
 
             if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
 
@@ -278,7 +278,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/device/${deviceName}/wake`, "POST");
+            const response = await requestToEmbassy(`/devices/${deviceName}/wake`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -324,7 +324,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/device/${deviceName}/shutdown`, "POST");
+            const response = await requestToEmbassy(`/devices/${deviceName}/shutdown`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -340,7 +340,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/device/${deviceName}/ping`, "POST");
+            const response = await requestToEmbassy(`/devices/${deviceName}/ping`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -524,7 +524,7 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async conditionerHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async conditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
 
         let text = t("embassy.conditioner.unavailable");
@@ -610,7 +610,7 @@ export default class EmbassyHandlers implements BotHandlers {
         ];
 
         try {
-            const response = await requestToEmbassy(`/conditioner/state`);
+            const response = await requestToEmbassy(`/climate/conditioners/${name}/${ConditionerActions.STATE}`);
 
             if (!response.ok) throw Error();
 
@@ -634,44 +634,61 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
-        await EmbassyHandlers.controlConditioner(bot, msg, `/conditioner/power/${enabled ? "on" : "off"}`, null);
+    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, enabled: boolean) {
+        await EmbassyHandlers.controlConditioner(
+            bot,
+            msg,
+            name,
+            enabled ? ConditionerActions.POWER_ON : ConditionerActions.POWER_OFF,
+            null
+        );
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
-    static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, diff: number) {
+    static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, diff: number) {
         if (isNaN(diff)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/temperature", { diff });
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { diff });
 
         if (bot.context(msg).isButtonResponse) {
             await sleep(5000); // Updating the temperature is slow on Midea
-            await EmbassyHandlers.conditionerHandler(bot, msg);
+            await EmbassyHandlers.conditionerHandler(bot, msg, name);
         }
     }
 
-    static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
+    static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, temperature: number) {
         if (isNaN(temperature)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/temperature", { temperature });
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
     }
 
-    static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/mode", { mode });
+    static async setConditionerModeHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        name: AvailableConditioner,
+        mode: ConditionerMode
+    ) {
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.MODE, { mode });
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
-    static async preheatHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/preheat", {});
+    static async preheatHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.PREHEAT, {});
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
-    static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {
+    static async controlConditioner(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        name: AvailableConditioner,
+        action: ConditionerActions,
+        body: any
+    ) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(endpoint, "POST", body);
+            const response = await requestToEmbassy(`/climate/conditioners/${name}/${action}`, "POST", body);
 
             if (!response.ok) throw Error();
 
@@ -707,7 +724,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 cleanup();
             }
 
-            const response = await requestToEmbassy(photoId ? "/sd/img2img" : "/sd/txt2img", "POST", requestBody);
+            const response = await requestToEmbassy(photoId ? "/neural/sd/img2img" : "/neural/sd/txt2img", "POST", requestBody);
 
             if (response.ok) {
                 const body = (await response.json()) as { image: string };

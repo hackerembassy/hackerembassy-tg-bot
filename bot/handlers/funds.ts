@@ -2,7 +2,14 @@ import { Message } from "node-telegram-bot-api";
 
 import UsersRepository from "@repositories/users";
 import FundsRepository, { COSTS_PREFIX } from "@repositories/funds";
-import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "@services/currency";
+import {
+    convertCurrency,
+    DefaultCurrency,
+    initConvert,
+    parseMoneyValue,
+    prepareCurrency,
+    sumDonations,
+} from "@services/currency";
 import * as ExportHelper from "@services/export";
 import logger from "@services/logger";
 import { getToday } from "@utils/date";
@@ -220,9 +227,9 @@ export default class FundsHandlers implements BotHandlers {
         try {
             if (!success) throw new Error("Failed to add donation");
 
-            const valueInAMD = await convertCurrency(value, preparedCurrency, "AMD");
+            const valueInDefaultCurrency = await convertCurrency(value, preparedCurrency, DefaultCurrency);
 
-            if (!valueInAMD) throw new Error("Failed to convert currency");
+            if (!valueInDefaultCurrency) throw new Error("Failed to convert currency");
 
             let animeImage: Nullable<Buffer> = null;
 
@@ -230,7 +237,15 @@ export default class FundsHandlers implements BotHandlers {
                 animeImage = await getImageFromPath(`./resources/images/memes/comedy.jpg`);
             } else {
                 const happinessLevel =
-                    valueInAMD < 10000 ? 1 : valueInAMD < 20000 ? 2 : valueInAMD < 40000 ? 3 : valueInAMD < 80000 ? 4 : 5; // lol
+                    valueInDefaultCurrency < 10000
+                        ? 1
+                        : valueInDefaultCurrency < 20000
+                          ? 2
+                          : valueInDefaultCurrency < 40000
+                            ? 3
+                            : valueInDefaultCurrency < 80000
+                              ? 4
+                              : 5; // lol
                 animeImage = await getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
             }
 
@@ -374,7 +389,7 @@ export default class FundsHandlers implements BotHandlers {
                       donationList,
                       username: formattedUsername,
                       total: totalDonated.toFixed(2),
-                      currency: "AMD",
+                      currency: DefaultCurrency,
                   })
                 : t("funds.debt.empty");
 

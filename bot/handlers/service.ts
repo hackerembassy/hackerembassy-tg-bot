@@ -6,7 +6,6 @@ import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
 import { openAI } from "@services/neural";
-import { sleep } from "@utils/common";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -241,15 +240,6 @@ export default class ServiceHandlers implements BotHandlers {
                 logger.error(error);
             }
         }
-    }
-
-    static async conditionerCallback(bot: HackerEmbassyBot, msg: Message, callback: () => Promise<void>) {
-        bot.context(msg).mode.silent = true;
-        bot.context(msg).isEditing = true;
-
-        await callback();
-        await sleep(5000);
-        await EmbassyHandlers.conditionerHandler(bot, msg);
     }
 
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {

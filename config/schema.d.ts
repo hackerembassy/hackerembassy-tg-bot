@@ -4,6 +4,7 @@ export interface Config {
     calendar: CalendarConfig;
     printers: PrintersConfig;
     embassyApi: EmbassyApiConfig;
+    neural: NeuralConfig;
     currency: CurrencyConfig;
     api: BotApiConfig;
     wiki: WikiConfig;
@@ -110,7 +111,7 @@ export interface DoorbellConfig {
 }
 
 export interface LedMatrixConfig {
-    textpath: "/api/services/script/send_to_display";
+    textpath: string;
 }
 
 export interface AlarmConfig {
@@ -169,7 +170,8 @@ export interface ClimateConfig {
 }
 
 export interface ConditionerConfig {
-    entityId: string;
+    downstairsId: string;
+    upstairsId: string;
     statePath: string;
     turnOnPath: string;
     turnOffPath: string;

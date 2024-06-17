@@ -1,5 +1,7 @@
 import { Router } from "express";
 
+import StatusHandlers from "@hackembot/handlers/status";
+
 import State from "@models/State";
 import UserState from "@models/UserState";
 import FundsRepository from "@repositories/funds";
@@ -16,8 +18,6 @@ import {
 } from "@services/statusHelper";
 import wiki from "@services/wiki";
 import { createTokenSecuredMiddleware } from "@utils/middleware";
-
-import StatusHandlers from "../../bot/handlers/status";
 
 const router = Router();
 

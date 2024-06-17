@@ -2,10 +2,10 @@ import "dotenv/config";
 
 import config from "config";
 
-import { BotConfig } from "@config";
+import { StartTelegramBot } from "@hackembot/instance";
+import { StartSpaceApi } from "@hackemapi/bot";
 
-import { StartSpaceApi } from "./api/bot";
-import { StartTelegramBot } from "./bot/instance";
+import { BotConfig } from "@config";
 
 process.env.TZ = config.get<BotConfig>("bot").timezone;
 

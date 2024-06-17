@@ -16,6 +16,8 @@
             "@models/*": ["models/*"],
             "@repositories/*": ["repositories/*"],
             "@config": ["config/schema"],
+            "@hackembot/*": ["bot/*"],
+            "@hackemapi/*": ["api/*"],
       }   
     },
     "include": ["./**/*"],

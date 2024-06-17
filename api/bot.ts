@@ -6,12 +6,13 @@ import cors from "cors";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 
+import bot from "@hackembot/instance";
+
 import { BotApiConfig } from "@config";
 import logger from "@services/logger";
 import { catErrorPage } from "@utils/meme";
 import { createErrorMiddleware } from "@utils/middleware";
 
-import bot from "../bot/instance";
 import apiRouter from "./routers/api";
 import textRouter from "./routers/text";
 

@@ -3,9 +3,9 @@ import { Stream } from "stream";
 
 import TelegramBot, { ChatId, Message, SendMessageOptions, SendPhotoOptions } from "node-telegram-bot-api";
 
-import { sleep } from "@utils/common";
+import HackerEmbassyBot from "@hackembot/core/HackerEmbassyBot";
 
-import HackerEmbassyBot from "../../bot/core/HackerEmbassyBot";
+import { sleep } from "@utils/common";
 
 export class HackerEmbassyBotMock extends HackerEmbassyBot {
     constructor(token: string, options: any) {

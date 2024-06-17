@@ -5,7 +5,7 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import UsersRepository from "@repositories/usersRepository";
+import UsersRepository from "@repositories/users";
 import { hasBirthdayToday, isToday, MINUTE } from "@utils/date";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";

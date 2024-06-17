@@ -2,7 +2,7 @@ import fs from "fs";
 
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 
-import UsersRepository from "@repositories/usersRepository";
+import UsersRepository from "@repositories/users";
 import { getLatestLogFilePath } from "@services/logger";
 
 import { StateFlags } from "../core/BotState";

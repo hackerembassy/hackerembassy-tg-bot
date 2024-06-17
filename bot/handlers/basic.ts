@@ -3,7 +3,7 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import UsersRepository from "@repositories/usersRepository";
+import UsersRepository from "@repositories/users";
 import { getCoinDefinition, getCoinQR } from "@services/currency";
 import * as GitHub from "@services/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";

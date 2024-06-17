@@ -1,7 +1,7 @@
 import State from "@models/State";
 import UserState, { UserStateType } from "@models/UserState";
 
-import BaseRepository from "./baseRepository";
+import BaseRepository from "./base";
 
 class StatusRepository extends BaseRepository {
     getSpaceLastState(): Nullable<State> {

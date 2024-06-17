@@ -22,7 +22,7 @@ import { file } from "tmp-promise";
 
 import { BotConfig } from "@config";
 import User from "@models/User";
-import UsersRepository from "@repositories/usersRepository";
+import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
 import { chunkSubstr, OptionalRegExp } from "@utils/text";
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import UserState from "@models/UserState";
-import statusRepository from "@repositories/statusRepository";
+import statusRepository from "@repositories/status";
 
 function removeUserStateDuplicates() {
     const allUserStates = statusRepository.getAllUserStates();

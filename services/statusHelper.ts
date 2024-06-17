@@ -1,6 +1,6 @@
 import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
-import statusRepository from "@repositories/statusRepository";
-import usersRepository from "@repositories/usersRepository";
+import statusRepository from "@repositories/status";
+import usersRepository from "@repositories/users";
 import { convertToElapsedObject, ElapsedTimeObject, isToday } from "@utils/date";
 import { anyItemIsInList, onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";

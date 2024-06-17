@@ -2,7 +2,7 @@ import { Message } from "node-telegram-bot-api";
 
 import { SubscriptionExtended } from "@models/Subscription";
 import Topic from "@models/Topic";
-import subscriptionsRepository from "@repositories/subscriptionsRepository";
+import subscriptionsRepository from "@repositories/subscriptions";
 import logger from "@services/logger";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";

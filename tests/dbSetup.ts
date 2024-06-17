@@ -16,7 +16,7 @@ export const GUEST_USER = {
 const DB_USERS = [ADMIN_USER, ACCOUNTANT_USER];
 
 export async function prepareDb() {
-    const usersRepository = (await import("@repositories/usersRepository")).default;
+    const usersRepository = (await import("@repositories/users")).default;
 
     DB_USERS.forEach(user => usersRepository.addUser(user.username, user.roles, user.userid));
 }

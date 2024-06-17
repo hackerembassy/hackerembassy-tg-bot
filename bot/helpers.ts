@@ -1,7 +1,7 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
 import User from "@models/User";
-import UsersRepository from "@repositories/usersRepository";
+import UsersRepository from "@repositories/users";
 
 import { BotRole, ITelegramUser } from "../bot/core/types";
 import { CommandsMap } from "../resources/commands";

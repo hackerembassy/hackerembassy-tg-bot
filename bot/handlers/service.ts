@@ -3,7 +3,7 @@ import config from "config";
 import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import UsersRepository from "@repositories/usersRepository";
+import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
 import { openAI } from "@services/neural";
 import { sleep } from "@utils/common";

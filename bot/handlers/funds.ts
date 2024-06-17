@@ -1,7 +1,7 @@
 import { Message } from "node-telegram-bot-api";
 
-import FundsRepository, { COSTS_PREFIX } from "@repositories/fundsRepository";
-import UsersRepository from "@repositories/usersRepository";
+import UsersRepository from "@repositories/users";
+import FundsRepository, { COSTS_PREFIX } from "@repositories/funds";
 import { convertCurrency, initConvert, parseMoneyValue, prepareCurrency, sumDonations } from "@services/currency";
 import * as ExportHelper from "@services/export";
 import logger from "@services/logger";

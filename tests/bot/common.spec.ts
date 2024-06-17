@@ -1,4 +1,4 @@
-import fundsRepository from "@repositories/fundsRepository";
+import fundsRepository from "@repositories/funds";
 
 import { IGNORE_UPDATE_TIMEOUT } from "../../bot/core/constants";
 import { ADMIN_USER, GUEST_USER, prepareDb } from "../dbSetup";

@@ -3,7 +3,7 @@ import { ChatId } from "node-telegram-bot-api";
 import User, { AutoInsideMode } from "@models/User";
 import { anyItemIsInList } from "@utils/filters";
 
-import BaseRepository from "./baseRepository";
+import BaseRepository from "./base";
 
 class UserRepository extends BaseRepository {
     getUsers(): User[] {

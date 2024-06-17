@@ -4,8 +4,8 @@ import { PingResponse } from "ping";
 import { dir } from "tmp-promise";
 
 import { BotConfig, EmbassyApiConfig } from "@config";
-import fundsRepository from "@repositories/fundsRepository";
-import usersRepository from "@repositories/usersRepository";
+import usersRepository from "@repositories/users";
+import fundsRepository from "@repositories/funds";
 import broadcast, { BroadcastEvents } from "@services/broadcast";
 import { EmbassyBaseIP, requestToEmbassy } from "@services/embassy";
 import { getDonationsSummary } from "@services/export";

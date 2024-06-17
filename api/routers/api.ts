@@ -2,8 +2,9 @@ import { Router } from "express";
 
 import State from "@models/State";
 import UserState from "@models/UserState";
-import FundsRepository from "@repositories/fundsRepository";
-import StatusRepository from "@repositories/statusRepository";
+import FundsRepository from "@repositories/funds";
+import StatusRepository from "@repositories/status";
+
 import { getDonationsSummary } from "@services/export";
 import logger from "@services/logger";
 import {

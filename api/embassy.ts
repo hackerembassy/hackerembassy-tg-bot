@@ -40,7 +40,7 @@ app.use(express.json());
 app.use(express.static(staticPath));
 app.use(createErrorMiddleware(logger));
 
-app.get("/speaker/sounds", async (req, res, next) => {
+app.get("/speaker/sounds", async (_, res, next) => {
     try {
         const availableFiles = await fs.readdir(staticPath);
         res.send({

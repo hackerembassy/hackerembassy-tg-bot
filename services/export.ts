@@ -5,10 +5,10 @@ import ChartJsImage from "chartjs-to-image";
 import Donation, { FundDonation } from "../models/Donation";
 import Fund from "../models/Fund";
 import FundsRepository from "../repositories/fundsRepository";
-import { onlyUniqueInsFilter } from "../utils/common";
-import { convertCurrency, formatValueForCurrency } from "../utils/currency";
 import { compareMonthNames } from "../utils/date";
+import { onlyUniqueInsFilter } from "../utils/filters";
 import { equalsIns } from "../utils/text";
+import { convertCurrency, formatValueForCurrency } from "./currency";
 
 interface SimplifiedDonation {
     username: string;

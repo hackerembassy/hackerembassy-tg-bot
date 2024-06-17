@@ -5,18 +5,17 @@ import { dir } from "tmp-promise";
 
 import { BotConfig, EmbassyApiConfig } from "../../config/schema";
 import fundsRepository from "../../repositories/fundsRepository";
-import statusRepository from "../../repositories/statusRepository";
 import usersRepository from "../../repositories/usersRepository";
+import broadcast, { BroadcastEvents } from "../../services/broadcast";
 import { EmbassyBaseIP, requestToEmbassy } from "../../services/embassy";
 import { getDonationsSummary } from "../../services/export";
 import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/hass";
 import logger from "../../services/logger";
 import { PrinterStatusResponse } from "../../services/printer3d";
-import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../services/statusHelper";
-import broadcast, { BroadcastEvents } from "../../utils/broadcast";
+import { filterPeopleInside, hasDeviceInside, UserStateService } from "../../services/statusHelper";
 import { sleep } from "../../utils/common";
 import { readFileAsBase64 } from "../../utils/filesystem";
-import { filterFulfilled } from "../../utils/network";
+import { filterFulfilled } from "../../utils/filters";
 import { encrypt } from "../../utils/security";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
@@ -377,8 +376,7 @@ export default class EmbassyHandlers implements BotHandlers {
         }
 
         const residents = usersRepository.getUsers().filter(u => hasRole(u.username, "member"));
-        const recentUserStates = findRecentStates(statusRepository.getAllUserStates());
-        const residentsInside = recentUserStates
+        const residentsInside = UserStateService.getRecentUserStates()
             .filter(filterPeopleInside)
             .filter(insider => residents.find(r => r.username === insider.username));
 

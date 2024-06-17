@@ -6,7 +6,6 @@ export interface Config {
     embassyApi: EmbassyApiConfig;
     currency: CurrencyConfig;
     api: BotApiConfig;
-    network: NetworkConfig;
     wiki: WikiConfig;
     github: GithubConfig;
 }
@@ -140,10 +139,6 @@ export interface SpeakerConfig {
     ttspath: string;
     playpath: string;
     stoppath: string;
-}
-
-export interface NetworkConfig {
-    timeout: number;
 }
 
 export interface DevicesConfig {

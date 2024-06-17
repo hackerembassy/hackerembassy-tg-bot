@@ -145,9 +145,6 @@
         "cryptoUpdateInterval": 50000,
         "fiatUpdateInterval": 3600000
     },
-    "network": {
-        "timeout": 7000
-    },
     "wiki": {
         "endpoint": "http://172.17.0.1/graphql",
         "defaultLocale": "ru"

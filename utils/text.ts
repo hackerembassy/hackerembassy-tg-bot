@@ -27,3 +27,23 @@ export function cropStringAtSpace(str: string, maxLength = 30) {
 
     return shortenedStr + ELLIPSIS;
 }
+
+export function chunkSubstr(str: string, size: number) {
+    const chunks = [];
+
+    if (str.length < size) return [str];
+
+    while (str.length > 0) {
+        const tmp = str.substring(0, size);
+        const indexOfLastNewLine = tmp.lastIndexOf("\n");
+        const chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine + 1 : size;
+        chunks.push(tmp.substring(0, chunkLength));
+        str = str.substring(chunkLength);
+    }
+
+    return chunks;
+}
+
+export function stripCustomMarkup(text: string): string {
+    return text.replaceAll(/#./g, "");
+}

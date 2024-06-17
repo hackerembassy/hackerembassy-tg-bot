@@ -8,11 +8,10 @@ import Topic from "../models/Topic";
 import User, { AutoInsideMode } from "../models/User";
 import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
 import usersRepository from "../repositories/usersRepository";
+import { Coins, formatValueForCurrency, sumDonations } from "../services/currency";
 import { HSEvent } from "../services/googleCalendar";
 import { SpaceClimate } from "../services/hass";
 import { PrinterStatus } from "../services/printer3d";
-import { Coins } from "../utils/coins";
-import { formatValueForCurrency, sumDonations } from "../utils/currency";
 import {
     convertMinutesToHours,
     DateBoundary,

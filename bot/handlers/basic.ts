@@ -4,10 +4,10 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig } from "../../config/schema";
 import UsersRepository from "../../repositories/usersRepository";
 import * as Commands from "../../resources/commands";
+import { getCoinDefinition, getCoinQR } from "../../services/currency";
 import * as GitHub from "../../services/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "../../services/googleCalendar";
 import logger from "../../services/logger";
-import * as CoinsHelper from "../../utils/coins";
 import { cropStringAtSpace } from "../../utils/text";
 import { MAX_MESSAGE_LENGTH } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -165,14 +165,14 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname: string) {
-        const coinDefinition = CoinsHelper.getCoinDefinition(coinname.toLowerCase());
+        const coinDefinition = getCoinDefinition(coinname.toLowerCase());
 
         if (!coinDefinition) {
             await bot.sendMessageExt(msg.chat.id, t("basic.donateCoin.invalidCoin"), msg);
             return;
         }
 
-        const qrImage = await CoinsHelper.getQR(coinDefinition);
+        const qrImage = await getCoinQR(coinDefinition);
 
         await bot.sendPhotoExt(msg.chat.id, qrImage, msg, {
             caption: t("basic.donateCoin", { coin: coinDefinition }),

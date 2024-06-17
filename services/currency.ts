@@ -3,11 +3,71 @@
 import config from "config";
 import CryptoConvert from "crypto-convert";
 import { Convert } from "easy-currencies";
+import { promises as fs } from "fs";
+import path from "path";
 
 import { CurrencyConfig } from "../config/schema";
-import logger from "../services/logger";
+import logger from "./logger";
 
-const currencyConfig = config.get<CurrencyConfig>("currency");
+export type CoinDefinition = {
+    fullname: string;
+    shortname: string;
+    address: string;
+    network: string;
+    explorer: string;
+    qrfile: string;
+};
+
+export const Coins: CoinDefinition[] = [
+    {
+        fullname: "Bitcoin",
+        shortname: "btc",
+        address: "bc1q8d4y2hza9yeevjp7fyvndd6tc6pmt8k9jk70vf",
+        network: "BTC",
+        qrfile: "btc.jpg",
+        explorer: "https://memepool.space",
+    },
+    {
+        fullname: "Ethereum",
+        shortname: "eth",
+        address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b",
+        network: "ETH",
+        qrfile: "eth.jpg",
+        explorer: "https://etherscan.io",
+    },
+    {
+        fullname: "USD Coin",
+        shortname: "usdc",
+        address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b",
+        network: "ERC20",
+        qrfile: "usdc.jpg",
+        explorer: "https://etherscan.io",
+    },
+    {
+        fullname: "Tether",
+        shortname: "usdt",
+        address: "0x3Fd7976eeC03b07e28BDC8BeaD6e279CeF04170b",
+        network: "BEP20",
+        qrfile: "usdt.jpg",
+        explorer: "https://bscscan.com",
+    },
+    {
+        fullname: "Tron",
+        shortname: "trx",
+        address: "TEfXwMLXyTuhAhwNCvJm7acxtW3zHvabhu",
+        network: "TRX",
+        qrfile: "trx.jpg",
+        explorer: "https://tronscan.io/",
+    },
+    {
+        fullname: "Ton",
+        shortname: "ton",
+        address: "EQDWp5mlGr9oNR_LGxvT1N4MEIqboRuCE35SZI2NTsH8QeO1",
+        network: "TON",
+        qrfile: "ton.jpg",
+        explorer: "https://tonscan.com/",
+    },
+];
 
 type CurrencySymbol = "$" | "€" | "£" | "֏" | "₽";
 
@@ -31,6 +91,9 @@ const CurrencySymbolToCode = {
 };
 
 const MediatorCurrency = "USD";
+
+const currencyConfig = config.get<CurrencyConfig>("currency");
+const QRBaseFolder = "../resources/coins/qr";
 
 export function formatValueForCurrency(value: number, currency: string): number {
     const fraction = CurrencyFractionDigits.find(fd => fd.currency === currency)?.fraction ?? 4;
@@ -123,4 +186,12 @@ export async function sumDonations(fundDonations: { value: number; currency: str
 
         return newValue ? prevValue + newValue : prevValue;
     }, Promise.resolve(0));
+}
+
+export function getCoinDefinition(coinname: string): CoinDefinition | undefined {
+    return Coins.find(c => c.shortname === coinname);
+}
+
+export async function getCoinQR(coinDef: CoinDefinition): Promise<Buffer> {
+    return await fs.readFile(path.join(__dirname, QRBaseFolder, coinDef.qrfile));
 }

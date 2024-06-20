@@ -15,7 +15,7 @@ import { createInterface } from "readline/promises";
     }
     await promises.copyFile("./data/sample.db", "./data/db/data.db");
 
-    const UsersRepository = (await import("../repositories/usersRepository")).default;
+    const UsersRepository = (await import("@repositories/users")).default;
 
     // Read dev telegram username
     const rl = createInterface({

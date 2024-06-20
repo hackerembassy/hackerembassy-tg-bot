@@ -84,9 +84,9 @@ export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
         await bot.setMyCommands(defaultCommands);
         await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
 
-        const membersWithUserid = UsersRepository.getUsersByRole("member")?.filter(user => user.userid);
+        const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
 
-        if (!membersWithUserid) return;
+        if (membersWithUserid.length === 0) return;
 
         for (const member of membersWithUserid) {
             await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid as TelegramBot.ChatId } });

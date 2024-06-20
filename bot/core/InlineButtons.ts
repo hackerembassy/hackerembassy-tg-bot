@@ -1,7 +1,8 @@
 import config from "config";
 import { Message } from "node-telegram-bot-api";
 
-import { BotConfig } from "../../config/schema";
+import { BotConfig } from "@config";
+
 import HackerEmbassyBot from "./HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");

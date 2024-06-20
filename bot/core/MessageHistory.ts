@@ -1,6 +1,7 @@
 import config from "config";
 
-import { BotConfig } from "../../config/schema";
+import { BotConfig } from "@config";
+
 import BotState from "./BotState";
 import { MessageHistoryEntry } from "./types";
 

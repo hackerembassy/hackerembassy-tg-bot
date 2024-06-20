@@ -1,5 +1,6 @@
-import Need from "../models/Need";
-import BaseRepository from "./baseRepository";
+import Need from "@models/Need";
+
+import BaseRepository from "./base";
 
 class NeedsRepository extends BaseRepository {
     getNeedById(id: number): Nullable<Need> {

@@ -1,10 +1,13 @@
-import config from "config";
 import { promises as fs } from "fs";
+
+import config from "config";
+
 import { PollingOptions } from "node-telegram-bot-api";
 
-import { BotConfig } from "../config/schema";
-import logger from "../services/logger";
-import { fetchWithTimeout } from "../utils/network";
+import { BotConfig } from "@config";
+import logger from "@services/logger";
+import { fetchWithTimeout } from "@utils/network";
+
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import { setMenu } from "./menu";
 import { setAutomaticFeatures } from "./recurring-actions";

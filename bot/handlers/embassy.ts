@@ -3,27 +3,26 @@ import { Message } from "node-telegram-bot-api";
 import { PingResponse } from "ping";
 import { dir } from "tmp-promise";
 
-import { BotConfig, EmbassyApiConfig } from "../../config/schema";
-import fundsRepository from "../../repositories/fundsRepository";
-import statusRepository from "../../repositories/statusRepository";
-import usersRepository from "../../repositories/usersRepository";
-import { EmbassyBaseIP, requestToEmbassy } from "../../services/embassy";
-import { getDonationsSummary } from "../../services/export";
-import { ConditionerMode, ConditionerStatus, SpaceClimate } from "../../services/hass";
-import logger from "../../services/logger";
-import { PrinterStatusResponse } from "../../services/printer3d";
-import { filterPeopleInside, findRecentStates, hasDeviceInside } from "../../services/statusHelper";
-import broadcast, { BroadcastEvents } from "../../utils/broadcast";
-import { sleep } from "../../utils/common";
-import { readFileAsBase64 } from "../../utils/filesystem";
-import { filterFulfilled } from "../../utils/network";
-import { encrypt } from "../../utils/security";
+import { BotConfig, EmbassyApiConfig } from "@config";
+import usersRepository from "@repositories/users";
+import fundsRepository from "@repositories/funds";
+import broadcast, { BroadcastEvents } from "@services/broadcast";
+import { EmbassyBaseIP, requestToEmbassy } from "@services/embassy";
+import { getDonationsSummary } from "@services/export";
+import { AvailableConditioner, ConditionerActions, ConditionerMode, ConditionerStatus, SpaceClimate } from "@services/hass";
+import logger from "@services/logger";
+import { PrinterStatusResult } from "@services/printer3d";
+import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services/statusHelper";
+import { sleep } from "@utils/common";
+import { readFileAsBase64 } from "@utils/filesystem";
+import { filterFulfilled } from "@utils/filters";
+import { encrypt } from "@utils/security";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
-import { hasRole } from "../helpers";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -86,7 +85,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             const camNames = Object.keys(embassyApiConfig.cams);
-            const camResponses = await Promise.allSettled(camNames.map(name => requestToEmbassy(`/webcam/${name}`)));
+            const camResponses = await Promise.allSettled(camNames.map(name => requestToEmbassy(`/cameras/${name}`)));
 
             const images: ArrayBuffer[] = await Promise.all(
                 filterFulfilled(camResponses)
@@ -104,7 +103,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async getWebcamImage(camName: string) {
-        const response = await (await requestToEmbassy(`/webcam/${camName}`)).arrayBuffer();
+        const response = await (await requestToEmbassy(`/cameras/${camName}`)).arrayBuffer();
 
         return Buffer.from(response);
     }
@@ -232,11 +231,11 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/printer/${printername}`);
+            const response = await requestToEmbassy(`/printers/${printername}`);
 
             if (!response.ok) throw Error();
 
-            const { status, thumbnailBuffer, cam } = (await response.json()) as PrinterStatusResponse;
+            const { status, thumbnailBuffer, cam } = (await response.json()) as PrinterStatusResult;
 
             if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
 
@@ -278,7 +277,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/device/${deviceName}/wake`, "POST");
+            const response = await requestToEmbassy(`/devices/${deviceName}/wake`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -324,7 +323,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/device/${deviceName}/shutdown`, "POST");
+            const response = await requestToEmbassy(`/devices/${deviceName}/shutdown`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -340,7 +339,7 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(`/device/${deviceName}/ping`, "POST");
+            const response = await requestToEmbassy(`/devices/${deviceName}/ping`, "POST");
 
             if (!response.ok) throw Error();
 
@@ -376,9 +375,8 @@ export default class EmbassyHandlers implements BotHandlers {
             return;
         }
 
-        const residents = usersRepository.getUsers().filter(u => hasRole(u.username, "member"));
-        const recentUserStates = findRecentStates(statusRepository.getAllUserStates());
-        const residentsInside = recentUserStates
+        const residents = usersRepository.getUsersByRole("member");
+        const residentsInside = UserStateService.getRecentUserStates()
             .filter(filterPeopleInside)
             .filter(insider => residents.find(r => r.username === insider.username));
 
@@ -493,10 +491,11 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
-        const fromUsername = msg.from?.username;
+        const context = bot.context(msg);
+        const isMember = context.user?.hasRole("member");
         const voiceFileId = msg.voice?.file_id;
 
-        if (!bot.context(msg).isPrivate() || !voiceFileId || !fromUsername || !helpers.isMember(fromUsername)) return;
+        if (!context.isPrivate() || !voiceFileId || !isMember) return;
 
         const link = await bot.getFileLink(voiceFileId);
 
@@ -525,16 +524,17 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async conditionerHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async conditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
 
         let text = t("embassy.conditioner.unavailable");
+        const number = name === "downstairs" ? 1 : 2;
 
         const inline_keyboard = [
             [
                 InlineButton(
                     t("embassy.conditioner.buttons.turnon"),
-                    "turnconditioner",
+                    `ac${number}off`,
                     ButtonFlags.Silent | ButtonFlags.Editing,
                     {
                         params: true,
@@ -542,82 +542,57 @@ export default class EmbassyHandlers implements BotHandlers {
                 ),
                 InlineButton(
                     t("embassy.conditioner.buttons.turnoff"),
-                    "turnconditioner",
+                    `ac${number}off`,
                     ButtonFlags.Silent | ButtonFlags.Editing,
                     {
                         params: false,
                     }
                 ),
                 InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", ButtonFlags.Silent | ButtonFlags.Editing, {
-                    params: false,
+                    params: name,
                 }),
             ],
             [
                 InlineButton(
                     t("embassy.conditioner.buttons.more"),
-                    "addconditionertemp",
+                    `ac${number}addtemp`,
                     ButtonFlags.Silent | ButtonFlags.Editing,
                     {
                         params: 1,
                     }
                 ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.less"),
-                    "addconditionertemp",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: -1,
-                    }
-                ),
+                InlineButton(t("embassy.conditioner.buttons.less"), `ac${number}temp`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: -1,
+                }),
             ],
             [
-                InlineButton(
-                    t("embassy.conditioner.buttons.auto"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "heat_cool",
-                    }
-                ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.heat"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "heat",
-                    }
-                ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.cool"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "cool",
-                    }
-                ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.dry"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "dry",
-                    }
-                ),
+                InlineButton(t("embassy.conditioner.buttons.auto"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "heat_cool",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.heat"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "heat",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.cool"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "cool",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.dry"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "dry",
+                }),
             ],
             [
-                InlineButton(t("status.buttons.refresh"), "conditioner", ButtonFlags.Editing),
+                InlineButton(t("status.buttons.refresh"), "conditioner", ButtonFlags.Editing, { params: name }),
                 InlineButton(t("basic.control.buttons.back"), "controlpanel", ButtonFlags.Editing),
             ],
         ];
 
         try {
-            const response = await requestToEmbassy(`/conditioner/state`);
+            const response = await requestToEmbassy(`/climate/conditioners/${name}/${ConditionerActions.STATE}`);
 
             if (!response.ok) throw Error();
 
             const conditionerStatus = (await response.json()) as ConditionerStatus;
 
-            text = t("embassy.conditioner.status", { conditionerStatus });
+            text = t("embassy.conditioner.status", { name, conditionerStatus, firm: name === "downstairs" ? "midea" : "lg" });
         } catch (error) {
             logger.error(error);
         } finally {
@@ -635,44 +610,61 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, enabled: boolean) {
-        await EmbassyHandlers.controlConditioner(bot, msg, `/conditioner/power/${enabled ? "on" : "off"}`, null);
+    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, enabled: boolean) {
+        await EmbassyHandlers.controlConditioner(
+            bot,
+            msg,
+            name,
+            enabled ? ConditionerActions.POWER_ON : ConditionerActions.POWER_OFF,
+            null
+        );
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
-    static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, diff: number) {
+    static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, diff: number) {
         if (isNaN(diff)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/temperature", { diff });
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { diff });
 
         if (bot.context(msg).isButtonResponse) {
             await sleep(5000); // Updating the temperature is slow on Midea
-            await EmbassyHandlers.conditionerHandler(bot, msg);
+            await EmbassyHandlers.conditionerHandler(bot, msg, name);
         }
     }
 
-    static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, temperature: number) {
+    static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, temperature: number) {
         if (isNaN(temperature)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/temperature", { temperature });
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
     }
 
-    static async setConditionerModeHandler(bot: HackerEmbassyBot, msg: Message, mode: ConditionerMode) {
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/mode", { mode });
+    static async setConditionerModeHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        name: AvailableConditioner,
+        mode: ConditionerMode
+    ) {
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.MODE, { mode });
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
-    static async preheatHandler(bot: HackerEmbassyBot, msg: Message) {
-        await EmbassyHandlers.controlConditioner(bot, msg, "/conditioner/preheat", {});
+    static async preheatHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.PREHEAT, {});
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg);
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
-    static async controlConditioner(bot: HackerEmbassyBot, msg: Message, endpoint: string, body: any) {
+    static async controlConditioner(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        name: AvailableConditioner,
+        action: ConditionerActions,
+        body: any
+    ) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
-            const response = await requestToEmbassy(endpoint, "POST", body);
+            const response = await requestToEmbassy(`/climate/conditioners/${name}/${action}`, "POST", body);
 
             if (!response.ok) throw Error();
 
@@ -708,7 +700,7 @@ export default class EmbassyHandlers implements BotHandlers {
                 cleanup();
             }
 
-            const response = await requestToEmbassy(photoId ? "/sd/img2img" : "/sd/txt2img", "POST", requestBody);
+            const response = await requestToEmbassy(photoId ? "/neural/sd/img2img" : "/neural/sd/txt2img", "POST", requestBody);
 
             if (response.ok) {
                 const body = (await response.json()) as { image: string };

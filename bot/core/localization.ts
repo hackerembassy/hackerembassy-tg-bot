@@ -1,9 +1,11 @@
+import { join } from "path";
+
 import config from "config";
 import { t, TOptions, use } from "i18next";
 import Backend from "i18next-fs-backend";
-import { join } from "path";
 
-import { BotConfig } from "../../config/schema";
+import { BotConfig } from "@config";
+
 import BotMessageContext from "./BotMessageContext";
 
 const botConfig = config.get<BotConfig>("bot");

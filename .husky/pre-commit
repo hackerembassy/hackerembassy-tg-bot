@@ -3,4 +3,4 @@
 
 npx lint-staged
 npm run swagger
-git add ./api/swagger-schema.json
+git add ./api/bot/swagger-schema.json

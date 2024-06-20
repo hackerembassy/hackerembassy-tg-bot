@@ -1,4 +1,5 @@
-import fundsRepository from "../../repositories/fundsRepository";
+import fundsRepository from "@repositories/funds";
+
 import { ACCOUNTANT_USER, ADMIN_USER, prepareDb } from "../dbSetup";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
 import { createMockBot, createMockMessage } from "../mocks/mockHelpers";

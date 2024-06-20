@@ -125,12 +125,18 @@ export const MemberCommandsList: string = `
 /residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце
 /historycosts year - График донатов резидентов на аренду (без указания года будет выбран текущий)
 
-Кондиционер:
+Кондиционер midea:
 /mideaon - Врубить кондей
 /mideaoff - Вырубить кондей
 /mideamode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
 /mideatemp temp - Поменять целевую температуру кондея (temp = 16-28)
 /preheat - Заранее подогреть спейс
+
+Кондиционер lg:
+/lgon - Врубить кондей
+/lgoff - Вырубить кондей
+/lgmode mode_name - Поменять режим кондея (mode_name = "cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+/lgtemp temp - Поменять целевую температуру кондея (temp = 16-28)
 
 Сеть спейса:
 #\`/probe host#\` - Проверить доступность хоста

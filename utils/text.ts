@@ -11,12 +11,6 @@ export function equalsIns(str1: Nullable<string>, str2: Nullable<string>): boole
     return str1?.toLowerCase() === str2?.toLowerCase();
 }
 
-export class OptionalRegExp extends RegExp {}
-
-export function OptionalParam(paramregex: RegExp) {
-    return new OptionalRegExp(`(?: ${paramregex.source})?`, paramregex.flags);
-}
-
 export function cropStringAtSpace(str: string, maxLength = 30) {
     if (str.length <= maxLength) return str;
 
@@ -26,4 +20,20 @@ export function cropStringAtSpace(str: string, maxLength = 30) {
     if (spaceIndex !== -1) return shortenedStr.slice(0, spaceIndex);
 
     return shortenedStr + ELLIPSIS;
+}
+
+export function chunkSubstr(str: string, size: number) {
+    const chunks = [];
+
+    if (str.length < size) return [str];
+
+    while (str.length > 0) {
+        const tmp = str.substring(0, size);
+        const indexOfLastNewLine = tmp.lastIndexOf("\n");
+        const chunkLength = indexOfLastNewLine > 0 ? indexOfLastNewLine + 1 : size;
+        chunks.push(tmp.substring(0, chunkLength));
+        str = str.substring(chunkLength);
+    }
+
+    return chunks;
 }

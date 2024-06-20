@@ -1,6 +1,9 @@
-import config from "config";
 import { promises as fs } from "fs";
+import { EventEmitter, Stream } from "stream";
+
+import config from "config";
 import { t } from "i18next";
+
 import {
     CallbackQuery,
     ChatId,
@@ -14,16 +17,16 @@ import {
     ReplyKeyboardMarkup,
     SendMessageOptions,
 } from "node-telegram-bot-api";
-import { EventEmitter, Stream } from "stream";
+
 import { file } from "tmp-promise";
 
-import { BotConfig } from "../../config/schema";
-import User from "../../models/User";
-import UsersRepository from "../../repositories/usersRepository";
-import logger from "../../services/logger";
-import { chunkSubstr } from "../../utils/common";
-import { OptionalRegExp } from "../../utils/text";
-import { hasRole, hasUserRole, isMember, prepareMessageForMarkdown } from "../helpers";
+import { BotConfig } from "@config";
+import User, { UserRole } from "@models/User";
+import UsersRepository from "@repositories/users";
+import logger from "@services/logger";
+import { chunkSubstr } from "@utils/text";
+
+import { OptionalRegExp, prepareMessageForMarkdown } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import { FULL_PERMISSIONS, IGNORE_UPDATE_TIMEOUT, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "./constants";
@@ -36,7 +39,6 @@ import {
     BotCustomEvent,
     BotHandler,
     BotMessageContextMode,
-    BotRole,
     BotRoute,
     ChatMemberHandler,
     EditMessageMediaOptionsExt,
@@ -87,7 +89,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (!savedRestrictions || savedRestrictions.length === 0) return true;
 
-        if (user) return hasUserRole(user, "admin", ...savedRestrictions);
+        if (user) return user.hasRole("admin", ...savedRestrictions);
 
         return savedRestrictions.includes("default");
     }
@@ -148,6 +150,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         options: TelegramBot.SendPhotoOptions = {},
         fileOptions: TelegramBot.FileOptions = {}
     ): Promise<TelegramBot.Message> {
+        const context = this.context(msg);
         const mode = this.context(msg).mode;
         const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
         const inline_keyboard =
@@ -168,13 +171,13 @@ export default class HackerEmbassyBot extends TelegramBot {
                 reply_markup: {
                     inline_keyboard,
                 },
-                message_thread_id: this.context(msg).messageThreadId,
+                message_thread_id: context.messageThreadId,
             },
             fileOptions
         );
 
-        if (mode.pin) {
-            this.tryPinChatMessage(message, msg.from?.username);
+        if (context.user && mode.pin) {
+            this.tryPinChatMessage(message, context.user);
         }
 
         this.messageHistory.push(chatId, message.message_id);
@@ -189,7 +192,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options?: TelegramBot.SendAnimationOptions | undefined
     ): Promise<TelegramBot.Message> {
-        const mode = this.context(msg).mode;
+        const context = this.context(msg);
+        const mode = context.mode;
         const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
 
         if (options?.caption) {
@@ -201,11 +205,11 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         const message = await this.sendAnimation(chatIdToUse, animation, {
             ...options,
-            message_thread_id: this.context(msg).messageThreadId,
+            message_thread_id: context.messageThreadId,
         });
 
-        if (mode.pin) {
-            this.tryPinChatMessage(message, msg.from?.username);
+        if (context.user && mode.pin) {
+            this.tryPinChatMessage(message, context.user);
         }
 
         this.messageHistory.push(chatId, message.message_id);
@@ -310,7 +314,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         const preparedText = prepareMessageForMarkdown(text);
         options = this.prepareOptionsForMarkdown({ ...options });
 
-        const mode = msg && this.context(msg).mode;
+        const context = msg && this.context(msg);
+        const mode = context?.mode;
         const chatIdToUse = mode?.forward ? this.forwardTarget : chatId;
 
         const reply_markup = !mode?.static
@@ -326,8 +331,8 @@ export default class HackerEmbassyBot extends TelegramBot {
                 message_thread_id,
             });
 
-            if (mode?.pin) {
-                this.tryPinChatMessage(message, msg?.from?.username);
+            if (context?.user && mode?.pin) {
+                this.tryPinChatMessage(message, context.user);
             }
 
             this.messageHistory.push(chatId, message.message_id, text);
@@ -338,11 +343,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(null);
     }
 
-    tryPinChatMessage(message: TelegramBot.Message, username?: string) {
+    tryPinChatMessage(message: TelegramBot.Message, user: User) {
         try {
-            if (username && hasRole(username, "admin", "member")) {
+            if (user.hasRole("admin", "member"))
                 this.pinChatMessage(message.chat.id, message.message_id, { disable_notification: true });
-            }
         } catch (e) {
             logger.error(e);
         }
@@ -421,10 +425,11 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Update username if it was changed
             if (dbuser && message.from?.username && dbuser.username !== message.from.username) {
-                UsersRepository.updateUser({ ...dbuser, username: message.from.username });
+                UsersRepository.updateUser(new User({ ...dbuser, username: message.from.username }));
             }
 
             const messageContext = this.context(message);
+            messageContext.user = dbuser;
             messageContext.language = isSupportedLanguage(dbuser?.language) ? dbuser.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
@@ -487,7 +492,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (alwaysSecretChats.includes(message.chat.id)) return true;
 
-        if (message.from?.username && isMember(message.from.username)) {
+        if (messageContext.user?.hasRole("member")) {
             return messageContext.isPrivate() || messageContext.mode.secret;
         }
 
@@ -511,7 +516,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         handler: BotHandler,
         paramRegex: Nullable<RegExp> = null,
         paramMapper: Nullable<MatchMapperFunction> = null,
-        restrictions: BotRole[] = []
+        restrictions: UserRole[] = []
     ): void {
         const optional = paramRegex instanceof OptionalRegExp;
 
@@ -656,6 +661,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     setMessageReaction(chatId: ChatId, messageId: number, reaction: BotAllowedReaction): Promise<boolean> {
         //@ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         return super.setMessageReaction(chatId, messageId, {
             reaction: [
                 {

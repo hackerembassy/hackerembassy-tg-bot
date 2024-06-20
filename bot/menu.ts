@@ -1,9 +1,11 @@
 import config from "config";
+
 import TelegramBot from "node-telegram-bot-api";
 
-import { BotConfig } from "../config/schema";
-import UsersRepository from "../repositories/usersRepository";
-import logger from "../services/logger";
+import { BotConfig } from "@config";
+import UsersRepository from "@repositories/users";
+import logger from "@services/logger";
+
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");

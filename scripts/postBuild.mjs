@@ -5,7 +5,7 @@ async function postbuild() {
         await copy("./resources", "./dist/resources");
         await copy("./data", "./dist/data");
         await copy("./config", "./dist/config");
-        await copy("./api/swagger-schema.json", "./dist/api/swagger-schema.json");
+        await copy("./api/bot/swagger-schema.json", "./dist/api/bot/swagger-schema.json");
         await copy("./package.json", "./dist/package.json");
 
         await ensureDir("./dist/log");

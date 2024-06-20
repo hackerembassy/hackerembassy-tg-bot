@@ -1,7 +1,8 @@
 import config from "config";
 
-import { BotConfig } from "../config/schema";
-import { HALFDAY, HOUR, MINUTE } from "../utils/date";
+import { BotConfig } from "@config";
+import { HALFDAY, HOUR, MINUTE } from "@utils/date";
+
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import { BotCustomEvent } from "./core/types";
 import BirthdayHandlers from "./handlers/birthday";

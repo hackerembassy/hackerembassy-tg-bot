@@ -1,14 +1,14 @@
 import { writeToBuffer } from "@fast-csv/format";
-// @ts-ignore
 import ChartJsImage from "chartjs-to-image";
 
-import Donation, { FundDonation } from "../models/Donation";
-import Fund from "../models/Fund";
-import FundsRepository from "../repositories/fundsRepository";
-import { onlyUniqueInsFilter } from "../utils/common";
-import { convertCurrency, formatValueForCurrency } from "../utils/currency";
-import { compareMonthNames } from "../utils/date";
-import { equalsIns } from "../utils/text";
+import Donation, { FundDonation } from "@models/Donation";
+import Fund from "@models/Fund";
+import FundsRepository from "@repositories/funds";
+import { compareMonthNames } from "@utils/date";
+import { onlyUniqueInsFilter } from "@utils/filters";
+import { equalsIns } from "@utils/text";
+
+import { DefaultCurrency, convertCurrency, formatValueForCurrency } from "./currency";
 
 interface SimplifiedDonation {
     username: string;
@@ -141,7 +141,7 @@ export async function exportDonationsToLineChart(donations: FundDonation[], titl
         uniqueData.push({ label: username, data: userData });
     }
 
-    const chart = createLines(uniqueMonthLabels, uniqueData, title, { height: 900, width: 1400 }, { y: "AMD" });
+    const chart = createLines(uniqueMonthLabels, uniqueData, title, { height: 900, width: 1400 }, { y: DefaultCurrency });
 
     return await chart.toBinary();
 }

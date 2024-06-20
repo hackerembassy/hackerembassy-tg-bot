@@ -190,7 +190,8 @@ basic:
             facecontrol: 📹 Лицо
             printers: 📹 Принтеры
             superstatus: 🩻 Суперстатус
-            conditioner: ❄️ Кондей
+            conditioner1: ❄️ Midea I
+            conditioner2: ❄️ LG II
             meme: 🔫 Мемошная
             back: ↩️ Назад
     info:
@@ -301,17 +302,17 @@ embassy:
         nodata: 🌚 Данные о климате недоступны
     conditioner:
         status: |
-            ❄️ Статус кондея Midea:
+            ❄️ Статус кондея {{name}}:
             Режим: {{conditionerStatus.state}}
             Целевая температура: {{conditionerStatus.attributes.temperature}}°C
             Текущая температура: {{conditionerStatus.attributes.current_temperature}}°C
 
             ℹ️ Команды:
-            /mideaon - Врубить
-            /mideaoff - Вырубить
-            /preheat - Подогреть спейс заранее
-            #`/mideamode cool#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
-            #`/mideatemp 24#` - Целевая температура (16-28°C)
+            /{{firm}}on - Врубить
+            /{{firm}}off - Вырубить
+            #`/{{firm}}mode cool#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/{{firm}}temp 24#` - Целевая температура (16-28°C)
+            /preheat - Подогреть спейс заранее (midea only)
         success: ✅ Получилось
         fail: ⚠️ Не вышло
         unavailable: ⚠️ Кондей недоступен

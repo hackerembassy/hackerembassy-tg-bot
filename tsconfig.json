@@ -8,7 +8,17 @@
       "noImplicitReturns": true,
       "strict": true,
       "esModuleInterop": true,
-      "typeRoots" : ["./node_modules/@types", "./typings"]
+      "typeRoots" : ["./node_modules/@types", "./typings"],
+      "baseUrl": ".",
+      "paths": {
+            "@utils/*": ["utils/*"],
+            "@services/*": ["services/*"],
+            "@models/*": ["models/*"],
+            "@repositories/*": ["repositories/*"],
+            "@config": ["config/schema"],
+            "@hackembot/*": ["bot/*"],
+            "@hackemapi/*": ["api/*"],
+      }   
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "coverage", "dist"]

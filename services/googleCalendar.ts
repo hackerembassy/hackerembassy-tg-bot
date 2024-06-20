@@ -3,8 +3,9 @@ import { DateTime } from "luxon";
 import fetch from "node-fetch";
 import { RRuleSet, rrulestr } from "rrule";
 
-import { CalendarConfig } from "../config/schema";
-import { getToday } from "../utils/date";
+import { getToday } from "@utils/date";
+import { CalendarConfig } from "@config";
+
 import logger from "./logger";
 
 const calendarConfig = config.get<CalendarConfig>("calendar");

@@ -1,6 +1,7 @@
-import Subscription, { SubscriptionExtended } from "../models/Subscription";
-import Topic from "../models/Topic";
-import BaseRepository from "./baseRepository";
+import Subscription, { SubscriptionExtended } from "@models/Subscription";
+import Topic from "@models/Topic";
+
+import BaseRepository from "./base";
 
 class SubscriptionsRepository extends BaseRepository {
     getTopics(): Topic[] {

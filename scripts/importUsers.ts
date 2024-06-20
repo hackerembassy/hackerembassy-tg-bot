@@ -2,6 +2,7 @@
 import fs from "fs";
 
 import usersRepository from "@repositories/users";
+import User from "@models/User";
 
 function importUsers(fromFile: string) {
     console.log("Importing users from: ", fromFile);
@@ -28,7 +29,7 @@ function importUsers(fromFile: string) {
             usersUpdatedCount++;
             console.log(`! User ${existingUser.username} exists, updating userid from ${existingUser.userid} to ${fuser.id}`);
 
-            usersRepository.updateUser({ ...existingUser, userid: fuser.id });
+            usersRepository.updateUser(new User({ ...existingUser, userid: fuser.id }));
         } else {
             usersRepository.addUser(fuser.username, ["default"], fuser.id);
             usersCreatedCount++;

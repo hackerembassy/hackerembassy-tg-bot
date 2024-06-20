@@ -1,18 +1,17 @@
 import config from "config";
 
-import { PrintersConfig } from "../config/schema";
-import Donation, { FundDonation } from "../models/Donation";
-import Fund from "../models/Fund";
-import Need from "../models/Need";
-import Topic from "../models/Topic";
-import User, { AutoInsideMode } from "../models/User";
-import UserState, { UserStateChangeType, UserStateType } from "../models/UserState";
-import usersRepository from "../repositories/usersRepository";
-import { HSEvent } from "../services/googleCalendar";
-import { SpaceClimate } from "../services/hass";
-import { PrinterStatus } from "../services/printer3d";
-import { Coins } from "../utils/coins";
-import { formatValueForCurrency, sumDonations } from "../utils/currency";
+import { PrintersConfig } from "@config";
+import Donation, { FundDonation } from "@models/Donation";
+import Fund from "@models/Fund";
+import Need from "@models/Need";
+import Topic from "@models/Topic";
+import User, { AutoInsideMode } from "@models/User";
+import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
+import usersRepository from "@repositories/users";
+import { Coins, formatValueForCurrency, sumDonations } from "@services/currency";
+import { HSEvent } from "@services/googleCalendar";
+import { SpaceClimate } from "@services/hass";
+import { PrinterStatus } from "@services/printer3d";
 import {
     convertMinutesToHours,
     DateBoundary,
@@ -21,11 +20,12 @@ import {
     onlyDateOptions,
     onlyTimeOptions,
     shortDateTimeOptions,
-} from "../utils/date";
-import { REPLACE_MARKER } from "../utils/text";
+} from "@utils/date";
+import { REPLACE_MARKER } from "@utils/text";
+
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
-import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "./helpers";
+import { formatUsername, toEscapedTelegramMarkdown } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 
@@ -196,9 +196,8 @@ export function getUserBadges(username: Nullable<string>): string {
     const user = usersRepository.getUserByName(username);
     if (!user) return "";
 
-    const roles = getRoles(user);
-    const roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${
-        roles.includes("trusted") ? "🎓" : ""
+    const roleBadges = `${user.roles.includes("member") ? "🔑" : ""}${user.roles.includes("accountant") ? "📒" : ""}${
+        user.roles.includes("trusted") ? "🎓" : ""
     }`;
     const customBadge = user.emoji ?? "";
     const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";

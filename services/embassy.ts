@@ -1,7 +1,7 @@
 import config from "config";
 
-import { EmbassyApiConfig } from "../config/schema";
-import { fetchWithTimeout } from "../utils/network";
+import { EmbassyApiConfig } from "@config";
+import { fetchWithTimeout } from "@utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
@@ -31,6 +31,9 @@ export async function requestToEmbassy(
 }
 
 export async function fetchDevicesInside() {
-    const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
+    const response = await requestToEmbassy(`/devices/inside?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
+
+    if (!response.ok) throw new Error("Failed to fetch devices inside");
+
     return (await response.json()) as string[];
 }

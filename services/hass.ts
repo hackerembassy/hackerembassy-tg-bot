@@ -1,22 +1,33 @@
+import path from "node:path";
+import { promises as fs } from "fs";
+
 import config from "config";
 
-import { CamConfig, EmbassyApiConfig } from "../config/schema";
-import { getBufferFromResponse } from "../utils/network";
+import { CamConfig, EmbassyApiConfig } from "@config";
+import { getBufferFromResponse } from "@utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const climateConfig = embassyApiConfig.climate;
 const alarmConfig = embassyApiConfig.alarm;
 
-import path from "node:path";
+import { downloadTmpFile } from "@utils/filesystem";
+import { convertMedia } from "@utils/media";
 
-import { promises as fs } from "fs";
-
-import { downloadTmpFile } from "../utils/filesystem";
-import { convertMedia } from "../utils/media";
 import { EmbassyBaseIP } from "./embassy";
 
 // Types
+export type AvailableConditioner = "downstairs" | "upstairs";
+
 export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
+
+export enum ConditionerActions {
+    POWER_ON = "power/on",
+    POWER_OFF = "power/off",
+    MODE = "mode",
+    PREHEAT = "preheat",
+    TEMPERATURE = "temperature",
+    STATE = "state",
+}
 
 export type ConditionerStatus = {
     entity_id: string;
@@ -176,50 +187,55 @@ class Alarm {
     }
 }
 
-class Conditioner {
+export class Conditioner {
+    constructor(private entityId: string) {}
+
     async getState(): Promise<ConditionerStatus> {
-        const response = await getFromHass(climateConfig.conditioner.statePath);
-        return await response.json();
+        const response = await getFromHass(`${climateConfig.conditioner.statePath}/${this.entityId}`);
+        return response.json();
     }
 
-    async turnOn() {
-        await postToHass(climateConfig.conditioner.turnOnPath, {
-            entity_id: climateConfig.conditioner.entityId,
+    turnOn() {
+        return postToHass(climateConfig.conditioner.turnOnPath, {
+            entity_id: this.entityId,
         });
     }
 
-    async turnOff() {
-        await postToHass(climateConfig.conditioner.turnOffPath, {
-            entity_id: climateConfig.conditioner.entityId,
+    turnOff() {
+        return postToHass(climateConfig.conditioner.turnOffPath, {
+            entity_id: this.entityId,
         });
     }
 
-    async setMode(mode: ConditionerMode) {
-        await postToHass(climateConfig.conditioner.setModePath, {
+    setMode(mode: ConditionerMode) {
+        return postToHass(climateConfig.conditioner.setModePath, {
             hvac_mode: mode,
-            entity_id: climateConfig.conditioner.entityId,
+            entity_id: this.entityId,
         });
     }
 
-    async preheat() {
-        await postToHass(climateConfig.conditioner.preheatPath, {});
+    preheat() {
+        return postToHass(climateConfig.conditioner.preheatPath, {});
     }
 
-    async setTemperature(temperature: number) {
-        await postToHass(climateConfig.conditioner.setTemperaturePath, {
+    setTemperature(temperature: number) {
+        return postToHass(climateConfig.conditioner.setTemperaturePath, {
             temperature: temperature,
-            entity_id: climateConfig.conditioner.entityId,
+            entity_id: this.entityId,
         });
     }
 }
 
-export const conditioner = new Conditioner();
+export const AvailableConditioners = new Map<string, Conditioner>([
+    ["downstairs", new Conditioner(climateConfig.conditioner.downstairsId)],
+    ["upstairs", new Conditioner(climateConfig.conditioner.upstairsId)],
+]);
+
 export const alarm = new Alarm();
 
 // Hass requests
-export async function getFromHass(path: string): Promise<Response> {
-    // @ts-ignore
-    return await fetch(embassyApiConfig.hassorigin + path, {
+export function getFromHass(path: string): Promise<Response> {
+    return fetch(embassyApiConfig.hassorigin + path, {
         headers: {
             Authorization: `Bearer ${process.env["HASSTOKEN"]}`,
             "Content-Type": "application/json",
@@ -227,9 +243,8 @@ export async function getFromHass(path: string): Promise<Response> {
     });
 }
 
-export async function postToHass(path: string, body: any): Promise<Response> {
-    // @ts-ignore
-    return await fetch(embassyApiConfig.hassorigin + path, {
+export function postToHass(path: string, body: any): Promise<Response> {
+    return fetch(embassyApiConfig.hassorigin + path, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${process.env["HASSTOKEN"]}`,

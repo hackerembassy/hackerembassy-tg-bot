@@ -1,4 +1,5 @@
 import { promises as fs } from "fs";
+
 import NodeRSA from "node-rsa";
 
 export async function encrypt(message: NodeRSA.Data): Promise<string> {

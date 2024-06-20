@@ -1,9 +1,10 @@
 import config from "config";
 
-import { CurrencyConfig } from "../config/schema";
-import Donation, { FundDonation } from "../models/Donation";
-import Fund from "../models/Fund";
-import BaseRepository from "./baseRepository";
+import { CurrencyConfig } from "@config";
+import Donation, { FundDonation } from "@models/Donation";
+import Fund from "@models/Fund";
+
+import BaseRepository from "./base";
 
 const currencyConfig = config.get<CurrencyConfig>("currency");
 

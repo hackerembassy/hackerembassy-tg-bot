@@ -28,7 +28,7 @@
         "pretty": "prettier --write '**/*.{ts,js}'",
         "test": "jest",
         "test:ci": "jest --collectCoverage",
-        "swagger": "npx ts-node ./api/swagger.ts"
+        "swagger": "npx ts-node ./api/bot/swagger.ts"
     },
     "author": "Nick Kiselev",
     "license": "ISC",
@@ -86,8 +86,9 @@
         "@typescript-eslint/parser": "^6.4.1",
         "eslint": "^8.42.0",
         "eslint-config-prettier": "^8.8.0",
+        "eslint-import-resolver-typescript": "^3.6.1",
+        "eslint-plugin-import": "^2.29.1",
         "eslint-plugin-prettier": "^5.0.0",
-        "eslint-plugin-simple-import-sort": "^10.0.0",
         "fs-extra": "^11.2.0",
         "husky": "^8.0.0",
         "jest-fetch-mock": "^3.0.3",

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+
 import { file } from "tmp-promise";
 
 export function lastModifiedFilePath(logfolderpath: string): string | undefined {

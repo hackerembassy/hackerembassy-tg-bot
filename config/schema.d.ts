@@ -4,9 +4,9 @@ export interface Config {
     calendar: CalendarConfig;
     printers: PrintersConfig;
     embassyApi: EmbassyApiConfig;
+    neural: NeuralConfig;
     currency: CurrencyConfig;
     api: BotApiConfig;
-    network: NetworkConfig;
     wiki: WikiConfig;
     github: GithubConfig;
 }
@@ -111,7 +111,7 @@ export interface DoorbellConfig {
 }
 
 export interface LedMatrixConfig {
-    textpath: "/api/services/script/send_to_display";
+    textpath: string;
 }
 
 export interface AlarmConfig {
@@ -142,10 +142,6 @@ export interface SpeakerConfig {
     stoppath: string;
 }
 
-export interface NetworkConfig {
-    timeout: number;
-}
-
 export interface DevicesConfig {
     [key: string]: DeviceDescriptor | undefined;
 }
@@ -174,7 +170,8 @@ export interface ClimateConfig {
 }
 
 export interface ConditionerConfig {
-    entityId: string;
+    downstairsId: string;
+    upstairsId: string;
     statePath: string;
     turnOnPath: string;
     turnOffPath: string;

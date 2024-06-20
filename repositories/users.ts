@@ -1,14 +1,48 @@
 import { ChatId } from "node-telegram-bot-api";
 
-import User, { AutoInsideMode } from "../models/User";
-import { anyItemIsInList } from "../utils/common";
-import BaseRepository from "./baseRepository";
+import User, { AutoInsideMode } from "@models/User";
+import { anyItemIsInList } from "@utils/filters";
+
+import BaseRepository from "./base";
 
 class UserRepository extends BaseRepository {
     getUsers(): User[] {
         const users = this.db.prepare("SELECT * FROM users").all() as User[];
 
         return users.map(user => new User(user));
+    }
+
+    getUserByName(username: string): Nullable<User> {
+        try {
+            const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
+
+            return user ? new User(user as User) : null;
+        } catch (error) {
+            this.logger.error(error);
+            return null;
+        }
+    }
+
+    getByUserId(userid: number | ChatId): Nullable<User> {
+        try {
+            const user = this.db.prepare("SELECT * FROM users WHERE userid = ?").get(userid);
+
+            return user ? new User(user as User) : null;
+        } catch (error) {
+            this.logger.error(error);
+            return null;
+        }
+    }
+
+    getUsersByRole(role: string): User[] {
+        try {
+            const users = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role);
+
+            return users.map(user => new User(user as User));
+        } catch (error) {
+            this.logger.error(error);
+            return [];
+        }
     }
 
     getAutoinsideUsers(): User[] {
@@ -206,39 +240,6 @@ class UserRepository extends BaseRepository {
         } catch (error) {
             this.logger.error(error);
             return false;
-        }
-    }
-
-    getUserByName(username: string): Nullable<User> {
-        try {
-            const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
-
-            return user ? new User(user as User) : null;
-        } catch (error) {
-            this.logger.error(error);
-            return null;
-        }
-    }
-
-    getByUserId(userid: number | ChatId): Nullable<User> {
-        try {
-            const user = this.db.prepare("SELECT * FROM users WHERE userid = ?").get(userid);
-
-            return user ? new User(user as User) : null;
-        } catch (error) {
-            this.logger.error(error);
-            return null;
-        }
-    }
-
-    getUsersByRole(role: string): Nullable<User[]> {
-        try {
-            const users: User[] = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role) as User[];
-
-            return users;
-        } catch (error) {
-            this.logger.error(error);
-            return null;
         }
     }
 }

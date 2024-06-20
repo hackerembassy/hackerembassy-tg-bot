@@ -1,7 +1,5 @@
-import { exec } from "child_process";
-import config from "config";
-import { promises as fs } from "fs";
 import https from "https";
+
 import find from "local-devices";
 // @ts-ignore
 import { LUCI } from "luci-rpc";
@@ -11,9 +9,8 @@ import { NodeSSH } from "node-ssh";
 import { promise } from "ping";
 import wol from "wol";
 
-import { NetworkConfig } from "../config/schema";
-
-const networkConfig = config.get<NetworkConfig>("network");
+const DEFAULT_NETWORK_TIMEOUT = 8000;
+const DEFAULT_CANCELLATION_TIMEOUT = 15000;
 
 type LuciWlanAdapters = {
     result: {
@@ -31,7 +28,7 @@ class Cancellation {
     controller: AbortController;
     timeoutId: NodeJS.Timeout;
 
-    constructor(timeout = 15000) {
+    constructor(timeout = DEFAULT_CANCELLATION_TIMEOUT) {
         this.controller = new AbortController();
         this.timeoutId = setTimeout(() => this.controller.abort(), timeout);
     }
@@ -46,7 +43,7 @@ class Cancellation {
 }
 
 export function fetchWithTimeout(uri: string, options?: RequestInit & { timeout?: number }): Promise<Response> {
-    const timeout = options?.timeout ?? networkConfig.timeout;
+    const timeout = options?.timeout ?? DEFAULT_NETWORK_TIMEOUT;
     const cancellation = new Cancellation(timeout);
 
     // @ts-ignore
@@ -61,21 +58,15 @@ export async function getBufferFromResponse(response: Response): Promise<Buffer>
     return Buffer.from(await response.arrayBuffer());
 }
 
-export function filterFulfilled<T>(results: PromiseSettledResult<T>[]): PromiseFulfilledResult<T>[] {
-    return results.filter(result => result.status === "fulfilled") as PromiseFulfilledResult<T>[];
-}
-
 export async function wakeOnLan(mac: string) {
     return await wol.wake(mac);
 }
 
-export async function ping(host: string) {
-    const probingResult = await promise.probe(host, {
+export function ping(host: string) {
+    return promise.probe(host, {
         timeout: 5,
         min_reply: 4,
     });
-
-    return probingResult;
 }
 
 export function mqttSendOnce(mqtthost: string, topic: string, message: string, username?: string, password?: string): void {
@@ -95,21 +86,6 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
     });
 }
 
-/** @deprecated Use HASS */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function getImageFromRTSP(url: string, filename: string): Promise<Buffer> {
-    const child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
-        if (error) throw Error;
-        if (stderr) throw Error(stderr);
-    });
-
-    await new Promise(resolve => {
-        child.on("close", resolve);
-    });
-
-    return await fs.readFile("./tmp.jpg");
-}
-
 export class NeworkDevicesLocator {
     static async getDevicesFromKeenetic(routerip: string, username: string, password: string) {
         const ssh = new NodeSSH();
@@ -122,6 +98,8 @@ export class NeworkDevicesLocator {
 
         const sshdata = await ssh.exec("show associations", [""]);
         const macs = [...sshdata.matchAll(/mac: ((?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2}))/gm)].map(item => item[1]);
+
+        ssh.dispose();
 
         return macs;
     }

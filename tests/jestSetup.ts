@@ -2,13 +2,13 @@
 import Database from "better-sqlite3";
 import fetchMock from "jest-fetch-mock";
 
-import { sleep } from "../utils/common";
+import { sleep } from "@utils/common";
 
 fetchMock.enableMocks();
 
-jest.mock("../utils/currency", () => {
+jest.mock("@services/currency", () => {
     return {
-        ...jest.requireActual("../utils/currency"),
+        ...jest.requireActual("@services/currency"),
         convert: jest.fn(),
         initConvert: jest.fn(),
         convertCurrency: jest.fn((amount: number) => amount),
@@ -16,7 +16,7 @@ jest.mock("../utils/currency", () => {
     };
 });
 
-jest.mock("../utils/network", () => {
+jest.mock("@utils/network", () => {
     return {
         default: jest.fn(),
         fetchWithTimeout: jest.fn().mockImplementation(fetchMock),
@@ -29,9 +29,9 @@ jest.mock("../data/db", () => {
     return new Database(sampleDb.serialize());
 });
 
-jest.mock("../services/logger", () => {
+jest.mock("@services/logger", () => {
     return {
-        ...jest.requireActual("../services/logger"),
+        ...jest.requireActual("@services/logger"),
         log: jest.fn(),
         error: jest.fn().mockImplementation((error: Error | string) => {
             if (error instanceof Error && !error.message.startsWith("Mocked")) {

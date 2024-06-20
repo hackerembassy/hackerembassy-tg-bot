@@ -1,5 +1,7 @@
 import TelegramBot, { ChatId, EditMessageMediaOptions, SendMediaGroupOptions } from "node-telegram-bot-api";
 
+import { UserRole } from "@models/User";
+
 import HackerEmbassyBot from "./HackerEmbassyBot";
 
 // Enums
@@ -7,9 +9,6 @@ export enum BotCustomEvent {
     statusLive = "status-live",
     camLive = "cam-live",
 }
-
-// Types
-export type BotRole = "admin" | "member" | "accountant" | "trusted" | "default" | "restricted";
 
 export type BotAllowedReaction =
     | "👍"
@@ -121,7 +120,7 @@ export type MatchMapperFunction = (match: RegExpExecArray) => any[];
 export type BotRoute = {
     regex: RegExp;
     handler: BotHandler;
-    restrictions: BotRole[];
+    restrictions: UserRole[];
     paramMapper: Nullable<MatchMapperFunction>;
     optional: boolean;
 };

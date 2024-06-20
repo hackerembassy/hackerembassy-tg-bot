@@ -109,8 +109,9 @@
         },
         "climate": {
             "conditioner": {
-                "entityId": "climate.midea_climate",
-                "statePath": "/api/states/climate.midea_climate",
+                "downstairsId": "climate.midea_climate",
+                "upstairsId": "climate.upstairs_hvac",
+                "statePath": "/api/states",
                 "turnOnPath": "/api/services/climate/turn_on",
                 "turnOffPath": "/api/services/climate/turn_off",
                 "setModePath": "/api/services/climate/set_hvac_mode",
@@ -144,9 +145,6 @@
         "default": "AMD",
         "cryptoUpdateInterval": 50000,
         "fiatUpdateInterval": 3600000
-    },
-    "network": {
-        "timeout": 7000
     },
     "wiki": {
         "endpoint": "http://172.17.0.1/graphql",

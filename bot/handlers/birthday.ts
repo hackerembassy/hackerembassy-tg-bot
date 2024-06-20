@@ -1,17 +1,19 @@
-import config from "config";
 import fs from "fs/promises";
-import { Message } from "node-telegram-bot-api";
 import path from "path";
 
-import { BotConfig } from "../../config/schema";
-import UsersRepository from "../../repositories/usersRepository";
-import { hasBirthdayToday, isToday, MINUTE } from "../../utils/date";
+import config from "config";
+import { Message } from "node-telegram-bot-api";
+
+import { BotConfig } from "@config";
+import UsersRepository from "@repositories/users";
+import { hasBirthdayToday, isToday, MINUTE } from "@utils/date";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 const botConfig = config.get<BotConfig>("bot");

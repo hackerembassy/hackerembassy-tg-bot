@@ -1,43 +1,40 @@
 import config from "config";
+
 import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
-import { BotConfig, EmbassyApiConfig } from "../../config/schema";
-import State from "../../models/State";
-import { AutoInsideMode } from "../../models/User";
-import UserState, { UserStateChangeType, UserStateType } from "../../models/UserState";
-import fundsRepository, { COSTS_PREFIX } from "../../repositories/fundsRepository";
-import StatusRepository from "../../repositories/statusRepository";
-import UsersRepository from "../../repositories/usersRepository";
-import { requestToEmbassy } from "../../services/embassy";
-import { createUserStatsDonut } from "../../services/export";
-import * as ExportHelper from "../../services/export";
-import { SpaceClimate } from "../../services/hass";
-import logger from "../../services/logger";
-import { openAI } from "../../services/neural";
+import { BotConfig } from "@config";
+import State from "@models/State";
+import { AutoInsideMode } from "@models/User";
+import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
+import StatusRepository from "@repositories/status";
+import UsersRepository from "@repositories/users";
+import fundsRepository, { COSTS_PREFIX } from "@repositories/funds";
+import { DefaultCurrency, sumDonations } from "@services/currency";
+import { fetchDevicesInside, requestToEmbassy } from "@services/embassy";
+import { createUserStatsDonut } from "@services/export";
+import * as ExportHelper from "@services/export";
+import { SpaceClimate } from "@services/hass";
+import logger from "@services/logger";
+import { openAI } from "@services/neural";
 import {
-    closeSpace,
-    evictPeople,
     filterAllPeopleInside,
     filterPeopleGoing,
     filterPeopleInside,
-    getAllUsersTimes,
-    getUserTimeDescriptor,
     isMacInside,
-    openSpace,
+    SpaceStateService,
     UserStateService,
-} from "../../services/statusHelper";
-import { sleep } from "../../utils/common";
-import { sumDonations } from "../../utils/currency";
-import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "../../utils/date";
-import { isEmoji, REPLACE_MARKER } from "../../utils/text";
+} from "@services/statusHelper";
+import { sleep } from "@utils/common";
+import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
+import { isEmoji, REPLACE_MARKER } from "@utils/text";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
-const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
 const statsStartDateString = "2023-01-01";
 
@@ -305,7 +302,7 @@ export default class StatusHandlers implements BotHandlers {
             const user = msg.from?.id ? UsersRepository.getByUserId(msg.from.id) : null;
 
             const prompt = t("status.shouldigo.prompt", {
-                state: state?.open || (user && helpers.isMember(user)) ? t("status.status.opened") : t("status.status.closed"),
+                state: state?.open || (user && user.hasRole("member")) ? t("status.status.opened") : t("status.status.closed"),
                 going: going.length ? going.map(u => u.username).join(", ") : 0,
                 inside: inside.length ? inside.map(u => u.username).join(", ") : 0,
             });
@@ -321,7 +318,7 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
-        openSpace(msg.from?.username, { checkOpener: false });
+        SpaceStateService.openSpace(msg.from?.username, { checkOpener: false });
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [
@@ -366,7 +363,9 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
-        closeSpace(msg.from?.username, { evict: true });
+        SpaceStateService.closeSpace(msg.from?.username);
+        UserStateService.evictPeople();
+
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "open")]];
@@ -384,7 +383,7 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
-        evictPeople(UserStateService.getRecentUserStates().filter(filterPeopleInside));
+        UserStateService.evictPeople();
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
@@ -466,8 +465,9 @@ export default class StatusHandlers implements BotHandlers {
     static LetIn(username: string, date: Date, until?: Date, force = false, ghost = false) {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
+        const user = UsersRepository.getUserByName(username);
 
-        if (!state?.open && !helpers.hasRole(username, "member") && !force) return false;
+        if (!state?.open && !user?.hasRole("member") && !force) return false;
 
         const userstate = {
             id: 0,
@@ -585,12 +585,7 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinout(bot: HackerEmbassyBot, isIn: boolean): Promise<void> {
         try {
-            const response = await requestToEmbassy(`/devices?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
-
-            if (!response.ok) throw Error("Failed to get devices inside");
-
-            const devices = (await response.json()) as string[];
-
+            const devices = await fetchDevicesInside();
             const autousers = UsersRepository.getAutoinsideUsers();
             const insideUserStates = UserStateService.getRecentUserStates().filter(filterAllPeopleInside);
             const insideUserStatesMap = new Map(insideUserStates.map(u => [u.username, u]));
@@ -653,7 +648,7 @@ export default class StatusHandlers implements BotHandlers {
         const donationList = donations ? TextGenerators.generateFundDonationsList(donations) : "";
         const totalDonated = donations ? await sumDonations(donations) : 0;
 
-        const { days, hours, minutes } = getUserTimeDescriptor(userStates);
+        const { days, hours, minutes } = UserStateService.getUserTotalTime(userStates);
 
         const statsText = `${t("status.statsof", {
             username: helpers.formatUsername(selectedUsername, bot.context(msg).mode),
@@ -661,7 +656,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
             total: totalDonated.toFixed(2),
-            currency: "AMD",
+            currency: DefaultCurrency,
         })}`;
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
@@ -680,7 +675,7 @@ export default class StatusHandlers implements BotHandlers {
         const selectedUsername = (username ?? msg.from?.username)?.replace("@", "");
         const userStates = selectedUsername ? StatusRepository.getUserStates(selectedUsername) : [];
 
-        const { days, hours, minutes } = getUserTimeDescriptor(userStates);
+        const { days, hours, minutes } = UserStateService.getUserTotalTime(userStates);
         await bot.sendMessageExt(
             msg.chat.id,
             `${t("status.statsof", {
@@ -725,9 +720,7 @@ export default class StatusHandlers implements BotHandlers {
             return;
         }
 
-        const allUserStates = StatusRepository.getAllUserStates();
-
-        const userTimes = getAllUsersTimes(allUserStates, fromDate, toDate);
+        const userTimes = UserStateService.getAllVisits(fromDate, toDate);
         const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
 

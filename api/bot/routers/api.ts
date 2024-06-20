@@ -22,7 +22,7 @@ import { createTokenSecuredMiddleware } from "@utils/middleware";
 const router = Router();
 
 const hassTokenRequired = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
-const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
+const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"], true);
 const guestTokenRequired = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
 
 const createSpaceApiResponse = (status: Nullable<State>, inside: UserState[]) => ({

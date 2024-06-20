@@ -22,8 +22,7 @@ import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
-import { hasRole } from "../helpers";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -376,7 +375,7 @@ export default class EmbassyHandlers implements BotHandlers {
             return;
         }
 
-        const residents = usersRepository.getUsers().filter(u => hasRole(u.username, "member"));
+        const residents = usersRepository.getUsersByRole("member");
         const residentsInside = UserStateService.getRecentUserStates()
             .filter(filterPeopleInside)
             .filter(insider => residents.find(r => r.username === insider.username));
@@ -492,10 +491,11 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
-        const fromUsername = msg.from?.username;
+        const context = bot.context(msg);
+        const isMember = context.user?.hasRole("member");
         const voiceFileId = msg.voice?.file_id;
 
-        if (!bot.context(msg).isPrivate() || !voiceFileId || !fromUsername || !helpers.isMember(fromUsername)) return;
+        if (!context.isPrivate() || !voiceFileId || !isMember) return;
 
         const link = await bot.getFileLink(voiceFileId);
 

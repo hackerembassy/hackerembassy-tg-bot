@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import * as TextGenerators from "@hackembot/textGenerators";
+import { stripCustomMarkup } from "@hackembot/core/helpers";
 
 import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
@@ -9,7 +10,6 @@ import { requestToEmbassy } from "@services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
 import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/statusHelper";
-import { stripCustomMarkup } from "@utils/text";
 
 const router = Router();
 

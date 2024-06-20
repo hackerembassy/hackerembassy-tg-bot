@@ -21,7 +21,7 @@ import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/InlineB
 import t from "../core/localization";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 import EmbassyHandlers from "./embassy";
 
@@ -33,10 +33,10 @@ initConvert();
 export default class FundsHandlers implements BotHandlers {
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
+        const isAccountant = context.user?.hasRole("accountant");
         const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
         const donations = FundsRepository.getDonations();
-        const showAdmin =
-            helpers.hasRole(msg.from?.username, "admin", "accountant") && (context.isPrivate() || context.isAdminMode());
+        const showAdmin = isAccountant && (context.isPrivate() || context.isAdminMode());
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin }, context.mode);
 
@@ -56,6 +56,7 @@ export default class FundsHandlers implements BotHandlers {
 
     static async fundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         const context = bot.context(msg);
+        const isAccountant = context.user?.hasRole("accountant");
         const fund = FundsRepository.getFundByName(fundName);
 
         if (!fund) {
@@ -64,8 +65,7 @@ export default class FundsHandlers implements BotHandlers {
         }
 
         const donations = FundsRepository.getDonationsForName(fundName);
-        const showAdmin =
-            helpers.hasRole(msg.from?.username, "admin", "accountant") && (context.isPrivate() || bot.context(msg).isAdminMode());
+        const showAdmin = isAccountant && (context.isPrivate() || bot.context(msg).isAdminMode());
 
         // telegram callback_data is restricted to 64 bytes
         const inline_keyboard =
@@ -89,10 +89,10 @@ export default class FundsHandlers implements BotHandlers {
 
     static async fundsallHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
+        const isAccountant = context.user?.hasRole("accountant");
         const funds = FundsRepository.getFunds();
         const donations = FundsRepository.getDonations();
-        const showAdmin =
-            helpers.hasRole(msg.from?.username, "admin", "accountant") && (context.isPrivate() || context.isAdminMode());
+        const showAdmin = isAccountant && (context.isPrivate() || context.isAdminMode());
 
         const list = await TextGenerators.createFundList(funds, donations, { showAdmin, isHistory: true }, context.mode);
 
@@ -265,9 +265,9 @@ export default class FundsHandlers implements BotHandlers {
     }
 
     static async costsHandler(bot: HackerEmbassyBot, msg: Message, valueString: string, currency: string, userName: string) {
-        if (!helpers.hasRole(msg.from?.username, "accountant") || !valueString || !currency || !userName) {
-            return FundsHandlers.showCostsHandler(bot, msg);
-        }
+        const isAccountant = bot.context(msg).user?.hasRole("accountant");
+
+        if (!isAccountant || !valueString || !currency || !userName) return FundsHandlers.showCostsHandler(bot, msg);
 
         const latestCostsFund = FundsRepository.getLatestCosts();
 
@@ -306,7 +306,7 @@ export default class FundsHandlers implements BotHandlers {
         let resdientsDonatedList = `${t("funds.residentsdonated")}\n`;
 
         const donations = FundsRepository.getDonationsForName(fundName);
-        const residents = UsersRepository.getUsers().filter(u => helpers.hasRole(u.username, "member"));
+        const residents = UsersRepository.getUsersByRole("member");
 
         if (residents.length !== 0 && donations) {
             for (const resident of residents) {
@@ -327,9 +327,7 @@ export default class FundsHandlers implements BotHandlers {
 
     static async resdientsHistoryHandler(bot: HackerEmbassyBot, msg: Message, year: number = getToday().getFullYear()) {
         const donations = FundsRepository.getCostsFundDonations(year);
-        const residents = UsersRepository.getUsers()
-            .filter(u => helpers.hasRole(u.username, "member"))
-            .map(u => u.username?.toLowerCase());
+        const residents = UsersRepository.getUsersByRole("member").map(u => u.username?.toLowerCase());
 
         if (residents.length !== 0 && donations && donations.length > 0) {
             const residentsDonations = donations.filter(d => residents.includes(d.username.toLowerCase()));

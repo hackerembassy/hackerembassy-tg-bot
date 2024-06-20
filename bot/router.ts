@@ -3,7 +3,7 @@
 import broadcast, { BroadcastEvents } from "@services/broadcast";
 import logger from "@services/logger";
 import { DURATION_STRING_REGEX } from "@utils/date";
-import { OptionalParam } from "@utils/text";
+import { UserRole } from "@models/User";
 
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import AdminHandlers from "./handlers/admin";
@@ -16,13 +16,13 @@ import NeedsHandlers from "./handlers/needs";
 import ServiceHandlers from "./handlers/service";
 import StatusHandlers from "./handlers/status";
 import TopicsHandlers from "./handlers/subscriptions";
-import { BotRole } from "./core/types";
+import { OptionalParam } from "./core/helpers";
 
 // Typical role sets
-const TrustedMembers = ["member", "trusted"] as BotRole[];
-const Members = ["member"] as BotRole[];
-const Accountants = ["accountant"] as BotRole[];
-const Admins = ["admin"] as BotRole[];
+const TrustedMembers = ["member", "trusted"] as UserRole[];
+const Members = ["member"] as UserRole[];
+const Accountants = ["accountant"] as UserRole[];
+const Admins = ["admin"] as UserRole[];
 
 export function addRoutes(bot: HackerEmbassyBot): void {
     // Info

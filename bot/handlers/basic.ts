@@ -16,21 +16,27 @@ import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { BotHandlers, ITelegramUser } from "../core/types";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 import { getEventsList } from "../textGenerators";
+import { CommandsMap } from "../../resources/commands";
 
 const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicHandlers implements BotHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
         const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
+        const userRoles = [bot.context(msg).user?.splitRoles(), "default"];
+        const availableCommands =
+            role && userRoles.includes(role)
+                ? CommandsMap[selectedRole as keyof typeof Commands.CommandsMap]
+                : Object.keys(CommandsMap)
+                      .filter(r => userRoles.includes(r as keyof typeof CommandsMap))
+                      .map(r => CommandsMap[r as keyof typeof CommandsMap])
+                      .join("");
 
         const text = t("basic.help", {
-            availableCommands: helpers.getAvailableCommands(
-                msg.from?.username,
-                selectedRole as keyof typeof Commands.CommandsMap
-            ),
+            availableCommands,
             globalModifiers: Commands.GlobalModifiers,
         });
 
@@ -205,7 +211,7 @@ export default class BasicHandlers implements BotHandlers {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
         ];
-        const users = UsersRepository.getUsers().filter(u => helpers.hasRole(u.username, "member"));
+        const users = UsersRepository.getUsersByRole("member");
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
         await bot.sendOrEditMessage(msg.chat.id, message, msg, { reply_markup: { inline_keyboard } }, msg.message_id);

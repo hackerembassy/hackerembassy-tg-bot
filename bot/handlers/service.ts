@@ -3,6 +3,7 @@ import config from "config";
 import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
+import User from "@models/User";
 import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
 import { openAI } from "@services/neural";
@@ -13,7 +14,7 @@ import { ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineB
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
 import { UserRateLimiter } from "../core/RateLimit";
 import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
-import { userLink } from "../helpers";
+import { userLink } from "../core/helpers";
 import { setMenu } from "../menu";
 import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
@@ -310,7 +311,7 @@ export default class ServiceHandlers implements BotHandlers {
 
         logger.info(`User [${tgUser.id}](${tgUser.username}) passed the verification`);
 
-        return UsersRepository.updateUser({ ...user, roles: "default", language });
+        return UsersRepository.updateUser(new User({ ...user, roles: "default", language }));
     }
 
     static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser, language?: string) {
@@ -367,7 +368,7 @@ export default class ServiceHandlers implements BotHandlers {
         const userId = msg.from?.id;
         const user = userId ? UsersRepository.getByUserId(userId) : null;
 
-        if (user && UsersRepository.updateUser({ ...user, language: lang })) {
+        if (user && UsersRepository.updateUser(new User({ ...user, language: lang }))) {
             bot.context(msg).language = lang;
             return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.success", { language: lang }), msg);
         }

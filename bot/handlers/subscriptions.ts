@@ -10,7 +10,7 @@ import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
-import { hasRole, userLink } from "../helpers";
+import { userLink } from "../core/helpers";
 import { listTopics } from "../textGenerators";
 
 export default class TopicsHandlers implements BotHandlers {
@@ -150,8 +150,7 @@ export default class TopicsHandlers implements BotHandlers {
 
     static async topicsHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
-            const isMember = hasRole(msg.from?.username, "member");
-
+            const isMember = bot.context(msg).user?.hasRole("member");
             const topics = subscriptionsRepository.getTopics();
             const topicsList = topics.length > 0 ? listTopics(topics) : t("topics.general.empty");
             const text = t("topics.topics.list", { topics: topicsList }) + (isMember ? `\n${t("topics.topics.member")}` : "");

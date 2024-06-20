@@ -32,7 +32,7 @@ import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -302,7 +302,7 @@ export default class StatusHandlers implements BotHandlers {
             const user = msg.from?.id ? UsersRepository.getByUserId(msg.from.id) : null;
 
             const prompt = t("status.shouldigo.prompt", {
-                state: state?.open || (user && helpers.isMember(user)) ? t("status.status.opened") : t("status.status.closed"),
+                state: state?.open || (user && user.hasRole("member")) ? t("status.status.opened") : t("status.status.closed"),
                 going: going.length ? going.map(u => u.username).join(", ") : 0,
                 inside: inside.length ? inside.map(u => u.username).join(", ") : 0,
             });
@@ -465,8 +465,9 @@ export default class StatusHandlers implements BotHandlers {
     static LetIn(username: string, date: Date, until?: Date, force = false, ghost = false) {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
+        const user = UsersRepository.getUserByName(username);
 
-        if (!state?.open && !helpers.hasRole(username, "member") && !force) return false;
+        if (!state?.open && !user?.hasRole("member") && !force) return false;
 
         const userstate = {
             id: 0,

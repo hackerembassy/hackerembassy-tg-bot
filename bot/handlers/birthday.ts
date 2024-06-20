@@ -13,7 +13,7 @@ import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 const botConfig = config.get<BotConfig>("bot");

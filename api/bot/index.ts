@@ -28,7 +28,7 @@ app.use(createErrorMiddleware(logger));
 // Add Swagger if exists
 try {
     const swaggerFile = fs.readFileSync(path.resolve(__dirname, "swagger-schema.json"));
-    const swaggerDocument = JSON.parse(swaggerFile.toString());
+    const swaggerDocument = JSON.parse(swaggerFile.toString()) as swaggerUi.JsonObject;
     app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 } catch (error) {
     logger.error(error);

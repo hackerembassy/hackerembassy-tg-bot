@@ -2,6 +2,8 @@ import { AsyncLocalStorage } from "async_hooks";
 
 import TelegramBot from "node-telegram-bot-api";
 
+import User from "@models/User";
+
 import { DEFAULT_LANGUAGE, SupportedLanguage } from "./localization";
 import { BotMessageContextMode } from "./types";
 
@@ -24,6 +26,7 @@ export default class BotMessageContext {
     public isEditing: boolean = false;
     public isButtonResponse: boolean = false;
     public language: SupportedLanguage = DEFAULT_LANGUAGE;
+    public user: Nullable<User> = null;
 
     constructor(private msg: TelegramBot.Message) {}
 

@@ -12,6 +12,39 @@ class UserRepository extends BaseRepository {
         return users.map(user => new User(user));
     }
 
+    getUserByName(username: string): Nullable<User> {
+        try {
+            const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
+
+            return user ? new User(user as User) : null;
+        } catch (error) {
+            this.logger.error(error);
+            return null;
+        }
+    }
+
+    getByUserId(userid: number | ChatId): Nullable<User> {
+        try {
+            const user = this.db.prepare("SELECT * FROM users WHERE userid = ?").get(userid);
+
+            return user ? new User(user as User) : null;
+        } catch (error) {
+            this.logger.error(error);
+            return null;
+        }
+    }
+
+    getUsersByRole(role: string): User[] {
+        try {
+            const users = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role);
+
+            return users.map(user => new User(user as User));
+        } catch (error) {
+            this.logger.error(error);
+            return [];
+        }
+    }
+
     getAutoinsideUsers(): User[] {
         const users = this.db
             .prepare("SELECT * FROM users WHERE autoinside > 0 AND username IS NOT NULL AND mac IS NOT NULL")
@@ -207,39 +240,6 @@ class UserRepository extends BaseRepository {
         } catch (error) {
             this.logger.error(error);
             return false;
-        }
-    }
-
-    getUserByName(username: string): Nullable<User> {
-        try {
-            const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
-
-            return user ? new User(user as User) : null;
-        } catch (error) {
-            this.logger.error(error);
-            return null;
-        }
-    }
-
-    getByUserId(userid: number | ChatId): Nullable<User> {
-        try {
-            const user = this.db.prepare("SELECT * FROM users WHERE userid = ?").get(userid);
-
-            return user ? new User(user as User) : null;
-        } catch (error) {
-            this.logger.error(error);
-            return null;
-        }
-    }
-
-    getUsersByRole(role: string): Nullable<User[]> {
-        try {
-            const users: User[] = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role) as User[];
-
-            return users;
-        } catch (error) {
-            this.logger.error(error);
-            return null;
         }
     }
 }

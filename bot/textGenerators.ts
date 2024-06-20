@@ -25,7 +25,7 @@ import { REPLACE_MARKER } from "@utils/text";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
-import { formatUsername, getRoles, toEscapedTelegramMarkdown } from "./helpers";
+import { formatUsername, toEscapedTelegramMarkdown } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 
@@ -196,9 +196,8 @@ export function getUserBadges(username: Nullable<string>): string {
     const user = usersRepository.getUserByName(username);
     if (!user) return "";
 
-    const roles = getRoles(user);
-    const roleBadges = `${roles.includes("member") ? "🔑" : ""}${roles.includes("accountant") ? "📒" : ""}${
-        roles.includes("trusted") ? "🎓" : ""
+    const roleBadges = `${user.roles.includes("member") ? "🔑" : ""}${user.roles.includes("accountant") ? "📒" : ""}${
+        user.roles.includes("trusted") ? "🎓" : ""
     }`;
     const customBadge = user.emoji ?? "";
     const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";

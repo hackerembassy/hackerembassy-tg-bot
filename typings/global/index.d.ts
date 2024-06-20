@@ -4,6 +4,7 @@ declare global {
     type AnyFunction = (...params: any[]) => any;
     type MakeRequired<T, Keys extends keyof T> = Omit<T, Keys> & Required<Pick<T, Keys>>;
     type RequestContext = Record<string, any>;
+    type ExcludeMethods<T> = { [K in keyof T as T[K] extends AnyFunction ? never : K]: T[K] };
 
     namespace Express {
         interface Request {

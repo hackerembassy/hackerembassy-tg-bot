@@ -9,7 +9,7 @@ import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotCustomEvent, BotHandlers } from "../core/types";
-import * as helpers from "../helpers";
+import * as helpers from "../core/helpers";
 
 export default class AdminHandlers implements BotHandlers {
     /**

@@ -11,12 +11,6 @@ export function equalsIns(str1: Nullable<string>, str2: Nullable<string>): boole
     return str1?.toLowerCase() === str2?.toLowerCase();
 }
 
-export class OptionalRegExp extends RegExp {}
-
-export function OptionalParam(paramregex: RegExp) {
-    return new OptionalRegExp(`(?: ${paramregex.source})?`, paramregex.flags);
-}
-
 export function cropStringAtSpace(str: string, maxLength = 30) {
     if (str.length <= maxLength) return str;
 
@@ -42,8 +36,4 @@ export function chunkSubstr(str: string, size: number) {
     }
 
     return chunks;
-}
-
-export function stripCustomMarkup(text: string): string {
-    return text.replaceAll(/#./g, "");
 }

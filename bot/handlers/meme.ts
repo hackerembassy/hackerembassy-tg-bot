@@ -9,7 +9,7 @@ import { getImageFromPath, getRandomImageFromFolder } from "@utils/filesystem";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotHandlers } from "../core/types";
-import { formatUsername } from "../helpers";
+import { formatUsername } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 

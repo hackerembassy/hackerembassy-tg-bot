@@ -111,7 +111,7 @@
             "conditioner": {
                 "downstairsId": "climate.midea_climate",
                 "upstairsId": "climate.upstairs_hvac",
-                "statePath": "/api/states/",
+                "statePath": "/api/states",
                 "turnOnPath": "/api/services/climate/turn_on",
                 "turnOffPath": "/api/services/climate/turn_off",
                 "setModePath": "/api/services/climate/set_hvac_mode",

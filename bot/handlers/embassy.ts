@@ -528,12 +528,13 @@ export default class EmbassyHandlers implements BotHandlers {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
 
         let text = t("embassy.conditioner.unavailable");
+        const number = name === "downstairs" ? 1 : 2;
 
         const inline_keyboard = [
             [
                 InlineButton(
                     t("embassy.conditioner.buttons.turnon"),
-                    "turnconditioner",
+                    `ac${number}off`,
                     ButtonFlags.Silent | ButtonFlags.Editing,
                     {
                         params: true,
@@ -541,70 +542,45 @@ export default class EmbassyHandlers implements BotHandlers {
                 ),
                 InlineButton(
                     t("embassy.conditioner.buttons.turnoff"),
-                    "turnconditioner",
+                    `ac${number}off`,
                     ButtonFlags.Silent | ButtonFlags.Editing,
                     {
                         params: false,
                     }
                 ),
                 InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", ButtonFlags.Silent | ButtonFlags.Editing, {
-                    params: false,
+                    params: name,
                 }),
             ],
             [
                 InlineButton(
                     t("embassy.conditioner.buttons.more"),
-                    "addconditionertemp",
+                    `ac${number}addtemp`,
                     ButtonFlags.Silent | ButtonFlags.Editing,
                     {
                         params: 1,
                     }
                 ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.less"),
-                    "addconditionertemp",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: -1,
-                    }
-                ),
+                InlineButton(t("embassy.conditioner.buttons.less"), `ac${number}temp`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: -1,
+                }),
             ],
             [
-                InlineButton(
-                    t("embassy.conditioner.buttons.auto"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "heat_cool",
-                    }
-                ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.heat"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "heat",
-                    }
-                ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.cool"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "cool",
-                    }
-                ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.dry"),
-                    "setconditionermode",
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: "dry",
-                    }
-                ),
+                InlineButton(t("embassy.conditioner.buttons.auto"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "heat_cool",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.heat"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "heat",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.cool"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "cool",
+                }),
+                InlineButton(t("embassy.conditioner.buttons.dry"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
+                    params: "dry",
+                }),
             ],
             [
-                InlineButton(t("status.buttons.refresh"), "conditioner", ButtonFlags.Editing),
+                InlineButton(t("status.buttons.refresh"), "conditioner", ButtonFlags.Editing, { params: name }),
                 InlineButton(t("basic.control.buttons.back"), "controlpanel", ButtonFlags.Editing),
             ],
         ];
@@ -616,7 +592,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const conditionerStatus = (await response.json()) as ConditionerStatus;
 
-            text = t("embassy.conditioner.status", { conditionerStatus });
+            text = t("embassy.conditioner.status", { name, conditionerStatus, firm: name === "downstairs" ? "midea" : "lg" });
         } catch (error) {
             logger.error(error);
         } finally {

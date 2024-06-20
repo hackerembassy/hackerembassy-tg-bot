@@ -252,6 +252,13 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => ["downstairs", Number(match[1])],
         TrustedMembers
     );
+    bot.addRoute(
+        ["mideaaddtemp", "acaddtemp", "ac1addtemp"],
+        EmbassyHandlers.addConditionerTempHandler,
+        /(\d*)/,
+        match => ["downstairs", Number(match[1])],
+        TrustedMembers
+    );
 
     // Conditioner Upstairs
     bot.addRoute(["conditioner2", "ac2", "lg"], EmbassyHandlers.conditionerHandler, null, () => ["upstairs"], TrustedMembers);
@@ -267,6 +274,13 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["lgtemp", "ac2temp"],
         EmbassyHandlers.setConditionerTempHandler,
+        /(\d*)/,
+        match => ["upstairs", Number(match[1])],
+        TrustedMembers
+    );
+    bot.addRoute(
+        ["lgaddtemp", "ac2addtemp"],
+        EmbassyHandlers.addConditionerTempHandler,
         /(\d*)/,
         match => ["upstairs", Number(match[1])],
         TrustedMembers

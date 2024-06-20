@@ -13,7 +13,7 @@ router.get("/:name", async (req, res, next): Promise<any> => {
         const status = statusResponse.status;
         const fileMetadata = await printer.getFileMetadata(status.print_stats.filename);
         const cam = await printer.getCam().catch(() => null);
-        const thumbnailPath = fileMetadata.thumbnails?.at(-1)?.relative_path;
+        const thumbnailPath = fileMetadata?.thumbnails?.at(-1)?.relative_path;
         const thumbnailBuffer = thumbnailPath ? await printer.getThumbnail(thumbnailPath) : null;
 
         res.send({ status, thumbnailBuffer, cam });

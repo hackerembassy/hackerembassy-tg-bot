@@ -190,7 +190,8 @@ basic:
             facecontrol: 📹 Face
             printers: 📹 Printers
             superstatus: 🩻 Superstatus
-            conditioner: ❄️ AC
+            conditioner1: ❄️ Midea I
+            conditioner2: ❄️ LG II
             meme: 🔫 Meme
             back: ↩️ Back
     info:
@@ -301,17 +302,17 @@ embassy:
         nodata: 🌚 Climate data not available
     conditioner:
         status: |
-            ❄️ Midea condo status:
+            ❄️ {{name}} condo status:
             Mode: {{conditionerStatus.state}}
             Target temperature: {{conditionerStatus.attributes.temperature}}°C
             Current temperature: {{conditionerStatus.attributes.current_temperature}}°C
 
             ℹ️ Commands:
-            /mideaon - Turn on
-            /mideaoff - Disable
-            /preheat - Preheat the space in advance
-            #`/mideamode cool#` - Mode ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
-            #`/mideatemp 24#` - Target temperature (16-28°C)
+            /{{firm}}on - Turn on
+            /{{firm}}off - Disable
+            #`/{{firm}}mode cool#` - Mode ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/{{firm}}temp 24#` - Target temperature (16-28°C)
+            /preheat - Preheat the space in advance (midea only)
         success: ✅ It worked
         fail: ⚠️ It didn’t work out
         unavailable: ⚠️ Air conditioning is not available

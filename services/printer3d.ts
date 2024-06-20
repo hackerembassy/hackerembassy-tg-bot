@@ -66,7 +66,7 @@ export class Printer3d {
 
     async getFileMetadata(filename: string) {
         const response = await fetchWithTimeout(`${this.config.apibase}/server/files/metadata?filename=${filename}`);
-        const responseBody = (await response.json()) as { result: FileMetadataResult };
+        const responseBody = (await response.json()) as { result?: FileMetadataResult };
 
         return responseBody.result;
     }

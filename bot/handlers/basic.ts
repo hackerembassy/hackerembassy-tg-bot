@@ -260,10 +260,9 @@ export default class BasicHandlers implements BotHandlers {
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [InlineButton(t("basic.control.buttons.superstatus"), "superstatus")],
-
             [
-                InlineButton(t("basic.control.buttons.unlock"), "unlock"),
-                InlineButton(t("basic.control.buttons.conditioner"), "conditioner", ButtonFlags.Editing),
+                InlineButton(t("basic.control.buttons.conditioner1"), "ac1", ButtonFlags.Editing, { params: "downstairs" }),
+                InlineButton(t("basic.control.buttons.conditioner2"), "ac2", ButtonFlags.Editing, { params: "upstairs" }),
             ],
             [
                 InlineButton(t("basic.control.buttons.downstairs"), "webcam", ButtonFlags.Simple, { params: "downstairs" }),
@@ -276,6 +275,7 @@ export default class BasicHandlers implements BotHandlers {
                 InlineButton(t("basic.control.buttons.facecontrol"), "webcam", ButtonFlags.Simple, { params: "facecontrol" }),
             ],
             [
+                InlineButton(t("basic.control.buttons.unlock"), "unlock"),
                 InlineButton(t("basic.control.buttons.meme"), "memepanel", ButtonFlags.Editing),
                 InlineButton(t("general.buttons.back"), "startpanel", ButtonFlags.Editing),
             ],

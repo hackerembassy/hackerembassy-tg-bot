@@ -22,7 +22,7 @@ const router = Router();
  * Endpoint to get mac addresses of devices, which are currently connected to the space internal network
  * It's used for autoinside and unlock purposes
  */
-router.get("/all", async (req, res, next) => {
+router.get("/inside", async (req, res, next) => {
     try {
         const method = req.query.method;
 

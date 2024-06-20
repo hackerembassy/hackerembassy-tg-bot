@@ -191,7 +191,7 @@ export class Conditioner {
     constructor(private entityId: string) {}
 
     async getState(): Promise<ConditionerStatus> {
-        const response = await getFromHass(climateConfig.conditioner.statePath + this.entityId);
+        const response = await getFromHass(`${climateConfig.conditioner.statePath}/${this.entityId}`);
         return response.json();
     }
 

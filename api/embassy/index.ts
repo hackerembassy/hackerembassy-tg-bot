@@ -20,7 +20,7 @@ import camerasRouter from "./routers/cameras";
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const port = embassyApiConfig.service.port;
 const app = express();
-const staticPath = path.join(__dirname, "..", embassyApiConfig.service.static);
+const staticPath = path.join(__dirname, "../..", embassyApiConfig.service.static);
 
 app.use(cors());
 app.use(express.json());

@@ -8,7 +8,7 @@ import { EmbassyApiConfig } from "@config";
 import { sayInSpace, playInSpace, stopMediaInSpace } from "@services/hass";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
-const staticPath = path.join(__dirname, "..", embassyApiConfig.service.static);
+const staticPath = path.join(__dirname, "../../..", embassyApiConfig.service.static);
 
 const router = Router();
 

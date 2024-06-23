@@ -38,7 +38,7 @@
     },
     "api": {
         "port": 3000,
-        "static": "../resources/static"
+        "static": "resources/static"
     },
     "calendar": {
         "url": "https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan&hl=en",

@@ -220,7 +220,7 @@ export default class ServiceHandlers implements BotHandlers {
         const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [bot, msg];
 
         if (data.params !== undefined) {
-            params.push(data.params);
+            Array.isArray(data.params) ? params.push(...(data.params as unknown[])) : params.push(data.params);
         }
 
         await context.run(() => handler.apply(bot, params));

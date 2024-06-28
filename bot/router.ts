@@ -226,16 +226,16 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     );
     bot.addRoute(
         ["mideaon", "acon", "ac1on"],
-        EmbassyHandlers.turnConditionerHandler,
+        EmbassyHandlers.turnOnConditionerHandler,
         null,
-        () => ["downstairs", true],
+        () => ["downstairs"],
         TrustedMembers
     );
     bot.addRoute(
         ["mideaoff", "acoff", "ac1off"],
-        EmbassyHandlers.turnConditionerHandler,
+        EmbassyHandlers.turnOffConditionerHandler,
         null,
-        () => ["downstairs", false],
+        () => ["downstairs"],
         TrustedMembers
     );
     bot.addRoute(
@@ -255,15 +255,15 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["mideaaddtemp", "acaddtemp", "ac1addtemp"],
         EmbassyHandlers.addConditionerTempHandler,
-        /(\d*)/,
+        /(-?\d*)/,
         match => ["downstairs", Number(match[1])],
         TrustedMembers
     );
 
     // Conditioner Upstairs
     bot.addRoute(["conditioner2", "ac2", "lg"], EmbassyHandlers.conditionerHandler, null, () => ["upstairs"], TrustedMembers);
-    bot.addRoute(["lgon", "ac2on"], EmbassyHandlers.turnConditionerHandler, null, () => ["upstairs", true], TrustedMembers);
-    bot.addRoute(["lgoff", "ac2off"], EmbassyHandlers.turnConditionerHandler, null, () => ["upstairs", false]);
+    bot.addRoute(["lgon", "ac2on"], EmbassyHandlers.turnOnConditionerHandler, null, () => ["upstairs"], TrustedMembers);
+    bot.addRoute(["lgoff", "ac2off"], EmbassyHandlers.turnOffConditionerHandler, null, () => ["upstairs"]);
     bot.addRoute(
         ["lgmode", "ac2mode"],
         EmbassyHandlers.setConditionerModeHandler,
@@ -281,7 +281,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["lgaddtemp", "ac2addtemp"],
         EmbassyHandlers.addConditionerTempHandler,
-        /(\d*)/,
+        /(-?\d*)/,
         match => ["upstairs", Number(match[1])],
         TrustedMembers
     );

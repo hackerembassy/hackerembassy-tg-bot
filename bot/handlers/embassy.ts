@@ -528,55 +528,40 @@ export default class EmbassyHandlers implements BotHandlers {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
 
         let text = t("embassy.conditioner.unavailable");
-        const number = name === "downstairs" ? 1 : 2;
+        const buttonFlags = ButtonFlags.Silent | ButtonFlags.Editing;
 
         const inline_keyboard = [
             [
-                InlineButton(
-                    t("embassy.conditioner.buttons.turnon"),
-                    `ac${number}off`,
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: true,
-                    }
-                ),
-                InlineButton(
-                    t("embassy.conditioner.buttons.turnoff"),
-                    `ac${number}off`,
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: false,
-                    }
-                ),
-                InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", ButtonFlags.Silent | ButtonFlags.Editing, {
+                InlineButton(t("embassy.conditioner.buttons.turnon"), "acon", buttonFlags, {
+                    params: name,
+                }),
+                InlineButton(t("embassy.conditioner.buttons.turnoff"), "acoff", buttonFlags, {
+                    params: name,
+                }),
+                InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", buttonFlags, {
                     params: name,
                 }),
             ],
             [
-                InlineButton(
-                    t("embassy.conditioner.buttons.more"),
-                    `ac${number}addtemp`,
-                    ButtonFlags.Silent | ButtonFlags.Editing,
-                    {
-                        params: 1,
-                    }
-                ),
-                InlineButton(t("embassy.conditioner.buttons.less"), `ac${number}temp`, ButtonFlags.Silent | ButtonFlags.Editing, {
-                    params: -1,
+                InlineButton(t("embassy.conditioner.buttons.more"), `acaddtemp`, buttonFlags, {
+                    params: [name, 1],
+                }),
+                InlineButton(t("embassy.conditioner.buttons.less"), `acaddtemp`, buttonFlags, {
+                    params: [name, -1],
                 }),
             ],
             [
-                InlineButton(t("embassy.conditioner.buttons.auto"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
-                    params: "heat_cool",
+                InlineButton(t("embassy.conditioner.buttons.auto"), `acmode`, buttonFlags, {
+                    params: [name, "heat_cool"],
                 }),
-                InlineButton(t("embassy.conditioner.buttons.heat"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
-                    params: "heat",
+                InlineButton(t("embassy.conditioner.buttons.heat"), `acmode`, buttonFlags, {
+                    params: [name, "heat"],
                 }),
-                InlineButton(t("embassy.conditioner.buttons.cool"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
-                    params: "cool",
+                InlineButton(t("embassy.conditioner.buttons.cool"), `acmode`, buttonFlags, {
+                    params: [name, "cool"],
                 }),
-                InlineButton(t("embassy.conditioner.buttons.dry"), `ac${number}mode`, ButtonFlags.Silent | ButtonFlags.Editing, {
-                    params: "dry",
+                InlineButton(t("embassy.conditioner.buttons.dry"), `acmode`, buttonFlags, {
+                    params: [name, "dry"],
                 }),
             ],
             [
@@ -610,14 +595,14 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async turnConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, enabled: boolean) {
-        await EmbassyHandlers.controlConditioner(
-            bot,
-            msg,
-            name,
-            enabled ? ConditionerActions.POWER_ON : ConditionerActions.POWER_OFF,
-            null
-        );
+    static async turnOnConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.POWER_ON, null);
+
+        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
+    }
+
+    static async turnOffConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
+        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.POWER_OFF, null);
 
         if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }

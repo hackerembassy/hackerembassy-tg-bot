@@ -92,13 +92,12 @@ export const MemberCommandsList: string = `
 
 Камеры:
 /superstatus (ss) - Статус и изображения со всех камер
-/downstairs (ff) - Глянуть камеру первого этажа
-/downstairs2 (ff2) - Глянуть вторую камеру первого этажа
-/upstairs (sf) - Глянуть камеру второго этажа
-/outdoors - Глянуть камеру снаружи
-/printerscam - Глянуть камеру принтерной
-/ktichen - Глянуть камеру на кухне
-/facecontrol - Глянуть камеру у входа
+/downstairs (ff, cam1a) - Глянуть камеру первого этажа
+/downstairs2 (ff2, cam1b) - Глянуть вторую камеру первого этажа
+/upstairs (sf, cam2) - Глянуть камеру второго этажа
+/facecontrol (face) - Глянуть камеру у входа
+/outdoors (doorcam) - Глянуть камеру снаружи
+/printerscam (funcam) - Глянуть камеру принтерной
 /allcams (ac) - Глянуть все камеры
 
 Чаты:

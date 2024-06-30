@@ -9,6 +9,7 @@ import * as GitHub from "@services/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
 import logger from "@services/logger";
 import { cropStringAtSpace } from "@utils/text";
+import { UserRole } from "@models/User";
 
 import * as Commands from "../../resources/commands";
 import { MAX_MESSAGE_LENGTH } from "../core/constants";
@@ -26,9 +27,11 @@ const botConfig = config.get<BotConfig>("bot");
 export default class BasicHandlers implements BotHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
         const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
-        const userRoles = [bot.context(msg).user?.splitRoles(), "default"];
+        const userRoles = bot.context(msg).user?.splitRoles() ?? [];
+        userRoles.push("default");
+
         const availableCommands =
-            role && userRoles.includes(role)
+            role && userRoles.includes(role as UserRole)
                 ? CommandsMap[selectedRole as keyof typeof Commands.CommandsMap]
                 : Object.keys(CommandsMap)
                       .filter(r => userRoles.includes(r as keyof typeof CommandsMap))

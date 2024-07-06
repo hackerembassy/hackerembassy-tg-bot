@@ -31,7 +31,12 @@ export async function requestToEmbassy(
 }
 
 export async function fetchDevicesInside() {
-    const response = await requestToEmbassy(`/devices/inside?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`);
+    const response = await requestToEmbassy(
+        `/devices/inside?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`,
+        "GET",
+        undefined,
+        50000
+    );
 
     if (!response.ok) throw new Error("Failed to fetch devices inside");
 

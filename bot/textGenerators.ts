@@ -470,23 +470,22 @@ export function getInMessage(
 export function getAutoinsideMessageStatus(
     userautoinside: AutoInsideMode | undefined,
     usermac: Nullable<string> | undefined,
-    username: string | undefined,
-    mode: BotMessageContextMode
+    username: string | undefined
 ) {
     switch (userautoinside) {
         case AutoInsideMode.Enabled:
             return t("status.autoinside.isset", {
                 usermac,
-                username: formatUsername(username, mode),
+                username,
             });
         case AutoInsideMode.Ghost:
             return t("status.autoinside.isghost", {
                 usermac,
-                username: formatUsername(username, mode),
+                username,
             });
         default:
             return t("status.autoinside.isnotset", {
-                username: formatUsername(username, mode),
+                username,
             });
     }
 }

@@ -42,24 +42,26 @@ export default class StatusHandlers implements BotHandlers {
     static isStatusError = false;
 
     static async setmacHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
+        const user = bot.context(msg).user;
+        const userLink = user.userLink();
+
         let message = t("status.mac.fail");
-        const username = msg.from?.username;
+
         if (!cmd || cmd === "help") {
             message = t("status.mac.help");
-        } else if (cmd && username && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(username, cmd)) {
-            message = t("status.mac.set", { cmd, username: helpers.formatUsername(username, bot.context(msg).mode) });
-        } else if (cmd === "remove" && username) {
-            UsersRepository.setMACs(username, null);
-            UsersRepository.setAutoinside(username, AutoInsideMode.Disabled);
-            message = t("status.mac.removed", { username: helpers.formatUsername(username, bot.context(msg).mode) });
+        } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(user.id, cmd)) {
+            message = t("status.mac.set", { cmd, username: userLink });
+        } else if (cmd === "remove") {
+            UsersRepository.setMACs(user.id, null);
+            UsersRepository.setAutoinside(user.id, AutoInsideMode.Disabled);
+            message = t("status.mac.removed", { username: userLink });
         } else if (cmd === "status") {
-            const usermac = username ? UsersRepository.getUserByName(username)?.mac : undefined;
-            if (usermac)
+            if (user.mac)
                 message = t("status.mac.isset", {
-                    username: helpers.formatUsername(username, bot.context(msg).mode),
-                    usermac,
+                    username: userLink,
+                    usermac: user.mac,
                 });
-            else message = t("status.mac.isnotset", { username: helpers.formatUsername(username, bot.context(msg).mode) });
+            else message = t("status.mac.isnotset", { username: userLink });
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
@@ -67,13 +69,8 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
         const mode = bot.context(msg).mode;
-        const username = msg.from?.username;
-
-        if (!username) return await bot.sendMessageExt(msg.chat.id, t("status.autoinside.notsupported"), msg);
-
-        const user = UsersRepository.getUserByName(username);
-
-        if (!user) return await bot.sendMessageExt(msg.chat.id, t("status.autoinside.nouser"), msg);
+        const user = bot.context(msg).user;
+        const userLink = user.userLink();
 
         const usermac = user.mac;
 
@@ -86,19 +83,22 @@ export default class StatusHandlers implements BotHandlers {
                     if (!usermac) {
                         message = t("status.autoinside.nomac");
                     } else if (
-                        UsersRepository.setAutoinside(username, cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled)
+                        UsersRepository.setAutoinside(
+                            user.userid,
+                            cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled
+                        )
                     )
                         message = t("status.autoinside.set", {
                             usermac,
-                            username: helpers.formatUsername(username, mode),
+                            username: userLink,
                         });
                     break;
                 case "disable":
-                    UsersRepository.setAutoinside(username, AutoInsideMode.Disabled);
-                    message = t("status.autoinside.removed", { username: helpers.formatUsername(username, mode) });
+                    UsersRepository.setAutoinside(user.userid, AutoInsideMode.Disabled);
+                    message = t("status.autoinside.removed", { username: userLink });
                     break;
                 case "status":
-                    message = TextGenerators.getAutoinsideMessageStatus(user.autoinside, usermac, username, mode);
+                    message = TextGenerators.getAutoinsideMessageStatus(user.autoinside, usermac, userLink);
                     break;
                 case "help":
                 default:
@@ -299,10 +299,10 @@ export default class StatusHandlers implements BotHandlers {
             const recentUserStates = UserStateService.getRecentUserStates();
             const inside = recentUserStates.filter(filterPeopleInside);
             const going = recentUserStates.filter(filterPeopleGoing);
-            const user = msg.from?.id ? UsersRepository.getByUserId(msg.from.id) : null;
+            const user = bot.context(msg).user;
 
             const prompt = t("status.shouldigo.prompt", {
-                state: state?.open || (user && user.hasRole("member")) ? t("status.status.opened") : t("status.status.closed"),
+                state: state?.open || user.hasRole("member") ? t("status.status.opened") : t("status.status.closed"),
                 going: going.length ? going.map(u => u.username).join(", ") : 0,
                 inside: inside.length ? inside.map(u => u.username).join(", ") : 0,
             });

@@ -39,7 +39,6 @@ export function prepareMessageForMarkdown(message: string): string {
 }
 
 /**
- * @see HackerEmbassyBot.prepareMessageForMarkdown
  * @param text which can have html tags
  * @returns string in Markdownv2 format where all markdown tags are escaped with # symbol
  */

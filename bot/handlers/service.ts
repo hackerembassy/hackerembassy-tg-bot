@@ -118,7 +118,7 @@ export default class ServiceHandlers implements BotHandlers {
     static async chatidHandler(bot: HackerEmbassyBot, msg: Message) {
         if (msg.chat.type === "private") {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}`, msg);
-        } else if (msg.from && UsersRepository.getByUserId(msg.from.id)?.roles.includes("member")) {
+        } else if (bot.context(msg).user.hasRole("member")) {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}, topicId: ${msg.message_thread_id}`, msg);
         } else {
             bot.sendRestrictedMessage(msg);

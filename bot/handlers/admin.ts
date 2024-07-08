@@ -207,7 +207,7 @@ export default class AdminHandlers implements BotHandlers {
     static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         username = username.replace("@", "");
 
-        const success = UsersRepository.removeUser(username);
+        const success = UsersRepository.removeUserByUsername(username);
         const text = success
             ? t("admin.removeUser.success", { username: helpers.formatUsername(username, bot.context(msg).mode) })
             : t("admin.removeUser.fail");

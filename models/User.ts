@@ -50,6 +50,10 @@ class User {
     splitRoles() {
         return this.roles.split("|") as UserRole[];
     }
+
+    userLink() {
+        return `#[${this.username}#]#(tg://user?id=${this.userid}#)`;
+    }
 }
 
 export default User;

@@ -32,7 +32,7 @@ export default class NeedsHandlers implements BotHandlers {
     }
 
     static async buyHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
-        const requester = msg.from?.username;
+        const requester = bot.context(msg).user.username;
         const success = requester && NeedsRepository.addBuy(item, requester, new Date());
 
         await bot.sendMessageExt(
@@ -57,7 +57,7 @@ export default class NeedsHandlers implements BotHandlers {
     }
 
     static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
-        const buyer = msg.from?.username;
+        const buyer = bot.context(msg).user;
         const need = NeedsRepository.getOpenNeedByText(item);
 
         if (!need || need.buyer) {
@@ -65,15 +65,10 @@ export default class NeedsHandlers implements BotHandlers {
             return;
         }
 
-        if (!buyer) {
-            bot.sendMessageExt(msg.chat.id, t("needs.general.error"), msg);
-            return;
-        }
-
-        NeedsRepository.closeNeed(item, buyer, new Date());
+        NeedsRepository.closeNeed(item, buyer.username ?? "anon", new Date());
 
         const successText = t("needs.bought.success", {
-            username: helpers.formatUsername(buyer, bot.context(msg).mode),
+            username: buyer.userLink(),
             item,
         });
         const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", ButtonFlags.Simple, { params: need.id })]];

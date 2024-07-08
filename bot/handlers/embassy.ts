@@ -43,7 +43,9 @@ type SdToImageRequest = {
 
 export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (!(await hasDeviceInside(msg.from?.username))) {
+        const user = bot.context(msg).user;
+
+        if (!(await hasDeviceInside(user))) {
             bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
 
             return;
@@ -55,12 +57,12 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const token = await encrypt(unlockKey);
 
-            const response = await requestToEmbassy(`/space/unlock`, "POST", { token, from: msg.from?.username });
+            const response = await requestToEmbassy(`/space/unlock`, "POST", { token, from: user.username ?? user.userid });
 
             if (response.ok) {
-                logger.info(`${msg.from?.username} opened the door`);
+                logger.info(`${user.username ?? user.userid} opened the door`);
                 await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
-                broadcast.emit(BroadcastEvents.SpaceUnlocked, msg.from?.username);
+                broadcast.emit(BroadcastEvents.SpaceUnlocked, user.username);
             } else throw Error("Request error");
         } catch (error) {
             logger.error(error);

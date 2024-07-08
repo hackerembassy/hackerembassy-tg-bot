@@ -100,12 +100,12 @@ class UserRepository extends BaseRepository {
     }
 
     // TODO rewrite below using only updateUser
-    updateRoles(username: string, roles: string[] = ["default"]): boolean {
+    updateRoles(userid: ChatId, roles: string[] = ["default"]): boolean {
         try {
-            if (this.getUserByName(username) === null) return false;
+            if (this.getByUserId(userid) === null) return false;
             const joinedRoles = roles.join("|");
 
-            this.db.prepare("UPDATE users SET roles = ? WHERE LOWER(username) = ?").run(joinedRoles, username.toLowerCase());
+            this.db.prepare("UPDATE users SET roles = ? WHERE userid = ?").run(joinedRoles, userid);
 
             return true;
         } catch (error) {
@@ -141,22 +141,21 @@ class UserRepository extends BaseRepository {
         return registeredMacEntries.flatMap(macEntry => macEntry.mac.split("|"));
     }
 
-    setMACs(username: string, macs: Nullable<string> = null): boolean {
+    setMACs(userid: number | ChatId, macs: Nullable<string> = null): boolean {
         try {
-            const currentUser = this.getUserByName(username);
-            if (currentUser === null && !this.addUser(username, ["default"])) return false;
+            const currentUser = this.getByUserId(userid);
+            if (currentUser === null) return false;
 
             const newMacs = macs ? macs.split(",").map(mac => mac.toLowerCase().replaceAll("-", ":").trim()) : [];
             const existingRegisteredMacs = this.getAllRegisteredMACs();
-            const existingOtherUsersMacs = currentUser
-                ? existingRegisteredMacs.filter(mac => !currentUser.mac?.split(",").includes(mac))
-                : existingRegisteredMacs;
+            const existingOtherUsersMacs = existingRegisteredMacs.filter(mac => !currentUser.mac?.split(",").includes(mac));
+
             const newMacsString = newMacs.join(",");
 
             if (anyItemIsInList(newMacs, existingOtherUsersMacs))
                 throw Error(`Mac's [${newMacsString}] already exist in database`);
 
-            this.db.prepare("UPDATE users SET mac = ? WHERE LOWER(username) = ?").run(newMacsString, username.toLowerCase());
+            this.db.prepare("UPDATE users SET mac = ? WHERE userid = ?").run(newMacsString, userid);
 
             return true;
         } catch (error) {
@@ -165,11 +164,11 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setEmoji(username: string, emoji: Nullable<string> = null): boolean {
+    setEmoji(userid: ChatId, emoji: Nullable<string> = null): boolean {
         try {
-            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
+            if (this.getByUserId(userid) === null) return false;
 
-            this.db.prepare("UPDATE users SET emoji = ? WHERE LOWER(username) = ?").run(emoji, username.toLowerCase());
+            this.db.prepare("UPDATE users SET emoji = ? WHERE userid = ?").run(emoji, userid);
 
             return true;
         } catch (error) {
@@ -191,15 +190,12 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setAutoinside(username: string, mode: AutoInsideMode): boolean {
+    setAutoinside(userid: ChatId, mode: AutoInsideMode): boolean {
         try {
-            const user = this.getUserByName(username);
-            if ((user === null && !this.addUser(username, ["default"])) || (mode === AutoInsideMode.Disabled && !user?.mac))
-                return false;
+            const user = this.getByUserId(userid);
+            if (user === null || (mode === AutoInsideMode.Disabled && !user.mac)) return false;
 
-            this.db
-                .prepare("UPDATE users SET autoinside = ? WHERE LOWER(username) = ?")
-                .run(Number(mode), username.toLowerCase());
+            this.db.prepare("UPDATE users SET autoinside = ? WHERE userid = ?").run(Number(mode), userid);
 
             return true;
         } catch (error) {
@@ -208,11 +204,11 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    setBirthday(username: string, birthday: Nullable<string> = null): boolean {
+    setBirthday(userid: ChatId, birthday: Nullable<string> = null): boolean {
         try {
-            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
+            if (this.getByUserId(userid) === null) return false;
 
-            this.db.prepare("UPDATE users SET birthday = ? WHERE LOWER(username) = ?").run(birthday, username.toLowerCase());
+            this.db.prepare("UPDATE users SET birthday = ? WHERE userid = ?").run(birthday, userid);
 
             return true;
         } catch (error) {
@@ -221,7 +217,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    removeUser(username: string): boolean {
+    removeUserByUsername(username: string): boolean {
         try {
             this.db.prepare("DELETE FROM users WHERE LOWER(username) = ?").run(username.toLowerCase());
 
@@ -232,7 +228,7 @@ class UserRepository extends BaseRepository {
         }
     }
 
-    removeUserById(userid: number): boolean {
+    removeUserById(userid: ChatId): boolean {
         try {
             this.db.prepare("DELETE FROM users WHERE userid = ?").run(userid);
 

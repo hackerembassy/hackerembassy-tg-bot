@@ -548,9 +548,7 @@ export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {
     bot.on("message", message => bot.routeMessage(message));
     bot.on("message", message => bot.reactToMessage(message));
     bot.on("voice", message => EmbassyHandlers.voiceInSpaceHandler(bot, message));
-
-    // Callbacks and events
-    bot.onExt("callback_query", ServiceHandlers.callbackHandler);
+    bot.on("callback_query", bot.routeCallback);
     bot.onExt("chat_member", ServiceHandlers.newMemberHandler);
 
     // Debug logging

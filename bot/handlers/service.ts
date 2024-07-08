@@ -1,6 +1,6 @@
 import config from "config";
 
-import TelegramBot, { ChatMemberUpdated, Message } from "node-telegram-bot-api";
+import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
 import User from "@models/User";
@@ -10,33 +10,15 @@ import { openAI } from "@services/neural";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
+import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
-import { UserRateLimiter } from "../core/RateLimit";
-import { BotHandlers, ITelegramUser, MessageHistoryEntry } from "../core/types";
+import { BotHandlers, MessageHistoryEntry } from "../core/types";
 import { userLink } from "../core/helpers";
 import { setMenu } from "../menu";
 import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
-
-type CallbackData = {
-    fs?: ButtonFlags;
-    vId?: number;
-    cmd?: string;
-
-    params?: any;
-};
-
-const WelcomeMessageMap: {
-    [x: number]: string | undefined;
-} = {
-    [botConfig.chats.main]: "service.welcome.main",
-    [botConfig.chats.offtopic]: "service.welcome.offtopic",
-    [botConfig.chats.key]: "service.welcome.key",
-    [botConfig.chats.horny]: "service.welcome.horny",
-};
 
 export default class ServiceHandlers implements BotHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
@@ -163,86 +145,6 @@ export default class ServiceHandlers implements BotHandlers {
         await EmbassyHandlers.allCamsHandler(bot, msg);
     }
 
-    static async callbackHandler(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) {
-        const msg = callbackQuery.message;
-
-        try {
-            await bot.answerCallbackQuery(callbackQuery.id);
-
-            if (!msg || !msg.from?.id) throw Error("Message with User id is not found");
-
-            bot.context(msg).messageThreadId = msg.message_thread_id;
-
-            await UserRateLimiter.throttled(ServiceHandlers.routeQuery, msg.from.id)(bot, callbackQuery, msg);
-        } catch (error) {
-            logger.error(error);
-        } finally {
-            msg && bot.clearContext(msg);
-        }
-    }
-
-    static async routeQuery(bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
-        const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
-        const context = bot.context(msg);
-        context.isButtonResponse = true;
-
-        if (!data) throw Error("Missing calback query data");
-
-        msg.from = callbackQuery.from;
-
-        if (data.vId) {
-            if (callbackQuery.from.id !== data.vId) return;
-
-            context.run(() => ServiceHandlers.handleUserVerification(bot, data.vId as number, data.params as string, msg));
-
-            return;
-        }
-
-        const command = data.cmd;
-        if (!command) throw Error("Missing calback command");
-
-        const route = bot.routeMap.get(command);
-        if (!route) throw Error(`Calback route for ${command} does not exist`);
-
-        const handler = route.handler;
-        const user = UsersRepository.getByUserId(msg.from.id);
-
-        if (!bot.canUserCall(user, command)) return;
-
-        context.mode.secret = bot.isSecretModeAllowed(msg, context);
-        context.language = isSupportedLanguage(user?.language) ? user.language : DEFAULT_LANGUAGE;
-
-        if (data.fs !== undefined) {
-            if (data.fs & ButtonFlags.Silent) context.mode.silent = true;
-            if (data.fs & ButtonFlags.Editing) context.isEditing = true;
-        }
-
-        const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [bot, msg];
-
-        if (data.params !== undefined) {
-            Array.isArray(data.params) ? params.push(...(data.params as unknown[])) : params.push(data.params);
-        }
-
-        await context.run(() => handler.apply(bot, params));
-    }
-
-    private static async handleUserVerification(bot: HackerEmbassyBot, vId: number, language: string, msg: TelegramBot.Message) {
-        const tgUser = (await bot.getChat(vId)) as ITelegramUser;
-
-        if (ServiceHandlers.verifyAndAddUser(tgUser, language)) {
-            try {
-                botConfig.moderatedChats.forEach(chatId =>
-                    bot.unlockChatMember(chatId, tgUser.id as number).catch(error => logger.error(error))
-                );
-
-                await ServiceHandlers.welcomeHandler(bot, msg.chat, tgUser, language);
-                await bot.deleteMessage(msg.chat.id, msg.message_id);
-            } catch (error) {
-                logger.error(error);
-            }
-        }
-    }
-
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
         try {
             // I hate topics in tg 🤬
@@ -276,7 +178,7 @@ export default class ServiceHandlers implements BotHandlers {
         const currentUser = UsersRepository.getByUserId(user.id);
 
         if (!botConfig.moderatedChats.includes(chat.id)) {
-            return await ServiceHandlers.welcomeHandler(bot, chat, user, currentUser?.language ?? DEFAULT_LANGUAGE);
+            return await bot.sendWelcomeMessage(chat, user, currentUser?.language ?? DEFAULT_LANGUAGE);
         }
 
         if (currentUser === null) {
@@ -287,7 +189,7 @@ export default class ServiceHandlers implements BotHandlers {
             logger.info(
                 `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
             );
-            return await ServiceHandlers.welcomeHandler(bot, chat, user);
+            return await bot.sendWelcomeMessage(chat, user);
         } else {
             bot.lockChatMember(chat.id, user.id);
             logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
@@ -297,36 +199,6 @@ export default class ServiceHandlers implements BotHandlers {
             vId: user.id,
             name: userLink(user),
         });
-    }
-
-    static verifyAndAddUser(tgUser: ITelegramUser, language: string = DEFAULT_LANGUAGE) {
-        const user = UsersRepository.getByUserId(tgUser.id);
-
-        if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
-
-        if (!user.roles.includes("restricted")) {
-            logger.info(`User [${tgUser.id}](${tgUser.username}) was already verified`);
-            return true;
-        }
-
-        logger.info(`User [${tgUser.id}](${tgUser.username}) passed the verification`);
-
-        return UsersRepository.updateUser(new User({ ...user, roles: "default", language }));
-    }
-
-    static async welcomeHandler(bot: HackerEmbassyBot, chat: TelegramBot.Chat, tgUser: ITelegramUser, language?: string) {
-        const inline_keyboard = [[InlineDeepLinkButton(t("service.welcome.buttons.about"), bot.Name!, "about")]];
-
-        await bot.sendMessageExt(
-            chat.id,
-            t(WelcomeMessageMap[chat.id] ?? "service.welcome.main", { botName: bot.Name, newMember: userLink(tgUser) }, language),
-            null,
-            {
-                reply_markup: {
-                    inline_keyboard,
-                },
-            }
-        );
     }
 
     static async setLanguageHandler(

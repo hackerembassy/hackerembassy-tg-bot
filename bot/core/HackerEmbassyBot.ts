@@ -2,7 +2,6 @@ import { promises as fs } from "fs";
 import { EventEmitter, Stream } from "stream";
 
 import config from "config";
-import { t } from "i18next";
 
 import {
     CallbackQuery,
@@ -22,17 +21,17 @@ import { file } from "tmp-promise";
 
 import { BotConfig } from "@config";
 import User, { UserRole } from "@models/User";
-import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
 import { chunkSubstr } from "@utils/text";
+import UserService from "@services/user";
 
-import { OptionalRegExp, prepareMessageForMarkdown } from "./helpers";
+import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
+import { OptionalRegExp, prepareMessageForMarkdown, userLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import { FULL_PERMISSIONS, IGNORE_UPDATE_TIMEOUT, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "./constants";
-import { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
 import MessageHistory from "./MessageHistory";
-import { RateLimiter } from "./RateLimit";
+import { RateLimiter, UserRateLimiter } from "./RateLimit";
 import {
     BotAllowedReaction,
     BotCallbackHandler,
@@ -40,14 +39,26 @@ import {
     BotHandler,
     BotMessageContextMode,
     BotRoute,
+    CallbackData,
     ChatMemberHandler,
     EditMessageMediaOptionsExt,
+    ITelegramUser,
     MatchMapperFunction,
     SendMediaGroupOptionsExt,
     SerializedFunction,
 } from "./types";
+import { ButtonFlags, InlineDeepLinkButton } from "./InlineButtons";
 
 const botConfig = config.get<BotConfig>("bot");
+
+const WelcomeMessageMap: {
+    [x: number]: string | undefined;
+} = {
+    [botConfig.chats.main]: "service.welcome.main",
+    [botConfig.chats.offtopic]: "service.welcome.offtopic",
+    [botConfig.chats.key]: "service.welcome.key",
+    [botConfig.chats.horny]: "service.welcome.horny",
+};
 
 export default class HackerEmbassyBot extends TelegramBot {
     public messageHistory: MessageHistory;
@@ -95,14 +106,15 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     context(msg: TelegramBot.Message): BotMessageContext {
-        if (!this.contextMap.has(msg)) {
-            const newContext: BotMessageContext = new BotMessageContext(msg);
-            this.contextMap.set(msg, newContext);
+        // TODO: remove this when the live messages will be fixed
+        return this.contextMap.get(msg) ?? this.startContext(msg, UserService.prepareUser(msg.from as TelegramBot.User));
+    }
 
-            return newContext;
-        }
+    startContext(msg: TelegramBot.Message, user: User) {
+        const newContext = new BotMessageContext(user, msg);
+        this.contextMap.set(msg, newContext);
 
-        return this.contextMap.get(msg) as BotMessageContext;
+        return newContext;
     }
 
     clearContext(msg: TelegramBot.Message): void {
@@ -137,7 +149,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         text = prepareMessageForMarkdown(text);
         options = this.prepareOptionsForMarkdown({
             ...options,
-            message_thread_id: this.context(msg).messageThreadId,
+            message_thread_id: msg.message_thread_id,
         }) as EditMessageTextOptions;
 
         return super.editMessageText(text, options);
@@ -176,7 +188,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             fileOptions
         );
 
-        if (context.user && mode.pin) {
+        if (mode.pin) {
             this.tryPinChatMessage(message, context.user);
         }
 
@@ -208,7 +220,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             message_thread_id: context.messageThreadId,
         });
 
-        if (context.user && mode.pin) {
+        if (mode.pin) {
             this.tryPinChatMessage(message, context.user);
         }
 
@@ -399,11 +411,13 @@ export default class HackerEmbassyBot extends TelegramBot {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
 
+            // Change forward target if needed
             if (message.chat_shared?.chat_id) {
                 this.forwardTarget = message.chat_shared.chat_id;
                 return;
             }
 
+            // Get command from message text
             const text = (message.text ?? message.caption) as string;
 
             if (this.shouldIgnore(text)) return;
@@ -411,35 +425,21 @@ export default class HackerEmbassyBot extends TelegramBot {
             const fullCommand = text.split(" ")[0];
             const commandWithCase = fullCommand.split("@")[0].slice(1);
             const command = commandWithCase.toLowerCase();
-
             const route = this.routeMap.get(command);
+
             if (!route) return;
 
-            const userId = message.from?.id as number;
-            const dbuser = UsersRepository.getByUserId(userId);
-
-            if (!dbuser) {
-                logger.info(`User [${userId}]${message.from?.username} not found in the database. Adding...`);
-                UsersRepository.addUser(message.from?.username, ["default"], userId);
-            }
-
-            // Update username if it was changed
-            if (dbuser && message.from?.username && dbuser.username !== message.from.username) {
-                UsersRepository.updateUser(new User({ ...dbuser, username: message.from.username }));
-            }
-
-            const messageContext = this.context(message);
-            messageContext.user = dbuser;
-            messageContext.language = isSupportedLanguage(dbuser?.language) ? dbuser.language : DEFAULT_LANGUAGE;
+            // Prepare context
+            const user = UserService.prepareUser(message.from as TelegramBot.User);
+            const messageContext = this.startContext(message, user);
+            messageContext.language = isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
-            // check restritions
-            if (route.restrictions.length > 0 && !this.canUserCall(dbuser, command)) {
-                this.sendRestrictedMessage(message, route);
-                return;
-            }
+            // Check restritions
+            if (route.restrictions.length > 0 && !this.canUserCall(user, command))
+                return this.sendRestrictedMessage(message, route);
 
-            // parse global modifiers
+            // Parse global modifiers and set them to the context
             let textToMatch = text.replace(commandWithCase, command);
 
             for (const key of Object.keys(messageContext.mode)) {
@@ -449,7 +449,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             messageContext.mode.secret = this.isSecretModeAllowed(message, messageContext);
 
-            // call with or without params
+            // Call message handler with params
             if (route.paramMapper) {
                 const match = route.regex.exec(textToMatch);
                 const matchedParams = match ? route.paramMapper(match) : null;
@@ -463,12 +463,109 @@ export default class HackerEmbassyBot extends TelegramBot {
                 }
             }
 
+            // Call message handler without params
             await messageContext.run(() => route.handler(this, message));
         } catch (error) {
             logger.error(error);
         } finally {
             this.clearContext(message);
         }
+    }
+
+    async routeCallback(callbackQuery: TelegramBot.CallbackQuery) {
+        const msg = callbackQuery.message;
+
+        try {
+            await this.answerCallbackQuery(callbackQuery.id);
+
+            if (!msg?.from) throw Error("Callback query missing the sender, aborting...");
+
+            await UserRateLimiter.throttled(this.callbackHandler.bind(this), msg.from.id)(callbackQuery, msg);
+        } catch (error) {
+            logger.error(error);
+        } finally {
+            msg && this.clearContext(msg);
+        }
+    }
+
+    async callbackHandler(callbackQuery: TelegramBot.CallbackQuery, msg: Message) {
+        // Parse callback data
+        msg.from = callbackQuery.from;
+        const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
+        if (!data) throw Error("Missing calback query data");
+
+        // Prepare context
+        const user = UserService.prepareUser(msg.from);
+        const context = this.startContext(msg, user);
+        context.messageThreadId = msg.message_thread_id;
+        context.mode.secret = this.isSecretModeAllowed(msg, context);
+        context.language = isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
+        context.isButtonResponse = true;
+
+        // Extract command or user verification request
+        if (data.vId && callbackQuery.from.id === data.vId)
+            return context.run(() => this.handleUserVerification(data.vId as number, data.params as string, msg));
+
+        if (!data.cmd) throw Error("Missing calback command");
+
+        // Check restritions
+        if (!this.canUserCall(user, data.cmd)) return;
+
+        // Get route handler
+        const handler = this.routeMap.get(data.cmd)?.handler;
+        if (!handler) throw Error(`Route handler for ${data.cmd} does not exist`);
+
+        // Apply callback mode flags
+        if (data.fs !== undefined) {
+            if (data.fs & ButtonFlags.Silent) context.mode.silent = true;
+            if (data.fs & ButtonFlags.Editing) context.isEditing = true;
+        }
+
+        // Call callback handler with params
+        const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [this, msg];
+
+        if (data.params !== undefined) {
+            Array.isArray(data.params) ? params.push(...(data.params as unknown[])) : params.push(data.params);
+        }
+
+        await context.run(() => handler.apply(this, params));
+    }
+
+    private async handleUserVerification(vId: number, language: string, msg: TelegramBot.Message) {
+        try {
+            const userChat = await this.getChat(vId);
+            const success = UserService.verifyUser({ id: userChat.id, username: userChat.username }, language);
+
+            if (!success) throw new Error("Failed to verify user");
+
+            botConfig.moderatedChats.forEach(chatId =>
+                this.unlockChatMember(chatId, userChat.id).catch(error => logger.error(error))
+            );
+
+            await this.sendWelcomeMessage(msg.chat, userChat, language);
+            await this.deleteMessage(msg.chat.id, msg.message_id);
+        } catch (error) {
+            logger.error(error);
+        }
+    }
+
+    public async sendWelcomeMessage(chat: TelegramBot.Chat, tgUser: ITelegramUser, language?: string) {
+        const inline_keyboard = [[InlineDeepLinkButton(t("service.welcome.buttons.about"), this.Name!, "about")]];
+
+        await this.sendMessageExt(
+            chat.id,
+            t(
+                WelcomeMessageMap[chat.id] ?? "service.welcome.main",
+                { botName: this.Name!, newMember: userLink(tgUser) },
+                language
+            ),
+            null,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            }
+        );
     }
 
     reactToMessage(message: TelegramBot.Message) {
@@ -492,7 +589,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (alwaysSecretChats.includes(message.chat.id)) return true;
 
-        if (messageContext.user?.hasRole("member")) {
+        if (messageContext.user.hasRole("member")) {
             return messageContext.isPrivate() || messageContext.mode.secret;
         }
 

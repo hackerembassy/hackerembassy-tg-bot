@@ -767,7 +767,7 @@ topics:
             🙅‍♀️ You are not subscribed to {{topic}}
 
             📟 My subscriptions - /subscriptions
-        fail: ⚠️ Failed to unsubscribe from topic {{topic}}
+        fail: ⚠️ Failed to unsubscribe from topic {{topic}}. Are you sure you are subscribed?
     add:
         success: 📭 Topic {{topic}} added
         exists: 👌 Topic {{topic}} already exists

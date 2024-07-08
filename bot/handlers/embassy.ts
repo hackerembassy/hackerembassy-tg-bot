@@ -132,7 +132,8 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
-            const mode = bot.context(msg).mode;
+            const context = bot.context(msg);
+            const mode = context.mode;
 
             const webcamImage = await EmbassyHandlers.getWebcamImage(camName);
 
@@ -145,7 +146,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             if (webcamImage.byteLength === 0) throw Error("Empty webcam image");
 
-            if (bot.context(msg).isEditing) {
+            if (context.isEditing) {
                 await bot.editPhoto(webcamImage, msg, {
                     reply_markup: {
                         inline_keyboard,
@@ -492,7 +493,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
-        const isMember = context.user?.hasRole("member");
+        const isMember = context.user.hasRole("member");
         const voiceFileId = msg.voice?.file_id;
 
         if (!context.isPrivate() || !voiceFileId || !isMember) return;

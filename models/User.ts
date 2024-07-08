@@ -8,9 +8,21 @@ export const enum AutoInsideMode {
     Ghost = 2,
 }
 
+export const DefaultUser: ExcludeMethods<User> = {
+    id: 0,
+    username: null,
+    roles: "default",
+    mac: null,
+    birthday: null,
+    autoinside: AutoInsideMode.Disabled,
+    emoji: null,
+    userid: 0,
+    language: null,
+};
+
 class User {
     readonly id: number;
-    userid: Nullable<ChatId>;
+    userid: ChatId;
     username: Nullable<string>;
     roles: string;
     mac: Nullable<string>;
@@ -19,17 +31,7 @@ class User {
     emoji: Nullable<string>;
     language: Nullable<string>;
 
-    constructor({
-        id,
-        username,
-        roles = "default",
-        mac = null,
-        birthday = null,
-        autoinside = AutoInsideMode.Disabled,
-        emoji = null,
-        userid = null,
-        language = "ru",
-    }: ExcludeMethods<User>) {
+    constructor({ id, username, roles, mac, birthday, autoinside, emoji, userid, language } = DefaultUser) {
         this.id = id;
         this.username = username;
         this.roles = roles;

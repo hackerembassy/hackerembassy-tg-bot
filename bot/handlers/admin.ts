@@ -155,7 +155,7 @@ export default class AdminHandlers implements BotHandlers {
         let userList = "";
 
         for (const user of users) {
-            userList += `${helpers.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
+            userList += `${helpers.userLink({ username: user.username, id: user.userid })}\n`;
         }
 
         await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);

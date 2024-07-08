@@ -3,6 +3,7 @@ import TelegramBot, { ChatId, EditMessageMediaOptions, SendMediaGroupOptions } f
 import { UserRole } from "@models/User";
 
 import HackerEmbassyBot from "./HackerEmbassyBot";
+import { ButtonFlags } from "./InlineButtons";
 
 // Enums
 export enum BotCustomEvent {
@@ -130,6 +131,13 @@ export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...re
 export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
 
 export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: TelegramBot.ChatMemberUpdated) => any;
+
+export type CallbackData = {
+    fs?: ButtonFlags;
+    vId?: number;
+    cmd?: string;
+    params?: any;
+};
 
 // Intefraces
 export interface BotHandlers {}

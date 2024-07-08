@@ -43,10 +43,10 @@ class FundsRepository extends BaseRepository {
         return this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
     }
 
-    getDonationsForName(fundName: string): Nullable<Donation[]> {
+    getDonationsForName(fundName: string): Donation[] {
         return this.db
             .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
-            .all(fundName) as Nullable<Donation[]>;
+            .all(fundName) as Donation[];
     }
 
     getDonationsOf(username: string): Nullable<Donation[]> {

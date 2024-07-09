@@ -77,7 +77,6 @@ describe("Bot behavior shared for all commands:", () => {
             "/open",
             "/close",
             "/setemoji",
-            "/enableresidentmenu",
             "/inforce telegram_username",
             "/outforce telegram_username",
             "/evict",

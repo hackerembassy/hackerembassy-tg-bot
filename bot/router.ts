@@ -513,7 +513,6 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1]],
         Members
     );
-    bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, Members);
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, Members);
 
@@ -548,9 +547,7 @@ export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {
     bot.on("message", message => bot.routeMessage(message));
     bot.on("message", message => bot.reactToMessage(message));
     bot.on("voice", message => EmbassyHandlers.voiceInSpaceHandler(bot, message));
-
-    // Callbacks and events
-    bot.onExt("callback_query", ServiceHandlers.callbackHandler);
+    bot.on("callback_query", bot.routeCallback);
     bot.onExt("chat_member", ServiceHandlers.newMemberHandler);
 
     // Debug logging

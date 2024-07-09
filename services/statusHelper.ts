@@ -1,9 +1,9 @@
 import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
 import statusRepository from "@repositories/status";
-import usersRepository from "@repositories/users";
 import { convertToElapsedObject, ElapsedTimeObject, isToday } from "@utils/date";
 import { anyItemIsInList, onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
+import User from "@models/User";
 
 import broadcast, { BroadcastEvents } from "./broadcast";
 import { fetchDevicesInside } from "./embassy";
@@ -12,14 +12,11 @@ export type UserVisit = { username: string; usertime: ElapsedTimeObject };
 
 const ANON_USERNAME = "anon";
 
-export async function hasDeviceInside(username: Optional<string>): Promise<boolean> {
-    if (!username) return false;
-
+export async function hasDeviceInside(user: User): Promise<boolean> {
     try {
         const devices = await fetchDevicesInside();
-        const mac = usersRepository.getUserByName(username)?.mac;
 
-        return mac ? isMacInside(mac, devices) : false;
+        return user.mac ? isMacInside(user.mac, devices) : false;
     } catch {
         return false;
     }

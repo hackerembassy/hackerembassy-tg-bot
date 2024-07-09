@@ -1,7 +1,5 @@
 import config from "config";
 
-import TelegramBot from "node-telegram-bot-api";
-
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
@@ -89,7 +87,7 @@ export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
         if (membersWithUserid.length === 0) return;
 
         for (const member of membersWithUserid) {
-            await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid as TelegramBot.ChatId } });
+            await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid } });
         }
     } catch (error) {
         logger.error(error);

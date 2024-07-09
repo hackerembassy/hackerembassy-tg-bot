@@ -27,7 +27,7 @@ const botConfig = config.get<BotConfig>("bot");
 export default class BasicHandlers implements BotHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
         const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
-        const userRoles = bot.context(msg).user?.splitRoles() ?? [];
+        const userRoles = bot.context(msg).user.splitRoles();
         userRoles.push("default");
 
         const availableCommands =

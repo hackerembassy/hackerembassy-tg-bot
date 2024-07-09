@@ -43,7 +43,9 @@ type SdToImageRequest = {
 
 export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (!(await hasDeviceInside(msg.from?.username))) {
+        const user = bot.context(msg).user;
+
+        if (!(await hasDeviceInside(user))) {
             bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
 
             return;
@@ -55,12 +57,12 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const token = await encrypt(unlockKey);
 
-            const response = await requestToEmbassy(`/space/unlock`, "POST", { token, from: msg.from?.username });
+            const response = await requestToEmbassy(`/space/unlock`, "POST", { token, from: user.username ?? user.userid });
 
             if (response.ok) {
-                logger.info(`${msg.from?.username} opened the door`);
+                logger.info(`${user.username ?? user.userid} opened the door`);
                 await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
-                broadcast.emit(BroadcastEvents.SpaceUnlocked, msg.from?.username);
+                broadcast.emit(BroadcastEvents.SpaceUnlocked, user.username);
             } else throw Error("Request error");
         } catch (error) {
             logger.error(error);
@@ -132,7 +134,8 @@ export default class EmbassyHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
-            const mode = bot.context(msg).mode;
+            const context = bot.context(msg);
+            const mode = context.mode;
 
             const webcamImage = await EmbassyHandlers.getWebcamImage(camName);
 
@@ -145,7 +148,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             if (webcamImage.byteLength === 0) throw Error("Empty webcam image");
 
-            if (bot.context(msg).isEditing) {
+            if (context.isEditing) {
                 await bot.editPhoto(webcamImage, msg, {
                     reply_markup: {
                         inline_keyboard,
@@ -394,9 +397,7 @@ export default class EmbassyHandlers implements BotHandlers {
             await EmbassyHandlers.sayinspaceHandler(
                 bot,
                 msg,
-                `Тук-тук резиденты, к вам хочет зайти ${
-                    msg.from?.username ?? msg.from?.first_name
-                }. Ответьте ему в главном чатике.`
+                `Тук-тук резиденты, к вам хочет зайти ${bot.context(msg).user.effectiveName()}. Ответьте ему в главном чатике.`
             );
         }
     }
@@ -492,7 +493,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
-        const isMember = context.user?.hasRole("member");
+        const isMember = context.user.hasRole("member");
         const voiceFileId = msg.voice?.file_id;
 
         if (!context.isPrivate() || !voiceFileId || !isMember) return;

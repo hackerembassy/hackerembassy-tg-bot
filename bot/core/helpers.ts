@@ -1,4 +1,5 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
+import { User } from "node-telegram-bot-api";
 
 import { ITelegramUser } from "./types";
 
@@ -23,6 +24,10 @@ export function userLink(user: ITelegramUser) {
     return `#[${user.username ?? user.first_name ?? user.id}#]#(tg://user?id=${user.id}#)`;
 }
 
+export function effectiveName(user?: User) {
+    return user ? user.username ?? user.first_name : undefined;
+}
+
 /**
  * Bot uses MarkdownV2 by default, because it's needed for almost every command.
  * But we still want to be able to use markdown special symbols as regular symbols in some cases.
@@ -39,7 +44,6 @@ export function prepareMessageForMarkdown(message: string): string {
 }
 
 /**
- * @see HackerEmbassyBot.prepareMessageForMarkdown
  * @param text which can have html tags
  * @returns string in Markdownv2 format where all markdown tags are escaped with # symbol
  */

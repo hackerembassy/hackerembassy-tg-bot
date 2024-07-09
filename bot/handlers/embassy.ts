@@ -397,9 +397,7 @@ export default class EmbassyHandlers implements BotHandlers {
             await EmbassyHandlers.sayinspaceHandler(
                 bot,
                 msg,
-                `Тук-тук резиденты, к вам хочет зайти ${
-                    msg.from?.username ?? msg.from?.first_name
-                }. Ответьте ему в главном чатике.`
+                `Тук-тук резиденты, к вам хочет зайти ${bot.context(msg).user.effectiveName()}. Ответьте ему в главном чатике.`
             );
         }
     }

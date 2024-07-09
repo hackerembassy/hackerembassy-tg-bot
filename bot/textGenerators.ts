@@ -25,7 +25,7 @@ import { REPLACE_MARKER } from "@utils/text";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
-import { formatUsername, toEscapedTelegramMarkdown } from "./core/helpers";
+import { formatUsername, toEscapedTelegramMarkdown, userLink } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 
@@ -320,7 +320,9 @@ export function getBirthdaysList(birthdayUsers: Nullable<User[]> | undefined, mo
         if (usersWithBirthdayThisMonth.length > 0) {
             usersList = "";
             for (const user of usersWithBirthdayThisMonth) {
-                message += `${user.day} ${t(shortMonthNames[user.month - 1])} - ${formatUsername(user.username, mode)}\n`;
+                message += `${user.day} ${t(shortMonthNames[user.month - 1])} - ${
+                    user.username ? formatUsername(user.username, mode) : userLink(user)
+                }\n`;
             }
         }
     }

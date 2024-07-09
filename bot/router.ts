@@ -513,7 +513,6 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1]],
         Members
     );
-    bot.addRoute(["enableresidentmenu", "residentmenu"], ServiceHandlers.residentMenuHandler, null, null, Members);
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, Members);
 

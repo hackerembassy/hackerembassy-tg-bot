@@ -397,21 +397,22 @@ export default class StatusHandlers implements BotHandlers {
         username?: string
     ) {
         const context = bot.context(msg);
+        const sender = context.user;
 
         if (ghost && msg.chat.id !== botConfig.chats.key && msg.chat.id !== botConfig.chats.alerts && !context.isPrivate())
             return await bot.sendMessageExt(msg.chat.id, "👻", msg);
 
         const eventDate = new Date();
         const force = username !== undefined;
-        const usernameOrFirstname = username?.replace("@", "") ?? msg.from?.username ?? msg.from?.first_name;
-        const inviter = force ? msg.from?.username : undefined;
+        const targetName = username?.replace("@", "") ?? sender.effectiveName();
+        const inviterName = force ? sender.effectiveName() : undefined;
         const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
         const until = durationMs ? new Date(eventDate.getTime() + durationMs) : undefined;
-        const gotIn = usernameOrFirstname ? StatusHandlers.LetIn(usernameOrFirstname, eventDate, until, force, ghost) : false;
+        const gotIn = targetName ? StatusHandlers.LetIn(targetName, eventDate, until, force, ghost) : false;
 
         if (gotIn) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
-        const message = TextGenerators.getInMessage(usernameOrFirstname, gotIn, context.mode, inviter, until);
+        const message = TextGenerators.getInMessage(targetName, gotIn, context.mode, inviterName, until);
 
         const inline_keyboard = gotIn
             ? [
@@ -428,16 +429,18 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
+        const context = bot.context(msg);
+        const sender = context.user;
         const eventDate = new Date();
         const force = username !== undefined;
-        const usernameOrFirstname = username?.replace("@", "") ?? msg.from?.username ?? msg.from?.first_name;
-        const gotOut = usernameOrFirstname ? StatusHandlers.LetOut(usernameOrFirstname, eventDate, force) : false;
+        const targetName = username?.replace("@", "") ?? sender.effectiveName();
+        const gotOut = targetName ? StatusHandlers.LetOut(targetName, eventDate, force) : false;
         let message: string;
 
         if (gotOut) {
             message = t(force ? "status.outforce.gotout" : "status.out.gotout", {
-                username: helpers.formatUsername(usernameOrFirstname, bot.context(msg).mode),
-                memberusername: force ? helpers.formatUsername(msg.from?.username, bot.context(msg).mode) : undefined,
+                username: helpers.formatUsername(targetName, context.mode),
+                memberusername: force ? sender.userLink() : undefined,
             });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } else {

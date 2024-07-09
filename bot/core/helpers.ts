@@ -1,4 +1,5 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
+import { User } from "node-telegram-bot-api";
 
 import { ITelegramUser } from "./types";
 
@@ -21,6 +22,10 @@ export function formatUsername(username: Optional<string>, mode = { mention: fal
 
 export function userLink(user: ITelegramUser) {
     return `#[${user.username ?? user.first_name ?? user.id}#]#(tg://user?id=${user.id}#)`;
+}
+
+export function effectiveName(user?: User) {
+    return user ? user.username ?? user.first_name : undefined;
 }
 
 /**

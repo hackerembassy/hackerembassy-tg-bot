@@ -14,7 +14,6 @@ import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
 import { BotHandlers, MessageHistoryEntry } from "../core/types";
 import { userLink } from "../core/helpers";
-import { setMenu } from "../menu";
 import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
 
@@ -123,21 +122,6 @@ export default class ServiceHandlers implements BotHandlers {
         } else {
             bot.sendRestrictedMessage(msg);
         }
-    }
-
-    static async residentMenuHandler(bot: HackerEmbassyBot, msg: Message) {
-        const usernameOrFirstname = msg.from?.username ?? msg.from?.first_name;
-        if (!usernameOrFirstname) return;
-
-        UsersRepository.setUserid(usernameOrFirstname, msg.from?.id ?? null);
-
-        await setMenu(bot);
-
-        bot.sendMessageExt(
-            msg.chat.id,
-            `Resident menu is enabled for ${usernameOrFirstname}[userid:${msg.from?.id}] in the private chat`,
-            msg
-        );
     }
 
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {

@@ -6,14 +6,13 @@ import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
-import { hasBirthdayToday, isToday, MINUTE } from "@utils/date";
+import { hasBirthdayToday, isIsoDateString, isToday, MINUTE } from "@utils/date";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
-import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -44,20 +43,18 @@ export default class BirthdayHandlers implements BotHandlers {
         );
     }
 
-    static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, date?: string) {
-        const username = msg.from?.username;
-        const formattedUsername = helpers.formatUsername(username, bot.context(msg).mode);
-        const fulldate = date?.length === 5 ? "0000-" + date : date;
+    static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, input?: string) {
+        const sender = bot.context(msg).user;
 
-        let text = t("birthday.fail");
+        if (input === "remove" && UsersRepository.setBirthday(sender.userid, null))
+            return bot.sendMessageExt(msg.chat.id, t("birthday.remove", { username: sender.userLink() }), msg);
 
-        if (BirthdayHandlers.isAllowedFormatDateString(date) && username && UsersRepository.setBirthday(username, fulldate)) {
-            text = t("birthday.set", { username: formattedUsername, date });
-        } else if (date === "remove" && username && UsersRepository.setBirthday(username, null)) {
-            text = t("birthday.remove", { username: formattedUsername });
-        }
+        const fulldate = input?.length === 5 ? "0000-" + input : input;
 
-        bot.sendMessageExt(msg.chat.id, text, msg);
+        if (isIsoDateString(input) && UsersRepository.setBirthday(sender.userid, fulldate))
+            return bot.sendMessageExt(msg.chat.id, t("birthday.set", { username: sender.userLink(), date: input }), msg);
+
+        return bot.sendMessageExt(msg.chat.id, t("birthday.fail"), msg);
     }
 
     static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, force: boolean = false) {
@@ -77,10 +74,6 @@ export default class BirthdayHandlers implements BotHandlers {
 
         bot.botState.lastBirthdayWishTimestamp = Date.now();
         bot.botState.persistChanges();
-    }
-
-    static isAllowedFormatDateString(date?: string) {
-        return date ? /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date) : false;
     }
 }
 

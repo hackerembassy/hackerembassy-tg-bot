@@ -50,8 +50,9 @@ export default class NeedsHandlers implements BotHandlers {
 
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
+        const sender = bot.context(msg).user;
 
-        if (need && need.buyer === msg.from?.username && NeedsRepository.undoClose(need.id)) {
+        if (need && need.buyer === sender.effectiveName() && NeedsRepository.undoClose(need.id)) {
             await bot.deleteMessage(msg.chat.id, msg.message_id);
         }
     }

@@ -11,6 +11,8 @@ export const enum AutoInsideMode {
 export const DefaultUser: ExcludeMethods<User> = {
     id: 0,
     username: null,
+    firstname: null,
+    lastname: null,
     roles: "default",
     mac: null,
     birthday: null,
@@ -24,6 +26,8 @@ class User {
     readonly id: number;
     userid: ChatId;
     username: Nullable<string>;
+    firstname: Nullable<string>;
+    lastname: Nullable<string>;
     roles: string;
     mac: Nullable<string>;
     birthday: Nullable<string>;
@@ -31,9 +35,11 @@ class User {
     emoji: Nullable<string>;
     language: Nullable<string>;
 
-    constructor({ id, username, roles, mac, birthday, autoinside, emoji, userid, language } = DefaultUser) {
+    constructor({ id, username, firstname, lastname, roles, mac, birthday, autoinside, emoji, userid, language } = DefaultUser) {
         this.id = id;
         this.username = username;
+        this.firstname = firstname;
+        this.lastname = lastname;
         this.roles = roles;
         this.mac = mac;
         this.birthday = birthday;
@@ -53,6 +59,10 @@ class User {
 
     userLink() {
         return `#[${this.username}#]#(tg://user?id=${this.userid}#)`;
+    }
+
+    effectiveName() {
+        return this.username ?? this.firstname ?? "unknown";
     }
 }
 

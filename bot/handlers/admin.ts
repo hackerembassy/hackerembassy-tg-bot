@@ -155,7 +155,7 @@ export default class AdminHandlers implements BotHandlers {
         let userList = "";
 
         for (const user of users) {
-            userList += `${helpers.userLink({ username: user.username, id: user.userid ?? 0 })}\n`;
+            userList += `${helpers.userLink({ username: user.username, id: user.userid })}\n`;
         }
 
         await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);
@@ -207,7 +207,7 @@ export default class AdminHandlers implements BotHandlers {
     static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         username = username.replace("@", "");
 
-        const success = UsersRepository.removeUser(username);
+        const success = UsersRepository.removeUserByUsername(username);
         const text = success
             ? t("admin.removeUser.success", { username: helpers.formatUsername(username, bot.context(msg).mode) })
             : t("admin.removeUser.fail");

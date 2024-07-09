@@ -8,10 +8,26 @@ export const enum AutoInsideMode {
     Ghost = 2,
 }
 
+export const DefaultUser: ExcludeMethods<User> = {
+    id: 0,
+    username: null,
+    firstname: null,
+    lastname: null,
+    roles: "default",
+    mac: null,
+    birthday: null,
+    autoinside: AutoInsideMode.Disabled,
+    emoji: null,
+    userid: 0,
+    language: null,
+};
+
 class User {
     readonly id: number;
-    userid: Nullable<ChatId>;
+    userid: ChatId;
     username: Nullable<string>;
+    firstname: Nullable<string>;
+    lastname: Nullable<string>;
     roles: string;
     mac: Nullable<string>;
     birthday: Nullable<string>;
@@ -19,19 +35,11 @@ class User {
     emoji: Nullable<string>;
     language: Nullable<string>;
 
-    constructor({
-        id,
-        username,
-        roles = "default",
-        mac = null,
-        birthday = null,
-        autoinside = AutoInsideMode.Disabled,
-        emoji = null,
-        userid = null,
-        language = "ru",
-    }: ExcludeMethods<User>) {
+    constructor({ id, username, firstname, lastname, roles, mac, birthday, autoinside, emoji, userid, language } = DefaultUser) {
         this.id = id;
         this.username = username;
+        this.firstname = firstname;
+        this.lastname = lastname;
         this.roles = roles;
         this.mac = mac;
         this.birthday = birthday;
@@ -47,6 +55,14 @@ class User {
 
     splitRoles() {
         return this.roles.split("|") as UserRole[];
+    }
+
+    userLink() {
+        return `#[${this.username}#]#(tg://user?id=${this.userid}#)`;
+    }
+
+    effectiveName() {
+        return this.username ?? this.firstname ?? "unknown";
     }
 }
 

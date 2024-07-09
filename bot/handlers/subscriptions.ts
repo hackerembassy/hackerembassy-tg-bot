@@ -1,9 +1,8 @@
 import { Message } from "node-telegram-bot-api";
 
-import { SubscriptionExtended } from "@models/Subscription";
 import Topic from "@models/Topic";
-import subscriptionsRepository from "@repositories/subscriptions";
 import logger from "@services/logger";
+import SubscriptionsService from "@services/subscriptions";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
@@ -16,8 +15,7 @@ import { listTopics } from "../textGenerators";
 export default class TopicsHandlers implements BotHandlers {
     static async mySubscriptionsHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
-            const tgUserId = msg.from?.id as number;
-            const subscriptions = subscriptionsRepository.getSubscriptionsByUserId(tgUserId, true) as SubscriptionExtended[];
+            const subscriptions = SubscriptionsService.getSubscriptionsByUser(bot.context(msg).user);
 
             if (!subscriptions.length) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.subscriptions.empty"), msg);
@@ -61,19 +59,14 @@ export default class TopicsHandlers implements BotHandlers {
 
     static tagSubscribersHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
-            const topic = subscriptionsRepository.getTopicByName(topicname);
+            const topic = SubscriptionsService.getTopic(topicname);
 
-            if (!topic) {
-                bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
-                return;
-            }
+            if (!topic) return bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
 
-            const subscriptions = subscriptionsRepository.getSubscriptionsByTopicId(topic.id, true) as SubscriptionExtended[];
+            const subscriptions = SubscriptionsService.getSubscriptionsByTopic(topic);
 
-            if (!subscriptions.length) {
-                bot.sendMessageExt(msg.chat.id, t("topics.general.nosubscribers", { topic: topicname }), msg);
-                return;
-            }
+            if (!subscriptions.length)
+                return bot.sendMessageExt(msg.chat.id, t("topics.general.nosubscribers", { topic: topicname }), msg);
 
             const text = subscriptions
                 .map(subscription =>
@@ -81,10 +74,10 @@ export default class TopicsHandlers implements BotHandlers {
                 )
                 .join(" ");
 
-            bot.sendMessageExt(msg.chat.id, text, msg);
+            return bot.sendMessageExt(msg.chat.id, text, msg);
         } catch (error) {
-            bot.sendMessageExt(msg.chat.id, t("topics.general.error"), msg);
             logger.error(error);
+            return bot.sendMessageExt(msg.chat.id, t("topics.general.error"), msg);
         }
     }
 
@@ -95,14 +88,14 @@ export default class TopicsHandlers implements BotHandlers {
                 return;
             }
 
-            const topic = subscriptionsRepository.getTopicByName(topicname);
+            const topic = SubscriptionsService.getTopic(topicname);
 
             if (!topic) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
                 return;
             }
 
-            const subscriptions = subscriptionsRepository.getSubscriptionsByTopicId(topic.id, true) as SubscriptionExtended[];
+            const subscriptions = SubscriptionsService.getSubscriptionsByTopic(topic);
 
             if (!subscriptions.length) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.general.nosubscribers", { topic: topicname }), msg);
@@ -150,8 +143,8 @@ export default class TopicsHandlers implements BotHandlers {
 
     static async topicsHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
-            const isMember = bot.context(msg).user?.hasRole("member");
-            const topics = subscriptionsRepository.getTopics();
+            const isMember = bot.context(msg).user.hasRole("member");
+            const topics = SubscriptionsService.getAllTopics();
             const topicsList = topics.length > 0 ? listTopics(topics) : t("topics.general.empty");
             const text = t("topics.topics.list", { topics: topicsList }) + (isMember ? `\n${t("topics.topics.member")}` : "");
 
@@ -181,12 +174,12 @@ export default class TopicsHandlers implements BotHandlers {
 
     static async addTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, topicdescription: string) {
         try {
-            if (subscriptionsRepository.getTopicByName(topicname)) {
+            if (SubscriptionsService.getTopic(topicname)) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.add.exists", { topic: topicname }), msg);
                 return;
             }
 
-            const success = subscriptionsRepository.addTopic(topicname, topicdescription);
+            const success = SubscriptionsService.addTopic({ name: topicname, description: topicdescription });
 
             if (!success) throw new Error("Failed to add topic");
 
@@ -199,14 +192,14 @@ export default class TopicsHandlers implements BotHandlers {
 
     static async deleteTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
-            const topic = subscriptionsRepository.getTopicByName(topicname);
+            const topic = SubscriptionsService.getTopic(topicname);
 
             if (!topic) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
                 return;
             }
 
-            const success = subscriptionsRepository.deleteTopic(topic.id);
+            const success = SubscriptionsService.deleteTopic(topic);
 
             if (!success) throw new Error("Failed to delete topic");
 
@@ -217,57 +210,38 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
-    static async subscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
+    static subscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
-            const tgUserId = msg.from?.id as number;
-            const topic = subscriptionsRepository.getTopicByName(topicname);
+            const sender = bot.context(msg).user;
+            const topic = SubscriptionsService.getTopic(topicname);
 
-            if (!topic) {
-                await bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
-                return;
-            }
+            if (!topic) return bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
 
-            if (subscriptionsRepository.getSubscriptionsByTopicId(topic.id).some(s => s.userid === tgUserId)) {
-                await bot.sendMessageExt(msg.chat.id, t("topics.subscribe.already", { topic: topicname }), msg);
-                return;
-            }
+            if (SubscriptionsService.getSubscriptionsByTopic(topic).some(s => s.userid === sender.userid))
+                return bot.sendMessageExt(msg.chat.id, t("topics.subscribe.already", { topic: topicname }), msg);
 
-            const success = subscriptionsRepository.addSubscription(tgUserId, topic.id);
+            if (!SubscriptionsService.subscribe(sender, topic)) throw new Error("Failed to subscribe user");
 
-            if (!success) throw new Error("Failed to subscribe user");
-
-            await bot.sendMessageExt(msg.chat.id, t("topics.subscribe.success", { topic: topicname }), msg);
+            return bot.sendMessageExt(msg.chat.id, t("topics.subscribe.success", { topic: topicname }), msg);
         } catch (error) {
-            await bot.sendMessageExt(msg.chat.id, t("topics.subscribe.fail", { topic: topicname }), msg);
             logger.error(error);
+            return bot.sendMessageExt(msg.chat.id, t("topics.subscribe.fail", { topic: topicname }), msg);
         }
     }
 
-    static async unsubscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
+    static unsubscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
-            const tgUserId = msg.from?.id as number;
-            const topic = subscriptionsRepository.getTopicByName(topicname);
+            const sender = bot.context(msg).user;
+            const topic = SubscriptionsService.getTopic(topicname);
 
-            if (!topic) {
-                await bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
-                return;
-            }
+            if (!topic) return bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
 
-            const subscription = subscriptionsRepository.getSubscription(tgUserId, topic.id);
+            if (!SubscriptionsService.unsubscribe(sender, topic)) throw new Error("Failed to unsubscribe user");
 
-            if (!subscription) {
-                await bot.sendMessageExt(msg.chat.id, t("topics.unsubscribe.notsubscribed", { topic: topicname }), msg);
-                return;
-            }
-
-            const success = subscriptionsRepository.deleteSubscription(subscription.id);
-
-            if (!success) throw new Error("Failed to unsubscribe user");
-
-            await bot.sendMessageExt(msg.chat.id, t("topics.unsubscribe.success", { topic: topicname }), msg);
+            return bot.sendMessageExt(msg.chat.id, t("topics.unsubscribe.success", { topic: topicname }), msg);
         } catch (error) {
-            await bot.sendMessageExt(msg.chat.id, t("topics.unsubscribe.fail", { topic: topicname }), msg);
             logger.error(error);
+            return bot.sendMessageExt(msg.chat.id, t("topics.unsubscribe.fail", { topic: topicname }), msg);
         }
     }
 }

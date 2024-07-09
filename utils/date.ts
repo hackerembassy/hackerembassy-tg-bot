@@ -148,3 +148,7 @@ export function hasBirthdayToday(date: Nullable<string>) {
 
     return date.substring(5, 10) === currentDate;
 }
+
+export function isIsoDateString(date?: string) {
+    return date ? /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date) : false;
+}

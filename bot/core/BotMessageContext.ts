@@ -26,9 +26,11 @@ export default class BotMessageContext {
     public isEditing: boolean = false;
     public isButtonResponse: boolean = false;
     public language: SupportedLanguage = DEFAULT_LANGUAGE;
-    public user: Nullable<User> = null;
 
-    constructor(private msg: TelegramBot.Message) {}
+    constructor(
+        public user: User,
+        private msg: TelegramBot.Message
+    ) {}
 
     public run<R>(callback: () => R) {
         return BotMessageContext.async.run(this, callback);

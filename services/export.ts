@@ -55,7 +55,6 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     if (!fund) throw Error("Fund not found");
 
     const donations = FundsRepository.getDonationsForName(fundname);
-    if (!donations) throw Error("Donations missing");
 
     const fundDonations = await Promise.all(
         donations.map(async d => {
@@ -80,7 +79,6 @@ export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     if (!fund) throw Error("Fund not found");
 
     const alldonations = FundsRepository.getDonationsForName(fundname);
-    if (!alldonations) throw Error("Donations missing");
 
     let fundDonations = await Promise.all(
         alldonations.map(async d => {

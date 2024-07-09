@@ -9,7 +9,7 @@ import { getImageFromPath, getRandomImageFromFolder } from "@utils/filesystem";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotHandlers } from "../core/types";
-import { formatUsername } from "../core/helpers";
+import { effectiveName, formatUsername } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -57,17 +57,14 @@ export default class MemeHandlers implements BotHandlers {
     }
 
     static async slapHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
-        const sender = msg.from?.username ?? msg.from?.first_name;
-        const extractedTarget = username ?? msg.reply_to_message?.from?.username ?? msg.reply_to_message?.from?.first_name;
+        const sender = bot.context(msg).user;
+        const extractedTarget = username ?? effectiveName(msg.reply_to_message?.from);
 
-        if (!extractedTarget) {
-            await bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
-            return;
-        }
+        if (!extractedTarget) return bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
 
         const target = formatUsername(extractedTarget, { mention: true });
         const caption = t("meme.slap.user", {
-            from: formatUsername(sender),
+            from: sender.userLink(),
             target,
         });
 
@@ -80,7 +77,7 @@ export default class MemeHandlers implements BotHandlers {
             case "korn9509":
                 source = "./resources/images/animations/slap-korn.gif";
                 break;
-            case sender:
+            case sender.effectiveName():
                 source = "./resources/images/animations/slap-self.gif";
                 break;
             default:
@@ -90,12 +87,9 @@ export default class MemeHandlers implements BotHandlers {
 
         const gif = await getImageFromPath(source).catch(() => null);
 
-        if (!gif) {
-            await bot.sendMessageExt(msg.chat.id, caption, msg);
-            return;
-        }
+        if (gif) bot.sendAnimationExt(msg.chat.id, gif, msg, { caption });
 
-        await bot.sendAnimationExt(msg.chat.id, gif, msg, { caption });
+        return bot.sendMessageExt(msg.chat.id, caption, msg);
     }
 }
 

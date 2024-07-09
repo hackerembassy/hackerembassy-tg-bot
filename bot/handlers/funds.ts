@@ -33,7 +33,7 @@ initConvert();
 export default class FundsHandlers implements BotHandlers {
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
-        const isAccountant = context.user?.hasRole("accountant");
+        const isAccountant = context.user.hasRole("accountant");
         const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
         const donations = FundsRepository.getDonations();
         const showAdmin = isAccountant && (context.isPrivate() || context.isAdminMode());
@@ -56,7 +56,7 @@ export default class FundsHandlers implements BotHandlers {
 
     static async fundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         const context = bot.context(msg);
-        const isAccountant = context.user?.hasRole("accountant");
+        const isAccountant = context.user.hasRole("accountant");
         const fund = FundsRepository.getFundByName(fundName);
 
         if (!fund) {
@@ -89,7 +89,7 @@ export default class FundsHandlers implements BotHandlers {
 
     static async fundsallHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
-        const isAccountant = context.user?.hasRole("accountant");
+        const isAccountant = context.user.hasRole("accountant");
         const funds = FundsRepository.getFunds();
         const donations = FundsRepository.getDonations();
         const showAdmin = isAccountant && (context.isPrivate() || context.isAdminMode());
@@ -206,10 +206,10 @@ export default class FundsHandlers implements BotHandlers {
         userName = userName.replace("@", "");
         const accountant = msg.from?.username;
 
-        const userDonations = FundsRepository.getDonationsForName(fundName)?.filter(donation =>
+        const userDonations = FundsRepository.getDonationsForName(fundName).filter(donation =>
             equalsIns(donation.username, userName)
         );
-        const hasAlreadyDonated = userDonations && userDonations.length > 0;
+        const hasAlreadyDonated = userDonations.length > 0;
 
         const success =
             !isNaN(value) &&
@@ -265,7 +265,7 @@ export default class FundsHandlers implements BotHandlers {
     }
 
     static async costsHandler(bot: HackerEmbassyBot, msg: Message, valueString: string, currency: string, userName: string) {
-        const isAccountant = bot.context(msg).user?.hasRole("accountant");
+        const isAccountant = bot.context(msg).user.hasRole("accountant");
 
         if (!isAccountant || !valueString || !currency || !userName) return FundsHandlers.showCostsHandler(bot, msg);
 
@@ -308,7 +308,7 @@ export default class FundsHandlers implements BotHandlers {
         const donations = FundsRepository.getDonationsForName(fundName);
         const residents = UsersRepository.getUsersByRole("member");
 
-        if (residents.length !== 0 && donations) {
+        if (residents.length > 0 && donations.length > 0) {
             for (const resident of residents) {
                 const hasDonated = donations.filter(d => equalsIns(d.username, resident.username)).length > 0;
                 const shouldInclude = option === "all" || (option === "paid" && hasDonated) || (option === "left" && !hasDonated);

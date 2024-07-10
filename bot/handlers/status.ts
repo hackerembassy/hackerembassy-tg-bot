@@ -50,11 +50,11 @@ export default class StatusHandlers implements BotHandlers {
 
         if (!cmd || cmd === "help") {
             message = t("status.mac.help");
-        } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(user.id, cmd)) {
+        } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(user.userid, cmd)) {
             message = t("status.mac.set", { cmd, username: userLink });
         } else if (cmd === "remove") {
-            UsersRepository.setMACs(user.id, null);
-            UsersRepository.updateUser(user.id, { autoinside: AutoInsideMode.Disabled });
+            UsersRepository.setMACs(user.userid, null);
+            UsersRepository.updateUser(user.userid, { autoinside: AutoInsideMode.Disabled });
             message = t("status.mac.removed", { username: userLink });
         } else if (cmd === "status") {
             if (user.mac)
@@ -390,31 +390,28 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
-    static async inHandler(
-        bot: HackerEmbassyBot,
-        msg: Message,
-        ghost: boolean = false,
-        durationString?: string,
-        username?: string
-    ) {
+    static inHandler(bot: HackerEmbassyBot, msg: Message, ghost: boolean = false, durationString?: string, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
 
         if (ghost && msg.chat.id !== botConfig.chats.key && msg.chat.id !== botConfig.chats.alerts && !context.isPrivate())
-            return await bot.sendMessageExt(msg.chat.id, "👻", msg);
+            return bot.sendMessageExt(msg.chat.id, "👻", msg);
 
         const eventDate = new Date();
         const force = username !== undefined;
         const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : sender;
+
+        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+
         const inviterName = force ? helpers.effectiveName(sender) : undefined;
         const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
         const until = durationMs ? new Date(eventDate.getTime() + durationMs) : undefined;
-        const gotIn = target ? StatusHandlers.LetIn(target, eventDate, until, force, ghost) : false;
+        const gotIn = StatusHandlers.LetIn(target, eventDate, until, force, ghost);
 
         if (gotIn) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         // TODO ADD FIRST_NAME
-        const message = TextGenerators.getInMessage(target?.username ?? "", gotIn, context.mode, inviterName, until);
+        const message = TextGenerators.getInMessage(target.username ?? "", gotIn, context.mode, inviterName, until);
 
         const inline_keyboard = gotIn
             ? [
@@ -423,25 +420,28 @@ export default class StatusHandlers implements BotHandlers {
               ]
             : [[InlineButton(t("status.buttons.repeat"), "in"), InlineButton(t("status.buttons.open"), "open")]];
 
-        return await bot.sendMessageExt(msg.chat.id, message, msg, {
+        return bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard,
             },
         });
     }
 
-    static async outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
+    static outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
         const eventDate = new Date();
         const force = username !== undefined;
         const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : sender;
-        const gotOut = target ? StatusHandlers.LetOut(target, eventDate, force) : false;
+
+        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+
+        const gotOut = StatusHandlers.LetOut(target, eventDate, force);
         let message: string;
 
         if (gotOut) {
             message = t(force ? "status.outforce.gotout" : "status.out.gotout", {
-                username: target ? helpers.userLink(target) : username,
+                username: helpers.userLink(target),
                 memberusername: force ? helpers.userLink(sender) : undefined,
             });
             bot.CustomEmitter.emit(BotCustomEvent.statusLive);
@@ -460,7 +460,7 @@ export default class StatusHandlers implements BotHandlers {
               ]
             : [[InlineButton(t("status.buttons.repeat"), "out"), InlineButton(t("status.buttons.open"), "open")]];
 
-        await bot.sendMessageExt(msg.chat.id, message, msg, {
+        return bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard,
             },

@@ -21,7 +21,7 @@ class UserRepository extends BaseRepository {
             .get();
     }
 
-    getUserById(userid: number | ChatId) {
+    getUserByUserId(userid: number | ChatId) {
         return this.db
             .select()
             .from(users)
@@ -91,7 +91,7 @@ class UserRepository extends BaseRepository {
 
     setMACs(userid: number | ChatId, macs: Nullable<string> = null) {
         try {
-            const currentUser = this.getUserById(userid);
+            const currentUser = this.getUserByUserId(userid);
             if (!currentUser) return false;
 
             const newMacs = macs ? macs.split(",").map(mac => mac.toLowerCase().replaceAll("-", ":").trim()) : [];

@@ -21,17 +21,17 @@ export const funds = sqliteTable("funds", {
 export const topics = sqliteTable("topics", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
     name: text("name").notNull(),
-    description: text("description").default("sql`(null)`"),
+    description: text("description").default(sql`(NULL)`),
 });
 
 export const users = sqliteTable("users", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
     username: text("username"),
     roles: text("roles").default("default"),
-    mac: text("mac").default("sql`(NULL)`"),
-    birthday: text("birthday").default("sql`(NULL)`"),
+    mac: text("mac").default(sql`(NULL)`),
+    birthday: text("birthday").default(sql`(NULL)`),
     autoinside: integer("autoinside").default(0),
-    emoji: text("emoji").default("sql`(NULL)`"),
+    emoji: text("emoji").default(sql`(NULL)`),
     userid: integer("userid").notNull(),
     language: text("language"),
 });
@@ -79,7 +79,7 @@ export const userstates = sqliteTable("userstates", {
     date: integer("date").notNull(),
     until: integer("until").default(sql`(NULL)`),
     type: integer("type").notNull().default(0),
-    note: text("note").default("sql`(NULL)`"),
+    note: text("note").default(sql`(NULL)`),
     user_id: integer("user_id")
         .notNull()
         .references(() => users.userid),

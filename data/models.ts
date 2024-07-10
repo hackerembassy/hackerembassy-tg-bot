@@ -8,3 +8,5 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type Topic = typeof topics.$inferSelect;
 export type UserState = typeof userstates.$inferSelect;
 export type State = typeof states.$inferSelect;
+
+export type extendedUserState = UserState & { user: User };

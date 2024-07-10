@@ -1,5 +1,4 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
-import { User as TgUser } from "node-telegram-bot-api";
 
 import { UserRole } from "@data/types";
 import { User } from "@data/models";
@@ -27,7 +26,7 @@ export function userLink(user: ITelegramUser) {
     return `#[${user.username ?? user.first_name ?? user.id}#]#(tg://user?id=${user.id}#)`;
 }
 
-export function effectiveName(user?: TgUser) {
+export function effectiveName(user?: ITelegramUser) {
     return user ? user.username ?? user.first_name : undefined;
 }
 

@@ -9,7 +9,7 @@ import FundsRepository from "@repositories/funds";
 import { requestToEmbassy } from "@services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
-import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/statusHelper";
+import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/status";
 
 const router = Router();
 

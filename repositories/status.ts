@@ -1,62 +1,60 @@
+import { desc, between, and, eq } from "drizzle-orm";
+
 import { State, UserState } from "@data/models";
-import { UserStateType } from "@data/types";
+
+import { states, userstates } from "@data/schema";
 
 import BaseRepository from "./base";
 
 class StatusRepository extends BaseRepository {
-    getSpaceLastState(): Nullable<State> {
-        const lastState = this.db.prepare("SELECT * FROM states ORDER BY date DESC").get() as Optional<State>;
-
-        if (!lastState) return null;
-
-        lastState.date = new Date(lastState.date);
-
-        return lastState;
+    getSpaceLastState() {
+        return this.db.query.states
+            .findFirst({
+                orderBy: desc(states.date),
+                with: {
+                    changer: true,
+                },
+            })
+            .sync();
     }
 
-    getAllUserStates(): UserState[] {
-        return this.db.prepare("SELECT * FROM userstates ORDER BY date DESC").all() as UserState[];
+    getAllUserStates() {
+        return this.db.query.userstates
+            .findMany({
+                orderBy: desc(userstates.date),
+                with: {
+                    user: true,
+                },
+            })
+            .sync();
     }
 
-    getUserStates(username: string, fromDate: number = 0, toDate: number = Date.now()): UserState[] {
+    getUserStates(userid: number, fromDate: number = 0, toDate: number = Date.now()): UserState[] {
         return this.db
-            .prepare("SELECT * FROM userstates WHERE LOWER(username) = ? AND date BETWEEN ? AND ? ORDER BY date")
-            .all(username.toLowerCase(), fromDate, toDate) as UserState[];
+            .select()
+            .from(userstates)
+            .where(and(eq(userstates.user_id, userid), between(userstates.date, fromDate, toDate)))
+            .orderBy(desc(userstates.date))
+            .all();
     }
 
     updateUserState(userState: UserState): boolean {
-        return (
-            this.db
-                .prepare("UPDATE userstates SET username = ?, status = ?, date = ?, type = ?, note = ? WHERE id = ?")
-                .run(userState.username, userState.status, userState.date, userState.type, userState.note, userState.id).changes >
-            0
-        );
+        return this.db.update(userstates).set(userState).where(eq(userstates.id, userState.id)).run().changes > 0;
     }
 
     removeUserState(stateId: number): boolean {
-        return this.db.prepare("DELETE FROM userstates WHERE id = ?").run(stateId).changes > 0;
+        return this.db.delete(userstates).where(eq(userstates.id, stateId)).run().changes > 0;
     }
 
-    pushSpaceState(state: State): void {
-        this.db
-            .prepare("INSERT INTO states (open, changedby, date) VALUES (?, ?, ?)")
-            .run(state.open ? 1 : 0, state.changedby, state.date.valueOf());
+    pushSpaceState(state: State): boolean {
+        return this.db.insert(states).values(state).run().changes > 0;
     }
 
     /**
      * @deprecated use UserStateService.pushPeopleState instead
      */
-    pushPeopleState(state: UserState): void {
-        this.db
-            .prepare("INSERT INTO userstates (status, username, date, until, type, note) VALUES (?, ?, ?, ?, ?, ?)")
-            .run(
-                state.status ? state.status : UserStateType.Outside,
-                state.username,
-                state.date.valueOf(),
-                state.until ? state.until.valueOf() : null,
-                state.type,
-                state.note
-            );
+    pushPeopleState(state: UserState): boolean {
+        return this.db.insert(userstates).values(state).run().changes > 0;
     }
 }
 

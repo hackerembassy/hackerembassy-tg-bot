@@ -35,7 +35,7 @@ export async function createFundList(
 ): Promise<string> {
     let list = "";
 
-    if (!funds || funds.length === 0) return "list";
+    if (!funds || funds.length === 0) return list;
 
     for (const fund of funds) {
         const fundDonations = donations.filter(donation => donation.fund_id === fund.id);

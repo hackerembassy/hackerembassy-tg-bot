@@ -1,5 +1,5 @@
 import { ChatId } from "node-telegram-bot-api";
-import { eq, like, gt, isNotNull, and } from "drizzle-orm";
+import { eq, like, gt, isNotNull, and, sql } from "drizzle-orm";
 
 import { anyItemIsInList } from "@utils/filters";
 
@@ -14,7 +14,11 @@ class UserRepository extends BaseRepository {
     }
 
     getUserByName(username: string) {
-        return this.db.select().from(users).where(eq(users.username, username)).get();
+        return this.db
+            .select()
+            .from(users)
+            .where(sql`lower(${users.username}) = ${username.toLowerCase()}`)
+            .get();
     }
 
     getUserById(userid: number | ChatId) {
@@ -50,7 +54,8 @@ class UserRepository extends BaseRepository {
                     roles: roles.join("|"),
                     userid: userid,
                 })
-                .returning();
+                .returning()
+                .get();
         } catch (error) {
             this.logger.error(error);
             return false;

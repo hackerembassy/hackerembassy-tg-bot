@@ -38,7 +38,7 @@ export const HassUser = {
 
 class UserService {
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {
-        const user = usersRepository.getByUserId(tgUser.id);
+        const user = usersRepository.getUserById(tgUser.id);
 
         if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
 
@@ -53,7 +53,7 @@ class UserService {
     }
 
     public prepareUser(user: TelegramBot.User): User {
-        const dbuser = usersRepository.getByUserId(user.id) ?? { ...DefaultUser };
+        const dbuser = usersRepository.getUserById(user.id) ?? { ...DefaultUser };
 
         if (dbuser.id === DefaultUser.id) {
             logger.info(`User [${user.id}]${user.username} was not found in the database. Adding...`);

@@ -158,7 +158,7 @@ export default class ServiceHandlers implements BotHandlers {
 
         const user = memberUpdated.new_chat_member.user;
         const chat = memberUpdated.chat;
-        const currentUser = UsersRepository.getByUserId(user.id);
+        const currentUser = UsersRepository.getUserById(user.id);
 
         if (!botConfig.moderatedChats.includes(chat.id)) {
             return await bot.sendWelcomeMessage(chat, user, currentUser?.language ?? DEFAULT_LANGUAGE);
@@ -221,9 +221,9 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         const userId = msg.from?.id;
-        const user = userId ? UsersRepository.getByUserId(userId) : null;
+        const user = userId ? UsersRepository.getUserById(userId) : null;
 
-        if (user && (await UsersRepository.updateUser(user.userid, { language: lang }))) {
+        if (user && UsersRepository.updateUser(user.userid, { language: lang })) {
             bot.context(msg).language = lang;
             return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.success", { language: lang }), msg);
         }

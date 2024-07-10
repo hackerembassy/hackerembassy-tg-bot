@@ -189,7 +189,7 @@ export default class FundsHandlers implements BotHandlers {
         if (!accountant) return bot.sendMessageExt(msg.chat.id, t("funds.transferdonation.fail"), msg);
 
         const success = FundsRepository.transferDonation(id, accountant.userid);
-        const donation = FundsRepository.getDonationById(id, true);
+        const donation = FundsRepository.getDonationById(id, false, true);
 
         let text = t("funds.transferdonation.fail");
 
@@ -220,7 +220,7 @@ export default class FundsHandlers implements BotHandlers {
         const user = UsersRepository.getUserByName(userName.replace("@", ""));
         const accountant = bot.context(msg).user;
 
-        if (!user) return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.nouser"), msg);
+        if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
 
         const fund = FundsRepository.getFundByName(fundName);
 
@@ -234,7 +234,7 @@ export default class FundsHandlers implements BotHandlers {
         const success =
             !isNaN(value) &&
             preparedCurrency &&
-            FundsRepository.addDonationTo(fund.id, user.id, value, preparedCurrency, accountant.id);
+            FundsRepository.addDonationTo(fund.id, user.userid, value, preparedCurrency, accountant.userid);
         const text = success
             ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
                   username: helpers.formatUsername(userName, bot.context(msg).mode),
@@ -410,7 +410,7 @@ export default class FundsHandlers implements BotHandlers {
 
         const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : bot.context(msg).user;
 
-        if (!target) return bot.sendMessageExt(msg.chat.id, t("funds.debt.nouser"), msg);
+        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
 
         const donations = FundsRepository.getFundDonationsHeldBy(target.userid);
         const donationList = donations.length ? TextGenerators.generateFundDonationsList(donations, true) : "";

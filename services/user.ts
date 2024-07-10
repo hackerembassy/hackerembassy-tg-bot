@@ -38,7 +38,7 @@ export const HassUser = {
 
 class UserService {
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {
-        const user = usersRepository.getUserById(tgUser.id);
+        const user = usersRepository.getUserByUserId(tgUser.id);
 
         if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
 
@@ -52,17 +52,17 @@ class UserService {
         return usersRepository.updateUser(user.userid, { ...user, roles: "default", language });
     }
 
-    public prepareUser(user: TelegramBot.User): User {
-        const dbuser = usersRepository.getUserById(user.id) ?? { ...DefaultUser };
+    public prepareUser(tgUser: TelegramBot.User): User {
+        const dbuser = usersRepository.getUserByUserId(tgUser.id) ?? { ...DefaultUser };
 
         if (dbuser.id === DefaultUser.id) {
-            logger.info(`User [${user.id}]${user.username} was not found in the database. Adding...`);
+            logger.info(`User [${tgUser.id}]${tgUser.username} was not found in the database. Adding...`);
 
-            usersRepository.addUser(user.id, user.username, ["default"]);
-        } else if (user.username && dbuser.username !== user.username) {
-            logger.info(`User [${user.id}]${dbuser.username} changed username to ${user.username}. Updating...`);
+            usersRepository.addUser(tgUser.id, tgUser.username, ["default"]);
+        } else if (tgUser.username && dbuser.username !== tgUser.username) {
+            logger.info(`User [${tgUser.id}]${dbuser.username} changed username to ${tgUser.username}. Updating...`);
 
-            usersRepository.updateUser(dbuser.userid, { ...dbuser, username: user.username });
+            usersRepository.updateUser(dbuser.userid, { ...dbuser, username: tgUser.username });
         }
 
         return dbuser;

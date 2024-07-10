@@ -156,32 +156,37 @@ export default class ServiceHandlers implements BotHandlers {
             return;
         }
 
-        const user = memberUpdated.new_chat_member.user;
+        const tgUser = memberUpdated.new_chat_member.user;
         const chat = memberUpdated.chat;
-        const currentUser = UsersRepository.getUserById(user.id);
+        const currentUser = UsersRepository.getUserByUserId(tgUser.id);
 
         if (!botConfig.moderatedChats.includes(chat.id)) {
-            return await bot.sendWelcomeMessage(chat, user, currentUser?.language ?? DEFAULT_LANGUAGE);
+            return await bot.sendWelcomeMessage(chat, tgUser, currentUser?.language ?? DEFAULT_LANGUAGE);
         }
 
         if (!currentUser) {
-            UsersRepository.addUser(user.id, user.username, ["restricted"]);
-            bot.lockChatMember(chat.id, user.id);
-            logger.info(`New user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
+            UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
+            bot.lockChatMember(chat.id, tgUser.id);
+            logger.info(`New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
         } else if (!currentUser.roles?.includes("restricted")) {
             logger.info(
                 `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
             );
-            return await bot.sendWelcomeMessage(chat, user);
+            return await bot.sendWelcomeMessage(chat, tgUser);
         } else {
-            bot.lockChatMember(chat.id, user.id);
-            logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
+            bot.lockChatMember(chat.id, tgUser.id);
+            logger.info(`Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 
-        await ServiceHandlers.setLanguageHandler(bot, { chat, from: user, message_id: 0, date: memberUpdated.date }, undefined, {
-            vId: user.id,
-            name: userLink(user),
-        });
+        await ServiceHandlers.setLanguageHandler(
+            bot,
+            { chat, from: tgUser, message_id: 0, date: memberUpdated.date },
+            undefined,
+            {
+                vId: tgUser.id,
+                name: userLink(tgUser),
+            }
+        );
     }
 
     static async setLanguageHandler(
@@ -221,7 +226,7 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         const userId = msg.from?.id;
-        const user = userId ? UsersRepository.getUserById(userId) : null;
+        const user = userId ? UsersRepository.getUserByUserId(userId) : null;
 
         if (user && UsersRepository.updateUser(user.userid, { language: lang })) {
             bot.context(msg).language = lang;

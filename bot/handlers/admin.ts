@@ -164,7 +164,7 @@ export default class AdminHandlers implements BotHandlers {
     static async getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
         if (!query) return await bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
 
-        const user = UsersRepository.getUserByName(query) ?? UsersRepository.getUserById(query);
+        const user = UsersRepository.getUserByName(query) ?? UsersRepository.getUserByUserId(query);
 
         if (!user) return await bot.sendMessageExt(msg.chat.id, "User not found", msg);
 

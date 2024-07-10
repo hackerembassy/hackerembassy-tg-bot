@@ -22,8 +22,8 @@ export function formatUsername(username: Optional<string>, mode = { mention: fal
     else return `#[${username}#]#(t.me/${username}#)`;
 }
 
-export function userLink(user: ITelegramUser) {
-    return `#[${user.username ?? user.first_name ?? user.id}#]#(tg://user?id=${user.id}#)`;
+export function userLink(tgUser: ITelegramUser) {
+    return `#[${tgUser.username ?? tgUser.first_name ?? tgUser.id}#]#(tg://user?id=${tgUser.id}#)`;
 }
 
 export function effectiveName(user?: ITelegramUser) {

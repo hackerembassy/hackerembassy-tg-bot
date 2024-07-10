@@ -52,6 +52,6 @@ describe("Bot Funds commands:", () => {
 
         expect(mockBot.popResults()).toEqual(["funds\\.fund\\.text", "funds\\.adddonation\\.success"]);
 
-        fundsRepository.removeFund(mockRentFund);
+        fundsRepository.removeFundByName(mockRentFund);
     });
 });

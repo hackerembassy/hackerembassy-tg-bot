@@ -12,10 +12,10 @@ export const states = sqliteTable("states", {
 
 export const funds = sqliteTable("funds", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    name: text("name"),
-    target_value: integer("target_value"),
-    target_currency: text("target_currency"),
-    status: text("status").default("open"),
+    name: text("name").notNull().unique(),
+    target_value: integer("target_value").notNull(),
+    target_currency: text("target_currency").notNull(),
+    status: text("status").default("open").notNull(),
 });
 
 export const topics = sqliteTable("topics", {
@@ -48,9 +48,11 @@ export const subscriptions = sqliteTable("subscriptions", {
 
 export const donations = sqliteTable("donations", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    fund_id: integer("fund_id").references(() => funds.id, { onDelete: "cascade" }),
-    value: integer("value"),
-    currency: text("currency"),
+    fund_id: integer("fund_id")
+        .notNull()
+        .references(() => funds.id, { onDelete: "cascade" }),
+    value: integer("value").notNull(),
+    currency: text("currency").notNull(),
     user_id: integer("user_id")
         .notNull()
         .references(() => users.userid),

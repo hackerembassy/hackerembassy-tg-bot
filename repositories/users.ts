@@ -3,7 +3,7 @@ import { eq, like, gt, isNotNull, and } from "drizzle-orm";
 
 import { anyItemIsInList } from "@utils/filters";
 
-import { users } from "data/schema";
+import { users } from "@data/schema";
 
 import BaseRepository from "./base";
 

@@ -77,8 +77,8 @@ router.get("/today", async (_, res) => {
 });
 
 router.get("/funds", async (_, res) => {
-    const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
-    const donations = FundsRepository.getDonations();
+    const funds = FundsRepository.getAllFunds().filter(p => p.status === "open");
+    const donations = FundsRepository.getAllDonations(true, true);
 
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });
 

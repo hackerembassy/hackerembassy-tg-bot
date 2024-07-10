@@ -9,7 +9,7 @@ import { getImageFromPath, getRandomImageFromFolder } from "@utils/filesystem";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotHandlers } from "../core/types";
-import { effectiveName, formatUsername } from "../core/helpers";
+import { effectiveName, formatUsername, userLink } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -64,7 +64,7 @@ export default class MemeHandlers implements BotHandlers {
 
         const target = formatUsername(extractedTarget, { mention: true });
         const caption = t("meme.slap.user", {
-            from: sender.userLink(),
+            from: userLink(sender),
             target,
         });
 
@@ -77,7 +77,7 @@ export default class MemeHandlers implements BotHandlers {
             case "korn9509":
                 source = "./resources/images/animations/slap-korn.gif";
                 break;
-            case sender.effectiveName():
+            case effectiveName(sender):
                 source = "./resources/images/animations/slap-self.gif";
                 break;
             default:

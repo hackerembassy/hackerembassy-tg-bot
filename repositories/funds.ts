@@ -1,9 +1,10 @@
 import config from "config";
 
-import Donation, { FundDonation } from "@models/Donation";
-import Fund from "@models/Fund";
+import { and, eq } from "drizzle-orm";
 
 import { CurrencyConfig } from "@config";
+import { Fund, Donation } from "@data/models";
+import { donations, funds } from "@data/schema";
 
 import BaseRepository from "./base";
 
@@ -13,156 +14,158 @@ type DonationExport = {
     donationId: number;
     amount: number;
     currency: string;
-    from: string;
+    from: number;
     fund: string;
 };
 
 export const COSTS_PREFIX = "Аренда";
 
 class FundsRepository extends BaseRepository {
-    getFunds(): Nullable<Fund[]> {
-        return this.db.prepare("SELECT * FROM funds").all() as Nullable<Fund[]>;
+    getAllFunds() {
+        return this.db.select().from(funds).all();
     }
 
-    getFundByName(fundName: string): Nullable<Fund> {
-        return this.db.prepare("SELECT * FROM funds WHERE name = ?").get(fundName) as Nullable<Fund>;
+    getFundByName(fundName: string) {
+        return this.db.select().from(funds).where(eq(funds.name, fundName)).get();
     }
 
-    getFundById(id: number): Nullable<Fund> {
-        return this.db.prepare("SELECT * FROM funds WHERE id = ?").get(id) as Nullable<Fund>;
+    getFundById(id: number) {
+        return this.db.select().from(funds).where(eq(funds.id, id)).get();
+    }
+
+    getAllDonations(joinFunds = false, joinUsers = false) {
+        return this.db.query.donations
+            .findMany({
+                with: {
+                    fund: joinFunds ? true : undefined,
+                    user: joinUsers ? true : undefined,
+                    accountant: joinUsers ? true : undefined,
+                },
+            })
+            .sync();
+    }
+
+    getDonationsForFundId(fundId: number, joinFunds = false, joinUsers = false) {
+        return this.db.query.donations
+            .findMany({
+                where: eq(donations.fund_id, fundId),
+                with: {
+                    fund: joinFunds ? true : undefined,
+                    user: joinUsers ? true : undefined,
+                    accountant: joinUsers ? true : undefined,
+                },
+            })
+            .sync();
+    }
+
+    getDonationsForName(fundName: string) {
+        const fund = this.getFundByName(fundName);
+
+        if (!fund) return [];
+
+        return this.db.select().from(donations).where(eq(donations.fund_id, fund.id)).all();
+    }
+
+    getDonationsOf(user_id: number, joinFunds = false, joinUsers = false) {
+        return this.db.query.donations
+            .findMany({
+                where: eq(donations.user_id, user_id),
+                with: {
+                    fund: joinFunds ? true : undefined,
+                    user: joinUsers ? true : undefined,
+                    accountant: joinUsers ? true : undefined,
+                },
+            })
+            .sync();
     }
 
     getLatestCosts(): Fund | undefined {
-        return this.getFunds()?.find(fund => /[Аа]ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
+        return this.getAllFunds().find(fund => /[Аа]ренда/.test(fund.name) && (fund.status === "open" || fund.status === ""));
     }
 
-    getDonations(): Nullable<Donation[]> {
-        return this.db.prepare("SELECT * FROM donations").all() as Nullable<Donation[]>;
+    getCostsFundDonations(year?: number) {
+        return this.getAllDonations(true).filter(
+            donation => donation.fund.name.startsWith(COSTS_PREFIX) && (!year || donation.fund.name.includes(year.toString()))
+        );
     }
 
-    getDonationsForId(fundId: number): Nullable<Donation[]> {
-        return this.db.prepare("SELECT * FROM donations WHERE fund_id = ?").all(fundId) as Donation[];
+    getFundDonationsHeldBy(accountant_id: number, fund_id?: number) {
+        return this.db.query.donations
+            .findMany({
+                where: and(eq(donations.accountant_id, accountant_id), fund_id ? eq(donations.fund_id, fund_id) : undefined),
+                with: {
+                    fund: true,
+                    accountant: true,
+                    user: true,
+                },
+            })
+            .sync();
     }
 
-    getDonationsForName(fundName: string): Donation[] {
-        return this.db
-            .prepare("SELECT * FROM donations WHERE fund_id = (SELECT id from funds where name = ?)")
-            .all(fundName) as Donation[];
-    }
-
-    getDonationsOf(username: string): Nullable<Donation[]> {
-        return this.db.prepare("SELECT * FROM donations WHERE username = ?").all(username) as Nullable<Donation[]>;
-    }
-
-    getFundDonations(): Nullable<FundDonation[]> {
-        return this.db
-            .prepare("SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id")
-            .all() as Nullable<FundDonation[]>;
-    }
-
-    getCostsFundDonations(year?: number): Nullable<FundDonation[]> {
-        return this.db
-            .prepare(
-                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE f.name LIKE ? || '%' || ?"
-            )
-            .all(COSTS_PREFIX, year ? year.toString() : "%") as Nullable<FundDonation[]>;
-    }
-
-    getFundDonationsOf(username: string): Nullable<FundDonation[]> {
-        return this.db
-            .prepare(
-                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE LOWER(d.username) = ? ORDER BY d.fund_id"
-            )
-            .all(username.toLowerCase()) as Nullable<FundDonation[]>;
-    }
-
-    // TODO there should be a better way
-    getFundDonationsHeldBy(accountant: string, fundName?: string): Nullable<FundDonation[]> {
-        return this.db
-            .prepare(
-                "SELECT d.id, d.username, d.value, d.currency, f.name FROM donations d JOIN funds f on d.fund_id = f.id WHERE LOWER(d.accountant) = ? AND f.name LIKE ?"
-            )
-            .all(accountant.toLowerCase(), fundName && fundName.length > 0 ? fundName : "%") as Nullable<FundDonation[]>;
-    }
-
-    getDonationById(donationId: number): Nullable<Donation> {
-        return this.db.prepare("SELECT * FROM donations WHERE id = ?").get(donationId) as Nullable<Donation>;
+    getDonationById(donationId: number, joinFunds = false, joinUsers = false) {
+        return this.db.query.donations
+            .findFirst({
+                where: eq(donations.id, donationId),
+                with: {
+                    fund: joinFunds ? true : undefined,
+                    user: joinUsers ? true : undefined,
+                    accountant: joinUsers ? true : undefined,
+                },
+            })
+            .sync();
     }
 
     exportDonations(): DonationExport[] {
-        return this.db
-            .prepare(
-                `SELECT d.id as 'donationId', d.value as 'amount', d.currency as 'currency', d.username as 'from', f.name as 'fund' \
-                FROM donations d \
-                JOIN funds f ON d.fund_id = f.id \
-                ORDER BY f.id`
-            )
-            .all() as DonationExport[];
+        return this.getAllDonations(true).map(donation => ({
+            donationId: donation.id,
+            amount: donation.value,
+            currency: donation.currency,
+            from: donation.user_id,
+            fund: donation.fund.name,
+        }));
     }
 
-    addFund(fundName: string, target: number, currency: string = currencyConfig.default, status: string = "open"): boolean {
-        try {
-            if (this.getFundByName(fundName)) throw new Error(`Fund ${fundName} already exists`);
-
-            if (!currency) throw new Error(`Invalid currency ${currency}`);
-
-            this.db
-                .prepare("INSERT INTO funds (id, name, target_value, target_currency, status) VALUES (NULL, ?, ?, ?, ?)")
-                .run(fundName, target, currency, status);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    addFund(fund: Omit<Fund, "id">): boolean {
+        return this.db.insert(funds).values(fund).run().changes > 0;
     }
 
-    updateFund(
-        fundName: string,
-        target: number,
-        currency: string = currencyConfig.default,
-        newFundName: string = fundName
-    ): boolean {
-        try {
-            const fund = this.getFundByName(fundName);
-
-            if (!fund) throw new Error(`Fund ${fundName} not found`);
-            if (!currency) throw new Error(`Invalid currency ${currency}`);
-
-            this.db
-                .prepare("UPDATE funds SET name = ?, target_value = ?, target_currency = ? WHERE id = ?")
-                .run(newFundName, target, currency, fund.id);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    updateFund(fund: Fund): boolean {
+        return this.db.update(funds).set(fund).where(eq(funds.id, fund.id)).run().changes > 0;
     }
 
-    removeFund(fundName: string): boolean {
-        try {
-            if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
-
-            this.db.prepare("DELETE FROM funds WHERE name = ?").run(fundName);
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    removeFundByName(fundName: string) {
+        return this.db.delete(funds).where(eq(funds.name, fundName)).run().changes > 0;
     }
 
     /**
      * @deprecated Use for tests only
      */
     clearFunds(): boolean {
-        try {
-            this.db.prepare("DELETE FROM funds WHERE id = id").run();
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+        return this.db.delete(funds).where(eq(funds.id, funds.id)).run().changes > 0;
+    }
+
+    addDonation(donation: Omit<Donation, "id">): boolean {
+        return this.db.insert(donations).values(donation).run().changes > 0;
+    }
+
+    addDonationTo(
+        fund_id: number,
+        user_id: number,
+        value: number,
+        currency: string = currencyConfig.default,
+        accountant_id: number
+    ): boolean {
+        return this.addDonation({
+            fund_id,
+            user_id,
+            value,
+            currency,
+            accountant_id,
+        });
+    }
+
+    updateDonation(donation: Donation): boolean {
+        return this.db.update(donations).set(donation).where(eq(donations.id, donation.id)).run().changes > 0;
     }
 
     closeFund(fundName: string): boolean {
@@ -170,93 +173,15 @@ class FundsRepository extends BaseRepository {
     }
 
     changeFundStatus(fundName: string, status: string): boolean {
-        try {
-            if (!this.getFundByName(fundName)) throw new Error(`Fund ${fundName} not found`);
-
-            this.db.prepare("UPDATE funds SET status = ? WHERE name = ?").run(status, fundName);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+        return this.db.update(funds).set({ status }).where(eq(funds.name, fundName)).run().changes > 0;
     }
 
-    addDonationTo(
-        fundName: string,
-        username: string,
-        value: number,
-        currency: string = currencyConfig.default,
-        accountant: Nullable<string> = null
-    ): boolean {
-        try {
-            const fundId = this.getFundByName(fundName)?.id;
-
-            if (!fundId) throw new Error(`Fund ${fundName} not found`);
-            if (!currency) throw new Error(`Invalid currency ${currency}`);
-
-            this.db
-                .prepare("INSERT INTO donations (fund_id, username, value, currency, accountant) VALUES (?, ?, ?, ?, ?)")
-                .run(fundId, username, value, currency, accountant);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    transferDonation(id: number, accountant_id: number): boolean {
+        return this.db.update(donations).set({ accountant_id }).where(eq(donations.id, id)).run().changes > 0;
     }
 
-    updateDonationValues(donationId: number, value: number, currency: string): boolean {
-        try {
-            if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
-            if (!currency) throw new Error(`Invalid currency ${currency}`);
-
-            this.db.prepare("UPDATE donations SET value = ?, currency = ? WHERE id = ?").run(value, currency, donationId);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    updateDonation(donation: Donation): boolean {
-        try {
-            this.db
-                .prepare("UPDATE donations SET value = ?, currency = ?, accountant = ?, username = ?, fund_id = ? WHERE id = ?")
-                .run(donation.value, donation.currency, donation.accountant, donation.username, donation.fund_id, donation.id);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    transferDonation(id: number, accountant: string): boolean {
-        try {
-            if (!this.getDonationById(id)) throw new Error(`Donation with id ${id} not found`);
-
-            this.db.prepare("UPDATE donations SET accountant = ? WHERE id = ?").run(accountant, id);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    removeDonationById(donationId: number): boolean {
-        try {
-            if (!this.getDonationById(donationId)) throw new Error(`Donation with id ${donationId} not found`);
-
-            this.db.prepare("DELETE FROM donations WHERE id = ?").run(donationId);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    removeDonationById(donationId: number) {
+        return this.db.delete(donations).where(eq(donations.id, donationId)).run().changes > 0;
     }
 }
 

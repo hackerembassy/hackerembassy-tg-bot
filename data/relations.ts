@@ -41,15 +41,13 @@ export const donationsRelations = relations(donations, ({ one }) => ({
         fields: [donations.fund_id],
         references: [funds.id],
     }),
-    user_accountant_id: one(users, {
+    accountant: one(users, {
         fields: [donations.accountant_id],
         references: [users.userid],
-        relationName: "donations_accountant_id_users_userid",
     }),
-    user_user_id: one(users, {
+    user: one(users, {
         fields: [donations.user_id],
         references: [users.userid],
-        relationName: "donations_user_id_users_userid",
     }),
 }));
 

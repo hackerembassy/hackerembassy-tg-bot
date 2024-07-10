@@ -64,7 +64,7 @@ class SubscriptionsService {
         const donations = fundsRepository.getDonationsForName(fundName);
         const residents = usersRepository.getUsersByRole("member");
 
-        return residents.filter(resident => donations.filter(d => d.username === resident.username).length === 0);
+        return residents.filter(resident => donations.filter(d => d.user_id === resident.userid).length === 0);
     }
 
     private userToSubscription(user: User) {

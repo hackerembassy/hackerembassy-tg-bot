@@ -3,9 +3,6 @@ import config from "config";
 import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import State from "@models/State";
-import { AutoInsideMode } from "@models/User";
-import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
 import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 import fundsRepository, { COSTS_PREFIX } from "@repositories/funds";
@@ -27,6 +24,10 @@ import {
 import { sleep } from "@utils/common";
 import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
+
+import { State } from "data/models";
+
+import { UserStateType, UserStateChangeType, AutoInsideMode } from "data/types";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
@@ -302,7 +303,7 @@ export default class StatusHandlers implements BotHandlers {
             const user = bot.context(msg).user;
 
             const prompt = t("status.shouldigo.prompt", {
-                state: state?.open || user.hasRole("member") ? t("status.status.opened") : t("status.status.closed"),
+                state: state?.open || user.roles?.includes("member") ? t("status.status.opened") : t("status.status.closed"),
                 going: going.length ? going.map(u => u.username).join(", ") : 0,
                 inside: inside.length ? inside.map(u => u.username).join(", ") : 0,
             });
@@ -470,7 +471,7 @@ export default class StatusHandlers implements BotHandlers {
         const state = StatusRepository.getSpaceLastState();
         const user = UsersRepository.getUserByName(username);
 
-        if (!state?.open && !user?.hasRole("member") && !force) return false;
+        if (!state?.open && !user?.roles?.includes("member") && !force) return false;
 
         const userstate = {
             id: 0,

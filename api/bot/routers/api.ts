@@ -1,9 +1,8 @@
 import { Router } from "express";
 
-import StatusHandlers from "@hackembot/handlers/status";
+import { State, UserState } from "@data/models";
 
-import State from "@models/State";
-import UserState from "@models/UserState";
+import StatusHandlers from "@hackembot/handlers/status";
 import FundsRepository from "@repositories/funds";
 import StatusRepository from "@repositories/status";
 

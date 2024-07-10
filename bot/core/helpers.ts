@@ -1,5 +1,8 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
-import { User } from "node-telegram-bot-api";
+import { User as TgUser } from "node-telegram-bot-api";
+
+import { UserRole } from "@data/types";
+import { User } from "@data/models";
 
 import { ITelegramUser } from "./types";
 
@@ -24,8 +27,18 @@ export function userLink(user: ITelegramUser) {
     return `#[${user.username ?? user.first_name ?? user.id}#]#(tg://user?id=${user.id}#)`;
 }
 
-export function effectiveName(user?: User) {
+export function effectiveName(user?: TgUser) {
     return user ? user.username ?? user.first_name : undefined;
+}
+
+// TODO
+
+export function hasRole(user: User, ...roles: UserRole[]) {
+    return user.roles?.length !== 0 ? splitRoles(user).filter(r => roles.includes(r)).length > 0 : false;
+}
+
+export function splitRoles(user: User) {
+    return user.roles?.split("|") as UserRole[];
 }
 
 /**

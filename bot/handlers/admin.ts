@@ -151,7 +151,7 @@ export default class AdminHandlers implements BotHandlers {
     }
 
     static async getRestrictedUsersHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers().filter(u => u.roles.includes("restricted"));
+        const users = UsersRepository.getUsers().filter(u => u.roles?.includes("restricted"));
         let userList = "";
 
         for (const user of users) {
@@ -171,18 +171,6 @@ export default class AdminHandlers implements BotHandlers {
         return await bot.sendMessageExt(msg.chat.id, JSON.stringify(user), msg);
     }
 
-    static async addUserHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
-        username = username.replace("@", "");
-        const roles = rolesString.split("|");
-
-        const success = UsersRepository.addUser(username, roles);
-        const text = success
-            ? t("admin.addUser.success", { username: helpers.formatUsername(username, bot.context(msg).mode), roles })
-            : t("admin.addUser.fail");
-
-        await bot.sendMessageExt(msg.chat.id, text, msg);
-    }
-
     static async updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
         username = username.replace("@", "");
         const roles = rolesString.split("|");
@@ -198,7 +186,7 @@ export default class AdminHandlers implements BotHandlers {
     static async updateRolesByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number, rolesString: string) {
         const roles = rolesString.split("|");
 
-        const success = UsersRepository.updateRolesById(userid, roles);
+        const success = UsersRepository.updateRoles(userid, roles);
         const text = success ? t("admin.updateRoles.success", { username: `[${userid}]`, roles }) : t("admin.updateRoles.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);

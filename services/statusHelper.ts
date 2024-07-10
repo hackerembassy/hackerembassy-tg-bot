@@ -1,9 +1,10 @@
-import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
+import { User, UserState } from "@data/models";
+import { UserStateType } from "@data/types";
+
 import statusRepository from "@repositories/status";
 import { convertToElapsedObject, ElapsedTimeObject, isToday } from "@utils/date";
 import { anyItemIsInList, onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
-import User from "@models/User";
 
 import broadcast, { BroadcastEvents } from "./broadcast";
 import { fetchDevicesInside } from "./embassy";

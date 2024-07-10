@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "async_hooks";
 
 import TelegramBot from "node-telegram-bot-api";
 
-import User from "@models/User";
+import { User } from "@data/models";
 
 import { DEFAULT_LANGUAGE, SupportedLanguage } from "./localization";
 import { BotMessageContextMode } from "./types";

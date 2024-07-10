@@ -1,9 +1,8 @@
-import { SubscriptionExtended } from "@models/Subscription";
-import Topic from "@models/Topic";
+import { Topic, User } from "@data/models";
+
 import subscriptionsRepository from "@repositories/subscriptions";
 import usersRepository from "@repositories/users";
 import fundsRepository from "@repositories/funds";
-import User from "@models/User";
 
 const PseudoTopics = new Map([
     ["members", { id: -1, name: "members", description: "All current residents" }],
@@ -30,7 +29,7 @@ class SubscriptionsService {
     public getSubscriptionsByTopic(topic: Topic) {
         const pseudoTopic = PseudoTopics.get(topic.name);
 
-        if (!pseudoTopic) return subscriptionsRepository.getSubscriptionsByTopicId(topic.id, true) as SubscriptionExtended[];
+        if (!pseudoTopic) return subscriptionsRepository.getSubscriptionsByTopicId(topic.id, true);
 
         switch (pseudoTopic.name) {
             case "members":
@@ -43,17 +42,17 @@ class SubscriptionsService {
     }
 
     public getSubscriptionsByUser(user: User) {
-        return subscriptionsRepository.getSubscriptionsByUserId(user.userid as number, true) as SubscriptionExtended[];
+        return subscriptionsRepository.getSubscriptionsByUserId(user.userid, true);
     }
 
     public subscribe(user: User, topic: Topic) {
-        return PseudoTopics.has(topic.name) ? false : subscriptionsRepository.addSubscription(user.userid as number, topic.id);
+        return PseudoTopics.has(topic.name) ? false : subscriptionsRepository.addSubscription(user.userid, topic.id);
     }
 
     public unsubscribe(user: User, topic: Topic) {
         if (PseudoTopics.has(topic.name)) return false;
 
-        const subscription = subscriptionsRepository.getSubscription(user.userid as number, topic.id);
+        const subscription = subscriptionsRepository.getSubscription(user.userid, topic.id);
         if (!subscription) return false;
 
         return subscriptionsRepository.deleteSubscription(subscription.id);
@@ -69,7 +68,7 @@ class SubscriptionsService {
     }
 
     private userToSubscription(user: User) {
-        return { userid: user.userid, username: user.username };
+        return { user_id: user.userid, username: user.username, user };
     }
 }
 

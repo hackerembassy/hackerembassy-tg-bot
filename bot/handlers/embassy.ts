@@ -493,7 +493,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
-        const isMember = context.user.hasRole("member");
+        const isMember = context.user.roles?.includes("member");
         const voiceFileId = msg.voice?.file_id;
 
         if (!context.isPrivate() || !voiceFileId || !isMember) return;

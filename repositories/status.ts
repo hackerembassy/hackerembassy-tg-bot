@@ -1,5 +1,5 @@
-import State from "@models/State";
-import UserState, { UserStateType } from "@models/UserState";
+import { State, UserState } from "@data/models";
+import { UserStateType } from "@data/types";
 
 import BaseRepository from "./base";
 

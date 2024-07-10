@@ -1,12 +1,6 @@
 import config from "config";
 
 import { PrintersConfig } from "@config";
-import Donation, { FundDonation } from "@models/Donation";
-import Fund from "@models/Fund";
-import Need from "@models/Need";
-import Topic from "@models/Topic";
-import User, { AutoInsideMode } from "@models/User";
-import UserState, { UserStateChangeType, UserStateType } from "@models/UserState";
 import usersRepository from "@repositories/users";
 import { Coins, formatValueForCurrency, sumDonations } from "@services/currency";
 import { HSEvent } from "@services/googleCalendar";
@@ -22,6 +16,8 @@ import {
     shortDateTimeOptions,
 } from "@utils/date";
 import { REPLACE_MARKER } from "@utils/text";
+import { Fund, Donation, Need, Topic, User } from "data/models";
+import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
@@ -237,7 +233,7 @@ export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }
         message = `${t("needs.buy.pleasebuy")}\n`;
 
         for (const need of needs) {
-            message += `- #\`${need.text}#\` ${t("needs.buy.byrequest")} ${formatUsername(need.requester, mode)}\n`;
+            message += `- #\`${need.text}#\` ${t("needs.buy.byrequest")} ${formatUsername(need.requester_id, mode)}\n`;
         }
     }
 

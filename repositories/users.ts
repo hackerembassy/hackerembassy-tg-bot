@@ -1,131 +1,70 @@
 import { ChatId } from "node-telegram-bot-api";
+import { eq, like, gt, isNotNull, and } from "drizzle-orm";
 
-import User, { AutoInsideMode } from "@models/User";
 import { anyItemIsInList } from "@utils/filters";
+
+import { users } from "data/schema";
 
 import BaseRepository from "./base";
 
+type User = typeof users.$inferSelect;
 class UserRepository extends BaseRepository {
-    getUsers(): User[] {
-        const users = this.db.prepare("SELECT * FROM users").all() as User[];
-
-        return users.map(user => new User(user));
+    getUsers() {
+        return this.db.select().from(users).all();
     }
 
-    getUserByName(username: string): Nullable<User> {
-        try {
-            const user = this.db.prepare("SELECT * FROM users WHERE LOWER(username) = ?").get(username.toLowerCase());
+    getUserByName(username: string) {
+        return this.db.select().from(users).where(eq(users.username, username)).get();
+    }
 
-            return user ? new User(user as User) : null;
+    getByUserId(userid: number | ChatId) {
+        return this.db
+            .select()
+            .from(users)
+            .where(eq(users.userid, userid as number))
+            .get();
+    }
+
+    getUsersByRole(role: string) {
+        return this.db
+            .select()
+            .from(users)
+            .where(like(users.roles, `%${role}%`))
+            .all();
+    }
+
+    getAutoinsideUsers() {
+        return this.db
+            .select()
+            .from(users)
+            .where(and(gt(users.autoinside, 0), isNotNull(users.username), isNotNull(users.mac)))
+            .all();
+    }
+
+    addUser(userid: number, username?: string, roles: string[] = ["default"]) {
+        try {
+            return this.db
+                .insert(users)
+                .values({
+                    username,
+                    roles: roles.join("|"),
+                    userid: userid,
+                })
+                .returning();
         } catch (error) {
             this.logger.error(error);
-            return null;
+            return false;
         }
     }
 
-    getByUserId(userid: number | ChatId): Nullable<User> {
-        try {
-            const user = this.db.prepare("SELECT * FROM users WHERE userid = ?").get(userid);
-
-            return user ? new User(user as User) : null;
-        } catch (error) {
-            this.logger.error(error);
-            return null;
-        }
-    }
-
-    getUsersByRole(role: string): User[] {
-        try {
-            const users = this.db.prepare("SELECT * FROM users WHERE roles LIKE ('%' || ? || '%')").all(role);
-
-            return users.map(user => new User(user as User));
-        } catch (error) {
-            this.logger.error(error);
-            return [];
-        }
-    }
-
-    getAutoinsideUsers(): User[] {
-        const users = this.db
-            .prepare("SELECT * FROM users WHERE autoinside > 0 AND username IS NOT NULL AND mac IS NOT NULL")
-            .all() as User[];
-
-        return users.map(user => new User(user));
-    }
-
-    addUser(username?: string, roles: string[] = ["default"], userid?: number): boolean {
-        try {
-            // TODO remove username checking when ready
-            if (username === undefined && userid === undefined) return false;
-
-            if ((userid && this.getByUserId(userid) !== null) || (username && this.getUserByName(username) !== null))
-                return false;
-
-            const joinedRoles = roles.join("|");
-
+    updateRoles(userid: ChatId, roles: string[] = ["default"]) {
+        return (
             this.db
-                .prepare("INSERT INTO users (username, roles, userid) VALUES (?, ?, ?)")
-                .run(username, joinedRoles, userid ?? null);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    updateUser(user: User): boolean {
-        try {
-            this.db
-                .prepare(
-                    "UPDATE users SET username = ?, roles = ?, userid = ?, mac = ?, birthday = ?, autoinside = ?, emoji = ?, language = ? WHERE id = ?"
-                )
-                .run(
-                    user.username,
-                    user.roles,
-                    user.userid,
-                    user.mac,
-                    user.birthday,
-                    user.autoinside,
-                    user.emoji,
-                    user.language,
-                    user.id
-                );
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    // TODO rewrite below using only updateUser
-    updateRoles(userid: ChatId, roles: string[] = ["default"]): boolean {
-        try {
-            if (this.getByUserId(userid) === null) return false;
-            const joinedRoles = roles.join("|");
-
-            this.db.prepare("UPDATE users SET roles = ? WHERE userid = ?").run(joinedRoles, userid);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    updateRolesById(userid: number, roles: string[] = ["default"]): boolean {
-        try {
-            if (this.getByUserId(userid) === null) return false;
-            const joinedRoles = roles.join("|");
-
-            this.db.prepare("UPDATE users SET roles = ? WHERE userid = ?").run(joinedRoles, userid);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+                .update(users)
+                .set({ roles: roles.join("|") })
+                .where(eq(users.userid, userid as number))
+                .run().changes > 0
+        );
     }
 
     testMACs(cmd: string): boolean {
@@ -134,17 +73,21 @@ class UserRepository extends BaseRepository {
     }
 
     getAllRegisteredMACs(): string[] {
-        type macEntry = { mac: string };
+        const registeredMacEntries = this.db
+            .select({
+                mac: users.mac,
+            })
+            .from(users)
+            .where(isNotNull(users.mac))
+            .all();
 
-        const registeredMacEntries = this.db.prepare("SELECT mac FROM users where mac IS NOT NULL").all() as macEntry[];
-
-        return registeredMacEntries.flatMap(macEntry => macEntry.mac.split("|"));
+        return registeredMacEntries.flatMap(macEntry => macEntry.mac!.split("|"));
     }
 
-    setMACs(userid: number | ChatId, macs: Nullable<string> = null): boolean {
+    setMACs(userid: number | ChatId, macs: Nullable<string> = null) {
         try {
             const currentUser = this.getByUserId(userid);
-            if (currentUser === null) return false;
+            if (!currentUser) return false;
 
             const newMacs = macs ? macs.split(",").map(mac => mac.toLowerCase().replaceAll("-", ":").trim()) : [];
             const existingRegisteredMacs = this.getAllRegisteredMACs();
@@ -155,88 +98,40 @@ class UserRepository extends BaseRepository {
             if (anyItemIsInList(newMacs, existingOtherUsersMacs))
                 throw Error(`Mac's [${newMacsString}] already exist in database`);
 
-            this.db.prepare("UPDATE users SET mac = ? WHERE userid = ?").run(newMacsString, userid);
-
-            return true;
+            return (
+                this.db
+                    .update(users)
+                    .set({ mac: newMacsString })
+                    .where(eq(users.userid, userid as number))
+                    .run().changes > 0
+            );
         } catch (error) {
             this.logger.error(error);
             return false;
         }
     }
 
-    setEmoji(userid: ChatId, emoji: Nullable<string> = null): boolean {
-        try {
-            if (this.getByUserId(userid) === null) return false;
-
-            this.db.prepare("UPDATE users SET emoji = ? WHERE userid = ?").run(emoji, userid);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    updateUser(userid: ChatId, user: Partial<User>) {
+        return (
+            this.db
+                .update(users)
+                .set(user)
+                .where(eq(users.userid, userid as number))
+                .run().changes > 0
+        );
     }
 
-    setUserid(username: string, userid: Nullable<number>): boolean {
-        try {
-            if (this.getUserByName(username) === null && !this.addUser(username, ["default"])) return false;
-
-            this.db.prepare("UPDATE users SET userid = ? WHERE LOWER(username) = ?").run(userid, username.toLowerCase());
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    removeUserByUsername(username: string) {
+        return this.db.delete(users).where(eq(users.username, username)).run().changes > 0;
     }
 
-    setAutoinside(userid: ChatId, mode: AutoInsideMode): boolean {
-        try {
-            const user = this.getByUserId(userid);
-            if (user === null || (mode === AutoInsideMode.Disabled && !user.mac)) return false;
-
-            this.db.prepare("UPDATE users SET autoinside = ? WHERE userid = ?").run(Number(mode), userid);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    setBirthday(userid: ChatId, birthday: Nullable<string> = null): boolean {
-        try {
-            if (this.getByUserId(userid) === null) return false;
-
-            this.db.prepare("UPDATE users SET birthday = ? WHERE userid = ?").run(birthday, userid);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    removeUserByUsername(username: string): boolean {
-        try {
-            this.db.prepare("DELETE FROM users WHERE LOWER(username) = ?").run(username.toLowerCase());
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
-    }
-
-    removeUserById(userid: ChatId): boolean {
-        try {
-            this.db.prepare("DELETE FROM users WHERE userid = ?").run(userid);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    removeUserById(userid: ChatId) {
+        return (
+            this.db
+                .delete(users)
+                .where(eq(users.userid, userid as number))
+                .run().changes > 0
+        );
     }
 }
 

@@ -19,14 +19,16 @@ import {
 
 import { file } from "tmp-promise";
 
+import { User } from "@data/models";
+import { UserRole } from "@data/types";
+
 import { BotConfig } from "@config";
-import User, { UserRole } from "@models/User";
 import logger from "@services/logger";
 import { chunkSubstr } from "@utils/text";
 import UserService from "@services/user";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
-import { OptionalRegExp, prepareMessageForMarkdown, userLink } from "./helpers";
+import { OptionalRegExp, hasRole, prepareMessageForMarkdown, userLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import { FULL_PERMISSIONS, IGNORE_UPDATE_TIMEOUT, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "./constants";
@@ -100,7 +102,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (!savedRestrictions || savedRestrictions.length === 0) return true;
 
-        if (user) return user.hasRole("admin", ...savedRestrictions);
+        if (user) return hasRole(user, "admin", ...savedRestrictions);
 
         return savedRestrictions.includes("default");
     }
@@ -357,7 +359,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     tryPinChatMessage(message: TelegramBot.Message, user: User) {
         try {
-            if (user.hasRole("admin", "member"))
+            if (hasRole(user, "admin", "member"))
                 this.pinChatMessage(message.chat.id, message.message_id, { disable_notification: true });
         } catch (e) {
             logger.error(e);
@@ -589,7 +591,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (alwaysSecretChats.includes(message.chat.id)) return true;
 
-        if (messageContext.user.hasRole("member")) {
+        if (messageContext.user.roles?.includes("member")) {
             return messageContext.isPrivate() || messageContext.mode.secret;
         }
 

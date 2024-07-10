@@ -1,9 +1,26 @@
 import TelegramBot from "node-telegram-bot-api";
 
-import User, { DefaultUser } from "@models/User";
+import { User } from "@data/models";
+
+import { AutoInsideMode } from "@data/types";
+
 import usersRepository from "@repositories/users";
 
 import logger from "./logger";
+
+export const DefaultUser = {
+    id: 0,
+    username: null,
+    firstname: null,
+    lastname: null,
+    roles: "default",
+    mac: null,
+    birthday: null,
+    autoinside: AutoInsideMode.Disabled,
+    emoji: null,
+    userid: 0,
+    language: null,
+};
 
 class UserService {
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {
@@ -11,27 +28,27 @@ class UserService {
 
         if (!user) throw new Error(`Restricted user ${tgUser.username} with id ${tgUser.id} should exist`);
 
-        if (!user.roles.includes("restricted")) {
+        if (!user.roles?.includes("restricted")) {
             logger.info(`User [${tgUser.id}](${tgUser.username}) was already verified`);
             return true;
         }
 
         logger.info(`User [${tgUser.id}](${tgUser.username}) passed the verification`);
 
-        return usersRepository.updateUser(new User({ ...user, roles: "default", language }));
+        return usersRepository.updateUser(user.userid, { ...user, roles: "default", language });
     }
 
     public prepareUser(user: TelegramBot.User): User {
-        const dbuser = usersRepository.getByUserId(user.id) ?? new User({ ...DefaultUser });
+        const dbuser = usersRepository.getByUserId(user.id) ?? { ...DefaultUser };
 
         if (dbuser.id === DefaultUser.id) {
             logger.info(`User [${user.id}]${user.username} was not found in the database. Adding...`);
 
-            usersRepository.addUser(user.username ?? undefined, ["default"], user.id);
+            usersRepository.addUser(user.id, user.username, ["default"]);
         } else if (user.username && dbuser.username !== user.username) {
             logger.info(`User [${user.id}]${dbuser.username} changed username to ${user.username}. Updating...`);
 
-            usersRepository.updateUser(new User({ ...dbuser, username: user.username }));
+            usersRepository.updateUser(dbuser.userid, { ...dbuser, username: user.username });
         }
 
         return dbuser;

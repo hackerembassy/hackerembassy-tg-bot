@@ -50,6 +50,20 @@
       "when": 1720612195308,
       "tag": "0006_lush_killraven",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1720618998928,
+      "tag": "0007_yielding_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1720619188439,
+      "tag": "0008_common_sharon_carter",
+      "breakpoints": true
     }
   ]
 }

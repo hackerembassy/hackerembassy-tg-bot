@@ -1,12 +1,11 @@
 import { writeToBuffer } from "@fast-csv/format";
 import ChartJsImage from "chartjs-to-image";
 
-import Donation, { FundDonation } from "@models/Donation";
-import Fund from "@models/Fund";
 import FundsRepository from "@repositories/funds";
 import { compareMonthNames } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
+import { DonationEx, Fund } from "@data/models";
 
 import { DefaultCurrency, convertCurrency, formatValueForCurrency } from "./currency";
 
@@ -54,13 +53,13 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
     if (!fund) throw Error("Fund not found");
 
-    const donations = FundsRepository.getDonationsForName(fundname);
+    const donations = FundsRepository.getDonationsForFundId(fund.id, true, true);
 
-    const fundDonations = await Promise.all(
+    const DonationExs = await Promise.all(
         donations.map(async d => {
             const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
             return {
-                username: d.username,
+                username: d.user.username,
                 donation: d.value,
                 currency: d.currency,
                 converted: convertedValue
@@ -71,31 +70,29 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
         })
     );
 
-    return await writeToBuffer(fundDonations, { headers: true });
+    return await writeToBuffer(DonationExs, { headers: true });
 }
 
 export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
     if (!fund) throw Error("Fund not found");
 
-    const alldonations = FundsRepository.getDonationsForName(fundname);
-
-    let fundDonations = await Promise.all(
+    const alldonations = FundsRepository.getDonationsForFundId(fund.id, true, true);
+    const simplifiedDonations = await Promise.all(
         alldonations.map(async d => {
             const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
             return {
-                username: d.username,
+                username: d.user.username ?? "Unknown",
                 donation: Number(convertedValue),
             };
         })
     );
+    const combinedDonations = combineDonations(simplifiedDonations);
 
-    fundDonations = combineDonations(fundDonations);
-
-    const labels = fundDonations.map(donation => donation.username);
-    let data = fundDonations.map(donation => donation.donation);
-    const sum = data.reduce((acc, val) => acc + val, 0);
-    data = data.map(d => formatValueForCurrency(d, fund.target_currency));
+    const labels = combinedDonations.map(donation => donation.username);
+    const values = combinedDonations.map(donation => donation.donation);
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    const data = values.map(d => formatValueForCurrency(d, fund.target_currency));
     const target = fund.target_value;
     const remained = formatValueForCurrency(sum - target, fund.target_currency);
     const spread = colorScheme.length / labels.length;
@@ -116,19 +113,24 @@ export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     return await chart.toBinary();
 }
 
-export async function exportDonationsToLineChart(donations: FundDonation[], title: string): Promise<Buffer> {
-    const monthLabels = donations.map(d => d.name);
+export async function exportDonationsToLineChart(donations: DonationEx[], title: string): Promise<Buffer> {
+    const monthLabels = donations.map(d => d.fund.name);
 
-    const uniqueUsernames = donations.map(d => d.username).filter(onlyUniqueInsFilter);
+    // TODO add first_names handling
+    const uniqueUsernames = donations
+        .filter(d => d.user.username)
+        .map(d => d.user.username as string)
+        .filter(onlyUniqueInsFilter);
+
     const uniqueMonthLabels = monthLabels.filter(onlyUniqueInsFilter);
     const uniqueData = [];
 
     for (const username of uniqueUsernames) {
-        const userDonations = donations.filter(d => equalsIns(d.username, username));
+        const userDonations = donations.filter(d => equalsIns(d.user.username, username));
         const userData = [];
 
         for (const label of uniqueMonthLabels) {
-            const labelDonations = userDonations.filter(d => equalsIns(d.name, label));
+            const labelDonations = userDonations.filter(d => equalsIns(d.fund.name, label));
             const convertedDonations = await Promise.all(
                 labelDonations.map(async d => (await convertCurrency(d.value, d.currency)) ?? 0)
             );
@@ -271,11 +273,11 @@ function createLines(
 }
 
 // Helper functions for export
-export function prepareCostsForExport(donations: FundDonation[], costsPrefix: string) {
+export function prepareCostsForExport(donations: DonationEx[], costsPrefix: string) {
     return donations
-        .filter(d => d.name.startsWith(costsPrefix))
+        .filter(d => d.fund.name.startsWith(costsPrefix))
         .map(d => {
-            const dateString = d.name.replace(costsPrefix, "").trim();
+            const dateString = d.fund.name.replace(costsPrefix, "").trim();
             const splitDate = dateString.split(" ");
 
             return {
@@ -303,18 +305,19 @@ export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDon
 }
 
 export async function getDonationsSummary(fund: Fund, limit?: number) {
-    const donations = FundsRepository.getDonationsForName(fund.name) as (Donation & { converted_value?: number })[];
+    const donations = FundsRepository.getDonationsForFundId(fund.id, true, true) as (DonationEx & { converted_value?: number })[];
 
     for (const donation of donations) {
         donation.converted_value = (await convertCurrency(donation.value, donation.currency, fund.target_currency)) ?? -1;
     }
 
+    // Add handling first_name
     const resultDonations = donations
         .sort((a, b) => b.converted_value! - a.converted_value!)
         .slice(0, limit)
         .map((d, index) => ({
             rank: index + 1,
-            username: d.username,
+            username: d.user.username ?? "Unknown",
             value: d.value,
             currency: d.currency,
             converted_value: d.converted_value,

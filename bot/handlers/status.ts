@@ -644,12 +644,14 @@ export default class StatusHandlers implements BotHandlers {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
-        const target = username ? UsersRepository.getUserByName(username.replace("@", "")) ?? sender : sender;
+        const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : sender;
+
+        if (!target) return bot.sendMessageExt(msg.chat.id, t("status.profile.notfound"), msg);
 
         const userStates = StatusRepository.getUserStates(target.userid);
-        const donations = fundsRepository.getFundDonationsOf(target.userid);
-        const donationList = donations ? TextGenerators.generateFundDonationsList(donations) : "";
-        const totalDonated = donations ? await sumDonations(donations) : 0;
+        const donations = fundsRepository.getDonationsOf(target.userid, true, true);
+        const donationList = donations.length ? TextGenerators.generateFundDonationsList(donations) : "";
+        const totalDonated = donations.length ? await sumDonations(donations) : 0;
 
         const { days, hours, minutes } = UserStateService.getUserTotalTime(userStates);
 
@@ -664,12 +666,14 @@ export default class StatusHandlers implements BotHandlers {
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
 
-        if (donations && donations.length > 0) {
+        if (donations.length) {
             const filteredDonations = ExportHelper.prepareCostsForExport(donations, COSTS_PREFIX);
             const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, COSTS_PREFIX);
 
             if (imageBuffer.length !== 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
         }
+
+        return;
     }
 
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {

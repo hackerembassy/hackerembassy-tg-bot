@@ -11,3 +11,4 @@ export type State = typeof states.$inferSelect;
 
 export type UserStateEx = UserState & { user: User };
 export type StateEx = State & { changer: User };
+export type DonationEx = Donation & { fund: Fund; user: User; accountant: User };

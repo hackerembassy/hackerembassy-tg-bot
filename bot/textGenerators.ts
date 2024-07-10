@@ -16,7 +16,7 @@ import {
     shortDateTimeOptions,
 } from "@utils/date";
 import { REPLACE_MARKER } from "@utils/text";
-import { Fund, Donation, Need, Topic, User, UserState, UserStateEx } from "data/models";
+import { Fund, Need, Topic, User, UserStateEx, DonationEx } from "data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 
 import t from "./core/localization";
@@ -29,21 +29,16 @@ type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boole
 
 export async function createFundList(
     funds: Optional<Fund[]>,
-    donations: Nullable<Donation[]>,
+    donations: DonationEx[],
     { showAdmin = false, isHistory = false, isApi = false }: FundListOptions,
     mode = { mention: false }
 ): Promise<string> {
     let list = "";
 
-    if (!funds || funds.length === 0) {
-        return list;
-    }
+    if (!funds || funds.length === 0) return "list";
 
     for (const fund of funds) {
-        const fundDonations =
-            donations?.filter(donation => {
-                return donation.fund_id === fund.id;
-            }) ?? [];
+        const fundDonations = donations.filter(donation => donation.fund_id === fund.id);
         const sumOfAllDonations = await sumDonations(fundDonations, fund.target_currency);
         const fundStatus = generateFundStatus(fund, sumOfAllDonations, isHistory);
 
@@ -93,12 +88,12 @@ export function generateAdminFundHelp(fund: Fund, isHistory: boolean): string {
     return helpList;
 }
 
-export function generateFundDonationsList(fundDonations: FundDonation[], forAccountant: boolean = false): string {
+export function generateFundDonationsList(donations: DonationEx[], forAccountant: boolean = false): string {
     let fundDonationsList = "";
 
-    for (const fundDonation of fundDonations) {
+    for (const fundDonation of donations) {
         const donationIdPart = forAccountant ? `[id:${fundDonation.id}] ` : "";
-        const fundNamePart = forAccountant ? `#\`${fundDonation.name}#\`` : fundDonation.name;
+        const fundNamePart = forAccountant ? `#\`${fundDonation.fund.name}#\`` : fundDonation.fund.name;
 
         fundDonationsList += `${donationIdPart}${fundNamePart}: ${formatValueForCurrency(
             fundDonation.value,
@@ -110,19 +105,19 @@ export function generateFundDonationsList(fundDonations: FundDonation[], forAcco
 }
 
 export function generateDonationsList(
-    fundDonations: Donation[],
+    donations: DonationEx[],
     options: { showAdmin?: boolean; isApi?: boolean },
     mode: { mention: boolean }
 ): string {
     let donationList = "";
 
-    for (const donation of fundDonations) {
+    for (const donation of donations) {
         donationList += `      ${options.showAdmin ? `[id:${donation.id}] - ` : ""}${formatUsername(
-            donation.username,
+            donation.user.username,
             mode,
             options.isApi
         )} - ${formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${
-            options.showAdmin && donation.accountant ? ` ➡️ ${formatUsername(donation.accountant, mode, options.isApi)}` : ""
+            options.showAdmin ? ` ➡️ ${formatUsername(donation.accountant.username, mode, options.isApi)}` : ""
         }\n`;
     }
 
@@ -192,8 +187,8 @@ export function getUserBadges(username: Nullable<string>): string {
     const user = usersRepository.getUserByName(username);
     if (!user) return "";
 
-    const roleBadges = `${user.roles.includes("member") ? "🔑" : ""}${user.roles.includes("accountant") ? "📒" : ""}${
-        user.roles.includes("trusted") ? "🎓" : ""
+    const roleBadges = `${user.roles?.includes("member") ? "🔑" : ""}${user.roles?.includes("accountant") ? "📒" : ""}${
+        user.roles?.includes("trusted") ? "🎓" : ""
     }`;
     const customBadge = user.emoji ?? "";
     const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";
@@ -201,10 +196,10 @@ export function getUserBadges(username: Nullable<string>): string {
     return `${roleBadges}${customBadge}${birthdayBadge}`;
 }
 
-export function getUserBadgesWithStatus(userStatus: UserState): string {
-    const userBadges = getUserBadges(userStatus.username);
-    const autoBadge = userStatus.type === UserStateChangeType.Auto ? "📲" : "";
-    const ghostBadge = userStatus.status === UserStateType.InsideSecret ? "👻" : "";
+export function getUserBadgesWithStatus(userStatus: UserStateEx): string {
+    const userBadges = getUserBadges(userStatus.user.username);
+    const autoBadge = userStatus.type === (UserStateChangeType.Auto as number) ? "📲" : "";
+    const ghostBadge = userStatus.status === (UserStateType.InsideSecret as number) ? "👻" : "";
 
     return `${ghostBadge}${autoBadge}${userBadges}`;
 }

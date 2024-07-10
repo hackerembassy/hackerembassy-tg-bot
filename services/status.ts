@@ -44,7 +44,6 @@ export class SpaceStateService {
     static openSpace(opener: User, options: { checkOpener: boolean } = { checkOpener: false }): void {
         const opendate = new Date();
         const state = {
-            id: 0,
             open: 1,
             date: opendate.getTime(),
             changer_id: opener.userid,
@@ -57,7 +56,6 @@ export class SpaceStateService {
         if (!options.checkOpener) return;
 
         const userstate = {
-            id: 0,
             status: UserStateType.Inside,
             date: opendate.getTime(),
             until: null,
@@ -72,7 +70,6 @@ export class SpaceStateService {
 
     static closeSpace(closer: User): void {
         const state = {
-            id: 0,
             open: 0,
             date: Date.now(),
             changer_id: closer.userid,
@@ -109,9 +106,9 @@ export class UserStateService {
         return Array.from(this.lastUserStateCache.values());
     }
 
-    static pushPeopleState(state: UserStateEx): void {
-        statusRepository.pushPeopleState(state);
-        this.lastUserStateCache.set(state.user_id, state);
+    static pushPeopleState(state: Omit<UserStateEx, "id">): void {
+        const newState = statusRepository.pushPeopleState(state);
+        this.lastUserStateCache.set(state.user_id, { ...state, ...newState });
     }
 
     static evictPeople(): void {
@@ -120,7 +117,6 @@ export class UserStateService {
 
         for (const userstate of peopleInside) {
             UserStateService.pushPeopleState({
-                id: 0,
                 status: UserStateType.Outside,
                 date: date,
                 until: null,

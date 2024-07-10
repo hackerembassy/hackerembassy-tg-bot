@@ -5,6 +5,7 @@ import { State, User, UserState } from "@data/models";
 import StatusHandlers from "@hackembot/handlers/status";
 import FundsRepository from "@repositories/funds";
 import StatusRepository from "@repositories/status";
+import UsersRepository from "@repositories/users";
 
 import { getDonationsSummary } from "@services/export";
 import logger from "@services/logger";
@@ -156,16 +157,18 @@ router.post("/setgoing", guestTokenRequired, (req, res) => {
     try {
         const body = req.body as { username: string; isgoing: boolean; message?: string };
 
-        if (typeof body.username !== "string" || typeof body.isgoing !== "boolean") {
-            res.status(400).send({ error: "Missing or incorrect parameters" });
-            return;
-        }
+        if (typeof body.username !== "string" || typeof body.isgoing !== "boolean")
+            return res.status(400).send({ error: "Missing or incorrect parameters" });
 
-        StatusHandlers.setGoingState(body.username, body.isgoing, body.message);
+        const user = UsersRepository.getUserByName(body.username);
 
-        res.json({ message: "Success" });
+        if (!user) return res.status(400).send({ error: `Missing user with ${body.username}` });
+
+        StatusHandlers.setGoingState(user, body.isgoing, body.message);
+
+        return res.json({ message: "Success" });
     } catch (error) {
-        res.status(500).send({ error });
+        return res.status(500).send({ error });
     }
 });
 

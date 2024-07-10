@@ -46,15 +46,15 @@ class StatusRepository extends BaseRepository {
         return this.db.delete(userstates).where(eq(userstates.id, stateId)).run().changes > 0;
     }
 
-    pushSpaceState(state: State): boolean {
-        return this.db.insert(states).values(state).run().changes > 0;
+    pushSpaceState(state: Omit<State, "id">) {
+        return this.db.insert(states).values(state).returning().get();
     }
 
     /**
      * @deprecated use UserStateService.pushPeopleState instead
      */
-    pushPeopleState(state: UserState): boolean {
-        return this.db.insert(userstates).values(state).run().changes > 0;
+    pushPeopleState(state: Omit<UserState, "id">) {
+        return this.db.insert(userstates).values(state).returning().get();
     }
 }
 

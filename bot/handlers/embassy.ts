@@ -24,6 +24,7 @@ import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
+import { effectiveName } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -397,7 +398,7 @@ export default class EmbassyHandlers implements BotHandlers {
             await EmbassyHandlers.sayinspaceHandler(
                 bot,
                 msg,
-                `Тук-тук резиденты, к вам хочет зайти ${bot.context(msg).user.effectiveName()}. Ответьте ему в главном чатике.`
+                `Тук-тук резиденты, к вам хочет зайти ${effectiveName(bot.context(msg).user)}. Ответьте ему в главном чатике.`
             );
         }
     }

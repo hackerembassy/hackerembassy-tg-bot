@@ -9,4 +9,5 @@ export type Topic = typeof topics.$inferSelect;
 export type UserState = typeof userstates.$inferSelect;
 export type State = typeof states.$inferSelect;
 
-export type extendedUserState = UserState & { user: User };
+export type UserStateEx = UserState & { user: User };
+export type StateEx = State & { changer: User };

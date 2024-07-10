@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { State, UserState } from "@data/models";
+import { State, User, UserState } from "@data/models";
 
 import StatusHandlers from "@hackembot/handlers/status";
 import FundsRepository from "@repositories/funds";
@@ -14,9 +14,10 @@ import {
     filterPeopleInside,
     SpaceStateService,
     UserStateService,
-} from "@services/statusHelper";
+} from "@services/status";
 import wiki from "@services/wiki";
 import { createTokenSecuredMiddleware } from "@utils/middleware";
+import { HassUser } from "@services/user";
 
 const router = Router();
 
@@ -24,7 +25,7 @@ const hassTokenRequired = createTokenSecuredMiddleware(logger, process.env["UNLO
 const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"], true);
 const guestTokenRequired = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
 
-const createSpaceApiResponse = (status: Nullable<State>, inside: UserState[]) => ({
+const createSpaceApiResponse = (status: State & { changer: User }, inside: UserState[]) => ({
     api: "0.13",
     api_compatibility: ["14"],
     space: "Hacker Embassy",
@@ -43,9 +44,9 @@ const createSpaceApiResponse = (status: Nullable<State>, inside: UserState[]) =>
     },
     issue_report_channels: ["email"],
     state: {
-        open: !!status?.open,
-        message: status?.open ? "open for public" : "closed for public",
-        trigger_person: status?.changedby,
+        open: !!status.open,
+        message: status.open ? "open for public" : "closed for public",
+        trigger_person: status.changer.username,
     },
     sensors: {
         people_now_present: [{ value: inside.length }],
@@ -85,38 +86,41 @@ router.get("/space", (_, res) => {
     const status = StatusRepository.getSpaceLastState();
     const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
 
-    res.json(createSpaceApiResponse(status, inside));
+    if (!status)
+        return res.status(500).json({
+            error: "Status is not defined",
+        });
+
+    return res.json(createSpaceApiResponse(status, inside));
 });
 
 router.get("/status", hassTokenOptional, (req, res) => {
     const status = StatusRepository.getSpaceLastState();
 
-    if (!status) {
-        res.json({
+    if (!status)
+        return res.status(500).json({
             error: "Status is not defined",
         });
-        return;
-    }
 
     const recentUserStates = UserStateService.getRecentUserStates();
 
     const inside = recentUserStates.filter(req.authenticated ? filterAllPeopleInside : filterPeopleInside).map(p => {
         return {
-            username: p.username,
+            username: p.user.username,
             dateChanged: p.date,
         };
     });
     const planningToGo = recentUserStates.filter(filterPeopleGoing).map(p => {
         return {
-            username: p.username,
+            username: p.user.username,
             dateChanged: p.date,
         };
     });
 
-    res.json({
+    return res.json({
         open: status.open,
         dateChanged: status.date,
-        changedBy: status.changedby,
+        changedBy: status.changer.username,
         inside,
         planningToGo,
     });
@@ -175,7 +179,7 @@ router.post("/open", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.openSpace("hass");
+    SpaceStateService.openSpace(HassUser);
 
     return res.send({ message: "Success" });
 });
@@ -190,7 +194,7 @@ router.post("/close", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.closeSpace("hass");
+    SpaceStateService.closeSpace(HassUser);
     UserStateService.evictPeople();
 
     return res.send({ message: "Success" });

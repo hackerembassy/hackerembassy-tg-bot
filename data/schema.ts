@@ -3,9 +3,11 @@ import { sql } from "drizzle-orm";
 
 export const states = sqliteTable("states", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    open: integer("open"),
-    changedby: text("changedby"),
-    date: integer("date"),
+    open: integer("open").notNull(),
+    changer_id: integer("changer_id")
+        .notNull()
+        .references(() => users.userid),
+    date: integer("date").notNull(),
 });
 
 export const funds = sqliteTable("funds", {
@@ -59,22 +61,24 @@ export const donations = sqliteTable("donations", {
 
 export const needs = sqliteTable("needs", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    text: text("text"),
+    item: text("item").notNull(),
     requester_id: integer("requester_id")
         .notNull()
         .references(() => users.userid),
     buyer_id: integer("buyer_id")
-        .notNull()
+        .default(sql`(NULL)`)
         .references(() => users.userid),
     updated: integer("updated"),
 });
 
 export const userstates = sqliteTable("userstates", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    status: integer("status"),
-    date: integer("date"),
+    status: integer("status").notNull(),
+    date: integer("date").notNull(),
     until: integer("until").default(sql`(NULL)`),
-    type: integer("type").default(0),
+    type: integer("type").notNull().default(0),
     note: text("note").default("sql`(NULL)`"),
-    user_id: integer("user_id").notNull(),
+    user_id: integer("user_id")
+        .notNull()
+        .references(() => users.userid),
 });

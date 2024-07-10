@@ -16,7 +16,7 @@ import {
     shortDateTimeOptions,
 } from "@utils/date";
 import { REPLACE_MARKER } from "@utils/text";
-import { Fund, Donation, Need, Topic, User } from "data/models";
+import { Fund, Donation, Need, Topic, User, UserState, UserStateEx } from "data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 
 import t from "./core/localization";
@@ -130,9 +130,9 @@ export function generateDonationsList(
 }
 
 export function getStatusMessage(
-    state: { open: boolean; changedby: string },
-    inside: UserState[],
-    going: UserState[],
+    state: { open: number; changer: User },
+    inside: UserStateEx[],
+    going: UserStateEx[],
     climateInfo: Nullable<SpaceClimate>,
     mode: { mention: boolean },
     options: {
@@ -145,7 +145,7 @@ export function getStatusMessage(
         stateEmoji: state.open ? "🔓" : "🔒",
         state: state.open ? t("status.status.opened") : t("status.status.closed"),
         stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
-        changedBy: formatUsername(state.changedby, mode, options.isApi),
+        changedBy: options.isApi ? formatUsername(state.changer.username, mode, options.isApi) : userLink(state.changer),
     });
 
     if (options.short) {
@@ -162,13 +162,13 @@ export function getStatusMessage(
     stateText +=
         inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {
-        stateText += `${formatUsername(userStatus.username, mode, options.isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
+        stateText += `${formatUsername(userStatus.user.username, mode, options.isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
     stateText += going.length > 0 ? `\n${t("status.status.going", { count: going.length })}` : "";
     for (const userStatus of going) {
-        stateText += `${formatUsername(userStatus.username, mode, options.isApi)} ${getUserBadges(userStatus.username)} ${
-            userStatus.note ? `(${userStatus.note})` : ""
-        }\n`;
+        stateText += `${formatUsername(userStatus.user.username, mode, options.isApi)} ${getUserBadges(
+            userStatus.user.username
+        )} ${userStatus.note ? `(${userStatus.note})` : ""}\n`;
     }
     stateText += "\n";
     stateText += climateInfo ? getClimateMessage(climateInfo, options) : REPLACE_MARKER;
@@ -225,15 +225,15 @@ export function getResidentsList(residents: Optional<User[]>, mode: { mention: b
     return t("basic.residents", { userList });
 }
 
-export function getNeedsList(needs: Nullable<Need[]>, mode: { mention: boolean }): string {
+export function getNeedsList(needs: (Need & { requester: User })[]): string {
     let message = `${t("needs.buy.nothing")}\n`;
-    const areNeedsProvided = needs && needs.length > 0;
+    const areNeedsProvided = needs.length > 0;
 
     if (areNeedsProvided) {
         message = `${t("needs.buy.pleasebuy")}\n`;
 
         for (const need of needs) {
-            message += `- #\`${need.text}#\` ${t("needs.buy.byrequest")} ${formatUsername(need.requester_id, mode)}\n`;
+            message += `- #\`${need.item}#\` ${t("needs.buy.byrequest")} ${userLink(need.requester)}\n`;
         }
     }
 

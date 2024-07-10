@@ -1,61 +1,46 @@
-import Need from "@models/Need";
+import { and, eq, isNull } from "drizzle-orm";
+
+import { needs } from "@data/schema";
 
 import BaseRepository from "./base";
 
 class NeedsRepository extends BaseRepository {
-    getNeedById(id: number): Nullable<Need> {
-        return this.db.prepare("SELECT * FROM needs WHERE id = ?").get(id) as Need;
+    getNeedById(id: number) {
+        return this.db.select().from(needs).where(eq(needs.id, id)).get();
     }
 
-    getOpenNeedByText(text: string): Nullable<Need> {
-        return this.db.prepare("SELECT * FROM needs WHERE text = ? AND buyer IS NULL LIMIT 1").get(text) as Need;
+    getOpenNeedByItem(item: string) {
+        return this.db
+            .select()
+            .from(needs)
+            .where(and(eq(needs.item, item), isNull(needs.buyer_id)))
+            .get();
     }
 
-    getOpenNeeds(): Nullable<Need[]> {
-        return this.db.prepare("SELECT * FROM needs WHERE buyer IS NULL ORDER BY id ASC").all() as Need[];
+    getOpenNeeds() {
+        return this.db.query.needs
+            .findMany({
+                where: isNull(needs.buyer_id),
+                orderBy: needs.id,
+                with: {
+                    requester: true,
+                },
+            })
+            .sync();
     }
 
-    addBuy(text: string, requester: string, date: Date): boolean {
-        try {
-            if (this.getOpenNeedByText(text)) return false;
-
-            this.db
-                .prepare("INSERT INTO needs (id, text, requester, updated, buyer) VALUES (NULL, ?, ?, ?, NULL)")
-                .run(text, requester, date.valueOf());
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    addBuy(item: string, requesterId: number, date: Date): boolean {
+        return this.db.insert(needs).values({ item, requester_id: requesterId, updated: date.valueOf() }).run().changes > 0;
     }
 
-    closeNeed(text: string, buyer: string, date: Date): boolean {
-        try {
-            const need = this.getOpenNeedByText(text);
-            if (!need) return false;
-
-            this.db.prepare("UPDATE needs SET buyer = ?, updated = ? WHERE id = ?").run(buyer, date.valueOf(), need.id);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+    closeNeed(id: number, buyerId: number, date: Date): boolean {
+        return (
+            this.db.update(needs).set({ buyer_id: buyerId, updated: date.valueOf() }).where(eq(needs.id, id)).run().changes > 0
+        );
     }
 
     undoClose(id: number): boolean {
-        try {
-            const need = this.getNeedById(id);
-            if (!need) return false;
-
-            this.db.prepare("UPDATE needs SET buyer = NULL, updated = NULL WHERE id = ?").run(id);
-
-            return true;
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
+        return this.db.update(needs).set({ buyer_id: null, updated: null }).where(eq(needs.id, id)).run().changes > 0;
     }
 }
 

@@ -12,7 +12,7 @@ import { getDonationsSummary } from "@services/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode, ConditionerStatus, SpaceClimate } from "@services/hass";
 import logger from "@services/logger";
 import { PrinterStatusResult } from "@services/printer3d";
-import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services/statusHelper";
+import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services/status";
 import { sleep } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { filterFulfilled } from "@utils/filters";
@@ -381,12 +381,12 @@ export default class EmbassyHandlers implements BotHandlers {
         const residents = usersRepository.getUsersByRole("member");
         const residentsInside = UserStateService.getRecentUserStates()
             .filter(filterPeopleInside)
-            .filter(insider => residents.find(r => r.username === insider.username));
+            .filter(insider => residents.find(r => r.username === insider.user.username));
 
         const text =
             residentsInside.length > 0
                 ? t("embassy.knock.knock", {
-                      residentsInside: residentsInside.reduce((acc, resident) => acc + `@${resident.username} `, ""),
+                      residentsInside: residentsInside.reduce((acc, resident) => acc + `@${resident.user.username} `, ""),
                   })
                 : t("embassy.knock.noresidents");
         await bot.sendMessageExt(msg.chat.id, text, msg);

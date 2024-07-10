@@ -8,6 +8,48 @@
       "when": 1720570922689,
       "tag": "0000_bent_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1720579500694,
+      "tag": "0001_elite_diamondback",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1720609536777,
+      "tag": "0002_lean_mulholland_black",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1720609588096,
+      "tag": "0003_overjoyed_shooting_star",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1720610323570,
+      "tag": "0004_glamorous_galactus",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1720610624112,
+      "tag": "0005_yellow_rockslide",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1720612195308,
+      "tag": "0006_lush_killraven",
+      "breakpoints": true
     }
   ]
 }

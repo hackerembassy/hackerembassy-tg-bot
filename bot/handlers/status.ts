@@ -20,7 +20,7 @@ import {
     isMacInside,
     SpaceStateService,
     UserStateService,
-} from "@services/statusHelper";
+} from "@services/status";
 import { sleep } from "@utils/common";
 import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
@@ -44,7 +44,7 @@ export default class StatusHandlers implements BotHandlers {
 
     static async setmacHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
         const user = bot.context(msg).user;
-        const userLink = user.userLink();
+        const userLink = helpers.userLink(user);
 
         let message = t("status.mac.fail");
 
@@ -71,7 +71,7 @@ export default class StatusHandlers implements BotHandlers {
     static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
         const mode = bot.context(msg).mode;
         const user = bot.context(msg).user;
-        const userLink = user.userLink();
+        const userLink = helpers.userLink(user);
 
         const usermac = user.mac;
 

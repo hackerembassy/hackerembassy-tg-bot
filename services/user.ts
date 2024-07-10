@@ -22,6 +22,20 @@ export const DefaultUser = {
     language: null,
 };
 
+export const HassUser = {
+    id: 0,
+    username: "hass",
+    firstname: null,
+    lastname: null,
+    roles: "admin",
+    mac: null,
+    birthday: null,
+    autoinside: AutoInsideMode.Disabled,
+    emoji: null,
+    userid: 1,
+    language: null,
+};
+
 class UserService {
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {
         const user = usersRepository.getByUserId(tgUser.id);

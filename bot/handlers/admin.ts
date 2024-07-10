@@ -171,16 +171,18 @@ export default class AdminHandlers implements BotHandlers {
         return await bot.sendMessageExt(msg.chat.id, JSON.stringify(user), msg);
     }
 
-    static async updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
-        username = username.replace("@", "");
+    static updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
         const roles = rolesString.split("|");
+        const user = UsersRepository.getUserByName(username.replace("@", ""));
 
-        const success = UsersRepository.updateRoles(username, roles);
+        if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+
+        const success = UsersRepository.updateRoles(user.userid, roles);
         const text = success
             ? t("admin.updateRoles.success", { username: helpers.formatUsername(username, bot.context(msg).mode), roles })
             : t("admin.updateRoles.fail");
 
-        await bot.sendMessageExt(msg.chat.id, text, msg);
+        return bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
     static async updateRolesByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number, rolesString: string) {

@@ -55,5 +55,6 @@ jobs:
               with:
                   to: ${{ vars.alerts_chat_id }}
                   token: ${{ secrets.NOTIFICATION_BOT_TOKEN }}
+                  format: markdown
                   message: |
-                      🤖 New bot version ${{ github.sha }} was successfully deployed!
+                      🤖 New bot version was successfully deployed! [${{ github.workflow }} #${{ github.run_number }}](https://github.com/hackerembassy/hackerembassy-tg-bot/actions/workflows/app-deployment.yml)

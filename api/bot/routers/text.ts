@@ -9,7 +9,7 @@ import FundsRepository from "@repositories/funds";
 import { requestToEmbassy } from "@services/embassy";
 import { getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
-import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/statusHelper";
+import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/status";
 
 const router = Router();
 
@@ -77,8 +77,8 @@ router.get("/today", async (_, res) => {
 });
 
 router.get("/funds", async (_, res) => {
-    const funds = FundsRepository.getFunds()?.filter(p => p.status === "open");
-    const donations = FundsRepository.getDonations();
+    const funds = FundsRepository.getAllFunds().filter(p => p.status === "open");
+    const donations = FundsRepository.getAllDonations(true, true);
 
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });
 

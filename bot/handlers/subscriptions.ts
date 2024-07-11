@@ -1,6 +1,7 @@
 import { Message } from "node-telegram-bot-api";
 
-import Topic from "@models/Topic";
+import { Topic } from "@data/models";
+
 import logger from "@services/logger";
 import SubscriptionsService from "@services/subscriptions";
 
@@ -26,9 +27,9 @@ export default class TopicsHandlers implements BotHandlers {
                 subscriptions.map(
                     subscription =>
                         ({
-                            id: subscription.topicid,
-                            name: subscription.topicname,
-                            description: subscription.topicdescription,
+                            id: subscription.topic_id,
+                            name: subscription.topic.name,
+                            description: subscription.topic.description,
                         }) as Topic
                 )
             );
@@ -70,7 +71,9 @@ export default class TopicsHandlers implements BotHandlers {
 
             const text = subscriptions
                 .map(subscription =>
-                    subscription.username ? `@${subscription.username}` : userLink({ username: "anon", id: subscription.userid })
+                    subscription.user.username
+                        ? `@${subscription.user.username}`
+                        : userLink({ username: "anon", id: subscription.user_id })
                 )
                 .join(" ");
 
@@ -122,7 +125,7 @@ export default class TopicsHandlers implements BotHandlers {
             const message = t("topics.notify.message", { topic: topicname, text });
 
             const results = await RateLimiter.executeOverTime(
-                subscriptions.map(s => () => bot.sendMessageExt(s.userid, message, msg)),
+                subscriptions.map(s => () => bot.sendMessageExt(s.user_id, message, msg)),
                 DEFAULT_NOTIFICATIONS_RATE_LIMIT,
                 error => {
                     logger.error(error);
@@ -143,7 +146,7 @@ export default class TopicsHandlers implements BotHandlers {
 
     static async topicsHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
-            const isMember = bot.context(msg).user.hasRole("member");
+            const isMember = bot.context(msg).user.roles?.includes("member");
             const topics = SubscriptionsService.getAllTopics();
             const topicsList = topics.length > 0 ? listTopics(topics) : t("topics.general.empty");
             const text = t("topics.topics.list", { topics: topicsList }) + (isMember ? `\n${t("topics.topics.member")}` : "");
@@ -217,7 +220,7 @@ export default class TopicsHandlers implements BotHandlers {
 
             if (!topic) return bot.sendMessageExt(msg.chat.id, t("topics.general.notfound", { topic: topicname }), msg);
 
-            if (SubscriptionsService.getSubscriptionsByTopic(topic).some(s => s.userid === sender.userid))
+            if (SubscriptionsService.getSubscriptionsByTopic(topic).some(s => s.user_id === sender.userid))
                 return bot.sendMessageExt(msg.chat.id, t("topics.subscribe.already", { topic: topicname }), msg);
 
             if (!SubscriptionsService.subscribe(sender, topic)) throw new Error("Failed to subscribe user");

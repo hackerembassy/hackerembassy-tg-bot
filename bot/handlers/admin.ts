@@ -151,7 +151,7 @@ export default class AdminHandlers implements BotHandlers {
     }
 
     static async getRestrictedUsersHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers().filter(u => u.roles.includes("restricted"));
+        const users = UsersRepository.getUsers().filter(u => u.roles?.includes("restricted"));
         let userList = "";
 
         for (const user of users) {
@@ -164,41 +164,31 @@ export default class AdminHandlers implements BotHandlers {
     static async getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
         if (!query) return await bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
 
-        const user = UsersRepository.getUserByName(query) ?? UsersRepository.getByUserId(query);
+        const user = UsersRepository.getUserByName(query) ?? UsersRepository.getUserByUserId(query);
 
         if (!user) return await bot.sendMessageExt(msg.chat.id, "User not found", msg);
 
         return await bot.sendMessageExt(msg.chat.id, JSON.stringify(user), msg);
     }
 
-    static async addUserHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
-        username = username.replace("@", "");
+    static updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
         const roles = rolesString.split("|");
+        const user = UsersRepository.getUserByName(username.replace("@", ""));
 
-        const success = UsersRepository.addUser(username, roles);
-        const text = success
-            ? t("admin.addUser.success", { username: helpers.formatUsername(username, bot.context(msg).mode), roles })
-            : t("admin.addUser.fail");
+        if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
 
-        await bot.sendMessageExt(msg.chat.id, text, msg);
-    }
-
-    static async updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
-        username = username.replace("@", "");
-        const roles = rolesString.split("|");
-
-        const success = UsersRepository.updateRoles(username, roles);
+        const success = UsersRepository.updateRoles(user.userid, roles);
         const text = success
             ? t("admin.updateRoles.success", { username: helpers.formatUsername(username, bot.context(msg).mode), roles })
             : t("admin.updateRoles.fail");
 
-        await bot.sendMessageExt(msg.chat.id, text, msg);
+        return bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
     static async updateRolesByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number, rolesString: string) {
         const roles = rolesString.split("|");
 
-        const success = UsersRepository.updateRolesById(userid, roles);
+        const success = UsersRepository.updateRoles(userid, roles);
         const text = success ? t("admin.updateRoles.success", { username: `[${userid}]`, roles }) : t("admin.updateRoles.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);

@@ -1,6 +1,7 @@
 general:
     error: Something went wrong
     chatnotallowed: ⚠️ The command is only available in group space chats
+    nouser: ⚠️ User not found, ask him to write something to the bot
     buttons:
         menu: 🏠 Menu
         back: ↩️ Back

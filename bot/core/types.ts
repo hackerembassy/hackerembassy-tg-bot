@@ -1,6 +1,6 @@
 import TelegramBot, { ChatId, EditMessageMediaOptions, SendMediaGroupOptions } from "node-telegram-bot-api";
 
-import { UserRole } from "@models/User";
+import { UserRole } from "@data/types";
 
 import HackerEmbassyBot from "./HackerEmbassyBot";
 import { ButtonFlags } from "./InlineButtons";

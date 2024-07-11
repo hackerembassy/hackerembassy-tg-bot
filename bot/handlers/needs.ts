@@ -12,11 +12,11 @@ import * as TextGenerators from "../textGenerators";
 export default class NeedsHandlers implements BotHandlers {
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
-        const text = TextGenerators.getNeedsList(needs, bot.context(msg).mode);
+        const text = TextGenerators.getNeedsList(needs);
 
-        const needs_keyboard = needs
-            ? needs.map(need => [InlineButton(need.text, "boughtbutton", ButtonFlags.Simple, { params: need.id })])
-            : [];
+        const needs_keyboard = needs.map(need => [
+            InlineButton(need.item, "boughtbutton", ButtonFlags.Simple, { params: need.id }),
+        ]);
 
         const default_inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)]];
 
@@ -32,44 +32,42 @@ export default class NeedsHandlers implements BotHandlers {
     }
 
     static async buyHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
-        const requester = bot.context(msg).user.username;
-        const success = requester && NeedsRepository.addBuy(item, requester, new Date());
+        const requester = bot.context(msg).user;
+        const success = NeedsRepository.addBuy(item, requester.userid, new Date());
 
         await bot.sendMessageExt(
             msg.chat.id,
-            success
-                ? t("needs.buy.success", { username: helpers.formatUsername(requester, bot.context(msg).mode), item })
-                : t("needs.buy.fail"),
+            success ? t("needs.buy.success", { username: helpers.userLink(requester), item }) : t("needs.buy.fail"),
             msg
         );
     }
 
     static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
-        await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.text ?? "");
+        await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.item ?? "");
     }
 
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
         const sender = bot.context(msg).user;
 
-        if (need && need.buyer === sender.effectiveName() && NeedsRepository.undoClose(need.id)) {
+        if (need && need.buyer_id === sender.userid && NeedsRepository.undoClose(need.id)) {
             await bot.deleteMessage(msg.chat.id, msg.message_id);
         }
     }
 
     static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const buyer = bot.context(msg).user;
-        const need = NeedsRepository.getOpenNeedByText(item);
+        const need = NeedsRepository.getOpenNeedByItem(item);
 
-        if (!need || need.buyer) {
+        if (!need || need.buyer_id) {
             bot.sendMessageExt(msg.chat.id, t("needs.bought.notfound"), msg);
             return;
         }
 
-        NeedsRepository.closeNeed(item, buyer.username ?? "anon", new Date());
+        NeedsRepository.closeNeed(need.id, buyer.userid, new Date());
 
         const successText = t("needs.bought.success", {
-            username: buyer.userLink(),
+            username: helpers.userLink(buyer),
             item,
         });
         const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", ButtonFlags.Simple, { params: need.id })]];

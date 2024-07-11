@@ -8,6 +8,8 @@ import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import { hasBirthdayToday, isIsoDateString, isToday, MINUTE } from "@utils/date";
 
+import { userLink } from "@hackembot/core/helpers";
+
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
@@ -46,13 +48,13 @@ export default class BirthdayHandlers implements BotHandlers {
     static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, input?: string) {
         const sender = bot.context(msg).user;
 
-        if (input === "remove" && UsersRepository.setBirthday(sender.userid, null))
-            return bot.sendMessageExt(msg.chat.id, t("birthday.remove", { username: sender.userLink() }), msg);
+        if (input === "remove" && UsersRepository.updateUser(sender.userid, { birthday: null }))
+            return bot.sendMessageExt(msg.chat.id, t("birthday.remove", { username: userLink(sender) }), msg);
 
         const fulldate = input?.length === 5 ? "0000-" + input : input;
 
-        if (isIsoDateString(input) && UsersRepository.setBirthday(sender.userid, fulldate))
-            return bot.sendMessageExt(msg.chat.id, t("birthday.set", { username: sender.userLink(), date: input }), msg);
+        if (isIsoDateString(input) && UsersRepository.updateUser(sender.userid, { birthday: fulldate }))
+            return bot.sendMessageExt(msg.chat.id, t("birthday.set", { username: userLink(sender), date: input }), msg);
 
         return bot.sendMessageExt(msg.chat.id, t("birthday.fail"), msg);
     }

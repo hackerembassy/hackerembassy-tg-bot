@@ -3,7 +3,6 @@ import config from "config";
 import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import User from "@models/User";
 import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
 import { openAI } from "@services/neural";
@@ -117,7 +116,7 @@ export default class ServiceHandlers implements BotHandlers {
     static async chatidHandler(bot: HackerEmbassyBot, msg: Message) {
         if (msg.chat.type === "private") {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}`, msg);
-        } else if (bot.context(msg).user.hasRole("member")) {
+        } else if (bot.context(msg).user.roles?.includes("member")) {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}, topicId: ${msg.message_thread_id}`, msg);
         } else {
             bot.sendRestrictedMessage(msg);
@@ -157,32 +156,37 @@ export default class ServiceHandlers implements BotHandlers {
             return;
         }
 
-        const user = memberUpdated.new_chat_member.user;
+        const tgUser = memberUpdated.new_chat_member.user;
         const chat = memberUpdated.chat;
-        const currentUser = UsersRepository.getByUserId(user.id);
+        const currentUser = UsersRepository.getUserByUserId(tgUser.id);
 
         if (!botConfig.moderatedChats.includes(chat.id)) {
-            return await bot.sendWelcomeMessage(chat, user, currentUser?.language ?? DEFAULT_LANGUAGE);
+            return await bot.sendWelcomeMessage(chat, tgUser, currentUser?.language ?? DEFAULT_LANGUAGE);
         }
 
-        if (currentUser === null) {
-            UsersRepository.addUser(user.username, ["restricted"], user.id);
-            bot.lockChatMember(chat.id, user.id);
-            logger.info(`New user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
-        } else if (!currentUser.roles.includes("restricted")) {
+        if (!currentUser) {
+            UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
+            bot.lockChatMember(chat.id, tgUser.id);
+            logger.info(`New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
+        } else if (!currentUser.roles?.includes("restricted")) {
             logger.info(
                 `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
             );
-            return await bot.sendWelcomeMessage(chat, user);
+            return await bot.sendWelcomeMessage(chat, tgUser);
         } else {
-            bot.lockChatMember(chat.id, user.id);
-            logger.info(`Restricted user [${user.id}](${user.username}) joined the chat [${chat.id}](${chat.title}) again`);
+            bot.lockChatMember(chat.id, tgUser.id);
+            logger.info(`Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 
-        await ServiceHandlers.setLanguageHandler(bot, { chat, from: user, message_id: 0, date: memberUpdated.date }, undefined, {
-            vId: user.id,
-            name: userLink(user),
-        });
+        await ServiceHandlers.setLanguageHandler(
+            bot,
+            { chat, from: tgUser, message_id: 0, date: memberUpdated.date },
+            undefined,
+            {
+                vId: tgUser.id,
+                name: userLink(tgUser),
+            }
+        );
     }
 
     static async setLanguageHandler(
@@ -222,9 +226,9 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         const userId = msg.from?.id;
-        const user = userId ? UsersRepository.getByUserId(userId) : null;
+        const user = userId ? UsersRepository.getUserByUserId(userId) : null;
 
-        if (user && UsersRepository.updateUser(new User({ ...user, language: lang }))) {
+        if (user && UsersRepository.updateUser(user.userid, { language: lang })) {
             bot.context(msg).language = lang;
             return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.success", { language: lang }), msg);
         }

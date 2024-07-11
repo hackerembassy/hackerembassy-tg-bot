@@ -25,14 +25,14 @@ export const topics = sqliteTable("topics", {
 });
 
 export const users = sqliteTable("users", {
-    id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+    userid: integer("userid").primaryKey({ autoIncrement: true }).notNull(),
     username: text("username"),
+    first_name: text("first_name"),
     roles: text("roles").default("default"),
     mac: text("mac").default(sql`(NULL)`),
     birthday: text("birthday").default(sql`(NULL)`),
     autoinside: integer("autoinside").default(0),
     emoji: text("emoji").default(sql`(NULL)`),
-    userid: integer("userid").notNull(),
     language: text("language"),
 });
 

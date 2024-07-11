@@ -9,31 +9,42 @@ import usersRepository from "@repositories/users";
 import logger from "./logger";
 
 export const DefaultUser = {
-    id: 0,
+    userid: 0,
     username: null,
-    firstname: null,
-    lastname: null,
+    first_name: null,
     roles: "default",
     mac: null,
     birthday: null,
     autoinside: AutoInsideMode.Disabled,
     emoji: null,
-    userid: 0,
     language: null,
 };
 
-export const HassUser = {
-    id: 0,
-    username: "hass",
-    firstname: null,
-    lastname: null,
-    roles: "admin",
-    mac: null,
-    birthday: null,
-    autoinside: AutoInsideMode.Disabled,
-    emoji: null,
-    userid: 1,
-    language: null,
+export const ServiceUsers = {
+    anon: {
+        ...DefaultUser,
+        userid: 1,
+        username: "anon",
+        roles: "service",
+    },
+    paid: {
+        ...DefaultUser,
+        userid: 2,
+        username: "paid",
+        roles: "service",
+    },
+    safe: {
+        ...DefaultUser,
+        userid: 3,
+        username: "safe",
+        roles: "service",
+    },
+    hass: {
+        ...DefaultUser,
+        userid: 4,
+        username: "hass",
+        roles: "service",
+    },
 };
 
 class UserService {
@@ -55,14 +66,14 @@ class UserService {
     public prepareUser(tgUser: TelegramBot.User): User {
         const dbuser = usersRepository.getUserByUserId(tgUser.id) ?? { ...DefaultUser };
 
-        if (dbuser.id === DefaultUser.id) {
+        if (dbuser.userid === DefaultUser.userid) {
             logger.info(`User [${tgUser.id}]${tgUser.username} was not found in the database. Adding...`);
 
             usersRepository.addUser(tgUser.id, tgUser.username, ["default"]);
-        } else if (tgUser.username && dbuser.username !== tgUser.username) {
+        } else if (dbuser.username !== tgUser.username || dbuser.first_name !== tgUser.first_name) {
             logger.info(`User [${tgUser.id}]${dbuser.username} changed username to ${tgUser.username}. Updating...`);
 
-            usersRepository.updateUser(dbuser.userid, { ...dbuser, username: tgUser.username });
+            usersRepository.updateUser(dbuser.userid, { ...dbuser, username: tgUser.username, first_name: tgUser.first_name });
         }
 
         return dbuser;

@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `funds_name_unique` ON `funds` (`name`);

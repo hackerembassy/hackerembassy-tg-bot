@@ -70,8 +70,8 @@
         },
         "service": {
             "port": 8001,
-            "ip": "192.168.1.60",
-            "host": "http://le-fail.lan",
+            "ip": "172.17.0.1",
+            "host": "http://172.17.0.1",
             "static": "static"
         },
         "spacenetwork": {

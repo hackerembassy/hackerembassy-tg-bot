@@ -129,7 +129,7 @@ export default class BasicHandlers implements BotHandlers {
             const sentMessage = t(`basic.issue.${target}.sent`);
             const report = t(`basic.issue.${target}.report`, {
                 issue: issueText,
-                reporter: target === "bot" ? helpers.userLink(msg.from as ITelegramUser) : "",
+                reporter: target === "bot" ? helpers.tgUserLink(msg.from as ITelegramUser) : "",
             });
             const shortenedTitle = cropStringAtSpace(issueText, 30);
             const newIssueUrl = GitHub.newSpaceIssueUrl(target, shortenedTitle, issueText);

@@ -47,6 +47,7 @@ export class SpaceStateService {
             open: 1,
             date: opendate.getTime(),
             changer_id: opener.userid,
+            changer: opener,
         };
 
         statusRepository.pushSpaceState(state);
@@ -73,6 +74,7 @@ export class SpaceStateService {
             open: 0,
             date: Date.now(),
             changer_id: closer.userid,
+            changer: closer,
         };
 
         statusRepository.pushSpaceState(state);

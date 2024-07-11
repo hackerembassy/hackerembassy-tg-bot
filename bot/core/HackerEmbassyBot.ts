@@ -28,7 +28,7 @@ import { chunkSubstr } from "@utils/text";
 import UserService from "@services/user";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
-import { OptionalRegExp, hasRole, prepareMessageForMarkdown, userLink } from "./helpers";
+import { OptionalRegExp, hasRole, prepareMessageForMarkdown, tgUserLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import { FULL_PERMISSIONS, IGNORE_UPDATE_TIMEOUT, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "./constants";
@@ -558,7 +558,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             chat.id,
             t(
                 WelcomeMessageMap[chat.id] ?? "service.welcome.main",
-                { botName: this.Name!, newMember: userLink(tgUser) },
+                { botName: this.Name!, newMember: tgUserLink(tgUser) },
                 language
             ),
             null,

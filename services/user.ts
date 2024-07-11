@@ -71,7 +71,9 @@ class UserService {
 
             usersRepository.addUser(tgUser.id, tgUser.username, ["default"]);
         } else if (dbuser.username !== tgUser.username || dbuser.first_name !== tgUser.first_name) {
-            logger.info(`User [${tgUser.id}]${dbuser.username} changed username to ${tgUser.username}. Updating...`);
+            logger.info(
+                `User [${tgUser.id}]${dbuser.username} changed username/name to ${tgUser.username}/${tgUser.first_name}. Updating...`
+            );
 
             usersRepository.updateUser(dbuser.userid, { ...dbuser, username: tgUser.username, first_name: tgUser.first_name });
         }

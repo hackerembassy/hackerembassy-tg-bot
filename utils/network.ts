@@ -69,19 +69,21 @@ export function ping(host: string) {
     });
 }
 
-export function mqttSendOnce(mqtthost: string, topic: string, message: string, username?: string, password?: string): void {
-    const client = connect(`mqtt://${mqtthost}`, {
-        username,
-        password,
-    });
-    client.on("connect", function () {
-        client.subscribe(topic, function (err?: Error) {
-            if (!err) {
+export function mqttSendOnce(mqtthost: string, topic: string, message: string, username?: string, password?: string) {
+    return new Promise((resolve, reject) => {
+        const client = connect(`mqtt://${mqtthost}`, {
+            username,
+            password,
+        });
+        client.on("connect", function () {
+            client.subscribe(topic, function (err?: Error) {
+                if (err) reject(err);
+
                 client.publish(topic, message);
                 client.end();
-            } else {
-                throw err;
-            }
+
+                resolve(true);
+            });
         });
     });
 }

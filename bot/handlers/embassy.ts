@@ -16,7 +16,7 @@ import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services
 import { sleep } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { filterFulfilled } from "@utils/filters";
-import { encrypt } from "@utils/security";
+import { UnlockMethod } from "@services/door";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
@@ -46,28 +46,32 @@ export default class EmbassyHandlers implements BotHandlers {
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         const user = bot.context(msg).user;
 
-        if (!(await hasDeviceInside(user))) {
-            bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
-
-            return;
-        }
-
         try {
-            const unlockKey = process.env["UNLOCKKEY"];
-            if (!unlockKey) throw Error("Environment variable UNLOCKKEY is not provided");
+            const hasMacInside = await hasDeviceInside(user);
 
-            const token = await encrypt(unlockKey);
+            if (!hasMacInside) return bot.sendMessageExt(msg.chat.id, t("embassy.unlock.nomac"), msg);
 
-            const response = await requestToEmbassy(`/space/unlock`, "POST", { token, from: user.username ?? user.userid });
+            const response = await requestToEmbassy(
+                `/space/unlock`,
+                "POST",
+                { from: user.username ?? user.userid, method: UnlockMethod.HTTP },
+                20000,
+                true
+            );
 
-            if (response.ok) {
-                logger.info(`${user.username ?? user.userid} opened the door`);
-                await bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
-                broadcast.emit(BroadcastEvents.SpaceUnlocked, user.username);
-            } else throw Error("Request error");
+            if (!response.ok)
+                throw Error("Unlock request to space failed", {
+                    cause: response.statusText,
+                });
+
+            broadcast.emit(BroadcastEvents.SpaceUnlocked, user.username);
+            logger.info(`${user.username}[${user.userid}] opened the door`);
+
+            return bot.sendMessageExt(msg.chat.id, t("embassy.unlock.success"), msg);
         } catch (error) {
             logger.error(error);
-            bot.sendMessageExt(msg.chat.id, t("embassy.common.fail"), msg);
+
+            return bot.sendMessageExt(msg.chat.id, t("embassy.common.fail"), msg);
         }
     }
 

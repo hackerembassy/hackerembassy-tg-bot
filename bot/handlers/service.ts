@@ -12,7 +12,7 @@ import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
 import { BotHandlers, MessageHistoryEntry } from "../core/types";
-import { userLink } from "../core/helpers";
+import { tgUserLink } from "../core/helpers";
 import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
 
@@ -184,7 +184,7 @@ export default class ServiceHandlers implements BotHandlers {
             undefined,
             {
                 vId: tgUser.id,
-                name: userLink(tgUser),
+                name: tgUserLink(tgUser),
             }
         );
     }

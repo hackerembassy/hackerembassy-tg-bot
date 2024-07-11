@@ -71,9 +71,7 @@ export default class TopicsHandlers implements BotHandlers {
 
             const text = subscriptions
                 .map(subscription =>
-                    subscription.user.username
-                        ? `@${subscription.user.username}`
-                        : userLink({ username: "anon", id: subscription.user_id })
+                    subscription.user.username ? `@${subscription.user.username}` : userLink(subscription.user)
                 )
                 .join(" ");
 

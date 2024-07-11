@@ -22,12 +22,17 @@ export function formatUsername(username: Optional<string>, mode = { mention: fal
     else return `#[${username}#]#(t.me/${username}#)`;
 }
 
-export function userLink(tgUser: ITelegramUser) {
+export function tgUserLink(tgUser: ITelegramUser) {
     return `#[${tgUser.username ?? tgUser.first_name ?? tgUser.id}#]#(tg://user?id=${tgUser.id}#)`;
 }
 
-export function effectiveName(user?: ITelegramUser) {
-    return user ? user.username ?? user.first_name : undefined;
+// TODO remove
+export function userLink(user: Pick<User, "username" | "first_name" | "userid">) {
+    return `#[${user.username ?? user.first_name ?? user.userid}#]#(tg://user?id=${user.userid}#)`;
+}
+
+export function effectiveName(user?: ITelegramUser | User) {
+    return user ? user.username ?? user.first_name ?? undefined : undefined;
 }
 
 // TODO

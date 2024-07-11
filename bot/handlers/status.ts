@@ -566,10 +566,10 @@ export default class StatusHandlers implements BotHandlers {
 
         if (!emoji || emoji === "help") {
             message = t("status.emoji.help");
-        } else if (emoji && isEmoji(emoji) && UsersRepository.updateUser(sender.id, { emoji })) {
+        } else if (emoji && isEmoji(emoji) && UsersRepository.updateUser(sender.userid, { emoji })) {
             message = t("status.emoji.set", { emoji, username: userLink });
         } else if (emoji === "remove") {
-            UsersRepository.updateUser(sender.id, { emoji: null });
+            UsersRepository.updateUser(sender.userid, { emoji: null });
             message = t("status.emoji.removed", { username: userLink });
         } else if (emoji === "status" && sender.emoji) {
             message = t("status.emoji.isset", {

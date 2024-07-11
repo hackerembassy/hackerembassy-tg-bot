@@ -2,6 +2,7 @@ import config from "config";
 
 import { EmbassyApiConfig } from "@config";
 import { fetchWithTimeout } from "@utils/network";
+import { encrypt } from "@utils/security";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
@@ -12,20 +13,22 @@ export async function requestToEmbassy(
     endpoint: string,
     method: "GET" | "POST" = "GET",
     body: any = undefined,
-    timeout: number = 15000
+    timeout: number = 15000,
+    secure = true
 ) {
+    const authorization = secure && process.env["UNLOCKKEY"] ? await encrypt(process.env["UNLOCKKEY"]) : undefined;
+
     const options = {
         headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
+            authorization,
         },
         method,
         timeout,
     } as RequestInit;
 
-    if (method === "POST") {
-        options.body = body ? JSON.stringify(body) : "{}";
-    }
+    if (method === "POST") options.body = body ? JSON.stringify(body) : "{}";
 
     return await fetchWithTimeout(`${EmbassyBase}${endpoint}`, options);
 }

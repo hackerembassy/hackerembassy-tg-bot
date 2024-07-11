@@ -1,53 +1,43 @@
-import { Router } from "express";
-
+import { Response, Router } from "express";
 import config from "config";
 
 import { alarm, ringDoorbell, displayTextOnMatrix } from "@services/hass";
 import logger from "@services/logger";
-import { mqttSendOnce } from "@utils/network";
-import { decrypt } from "@utils/security";
+import DoorLock, { UnlockMethod } from "@services/door";
 
 import { EmbassyApiConfig } from "@config";
+import { createEncryptedAuthMiddleware } from "@utils/middleware";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const router = Router();
 
-router.post("/unlock", async (req: RequestWithBody<{ token?: string }>, res, next): Promise<any> => {
+const encryptedAuthRequired = createEncryptedAuthMiddleware(logger, process.env["UNLOCKKEY"]);
+
+router.post("/unlock", encryptedAuthRequired, async (req: RequestWithBody<{ method?: "MQTT" | "HTTP" }>, res: Response) => {
     try {
-        if (!req.body.token) return res.sendStatus(400);
-        const token = await decrypt(req.body.token);
-        if (token !== process.env["UNLOCKKEY"]) return res.sendStatus(401).send({ message: "Invalid token" });
+        const method = req.body.method === "HTTP" ? UnlockMethod.HTTP : UnlockMethod.MQTT;
+        const success = await DoorLock.unlock(method);
 
-        alarm.disarm();
-        mqttSendOnce(embassyApiConfig.mqtthost, "door", "1", process.env["MQTTUSER"], process.env["MQTTPASSWORD"]);
-        logger.info("Door is opened");
+        if (!success) return res.status(500).send({ message: `Failed to unlock the door using ${method}` });
 
-        res.sendStatus(200);
+        return res.status(200).send({ message: `Door is unlocked using ${method}` });
     } catch (error) {
-        next(error);
+        return res.status(500).send({ error: "Failed to unlock the door" });
     }
 });
 
-router.post("/alarm", async (req: RequestWithBody<{ token?: string; state?: "disarm" }>, res, next): Promise<any> => {
+router.post("/alarm", encryptedAuthRequired, async (req: RequestWithBody<{ state?: "disarm" }>, res: Response) => {
     try {
-        if (!req.body.token) return res.sendStatus(400);
-        const token = await decrypt(req.body.token);
-        if (token !== process.env["UNLOCKKEY"]) return res.sendStatus(401).send({ message: "Invalid token" });
-
         const alarmState = req.body.state as "disarm" | undefined;
 
-        if (alarmState === "disarm") {
-            alarm.disarm();
-        } else {
-            res.sendStatus(400);
-            return;
-        }
+        if (alarmState !== "disarm") return res.status(400).send("Unsupported alarm state");
 
+        await alarm.disarm();
         logger.info(`Alarm is ${alarmState}`);
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
-        next(error);
+        return res.status(500).send({ error: "Failed to change the alarm state" });
     }
 });
 

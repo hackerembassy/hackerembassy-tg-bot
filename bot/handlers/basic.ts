@@ -2,6 +2,8 @@ import config from "config";
 
 import { Message } from "node-telegram-bot-api";
 
+import { UserRole } from "@data/types";
+
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import { getCoinDefinition, getCoinQR } from "@services/currency";
@@ -9,7 +11,6 @@ import * as GitHub from "@services/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
 import logger from "@services/logger";
 import { cropStringAtSpace } from "@utils/text";
-import { UserRole } from "@models/User";
 
 import * as Commands from "../../resources/commands";
 import { MAX_MESSAGE_LENGTH } from "../core/constants";
@@ -21,13 +22,14 @@ import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 import { getEventsList } from "../textGenerators";
 import { CommandsMap } from "../../resources/commands";
+import { splitRoles } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicHandlers implements BotHandlers {
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
         const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
-        const userRoles = bot.context(msg).user.splitRoles();
+        const userRoles = splitRoles(bot.context(msg).user);
         userRoles.push("default");
 
         const availableCommands =

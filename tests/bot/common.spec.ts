@@ -34,7 +34,7 @@ describe("Bot behavior shared for all commands:", () => {
     test("bot should respond to commands with any case and not miss parameters", async () => {
         await mockBot.processUpdate(createMockMessage(`/StAtUs`));
         await mockBot.processUpdate(createMockMessage(`/status`));
-        await mockBot.processUpdate(createMockMessage(`/inForce abc`, ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage(`/inForce ${GUEST_USER.username}`, ADMIN_USER));
 
         expect(mockBot.popResults()).toHaveLength(3);
     });
@@ -82,7 +82,6 @@ describe("Bot behavior shared for all commands:", () => {
             "/evict",
             "/residentsdonated",
             "/getuser",
-            "/adduser telegram_username as user_role1|user_role2|user_role3",
             "/removeuser telegram_username",
             "/updateroles of telegram_username to user_role1|user_role2|user_role3",
             "/forcebirthdaywishes",

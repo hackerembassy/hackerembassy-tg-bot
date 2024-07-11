@@ -1,11 +1,11 @@
 import { Router } from "express";
 
-import StatusHandlers from "@hackembot/handlers/status";
+import { State, User, UserState } from "@data/models";
 
-import State from "@models/State";
-import UserState from "@models/UserState";
+import StatusHandlers from "@hackembot/handlers/status";
 import FundsRepository from "@repositories/funds";
 import StatusRepository from "@repositories/status";
+import UsersRepository from "@repositories/users";
 
 import { getDonationsSummary } from "@services/export";
 import logger from "@services/logger";
@@ -15,9 +15,10 @@ import {
     filterPeopleInside,
     SpaceStateService,
     UserStateService,
-} from "@services/statusHelper";
+} from "@services/status";
 import wiki from "@services/wiki";
 import { createTokenSecuredMiddleware } from "@utils/middleware";
+import { ServiceUsers } from "@services/user";
 
 const router = Router();
 
@@ -25,7 +26,7 @@ const hassTokenRequired = createTokenSecuredMiddleware(logger, process.env["UNLO
 const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"], true);
 const guestTokenRequired = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
 
-const createSpaceApiResponse = (status: Nullable<State>, inside: UserState[]) => ({
+const createSpaceApiResponse = (status: State & { changer: User }, inside: UserState[]) => ({
     api: "0.13",
     api_compatibility: ["14"],
     space: "Hacker Embassy",
@@ -44,9 +45,9 @@ const createSpaceApiResponse = (status: Nullable<State>, inside: UserState[]) =>
     },
     issue_report_channels: ["email"],
     state: {
-        open: !!status?.open,
-        message: status?.open ? "open for public" : "closed for public",
-        trigger_person: status?.changedby,
+        open: !!status.open,
+        message: status.open ? "open for public" : "closed for public",
+        trigger_person: status.changer.username,
     },
     sensors: {
         people_now_present: [{ value: inside.length }],
@@ -86,38 +87,41 @@ router.get("/space", (_, res) => {
     const status = StatusRepository.getSpaceLastState();
     const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
 
-    res.json(createSpaceApiResponse(status, inside));
+    if (!status)
+        return res.status(500).json({
+            error: "Status is not defined",
+        });
+
+    return res.json(createSpaceApiResponse(status, inside));
 });
 
 router.get("/status", hassTokenOptional, (req, res) => {
     const status = StatusRepository.getSpaceLastState();
 
-    if (!status) {
-        res.json({
+    if (!status)
+        return res.status(500).json({
             error: "Status is not defined",
         });
-        return;
-    }
 
     const recentUserStates = UserStateService.getRecentUserStates();
 
     const inside = recentUserStates.filter(req.authenticated ? filterAllPeopleInside : filterPeopleInside).map(p => {
         return {
-            username: p.username,
+            username: p.user.username,
             dateChanged: p.date,
         };
     });
     const planningToGo = recentUserStates.filter(filterPeopleGoing).map(p => {
         return {
-            username: p.username,
+            username: p.user.username,
             dateChanged: p.date,
         };
     });
 
-    res.json({
+    return res.json({
         open: status.open,
         dateChanged: status.date,
-        changedBy: status.changedby,
+        changedBy: status.changer.username,
         inside,
         planningToGo,
     });
@@ -153,16 +157,18 @@ router.post("/setgoing", guestTokenRequired, (req, res) => {
     try {
         const body = req.body as { username: string; isgoing: boolean; message?: string };
 
-        if (typeof body.username !== "string" || typeof body.isgoing !== "boolean") {
-            res.status(400).send({ error: "Missing or incorrect parameters" });
-            return;
-        }
+        if (typeof body.username !== "string" || typeof body.isgoing !== "boolean")
+            return res.status(400).send({ error: "Missing or incorrect parameters" });
 
-        StatusHandlers.setGoingState(body.username, body.isgoing, body.message);
+        const user = UsersRepository.getUserByName(body.username);
 
-        res.json({ message: "Success" });
+        if (!user) return res.status(400).send({ error: `Missing user with ${body.username}` });
+
+        StatusHandlers.setGoingState(user, body.isgoing, body.message);
+
+        return res.json({ message: "Success" });
     } catch (error) {
-        res.status(500).send({ error });
+        return res.status(500).send({ error });
     }
 });
 
@@ -176,7 +182,7 @@ router.post("/open", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.openSpace("hass");
+    SpaceStateService.openSpace(ServiceUsers.hass);
 
     return res.send({ message: "Success" });
 });
@@ -191,7 +197,7 @@ router.post("/close", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.closeSpace("hass");
+    SpaceStateService.closeSpace(ServiceUsers.hass);
     UserStateService.evictPeople();
 
     return res.send({ message: "Success" });

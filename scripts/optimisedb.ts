@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import UserState from "@models/UserState";
+import { UserState } from "@data/models";
 import statusRepository from "@repositories/status";
 
 function removeUserStateDuplicates() {
@@ -10,17 +10,17 @@ function removeUserStateDuplicates() {
     }
 
     const allStates = allUserStates.sort((a, b) => (a.date > b.date ? 1 : -1));
-    const allUniqueUsers = allStates.reduce((acc: string[], curr: UserState) => {
-        if (!acc.includes(curr.username)) {
-            acc.push(curr.username);
+    const allUniqueUsers = allStates.reduce((acc: number[], curr: UserState) => {
+        if (!acc.includes(curr.user_id)) {
+            acc.push(curr.user_id);
         }
         return acc;
     }, []);
 
     const statesToRemove = [];
 
-    for (const username of allUniqueUsers) {
-        const userStates = allStates.filter(state => state.username === username);
+    for (const userid of allUniqueUsers) {
+        const userStates = allStates.filter(state => state.user_id === userid);
         let lastState = userStates[0];
         for (let i = 1; i < userStates.length; i++) {
             if (userStates[i].status === lastState.status) {

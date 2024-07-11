@@ -12,7 +12,7 @@ import { getDonationsSummary } from "@services/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode, ConditionerStatus, SpaceClimate } from "@services/hass";
 import logger from "@services/logger";
 import { PrinterStatusResult } from "@services/printer3d";
-import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services/statusHelper";
+import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services/status";
 import { sleep } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { filterFulfilled } from "@utils/filters";
@@ -24,6 +24,7 @@ import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
+import { effectiveName } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -381,12 +382,12 @@ export default class EmbassyHandlers implements BotHandlers {
         const residents = usersRepository.getUsersByRole("member");
         const residentsInside = UserStateService.getRecentUserStates()
             .filter(filterPeopleInside)
-            .filter(insider => residents.find(r => r.username === insider.username));
+            .filter(insider => residents.find(r => r.username === insider.user.username));
 
         const text =
             residentsInside.length > 0
                 ? t("embassy.knock.knock", {
-                      residentsInside: residentsInside.reduce((acc, resident) => acc + `@${resident.username} `, ""),
+                      residentsInside: residentsInside.reduce((acc, resident) => acc + `@${resident.user.username} `, ""),
                   })
                 : t("embassy.knock.noresidents");
         await bot.sendMessageExt(msg.chat.id, text, msg);
@@ -397,7 +398,7 @@ export default class EmbassyHandlers implements BotHandlers {
             await EmbassyHandlers.sayinspaceHandler(
                 bot,
                 msg,
-                `Тук-тук резиденты, к вам хочет зайти ${bot.context(msg).user.effectiveName()}. Ответьте ему в главном чатике.`
+                `Тук-тук резиденты, к вам хочет зайти ${effectiveName(bot.context(msg).user)}. Ответьте ему в главном чатике.`
             );
         }
     }
@@ -493,7 +494,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
-        const isMember = context.user.hasRole("member");
+        const isMember = context.user.roles?.includes("member");
         const voiceFileId = msg.voice?.file_id;
 
         if (!context.isPrivate() || !voiceFileId || !isMember) return;

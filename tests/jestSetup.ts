@@ -1,8 +1,11 @@
 /* eslint-disable no-console */
 import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import fetchMock from "jest-fetch-mock";
 
 import { sleep } from "@utils/common";
+import * as schema from "@data/schema";
+import * as relations from "@data/relations";
 
 fetchMock.enableMocks();
 
@@ -26,7 +29,9 @@ jest.mock("@utils/network", () => {
 const sampleDb = new Database("./data/sample.db");
 
 jest.mock("../data/db", () => {
-    return new Database(sampleDb.serialize());
+    const db = new Database(sampleDb.serialize());
+
+    return drizzle(db, { schema: { ...schema, ...relations } });
 });
 
 jest.mock("@services/logger", () => {

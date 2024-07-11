@@ -1,4 +1,4 @@
-import { ADMIN_USER, GUEST_USER, prepareDb } from "../dbSetup";
+import { ACCOUNTANT_USER, ADMIN_USER, GUEST_USER, prepareDb } from "../dbSetup";
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
 import { createMockBot, createMockMessage } from "../mocks/mockHelpers";
 
@@ -57,9 +57,8 @@ describe("Bot Status commands:", () => {
     test("username case should not matter when executing /inforce and /outforce", async () => {
         await mockBot.processUpdate(createMockMessage("/open", ADMIN_USER));
         await mockBot.processUpdate(createMockMessage("/out", ADMIN_USER));
-        await mockBot.processUpdate(createMockMessage("/inforce caseuser", ADMIN_USER));
-        await mockBot.processUpdate(createMockMessage("/inforce regularuser", ADMIN_USER));
-        await mockBot.processUpdate(createMockMessage("/outforce CASEUSER", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage(`/inforce ${GUEST_USER.username}`, ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage(`/outforce ${GUEST_USER.username.toUpperCase()}`, ADMIN_USER));
         await mockBot.processUpdate(createMockMessage("/status", ADMIN_USER));
 
         const results = mockBot.popResults();
@@ -68,17 +67,15 @@ describe("Bot Status commands:", () => {
             "status\\.open",
             "status\\.out\\.gotout",
             "status\\.inforce\\.gotin",
-            "status\\.inforce\\.gotin",
             "status\\.outforce\\.gotout",
-            "status\\.status\\.state\nstatus\\.status\\.insidechecked[regularuser](t\\.me/regularuser) \n\n\x1astatus\\.status\\.updated",
+            "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n\x1astatus\\.status\\.updated",
         ]);
     });
 
     test("/close should change the /status of space to closed and remove users inside", async () => {
         await mockBot.processUpdate(createMockMessage("/open", ADMIN_USER));
-        await mockBot.processUpdate(createMockMessage("/inforce user1", ADMIN_USER));
-        await mockBot.processUpdate(createMockMessage("/inforce user2", ADMIN_USER));
-        await mockBot.processUpdate(createMockMessage("/inforce user3", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage(`/inforce ${GUEST_USER.username}`, ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage(`/inforce ${ACCOUNTANT_USER.username}`, ADMIN_USER));
         await mockBot.processUpdate(createMockMessage("/close", ADMIN_USER));
         await mockBot.processUpdate(createMockMessage("/status"));
 
@@ -86,7 +83,6 @@ describe("Bot Status commands:", () => {
 
         expect(results).toEqual([
             "status\\.open",
-            "status\\.inforce\\.gotin",
             "status\\.inforce\\.gotin",
             "status\\.inforce\\.gotin",
             "status\\.close",

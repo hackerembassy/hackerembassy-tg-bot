@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { UserRole } from "@data/types";
+
 import broadcast, { BroadcastEvents } from "@services/broadcast";
 import logger from "@services/logger";
 import { DURATION_STRING_REGEX } from "@utils/date";
-import { UserRole } from "@models/User";
 
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import AdminHandlers from "./handlers/admin";
@@ -458,7 +459,6 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     // Admin
     bot.addRoute(["getuser", "user", "gu"], AdminHandlers.getUserHandler, OptionalParam(/(\S+?)/), match => [match[1]], Admins);
     bot.addRoute(["getrestrictedusers", "restricted"], AdminHandlers.getRestrictedUsersHandler, null, null, Admins);
-    bot.addRoute(["adduser"], AdminHandlers.addUserHandler, /(\S+?) as (\S+)/, match => [match[1], match[2]], Admins);
     bot.addRoute(["updateroles"], AdminHandlers.updateRolesHandler, /of (\S+?) to (\S+)/, match => [match[1], match[2]], Admins);
     bot.addRoute(["restrict"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "restricted"], Admins);
     bot.addRoute(["restrictbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "restricted"], Admins);

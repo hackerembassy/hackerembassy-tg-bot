@@ -13,7 +13,7 @@
       "paths": {
             "@utils/*": ["utils/*"],
             "@services/*": ["services/*"],
-            "@models/*": ["models/*"],
+            "@data/*": ["data/*"],
             "@repositories/*": ["repositories/*"],
             "@config": ["config/schema"],
             "@hackembot/*": ["bot/*"],

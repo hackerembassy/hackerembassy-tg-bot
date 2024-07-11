@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm/relations";
 
-import { topics, subscriptions, users, funds, donations, needs, states, userstates } from "./schema";
+import { topics, subscriptions, users, states, needs, userstates, funds, donations } from "./schema";
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     topic: one(topics, {
@@ -19,6 +19,8 @@ export const topicsRelations = relations(topics, ({ many }) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
     subscriptions: many(subscriptions),
+    states: many(states),
+    userstates: many(userstates),
     donations_accountant_id: many(donations, {
         relationName: "donations_accountant_id_users_userid",
     }),
@@ -31,9 +33,6 @@ export const usersRelations = relations(users, ({ many }) => ({
     needs_buyer_id: many(needs, {
         relationName: "needs_buyer_id_users_userid",
     }),
-    states_changer_id: many(needs, {
-        relationName: "states_changer_id_users_userid",
-    }),
 }));
 
 export const donationsRelations = relations(donations, ({ one }) => ({
@@ -44,10 +43,12 @@ export const donationsRelations = relations(donations, ({ one }) => ({
     accountant: one(users, {
         fields: [donations.accountant_id],
         references: [users.userid],
+        relationName: "donations_accountant_id_users_userid",
     }),
     user: one(users, {
         fields: [donations.user_id],
         references: [users.userid],
+        relationName: "donations_user_id_users_userid",
     }),
 }));
 
@@ -75,7 +76,7 @@ export const statesRelations = relations(states, ({ one }) => ({
     }),
 }));
 
-export const usesrstatesRelations = relations(userstates, ({ one }) => ({
+export const userstatesRelations = relations(userstates, ({ one }) => ({
     user: one(users, {
         fields: [userstates.user_id],
         references: [users.userid],

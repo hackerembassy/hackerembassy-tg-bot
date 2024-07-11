@@ -1,75 +1,12 @@
 {
   "version": "7",
-  "dialect": "sqlite",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
       "version": "6",
-      "when": 1720570922689,
-      "tag": "0000_bent_excalibur",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1720579500694,
-      "tag": "0001_elite_diamondback",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1720609536777,
-      "tag": "0002_lean_mulholland_black",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1720609588096,
-      "tag": "0003_overjoyed_shooting_star",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1720610323570,
-      "tag": "0004_glamorous_galactus",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1720610624112,
-      "tag": "0005_yellow_rockslide",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1720612195308,
-      "tag": "0006_lush_killraven",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "6",
-      "when": 1720618998928,
-      "tag": "0007_yielding_avengers",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "6",
-      "when": 1720619188439,
-      "tag": "0008_common_sharon_carter",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "6",
-      "when": 1720685414604,
-      "tag": "0009_jittery_wrecking_crew",
+      "when": 1720686269317,
+      "tag": "0000_tired_the_renegades",
       "breakpoints": true
     }
   ]

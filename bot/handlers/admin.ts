@@ -3,7 +3,7 @@ import fs from "fs";
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 
 import UsersRepository from "@repositories/users";
-import { getLatestLogFilePath } from "@services/logger";
+import logger, { getLatestLogFilePath } from "@services/logger";
 
 import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -229,5 +229,58 @@ export default class AdminHandlers implements BotHandlers {
 
     static async getFlagsHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, JSON.stringify(bot.botState.flags), msg);
+    }
+
+    static async banHandler(bot: HackerEmbassyBot, msg: Message, target?: number | string) {
+        const removeBanMessageTimeout = 3000;
+
+        try {
+            const reply = msg.reply_to_message;
+            const effectiveTarget = target ? target : reply?.from && !reply.from.is_bot ? reply.from.id : undefined;
+
+            if (!effectiveTarget) return;
+
+            const user =
+                typeof effectiveTarget === "number"
+                    ? UsersRepository.getUserByUserId(effectiveTarget)
+                    : UsersRepository.getUserByUserId(Number(effectiveTarget)) ?? UsersRepository.getUserByName(effectiveTarget);
+
+            const wasBanned =
+                user &&
+                !helpers.hasRole(user, "admin", "accountant", "member") &&
+                (await bot.banChatMember(msg.chat.id, user.userid));
+
+            const banMessage = await bot.sendMessageExt(
+                msg.chat.id,
+                wasBanned ? `🔨 User is banned ${effectiveTarget}` : "🙅 User cannot be banned",
+                msg
+            );
+
+            if (!banMessage) throw new Error("Failed to send ban message");
+
+            const messagesToDelete = [banMessage.message_id];
+            const isButtonResponse = bot.context(msg).isButtonResponse;
+
+            if (wasBanned) {
+                if (reply) messagesToDelete.push(reply.message_id);
+                if (isButtonResponse) messagesToDelete.push(msg.message_id);
+            } else if (!isButtonResponse) {
+                messagesToDelete.push(msg.message_id);
+            }
+
+            return setTimeout(
+                () => bot.deleteMessages(banMessage.chat.id, messagesToDelete).catch(logger.error),
+                removeBanMessageTimeout
+            );
+        } catch (error) {
+            logger.error(error);
+
+            const failedMessage = await bot.sendMessageExt(msg.chat.id, "🤡 /banFailed to ban user", msg);
+
+            return setTimeout(
+                () => failedMessage && bot.deleteMessage(failedMessage.chat.id, failedMessage.message_id).catch(logger.error),
+                removeBanMessageTimeout
+            );
+        }
     }
 }

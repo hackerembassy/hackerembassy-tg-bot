@@ -515,6 +515,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     );
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, Members);
+    bot.addRoute(["ban", "block"], AdminHandlers.banHandler, OptionalParam(/(\S+)/), match => [match[1]], Members);
 
     // Language
     bot.addRoute(

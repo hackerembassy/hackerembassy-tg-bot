@@ -505,8 +505,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         context.isButtonResponse = true;
 
         // Extract command or user verification request
-        if (data.vId && callbackQuery.from.id === data.vId)
-            return context.run(() => this.handleUserVerification(data.vId as number, data.params as string, msg));
+        if (data.vId)
+            return callbackQuery.from.id === data.vId
+                ? context.run(() => this.handleUserVerification(data.vId as number, data.params as string, msg))
+                : null;
 
         if (!data.cmd) throw Error("Missing calback command");
 

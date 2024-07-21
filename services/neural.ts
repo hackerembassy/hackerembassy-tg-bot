@@ -45,7 +45,7 @@ type ApiErrorResponse = {
 export class OpenAI {
     constructor(private apiKey: string) {}
 
-    static defaultContext = "Ты телеграм бот хакерспейса, ты всегда отвечаешь кратко, смешно и иногда как гопник";
+    static defaultContext = neuralConfig.openai.context;
 
     async askChat(prompt: string, context: string = OpenAI.defaultContext) {
         if (!this.apiKey) throw Error("OpenAI API key is not set");
@@ -55,7 +55,7 @@ export class OpenAI {
         myHeaders.append("Authorization", `Bearer ${this.apiKey}`);
 
         const raw = JSON.stringify({
-            model: "gpt-3.5-turbo",
+            model: neuralConfig.openai.model,
             messages: [
                 {
                     role: "system",
@@ -72,7 +72,7 @@ export class OpenAI {
             method: "POST",
             headers: myHeaders,
             body: raw,
-            timeout: 60000,
+            timeout: neuralConfig.openai.timeout,
         };
 
         const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", requestOptions);

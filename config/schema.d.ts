@@ -194,6 +194,7 @@ export interface CurrencyConfig {
 
 export interface NeuralConfig {
     stableDiffusion: StableDiffusionConfig;
+    openai: OpenAiConfig;
 }
 
 export interface StableDiffusionConfig {
@@ -201,6 +202,11 @@ export interface StableDiffusionConfig {
     steps?: 15;
     denoising?: 0.57;
     sampler?: string;
+}
+export interface OpenAiConfig {
+    model: string;
+    context: string;
+    timeout: number;
 }
 
 export interface GithubConfig {

@@ -139,6 +139,11 @@
             "steps": 18,
             "denoising": 0.57,
             "sampler": "Euler a"
+        },
+        "openai": {
+            "model": "gpt-4o-mini",
+            "context": "Ты телеграм бот хакерспейса, ты всегда отвечаешь кратко, смешно и иногда как гопник",
+            "timeout": 60000
         }
     },
     "currency": {

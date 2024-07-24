@@ -15,3 +15,7 @@ export function debounce(func: Function, delay: number): (...args: any[]) => voi
         }, delay);
     };
 }
+
+export function randomInteger(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

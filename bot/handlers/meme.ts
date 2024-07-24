@@ -87,7 +87,7 @@ export default class MemeHandlers implements BotHandlers {
 
         const gif = await getImageFromPath(source).catch(() => null);
 
-        if (gif) bot.sendAnimationExt(msg.chat.id, gif, msg, { caption });
+        if (gif) return bot.sendAnimationExt(msg.chat.id, gif, msg, { caption });
 
         return bot.sendMessageExt(msg.chat.id, caption, msg);
     }

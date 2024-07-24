@@ -5,6 +5,7 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig } from "@config";
 import { getToday } from "@utils/date";
 import { getImageFromPath, getRandomImageFromFolder } from "@utils/filesystem";
+import { randomInteger } from "@utils/common";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
@@ -81,7 +82,7 @@ export default class MemeHandlers implements BotHandlers {
                 source = "./resources/images/animations/slap-self.gif";
                 break;
             default:
-                source = "./resources/images/animations/slap.gif";
+                source = `./resources/images/animations/slap-${Math.random() < 0.5 ? 0 : randomInteger(0, 6)}.gif`;
                 break;
         }
 

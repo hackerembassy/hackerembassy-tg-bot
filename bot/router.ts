@@ -3,6 +3,7 @@
 import { UserRole } from "@data/types";
 
 import broadcast, { BroadcastEvents } from "@services/broadcast";
+import { AvailableModels } from "@services/neural";
 import logger from "@services/logger";
 import { DURATION_STRING_REGEX } from "@utils/date";
 
@@ -216,7 +217,20 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1]],
         TrustedMembers
     );
-    bot.addRoute(["ask", "gpt"], ServiceHandlers.askHandler, OptionalParam(/(.*)/ims), match => [match[1]], TrustedMembers);
+    bot.addRoute(
+        ["ask", "gpt"],
+        ServiceHandlers.askHandler,
+        OptionalParam(/(.*)/ims),
+        match => [match[1], AvailableModels.GPT],
+        TrustedMembers
+    );
+    bot.addRoute(
+        ["ollama", "llama", "lama"],
+        ServiceHandlers.askHandler,
+        OptionalParam(/(.*)/ims),
+        match => [match[1], AvailableModels.OLLAMA],
+        TrustedMembers
+    );
     bot.addRoute(["shouldigo", "shouldvisit", "shouldgo", "should"], StatusHandlers.shouldIGoHandler);
 
     // Printers

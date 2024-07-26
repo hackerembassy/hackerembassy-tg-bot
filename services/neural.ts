@@ -5,12 +5,26 @@ import { fetchWithTimeout } from "@utils/network";
 
 const neuralConfig = config.get<NeuralConfig>("neural");
 
+export enum AvailableModels {
+    GPT,
+    OLLAMA,
+}
+
 type txt2imgResponse = {
     images: string[];
     error?: string;
     detail?: string;
     parameters: any;
     info: string;
+};
+
+type ollamaGenerateResponse = {
+    model: string;
+    created_at: string;
+    response: string;
+    done: boolean;
+    done_reason: string;
+    error?: string;
 };
 
 type ResponseChoice = {
@@ -87,7 +101,7 @@ export class OpenAI {
 
         const body = (await response.json()) as ChatCompletionResponse;
 
-        return body.choices[0].message;
+        return body.choices[0].message.content;
     }
 }
 
@@ -162,3 +176,39 @@ class StableDiffusion {
 }
 
 export const stableDiffusion = new StableDiffusion();
+
+export class Ollama {
+    public base: string;
+
+    constructor() {
+        this.base = neuralConfig.ollama.base;
+    }
+
+    static defaultModel = neuralConfig.ollama.model;
+
+    async generate(prompt: string, model: string = Ollama.defaultModel) {
+        const raw = JSON.stringify({
+            prompt,
+            model: model,
+            stream: false,
+        });
+
+        const requestOptions = {
+            method: "POST",
+            headers: {
+                ["Content-Type"]: "application/json",
+                ["accept"]: "application/json",
+            },
+            body: raw,
+        };
+
+        const response = await fetch(`${this.base}/api/generate`, requestOptions);
+        const body = (await response.json()) as ollamaGenerateResponse;
+
+        if (body.error) throw new Error(`${body.error}`);
+
+        return body.response;
+    }
+}
+
+export const ollama = new Ollama();

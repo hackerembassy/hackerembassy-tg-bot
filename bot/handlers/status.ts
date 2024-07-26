@@ -312,7 +312,7 @@ export default class StatusHandlers implements BotHandlers {
 
             const aiResponse = await openAI.askChat(prompt, context);
 
-            await bot.sendMessageExt(msg.chat.id, aiResponse.content, msg);
+            await bot.sendMessageExt(msg.chat.id, aiResponse, msg);
         } catch (error) {
             logger.error(error);
             await bot.sendMessageExt(msg.chat.id, t("status.shouldigo.fail"), msg);

@@ -5,7 +5,8 @@ import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
-import { openAI } from "@services/neural";
+import { AvailableModels, openAI } from "@services/neural";
+import { requestToEmbassy } from "@services/embassy";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -247,7 +248,7 @@ export default class ServiceHandlers implements BotHandlers {
         return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
     }
 
-    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
+    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model: AvailableModels = AvailableModels.GPT) {
         const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
         try {
@@ -272,11 +273,17 @@ export default class ServiceHandlers implements BotHandlers {
             }
 
             const loading = setTimeout(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
-            const response = await openAI.askChat(prompt);
+
+            const response =
+                model === AvailableModels.GPT
+                    ? await openAI.askChat(prompt)
+                    : await requestToEmbassy("/neural/ollama/generate", "POST", { prompt })
+                          .then(response => response.json())
+                          .then(data => (data as { response: string }).response);
 
             clearInterval(loading);
 
-            await bot.sendMessageExt(msg.chat.id, response.content, msg);
+            await bot.sendMessageExt(msg.chat.id, response, msg);
         } catch (error) {
             await bot.sendMessageExt(msg.chat.id, t("service.openai.error"), msg);
             logger.error(error);

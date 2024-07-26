@@ -194,6 +194,7 @@ export interface CurrencyConfig {
 
 export interface NeuralConfig {
     stableDiffusion: StableDiffusionConfig;
+    ollama: OllamaConfig;
     openai: OpenAiConfig;
 }
 
@@ -203,6 +204,11 @@ export interface StableDiffusionConfig {
     denoising?: 0.57;
     sampler?: string;
 }
+export interface OllamaConfig {
+    base: string;
+    model: string;
+}
+
 export interface OpenAiConfig {
     model: string;
     context: string;

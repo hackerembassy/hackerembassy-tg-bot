@@ -277,7 +277,7 @@ export default class ServiceHandlers implements BotHandlers {
             const response =
                 model === AvailableModels.GPT
                     ? await openAI.askChat(prompt)
-                    : await requestToEmbassy("/neural/ollama/generate", "POST", { prompt })
+                    : await requestToEmbassy("/neural/ollama/generate", "POST", { prompt }, 90000)
                           .then(response => response.json())
                           .then(data => (data as { response: string }).response);
 

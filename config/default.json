@@ -140,6 +140,10 @@
             "denoising": 0.57,
             "sampler": "Euler a"
         },
+        "ollama": {
+            "base": "http://gayming.lan:11434",
+            "model": "aura"
+        },
         "openai": {
             "model": "gpt-4o-mini",
             "context": "Ты телеграм бот хакерспейса, ты всегда отвечаешь кратко, смешно и иногда как гопник",

@@ -1,11 +1,29 @@
 import { Router } from "express";
 
-import { stableDiffusion } from "@services/neural";
+import { ollama, stableDiffusion } from "@services/neural";
 
+type ollamaBody = { prompt?: string; model?: string };
 type txt2imgBody = { prompt?: string; negative_prompt?: string };
 type img2imgBody = { prompt?: string; negative_prompt?: string; image?: string };
 
 const router = Router();
+
+/**
+ * Endpoint to generate text with Ollama
+ */
+router.post("/ollama/generate", async (req: RequestWithBody<ollamaBody>, res, next): Promise<any> => {
+    try {
+        if (!req.body.prompt) return res.sendStatus(400).send({ message: "Prompt is required" });
+
+        const response = await ollama.generate(req.body.prompt, req.body.model);
+
+        if (!response) throw Error("Ollama generation process failed");
+
+        res.send({ response });
+    } catch (error) {
+        next(error);
+    }
+});
 
 /**
  * Endpoint to ask StableDiffusion to generate an image from a text prompt

@@ -53,6 +53,15 @@ import { ButtonFlags, InlineDeepLinkButton } from "./InlineButtons";
 
 const botConfig = config.get<BotConfig>("bot");
 
+export const PUBLIC_CHATS = [
+    botConfig.chats.main,
+    botConfig.chats.horny,
+    botConfig.chats.offtopic,
+    botConfig.chats.alerts,
+    botConfig.chats.key,
+    botConfig.chats.test,
+];
+
 const WelcomeMessageMap: {
     [x: number]: string | undefined;
 } = {

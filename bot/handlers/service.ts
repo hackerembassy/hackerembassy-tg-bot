@@ -5,8 +5,6 @@ import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import logger from "@services/logger";
-import { AvailableModels, openAI } from "@services/neural";
-import { requestToEmbassy } from "@services/embassy";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -246,49 +244,5 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
-    }
-
-    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model: AvailableModels = AvailableModels.GPT) {
-        const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
-
-        try {
-            bot.sendChatAction(msg.chat.id, "typing", msg);
-
-            const allowedChats = [
-                botConfig.chats.main,
-                botConfig.chats.horny,
-                botConfig.chats.offtopic,
-                botConfig.chats.key,
-                botConfig.chats.test,
-            ];
-
-            if (!allowedChats.includes(msg.chat.id)) {
-                await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
-                return;
-            }
-
-            if (!prompt) {
-                await bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
-                return;
-            }
-
-            const loading = setTimeout(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
-
-            const response =
-                model === AvailableModels.GPT
-                    ? await openAI.askChat(prompt)
-                    : await requestToEmbassy("/neural/ollama/generate", "POST", { prompt }, 90000)
-                          .then(response => response.json())
-                          .then(data => (data as { response: string }).response);
-
-            clearInterval(loading);
-
-            await bot.sendMessageExt(msg.chat.id, response, msg);
-        } catch (error) {
-            await bot.sendMessageExt(msg.chat.id, t("service.openai.error"), msg);
-            logger.error(error);
-        } finally {
-            clearInterval(loading);
-        }
     }
 }

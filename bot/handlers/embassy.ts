@@ -17,14 +17,15 @@ import { sleep } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { filterFulfilled } from "@utils/filters";
 import { UnlockMethod } from "@services/door";
+import { AvailableModels, openAI } from "@services/neural";
 
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
-import { effectiveName } from "../core/helpers";
+import { effectiveName, hasRole } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -370,15 +371,7 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
-        const allowedChats = [
-            botConfig.chats.main,
-            botConfig.chats.horny,
-            botConfig.chats.offtopic,
-            botConfig.chats.key,
-            botConfig.chats.test,
-        ];
-
-        if (!allowedChats.includes(msg.chat.id)) {
+        if (!PUBLIC_CHATS.includes(msg.chat.id)) {
             await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
             return;
         }
@@ -668,18 +661,17 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async stableDiffusiondHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
-        bot.sendChatAction(msg.chat.id, "upload_document", msg);
-
         const photoId = msg.photo?.[0]?.file_id;
 
         try {
-            if (!prompt && !photoId) {
-                bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.help"), msg);
-                return;
-            }
+            // Guards
+            if (msg.chat.id !== botConfig.chats.horny && !hasRole(bot.context(msg).user, "trusted", "member"))
+                return bot.sendRestrictedMessage(msg);
+            if (!PUBLIC_CHATS.includes(msg.chat.id)) return bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
+            if (!prompt && !photoId) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.help"), msg);
 
+            bot.sendChatAction(msg.chat.id, "upload_document", msg);
             const [positive_prompt, negative_prompt] = prompt ? prompt.split("!=", 2).map(pr => pr.trim()) : ["", ""];
-
             const requestBody = { prompt: positive_prompt, negative_prompt } as SdToImageRequest;
 
             if (photoId) {
@@ -702,6 +694,37 @@ export default class EmbassyHandlers implements BotHandlers {
         } catch (error) {
             logger.error(error);
             await bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.fail"), msg);
+        }
+    }
+
+    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model: AvailableModels = AvailableModels.GPT) {
+        const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
+
+        try {
+            // Guards
+            if (msg.chat.id !== botConfig.chats.horny && !hasRole(bot.context(msg).user, "trusted", "member"))
+                return bot.sendRestrictedMessage(msg);
+            if (!PUBLIC_CHATS.includes(msg.chat.id)) return bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
+            if (!prompt) return bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
+
+            bot.sendChatAction(msg.chat.id, "typing", msg);
+            const loading = setTimeout(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
+
+            const response =
+                model === AvailableModels.GPT
+                    ? await openAI.askChat(prompt)
+                    : await requestToEmbassy("/neural/ollama/generate", "POST", { prompt }, 90000)
+                          .then(response => response.json())
+                          .then(data => (data as { response: string }).response);
+
+            clearInterval(loading);
+
+            await bot.sendMessageExt(msg.chat.id, response, msg);
+        } catch (error) {
+            await bot.sendMessageExt(msg.chat.id, t("service.openai.error"), msg);
+            logger.error(error);
+        } finally {
+            clearInterval(loading);
         }
     }
 

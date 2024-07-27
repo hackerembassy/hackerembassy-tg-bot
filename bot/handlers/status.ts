@@ -29,7 +29,7 @@ import { State, StateEx, User, UserStateEx } from "data/models";
 
 import { UserStateType, UserStateChangeType, AutoInsideMode } from "data/types";
 
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
@@ -280,16 +280,7 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async shouldIGoHandler(bot: HackerEmbassyBot, msg: Message) {
-        const allowedChats = [
-            botConfig.chats.main,
-            botConfig.chats.horny,
-            botConfig.chats.key,
-            botConfig.chats.alerts,
-            botConfig.chats.offtopic,
-            botConfig.chats.test,
-        ];
-
-        if (!allowedChats.includes(msg.chat.id)) {
+        if (!PUBLIC_CHATS.includes(msg.chat.id)) {
             await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
             return;
         }

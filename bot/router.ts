@@ -214,23 +214,13 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         ["txt2img", "img2img", "toimg", "sd", "generateimage"],
         EmbassyHandlers.stableDiffusiondHandler,
         OptionalParam(/(.*)/ims),
-        match => [match[1]],
-        TrustedMembers
+        match => [match[1]]
     );
-    bot.addRoute(
-        ["ask", "gpt"],
-        ServiceHandlers.askHandler,
-        OptionalParam(/(.*)/ims),
-        match => [match[1], AvailableModels.GPT],
-        TrustedMembers
-    );
-    bot.addRoute(
-        ["ollama", "llama", "lama"],
-        ServiceHandlers.askHandler,
-        OptionalParam(/(.*)/ims),
-        match => [match[1], AvailableModels.OLLAMA],
-        TrustedMembers
-    );
+    bot.addRoute(["ask", "gpt"], EmbassyHandlers.askHandler, OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.GPT]);
+    bot.addRoute(["ollama", "llama", "lama"], EmbassyHandlers.askHandler, OptionalParam(/(.*)/ims), match => [
+        match[1],
+        AvailableModels.OLLAMA,
+    ]);
     bot.addRoute(["shouldigo", "shouldvisit", "shouldgo", "should"], StatusHandlers.shouldIGoHandler);
 
     // Printers

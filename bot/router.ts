@@ -409,6 +409,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1], "CabiaRangris"],
         Accountants
     );
+    bot.addRoute(["tosafe"], FundsHandlers.transferDonationHandler, /(\d+)/, match => [match[1], "safe"], Accountants);
     bot.addRoute(
         ["tonick", "givenick", "tn"],
         FundsHandlers.transferDonationHandler,
@@ -428,6 +429,13 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         FundsHandlers.transferAllToHandler,
         OptionalParam(/(.*)/),
         match => ["CabiaRangris", match[1]],
+        Accountants
+    );
+    bot.addRoute(
+        ["tosafeall"],
+        FundsHandlers.transferAllToHandler,
+        OptionalParam(/(.*)/),
+        match => ["safe", match[1]],
         Accountants
     );
     bot.addRoute(

@@ -278,7 +278,7 @@ export default class FundsHandlers implements BotHandlers {
             bot.context(msg).mode.silent = true;
 
             return Promise.allSettled([
-                EmbassyHandlers.sendDonationsSummaryHandler(bot, msg, fundName),
+                EmbassyHandlers.textinspaceHandler(bot, msg, text.replace("💸 ", "")),
                 EmbassyHandlers.playinspaceHandler(bot, msg, "money", true),
             ]);
         } catch (error) {

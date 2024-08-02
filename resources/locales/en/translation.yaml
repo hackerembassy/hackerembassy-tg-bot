@@ -499,11 +499,12 @@ funds:
             💰 Total {{total}} {{currency}} day
 
             🛂 You can transfer a donation using the following commands:
-            #`/tocab id#` - Separate donation to Kabu by id
-            #`/tocaball fund_name#` - All Kabu donations from a certain collection
-            #`/tocaball#` - In general, all Kabu donations (carefully)
-            #`/tonic id#` - Separate donation to Kole by id
-            #`/paid id#` - Mark the donation as paid by id (went to the collection purpose)
+            #`/tocab id#` - Separate donation to Cab by id
+            #`/topaid id#` - Mark the donation as paid by id (went to the fund purpose)
+            #`/tonick id#` - Separate donation to Kole by id
+            #`/tosafe id#` - Separate donation to safe by id
+            #`/tosafeall fund_name#` - All your donations to safe from a certain fund
+            #`/tosafeall#` - All your donations to safe (carefully)
             #`/transferdonation donation_id to username#` (td) - Transfer donation to another accountant
         empty: 📂 You don’t have anything on you
 needs:

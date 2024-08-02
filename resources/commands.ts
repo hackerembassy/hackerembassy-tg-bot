@@ -197,8 +197,10 @@ export const AccountantCommandsList: string = `
 #\`/removedonation donation_id#\` - Удалить донат
 #\`/transferdonation donation_id to username#\` (td) - Передать донат другому бухгалтеру
 #\`/tocab donation_id#\` - Передать донат Кабу
+#\`/tosafe donation_id#\` - Передать донат сейфу
 #\`/tonick donation_id#\` - Передать донат Коле
 #\`/tocaball fund_name#\` - Передать все свои донаты Кабу, опционально можно указать конкретный сбор
+#\`/tosafeall fund_name#\` - Передать все свои донаты сейфу, опционально можно указать конкретный сбор
 #\`/tonickall fund_name#\` - Передать все свои донаты Коле, опционально можно указать конкретный сбор
 #\`/paid donation_id#\` - Отметить донат оплаченным по id (ушел на цель сбора)
 #\`/profile username#\` - Статистика посещениий и донатов юзера

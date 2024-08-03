@@ -92,7 +92,7 @@
             "facecontrol": "/api/camera_proxy/camera.facecontrol"
         },
         "speaker": {
-            "entity": "media_player.downstairs",
+            "entity": "media_player.lenovodash",
             "ttspath": "/api/services/script/announce_in_space",
             "playpath": "/api/services/media_player/play_media",
             "stoppath": "/api/services/media_player/media_stop"

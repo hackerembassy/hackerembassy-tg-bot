@@ -7,7 +7,7 @@ import { BotConfig, EmbassyApiConfig } from "@config";
 import usersRepository from "@repositories/users";
 import fundsRepository from "@repositories/funds";
 import broadcast, { BroadcastEvents } from "@services/broadcast";
-import { EmbassyBase, requestToEmbassy } from "@services/embassy";
+import { requestToEmbassy } from "@services/embassy";
 import { getDonationsSummary } from "@services/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode, ConditionerStatus, SpaceClimate } from "@services/hass";
 import logger from "@services/logger";
@@ -510,7 +510,9 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const link = linkOrName.startsWith("http") ? linkOrName : `${EmbassyBase}/${linkOrName}.mp3`;
+            // TODO move to hass
+            const defaultMediaBase = "http://le-fail.lan:8001";
+            const link = linkOrName.startsWith("http") ? linkOrName : `${defaultMediaBase}/${linkOrName}.mp3`;
 
             const response = await requestToEmbassy(`/speaker/play`, "POST", { link });
 

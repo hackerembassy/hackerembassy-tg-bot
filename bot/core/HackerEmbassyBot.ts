@@ -589,7 +589,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 message.text?.match(/(^|\s)(\u0063\u006F\u0063\u006B|\u043A\u043E\u043A|\u0434\u0438\u043A)(\s|,|\.|$)/giu)
             ) {
                 this.setMessageReaction(message.chat.id, message.message_id, "🌭");
-            } else if (message.text?.match(/(^|\s)([Кк]аб([еуа]|ом)?)(\W|$)/giu)) {
+            } else if (message.text?.match(/(^|\s)([Кк]аб([еуа]|ом)?)([^а-яА-Я0-9]|$)/giu)) {
                 this.setMessageReaction(message.chat.id, message.message_id, "🦄");
             }
         } catch (error) {

@@ -212,12 +212,12 @@ export default class FundsHandlers implements BotHandlers {
         msg: Message,
         valueString: string,
         currency: string,
-        userName: string,
+        sponsorName: string,
         fundName: string
     ) {
         const value = parseMoneyValue(valueString);
         const preparedCurrency = await prepareCurrency(currency);
-        const user = UsersRepository.getUserByName(userName.replace("@", ""));
+        const user = UsersRepository.getUserByName(sponsorName.replace("@", ""));
         const accountant = bot.context(msg).user;
 
         if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
@@ -237,7 +237,7 @@ export default class FundsHandlers implements BotHandlers {
             FundsRepository.addDonationTo(fund.id, user.userid, value, preparedCurrency, accountant.userid);
         const text = success
             ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
-                  username: helpers.formatUsername(userName, bot.context(msg).mode),
+                  username: helpers.formatUsername(sponsorName, bot.context(msg).mode),
                   value,
                   currency: preparedCurrency,
                   fundName,
@@ -277,8 +277,15 @@ export default class FundsHandlers implements BotHandlers {
 
             bot.context(msg).mode.silent = true;
 
+            const textInSpace = t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
+                username: sponsorName,
+                value,
+                currency: preparedCurrency,
+                fundName,
+            }).replace("💸 ", "");
+
             return Promise.allSettled([
-                EmbassyHandlers.textinspaceHandler(bot, msg, text.replace("💸 ", "")),
+                EmbassyHandlers.textinspaceHandler(bot, msg, textInSpace),
                 EmbassyHandlers.playinspaceHandler(bot, msg, "money", true),
             ]);
         } catch (error) {

@@ -131,4 +131,4 @@ class Wiki {
     }
 }
 
-export default new Wiki(wikiConfig.endpoint, wikiConfig.defaultLocale, process.env["WIKIJSAPIKEY"]);
+export default new Wiki(wikiConfig.endpoint, wikiConfig.defaultLocale, process.env["WIKIAPIKEY"]);

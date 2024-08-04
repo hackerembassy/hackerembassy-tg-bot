@@ -62,7 +62,7 @@ const createSpaceApiResponse = (status: State & { changer: User }, inside: UserS
     links: [
         {
             name: "Wiki",
-            url: "https://wiki.hackem.cc/ru/home",
+            url: "https://lore.hackem.cc/",
         },
         {
             name: "Status of public services",
@@ -227,6 +227,9 @@ router.get("/donations", async (req, res) => {
 });
 
 router.get("/wiki/list", async (req, res, next) => {
+    // Disable this endpoint for now
+    return res.sendStatus(501);
+
     try {
         const lang = req.query.lang as string | undefined;
         const list = await wiki.listPages(lang);
@@ -238,6 +241,9 @@ router.get("/wiki/list", async (req, res, next) => {
 });
 
 router.get("/wiki/tree", async (req, res, next) => {
+    // Disable this endpoint for now
+    return res.sendStatus(501);
+
     try {
         const lang = req.query.lang as string | undefined;
         const list = await wiki.listPagesAsTree(lang);
@@ -249,6 +255,9 @@ router.get("/wiki/tree", async (req, res, next) => {
 });
 
 router.get("/wiki/page/:id", async (req, res, next) => {
+    // Disable this endpoint for now
+    return res.sendStatus(501);
+
     try {
         if (!req.params.id) {
             res.status(400).send({ error: "Missing page id" });

@@ -275,6 +275,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "501": {
+            "description": "Not Implemented"
           }
         }
       }
@@ -294,6 +297,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "501": {
+            "description": "Not Implemented"
           }
         }
       }
@@ -317,6 +323,9 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "501": {
+            "description": "Not Implemented"
           }
         }
       }

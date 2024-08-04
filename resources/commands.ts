@@ -111,7 +111,7 @@ export const MemberCommandsList: string = `
 - C веб-ссылками в два ряда:
 #\`/custom Some text
 [{"text":"site","url":"https://hackem.cc"}]
-[{"text":"wiki","url":"https://wiki.hackem.cc"}]#\`
+[{"text":"wiki","url":"https://lore.hackem.cc"}]#\`
 - C командами в один ряд:
 #\`/custom Some text
 [{"text":"public","cmd":"status"},{"text":"private","bot":"status"}]#\`

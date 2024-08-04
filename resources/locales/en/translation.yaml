@@ -18,7 +18,7 @@ basic:
 
         💻 You can read more about us on our website https://hackem.cc/
 
-        📓 We store information about our projects, equipment and rules on our wiki https://wiki.hackem.cc/
+        📓 We store information about our projects, equipment and rules on our wiki https://lore.hackem.cc/
 
         🤖 My code is open and free, development is carried out on GitHub: https://github.com/hackerembassy/hackerembassy-tg-bot
 
@@ -333,13 +333,13 @@ embassy:
 
             🚺 Anette from ubershy and cake64
             Documentation for it is available here:
-            https://wiki.hackem.cc/ru/equipment/anette
+            https://lore.hackem.cc/s/main/doc/anette-xVZmu2XQSl
             The web interface is available within the space network at {{anetteApi}}
             The printer status can be found using the /anette command.
 
             🚹 Plumbus by the_mihalich
             Documentation for it is available here:
-            https://wiki.hackem.cc/ru/equipment/plumbus
+            https://lore.hackem.cc/s/main/doc/plumbus-7ZmS0dhPD6
             The web interface is available within the space network at {{plumbusApi}}
             The printer status can be found using the /plumbus command.
         anettestatus: Anette status

@@ -156,7 +156,8 @@
         "fiatUpdateInterval": 3600000
     },
     "wiki": {
-        "endpoint": "http://172.17.0.1/graphql",
+        "endpoint": "https://lore.hackem.cc/api/",
+        "publicCollectionId": "0007ce9a-3eab-4afa-95b9-e9ef7dfb98a2",
         "defaultLocale": "ru"
     },
     "github": {

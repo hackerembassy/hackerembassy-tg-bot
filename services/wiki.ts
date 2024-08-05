@@ -26,6 +26,7 @@ export type PageListTreeNode = {
     id?: number;
     segment?: string;
     title?: string;
+    url?: string;
     children: PageListTreeNode[];
 };
 
@@ -35,7 +36,9 @@ export type PageListResponse = {
     };
 };
 
-class Wiki {
+/** @deprecated */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+class WikiJs {
     private endpoint: string;
     private token?: string;
     private defaultLocale?: string;
@@ -131,4 +134,52 @@ class Wiki {
     }
 }
 
-export default new Wiki(wikiConfig.endpoint, wikiConfig.defaultLocale, process.env["WIKIAPIKEY"]);
+class OutlineWiki {
+    private endpoint: string;
+    private token: string;
+    private publicCollectionId: string;
+
+    constructor(endpoint: string, publicCollectionId: string, token: string) {
+        this.endpoint = endpoint;
+        this.token = token;
+        this.publicCollectionId = publicCollectionId;
+    }
+
+    async listPagesAsTree(): Promise<PageListTreeNode[]> {
+        const data = (await this.wikiRequest("collections.documents", {
+            id: this.publicCollectionId,
+        })) as PageListTreeNode[];
+
+        data.forEach(node => this.setSegmentRecursive(node));
+
+        return data[0].children;
+    }
+
+    async getPageContent(pageId: string) {
+        return (await this.wikiRequest("documents.export", { id: pageId })) as PageResponse;
+    }
+
+    private setSegmentRecursive(node: PageListTreeNode) {
+        node.segment = node.url?.slice(node.url.lastIndexOf("/") + 1, node.url.lastIndexOf("-"));
+        node.children.forEach(child => this.setSegmentRecursive(child));
+    }
+
+    private async wikiRequest(query: string, body: any, useToken = true) {
+        if (useToken && !this.token) throw new Error("No token provided");
+
+        const response = await fetch(this.endpoint + query, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: useToken ? "Bearer " + this.token : "",
+            },
+            body: JSON.stringify(body),
+        });
+
+        const responseBody = (await response.json()) as { data: any };
+
+        return responseBody.data;
+    }
+}
+
+export default new OutlineWiki(wikiConfig.endpoint, wikiConfig.publicCollectionId, process.env["WIKIAPIKEY"] ?? "");

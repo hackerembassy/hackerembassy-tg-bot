@@ -260,46 +260,12 @@
         }
       }
     },
-    "/api/wiki/list": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "lang",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "501": {
-            "description": "Not Implemented"
-          }
-        }
-      }
-    },
     "/api/wiki/tree": {
       "get": {
         "description": "",
-        "parameters": [
-          {
-            "name": "lang",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "501": {
-            "description": "Not Implemented"
+          "default": {
+            "description": ""
           }
         }
       }
@@ -318,14 +284,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
           "400": {
             "description": "Bad Request"
-          },
-          "501": {
-            "description": "Not Implemented"
           }
         }
       }

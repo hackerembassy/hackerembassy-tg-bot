@@ -226,54 +226,23 @@ router.get("/donations", async (req, res) => {
     return res.json(await getDonationsSummary(fund, limit));
 });
 
-router.get("/wiki/list", async (req, res, next) => {
-    // Disable this endpoint for now
-    return res.sendStatus(501);
-
+router.get("/wiki/tree", async (_, res, next) => {
     try {
-        const lang = req.query.lang as string | undefined;
-        const list = await wiki.listPages(lang);
+        const list = await wiki.listPagesAsTree();
 
-        res.json(list);
+        res.set("Cache-Control", "public, max-age=3600").json(list);
     } catch (error) {
         next(error);
     }
 });
 
-router.get("/wiki/tree", async (req, res, next) => {
-    // Disable this endpoint for now
-    return res.sendStatus(501);
-
+router.get("/wiki/page/:id", async (req, res, next): Promise<any> => {
     try {
-        const lang = req.query.lang as string | undefined;
-        const list = await wiki.listPagesAsTree(lang);
+        if (!req.params.id) return res.status(400).send({ error: "Missing page id" });
 
-        res.json(list);
-    } catch (error) {
-        next(error);
-    }
-});
+        const content = await wiki.getPageContent(req.params.id);
 
-router.get("/wiki/page/:id", async (req, res, next) => {
-    // Disable this endpoint for now
-    return res.sendStatus(501);
-
-    try {
-        if (!req.params.id) {
-            res.status(400).send({ error: "Missing page id" });
-            return;
-        }
-
-        const pageId = Number(req.params.id);
-
-        if (isNaN(pageId)) {
-            res.status(400).send({ error: "Invalid page id" });
-            return;
-        }
-
-        const page = await wiki.getPage(Number(pageId));
-
-        res.json(page);
+        res.set("Cache-Control", "public, max-age=60").json({ id: req.params.id, content });
     } catch (error) {
         next(error);
     }

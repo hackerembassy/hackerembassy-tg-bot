@@ -211,7 +211,7 @@ export default class ServiceHandlers implements BotHandlers {
             // Ban this bot outta here
             if (verificationDetails?.vId) {
                 inline_keyboard[0].splice(
-                    0,
+                    1,
                     0,
                     InlineButton("🤖", "ban", ButtonFlags.Simple, {
                         params: verificationDetails.vId,

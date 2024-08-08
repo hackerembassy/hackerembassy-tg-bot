@@ -197,11 +197,11 @@ export default class ServiceHandlers implements BotHandlers {
         if (!lang) {
             const inline_keyboard = [
                 [
-                    InlineButton("🇷🇺 Русский", "setlanguage", ButtonFlags.Simple, {
+                    InlineButton("🇷🇺 Rus", "setlanguage", ButtonFlags.Simple, {
                         params: "ru",
                         vId: verificationDetails?.vId,
                     }),
-                    InlineButton("🇺🇸 English", "setlanguage", ButtonFlags.Simple, {
+                    InlineButton("🇬🇧 Eng", "setlanguage", ButtonFlags.Simple, {
                         params: "en",
                         vId: verificationDetails?.vId,
                     }),

@@ -49,7 +49,7 @@ router.post("/sd/img2img", async (req: RequestWithBody<img2imgBody>, res, next):
     try {
         if (!req.body.image) return res.sendStatus(400).send({ message: "Initial image is required" });
 
-        const image = await stableDiffusion.img2image(req.body.prompt, req.body.negative_prompt, req.body.image);
+        const image = await stableDiffusion.img2image(req.body.image, req.body.prompt, req.body.negative_prompt);
 
         if (!image) throw Error("img2image process failed");
 

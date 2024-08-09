@@ -414,7 +414,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         const botNameRequested = this.Name ? /^\/\S+?@(\S+)/.exec(text)?.[1] : null;
         const forAnotherBot = !!botNameRequested && botNameRequested !== this.Name;
 
-        return text[0] !== "/" || forAnotherBot;
+        return !text.startsWith("/") || forAnotherBot;
     }
 
     async routeMessage(message: TelegramBot.Message) {

@@ -1,5 +1,6 @@
 import { Response, Router } from "express";
 import config from "config";
+import fetch from "node-fetch";
 
 import { alarm, ringDoorbell, displayTextOnMatrix } from "@services/hass";
 import logger from "@services/logger";
@@ -28,12 +29,10 @@ router.post("/unlock", encryptedAuthRequired, async (req: RequestWithBody<{ meth
 
 router.post("/alarm", encryptedAuthRequired, async (req: RequestWithBody<{ state?: "disarm" }>, res: Response) => {
     try {
-        const alarmState = req.body.state as "disarm" | undefined;
-
-        if (alarmState !== "disarm") return res.status(400).send("Unsupported alarm state");
+        if (req.body.state !== "disarm") return res.status(400).send("Unsupported alarm state");
 
         await alarm.disarm();
-        logger.info(`Alarm is ${alarmState}`);
+        logger.info(`Alarm is ${req.body.state}`);
 
         return res.sendStatus(200);
     } catch (error) {

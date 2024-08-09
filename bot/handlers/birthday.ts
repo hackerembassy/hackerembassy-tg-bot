@@ -83,6 +83,8 @@ async function getWish(username: string) {
     const files = await fs.readdir(baseWishesDir);
     const randomNum = Math.floor(Math.random() * files.length);
     const wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]), { encoding: "utf8" });
+    const persomalizedWish = wishTemplate.replaceAll(/\$username/g, `@${username}`);
 
-    return `🎂 ${wishTemplate.replaceAll(/\$username/g, `@${username}`)}`;
+    // Cake is a lie
+    return `🎂 ${persomalizedWish}`;
 }

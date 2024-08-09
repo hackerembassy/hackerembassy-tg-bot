@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { copy, ensureDir } from "fs-extra";
 
 async function postbuild() {

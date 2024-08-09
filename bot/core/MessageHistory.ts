@@ -21,7 +21,7 @@ export default class MessageHistory {
     async push(chatId: string | number, messageId: number, text: string | undefined = undefined, order = 0): Promise<void> {
         if (!this.botState.history[chatId]) this.botState.history[chatId] = [];
 
-        const chatHistory = this.botState.history[chatId] as MessageHistoryEntry[];
+        const chatHistory = this.botState.history[chatId];
 
         if (chatHistory.length >= botConfig.maxchathistory) chatHistory.pop();
 

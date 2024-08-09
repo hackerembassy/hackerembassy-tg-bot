@@ -213,7 +213,7 @@ export function getResidentsList(residents: Optional<User[]>, mode: { mention: b
 
     if (!residents) return userList;
 
-    for (const user of residents.sort((a, b) => a.username?.localeCompare(b.username ?? "") ?? 0)) {
+    for (const user of residents.toSorted((a, b) => a.username?.localeCompare(b.username ?? "") ?? 0)) {
         userList += `- ${formatUsername(user.username, mode)} ${getUserBadges(user.username)}\n`;
     }
 

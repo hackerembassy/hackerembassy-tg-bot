@@ -117,7 +117,7 @@ export default class AdminHandlers implements BotHandlers {
     }
 
     // TODO remove when events are attached to the handler
-    static eventCommandMap = {
+    static readonly eventCommandMap = {
         [BotCustomEvent.statusLive]: BotCustomEvent.statusLive,
         [BotCustomEvent.camLive]: BotCustomEvent.camLive,
         status: BotCustomEvent.statusLive,
@@ -236,14 +236,15 @@ export default class AdminHandlers implements BotHandlers {
 
         try {
             const reply = msg.reply_to_message;
-            const effectiveTarget = target ? target : reply?.from && !reply.from.is_bot ? reply.from.id : undefined;
+            const effectiveTarget = target ?? (reply?.from && !reply.from.is_bot ? reply.from.id : undefined);
 
             if (!effectiveTarget) return;
 
             const user =
                 typeof effectiveTarget === "number"
                     ? UsersRepository.getUserByUserId(effectiveTarget)
-                    : UsersRepository.getUserByUserId(Number(effectiveTarget)) ?? UsersRepository.getUserByName(effectiveTarget);
+                    : (UsersRepository.getUserByUserId(Number(effectiveTarget)) ??
+                      UsersRepository.getUserByName(effectiveTarget));
 
             const wasBanned =
                 user &&

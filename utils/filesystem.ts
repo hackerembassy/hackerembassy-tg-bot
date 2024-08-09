@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+import fetch from "node-fetch";
+
 import { file } from "tmp-promise";
 
 export function lastModifiedFilePath(logfolderpath: string): string | undefined {

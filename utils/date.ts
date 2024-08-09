@@ -44,7 +44,7 @@ export function toDateObject(date: Date): DateObject {
 }
 
 export function durationStringToMs(durationString: string): number | undefined {
-    const duration = durationString.match(DURATION_STRING_REGEX);
+    const duration = RegExp(DURATION_STRING_REGEX).exec(durationString);
 
     if (!duration) throw new Error(`Invalid duration string: ${durationString}`);
 

@@ -9,7 +9,7 @@ function removeUserStateDuplicates() {
         return;
     }
 
-    const allStates = allUserStates.sort((a, b) => (a.date > b.date ? 1 : -1));
+    const allStates = allUserStates.toSorted((a, b) => (a.date > b.date ? 1 : -1));
     const allUniqueUsers = allStates.reduce((acc: number[], curr: UserState) => {
         if (!acc.includes(curr.user_id)) {
             acc.push(curr.user_id);

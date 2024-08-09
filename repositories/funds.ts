@@ -152,8 +152,8 @@ class FundsRepository extends BaseRepository {
         fund_id: number,
         user_id: number,
         value: number,
-        currency: string = currencyConfig.default,
-        accountant_id: number
+        accountant_id: number,
+        currency: string = currencyConfig.default
     ): boolean {
         return this.addDonation({
             fund_id,

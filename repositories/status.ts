@@ -1,7 +1,6 @@
 import { desc, between, and, eq } from "drizzle-orm";
 
 import { State, UserState } from "@data/models";
-
 import { states, userstates } from "@data/schema";
 
 import BaseRepository from "./base";

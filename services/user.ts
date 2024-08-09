@@ -1,9 +1,7 @@
 import TelegramBot from "node-telegram-bot-api";
 
 import { User } from "@data/models";
-
 import { AutoInsideMode } from "@data/types";
-
 import usersRepository from "@repositories/users";
 
 import logger from "./logger";

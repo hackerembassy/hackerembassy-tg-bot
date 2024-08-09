@@ -1,4 +1,5 @@
 import config from "config";
+import fetch from "node-fetch";
 
 import { alarm } from "@services/hass";
 import logger from "@services/logger";

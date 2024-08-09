@@ -9,6 +9,7 @@ import { sleep } from "@utils/common";
 
 export class HackerEmbassyBotMock extends HackerEmbassyBot {
     constructor(token: string, options: any) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         super(token, options);
         this.Name = "HackerEmbassyBotMock";
     }
@@ -37,8 +38,6 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
     async processUpdate(update: TelegramBot.Update) {
         super.processUpdate(update);
         await sleep(10); // Simulating async processing and clearing microtasks
-
-        return;
     }
 
     public popResults(): string[] {

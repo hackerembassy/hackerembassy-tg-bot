@@ -3,6 +3,7 @@
       "outDir": "./dist",
       "allowJs": true,
       "target": "ES2022",
+      "lib": ["ES2023"],
       "module": "None",
       "moduleResolution": "Node",
       "noImplicitReturns": true,
@@ -19,6 +20,13 @@
             "@hackembot/*": ["bot/*"],
             "@hackemapi/*": ["api/*"],
       }   
+    },
+    "tsc-alias": {
+      "replacers": {
+        "base-url": {
+          "enabled": false
+        }
+      }
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "coverage", "dist"]

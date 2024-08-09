@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { execSync } from "child_process";
 import { existsSync, mkdirSync, promises, renameSync, writeFileSync } from "fs";
-// @ts-ignore
 import { createInterface } from "readline/promises";
 
 (async function initScript() {
@@ -24,10 +23,12 @@ import { createInterface } from "readline/promises";
     });
 
     const devTgUsername = await rl.question("\nEnter your telegram username: ");
-    const devTgUserId = await rl.question("\nEnter your telegram userid: ");
+    const devTgUserId = Number(await rl.question("\nEnter your telegram userid: "));
 
     if (!devTgUsername || devTgUsername.length === 0) {
         console.log("! Developer Username was not provided. You will need to add it to db manually to be an admin");
+    } else if (!devTgUserId || isNaN(devTgUserId)) {
+        console.log("! Developer UserId was not provided. You will need to add it to db manually to be an admin");
     } else {
         UsersRepository.addUser(devTgUserId, devTgUsername, ["admin", "member", "accountant"]);
         console.log(`${devTgUsername} was added into db as admin`);

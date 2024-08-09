@@ -55,7 +55,7 @@ async function getEventsJSON(
             method: "GET",
         }
     );
-    const json = await result.json();
+    const json = (await result.json()) as CalendarListResponse | undefined;
     if (!json) {
         throw Error("Something went wrong when fetching calendar from Google API");
     }

@@ -313,7 +313,7 @@ export async function getDonationsSummary(fund: Fund, limit?: number) {
 
     // Add handling first_name
     const resultDonations = donations
-        .sort((a, b) => b.converted_value! - a.converted_value!)
+        .toSorted((a, b) => b.converted_value! - a.converted_value!)
         .slice(0, limit)
         .map((d, index) => ({
             rank: index + 1,

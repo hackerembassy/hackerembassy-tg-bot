@@ -16,7 +16,7 @@ export async function convertMedia(sourcePath: string, outputFormat: "mp3" | "og
 /** @deprecated Use HASS */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function captureRTSPImage(url: string, filename: string): Promise<Buffer> {
-    const child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, stdout, stderr) => {
+    const child = exec(`ffmpeg -i rtsp://${url} -frames:v 1 -f image2 ${filename}.jpg -y`, (error, _stdout, stderr) => {
         if (error) throw Error;
         if (stderr) throw Error(stderr);
     });

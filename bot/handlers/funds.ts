@@ -234,7 +234,7 @@ export default class FundsHandlers implements BotHandlers {
         const success =
             !isNaN(value) &&
             preparedCurrency &&
-            FundsRepository.addDonationTo(fund.id, user.userid, value, preparedCurrency, accountant.userid);
+            FundsRepository.addDonationTo(fund.id, user.userid, value, accountant.userid, preparedCurrency);
         const text = success
             ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
                   username: helpers.formatUsername(sponsorName, bot.context(msg).mode),
@@ -413,7 +413,7 @@ export default class FundsHandlers implements BotHandlers {
         );
     }
 
-    static async debtHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
+    static async debtHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : bot.context(msg).user;

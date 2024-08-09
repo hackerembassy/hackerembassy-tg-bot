@@ -71,29 +71,20 @@ export class Printer3d {
         return responseBody.result;
     }
 
-    async getFile(path: string): Promise<Nullable<Blob>> {
+    async getFile(path: string): Promise<Nullable<Buffer>> {
         const response = await fetchWithTimeout(`${this.config.apibase}/server/files/gcodes/${path}`);
 
-        return response.status === 200 ? await response.blob() : null;
+        return response.ok ? response.buffer() : null;
     }
 
     async getCam(): Promise<Nullable<Buffer>> {
         const response = await fetchWithTimeout(`${this.config.apibase}:${this.config.camport}/snapshot`);
-        const camblob = response.status === 200 ? await response.blob() : null;
 
-        if (camblob) return await camblob.arrayBuffer().then(arrayBuffer => Buffer.from(arrayBuffer));
-
-        return null;
+        return response.ok ? response.buffer() : null;
     }
 
     async getThumbnail(path: string): Promise<Nullable<Buffer>> {
-        if (!path) return null;
-
-        const thumbnailBlob = await this.getFile(path);
-
-        if (!thumbnailBlob) return null;
-
-        return await thumbnailBlob.arrayBuffer().then(arrayBuffer => Buffer.from(arrayBuffer));
+        return path ? await this.getFile(path) : null;
     }
 }
 

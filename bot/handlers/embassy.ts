@@ -3,6 +3,8 @@ import { Message } from "node-telegram-bot-api";
 import { PingResponse } from "ping";
 import { dir } from "tmp-promise";
 
+import fetch from "node-fetch";
+
 import { BotConfig, EmbassyApiConfig } from "@config";
 import usersRepository from "@repositories/users";
 import fundsRepository from "@repositories/funds";

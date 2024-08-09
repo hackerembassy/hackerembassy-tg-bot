@@ -59,22 +59,24 @@ export default class BotState {
     }
 
     async initLiveChats() {
-        for (let chatRecordIndex: number = 0; chatRecordIndex < this.liveChats.length; chatRecordIndex++) {
-            const lc = this.liveChats[chatRecordIndex];
-
+        for (const liveChat of this.liveChats) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const importedModule = (await import(lc.serializationData.module)).default as typeof Module | { default: Module };
+            const importedModule = (await import(liveChat.serializationData.module)).default as
+                | typeof Module
+                | { default: Module };
             const module = typeof importedModule === "function" ? importedModule : importedModule.default;
-            const restoredHandler = module[lc.serializationData.functionName as keyof BotHandlers] as AnyFunction | undefined;
+            const restoredHandler = module[liveChat.serializationData.functionName as keyof BotHandlers] as
+                | AnyFunction
+                | undefined;
 
             if (!restoredHandler) {
-                logger.error(`Could not restore handler for ${lc.event}, Live handlers are not loaded for this event.`);
+                logger.error(`Could not restore handler for ${liveChat.event}, Live handlers are not loaded for this event.`);
                 continue;
             }
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            lc.handler = () => restoredHandler(this.bot, ...lc.serializationData.params);
-            this.bot.CustomEmitter.on(lc.event, lc.handler);
+            liveChat.handler = () => restoredHandler(this.bot, ...liveChat.serializationData.params);
+            this.bot.CustomEmitter.on(liveChat.event, liveChat.handler);
         }
     }
 

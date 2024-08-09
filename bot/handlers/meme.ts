@@ -19,7 +19,7 @@ const ZHABKAS_PATH = "./resources/images/toads";
 const ITS_WEDNESDAY_YEAAAH = ["𓆏", "𓆏", "𓆏"].length;
 
 export default class MemeHandlers implements BotHandlers {
-    static 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺() === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶));
+    static readonly 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺() === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶));
 
     static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
         await MemeHandlers.𓆏(bot, msg);

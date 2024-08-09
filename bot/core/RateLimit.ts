@@ -11,15 +11,16 @@ export const DEFAULT_API_RATE_LIMIT = botConfig.rateLimits.api;
 export const DEFAULT_NOTIFICATIONS_RATE_LIMIT = botConfig.rateLimits.notifications;
 
 export class UserRateLimiter {
-    static #debounceTimerIds = new Map();
-    static #limitTimerIds = new Map();
-    static #cooldownTimerIds = new Map();
+    static readonly #debounceTimerIds = new Map<number, NodeJS.Timeout>();
+    static readonly #limitTimerIds = new Map<number, NodeJS.Timeout>();
+    static readonly #cooldownTimerIds = new Map<number, NodeJS.Timeout>();
 
     static debounced(func: Function, userId: number, rateLimit = DEFAULT_USER_RATE_LIMIT): (...args: any) => void {
         return (...args: any) => {
             clearTimeout(UserRateLimiter.#debounceTimerIds.get(userId));
 
             const timerId = setTimeout(() => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 func(...args);
                 UserRateLimiter.#debounceTimerIds.delete(userId);
             }, rateLimit);
@@ -56,6 +57,7 @@ export class UserRateLimiter {
 
                 UserRateLimiter.#cooldownTimerIds.set(userId, timerId);
 
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 await func(...args);
             }
         };

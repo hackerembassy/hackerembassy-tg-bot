@@ -1,4 +1,5 @@
 import config from "config";
+import fetch, { Headers } from "node-fetch";
 
 import { NeuralConfig } from "@config";
 import { fetchWithTimeout } from "@utils/network";
@@ -59,7 +60,7 @@ type ApiErrorResponse = {
 export class OpenAI {
     constructor(private apiKey: string) {}
 
-    static defaultContext = neuralConfig.openai.context;
+    static readonly defaultContext = neuralConfig.openai.context;
 
     async askChat(prompt: string, context: string = OpenAI.defaultContext) {
         if (!this.apiKey) throw Error("OpenAI API key is not set");
@@ -122,7 +123,7 @@ class StableDiffusion {
         this.defaultDenoising = neuralConfig.stableDiffusion.denoising ?? 0.57;
     }
 
-    async img2image(prompt: string = "", negative_prompt: string = "", image: string) {
+    async img2image(image: string, prompt: string = "", negative_prompt: string = "") {
         const raw = JSON.stringify({
             prompt,
             negative_prompt: `${this.nsfw} ${negative_prompt}`,
@@ -184,7 +185,7 @@ export class Ollama {
         this.base = neuralConfig.ollama.base;
     }
 
-    static defaultModel = neuralConfig.ollama.model;
+    static readonly defaultModel = neuralConfig.ollama.model;
 
     async generate(prompt: string, model: string = Ollama.defaultModel) {
         const raw = JSON.stringify({

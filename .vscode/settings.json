@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "hackerembassy",
+        "projectKey": "hackerembassy_hackerembassy-tg-bot"
+    }
+}

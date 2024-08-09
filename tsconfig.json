@@ -21,6 +21,13 @@
             "@hackemapi/*": ["api/*"],
       }   
     },
+    "tsc-alias": {
+      "replacers": {
+        "base-url": {
+          "enabled": false
+        }
+      }
+    },
     "include": ["./**/*"],
     "exclude": ["node_modules", "coverage", "dist"]
 }

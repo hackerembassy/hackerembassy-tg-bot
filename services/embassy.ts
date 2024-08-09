@@ -1,4 +1,5 @@
 import config from "config";
+import { RequestInit } from "node-fetch";
 
 import { EmbassyApiConfig } from "@config";
 import { fetchWithTimeout } from "@utils/network";

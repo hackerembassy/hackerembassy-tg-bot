@@ -11,5 +11,5 @@ export function onlyUniqueInsFilter(value: string, index: number, array: string[
 }
 
 export function filterFulfilled<T>(results: PromiseSettledResult<T>[]): PromiseFulfilledResult<T>[] {
-    return results.filter(result => result.status === "fulfilled") as PromiseFulfilledResult<T>[];
+    return results.filter(result => result.status === "fulfilled");
 }

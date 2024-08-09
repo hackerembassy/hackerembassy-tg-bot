@@ -19,7 +19,7 @@ export const DefaultModes: BotMessageContextMode = {
 };
 
 export default class BotMessageContext {
-    static async = new AsyncLocalStorage<BotMessageContext>();
+    static readonly async = new AsyncLocalStorage<BotMessageContext>();
 
     public mode: BotMessageContextMode = { ...DefaultModes };
     public messageThreadId?: number;

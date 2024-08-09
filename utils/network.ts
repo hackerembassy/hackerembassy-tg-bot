@@ -4,7 +4,7 @@ import find from "local-devices";
 // @ts-ignore
 import { LUCI } from "luci-rpc";
 import { connect } from "mqtt";
-import { default as fetch } from "node-fetch";
+import { default as fetch, RequestInit, Response } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 import { promise } from "ping";
 import wol from "wol";

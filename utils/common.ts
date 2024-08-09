@@ -10,7 +10,7 @@ export function debounce(func: Function, delay: number): (...args: any[]) => voi
         clearTimeout(timeoutId);
 
         timeoutId = setTimeout(() => {
-            // eslint-disable-next-line prefer-rest-params
+            // eslint-disable-next-line prefer-rest-params, @typescript-eslint/no-unsafe-argument
             func(...args);
         }, delay);
     };

@@ -51,7 +51,7 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
     setInterval(() => StatusHandlers.timedOutHandler(bot), MINUTE);
 
-    setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), HOUR / 2);
+    setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), HOUR / 6);
 
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);

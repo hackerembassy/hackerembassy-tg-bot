@@ -2,18 +2,19 @@ import path from "node:path";
 import { promises as fs } from "fs";
 
 import config from "config";
+import fetch, { Response } from "node-fetch";
 
 import { CamConfig, EmbassyApiConfig } from "@config";
 import { getBufferFromResponse } from "@utils/network";
-
-const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
-const climateConfig = embassyApiConfig.climate;
-const alarmConfig = embassyApiConfig.alarm;
-
 import { downloadTmpFile } from "@utils/filesystem";
 import { convertMedia } from "@utils/media";
 
 import { EmbassyBaseIP } from "./embassy";
+
+// Configs
+const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+const climateConfig = embassyApiConfig.climate;
+const alarmConfig = embassyApiConfig.alarm;
 
 // Types
 export type AvailableConditioner = "downstairs" | "upstairs";
@@ -63,9 +64,9 @@ export type Context = {
 };
 
 interface FloorClimate {
-    temperature: number | "?";
-    humidity: number | "?";
-    co2?: number | "?";
+    temperature: string;
+    humidity: string;
+    co2?: string;
 }
 
 export interface SpaceClimate {
@@ -177,8 +178,8 @@ export async function getClimate(): Promise<Nullable<SpaceClimate>> {
     };
 }
 
-function getValueOrDefault(climateValue: PromiseSettledResult<any>, defaultValue = "?"): any {
-    return climateValue.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
+function getValueOrDefault(climateValue?: PromiseSettledResult<{ state?: string }>, defaultValue = "?"): string {
+    return climateValue?.status === "fulfilled" && climateValue.value.state ? climateValue.value.state : defaultValue;
 }
 
 class Alarm {

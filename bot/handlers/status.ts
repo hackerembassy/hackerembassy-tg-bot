@@ -495,7 +495,7 @@ export default class StatusHandlers implements BotHandlers {
         return true;
     }
 
-    static setGoingState(user: User, isGoing: boolean, note: string | undefined = undefined) {
+    static setGoingState(user: User, isGoing: boolean, note?: string) {
         const eventDate = new Date();
 
         const userstate = {
@@ -511,7 +511,7 @@ export default class StatusHandlers implements BotHandlers {
         UserStateService.pushPeopleState(userstate);
     }
 
-    static async goingHandler(bot: HackerEmbassyBot, msg: Message, note: string | undefined = undefined) {
+    static async goingHandler(bot: HackerEmbassyBot, msg: Message, note?: string) {
         const sender = bot.context(msg).user;
 
         StatusHandlers.setGoingState(sender, true, note);
@@ -553,7 +553,7 @@ export default class StatusHandlers implements BotHandlers {
         const sender = bot.context(msg).user;
         const userLink = helpers.userLink(sender);
 
-        let message = t("status.emoji.fail");
+        let message: string;
 
         if (!emoji || emoji === "help") {
             message = t("status.emoji.help");
@@ -631,7 +631,7 @@ export default class StatusHandlers implements BotHandlers {
         if (timedOutUsers.length > 0) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
     }
 
-    static async profileHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
+    static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string): Promise<any> {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
@@ -663,15 +663,13 @@ export default class StatusHandlers implements BotHandlers {
 
             if (imageBuffer.length !== 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
         }
-
-        return;
     }
 
-    static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username: Optional<string> = undefined) {
+    static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
-        const target = username ? UsersRepository.getUserByName(username.replace("@", "")) ?? sender : sender;
+        const target = username ? (UsersRepository.getUserByName(username.replace("@", "")) ?? sender) : sender;
         const userStates = StatusRepository.getUserStates(target.userid);
 
         const { days, hours, minutes } = UserStateService.getUserTotalTime(userStates);
@@ -684,7 +682,7 @@ export default class StatusHandlers implements BotHandlers {
         );
     }
 
-    static async statsMonthHandler(bot: HackerEmbassyBot, msg: Message, month: number | undefined = undefined) {
+    static async statsMonthHandler(bot: HackerEmbassyBot, msg: Message, month?: number) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const currentDate = new Date();

@@ -32,10 +32,8 @@ export function userLink(user: Pick<User, "username" | "first_name" | "userid">)
 }
 
 export function effectiveName(user?: ITelegramUser | User) {
-    return user ? user.username ?? user.first_name ?? undefined : undefined;
+    return user ? (user.username ?? user.first_name ?? undefined) : undefined;
 }
-
-// TODO
 
 export function hasRole(user: User, ...roles: UserRole[]) {
     return user.roles?.length !== 0 ? splitRoles(user).filter(r => roles.includes(r)).length > 0 : false;

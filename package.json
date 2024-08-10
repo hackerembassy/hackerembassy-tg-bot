@@ -1,6 +1,6 @@
 {
-    "name": "hacker-embassy-bot",
-    "version": "3.0.0",
+    "name": "hackerembassy-tg-bot",
+    "version": "4.0.0",
     "description": "Hacker Embassy management bot",
     "main": "bot.js",
     "scripts": {
@@ -20,15 +20,14 @@
         "start-api-https": "sudo caddy start --config ./deploy/api/Caddyfile 2>/dev/null",
         "kill": "skill -c nohup node dist/bot.js &",
         "backup": "mkdir ./data/backup -p && cp ./data/db/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
-        "reset": "mkdir ./data/backup -p && mv ./data/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null && cp ./data/sample.db ./data/data.db",
-        "init-dev": "npx ts-node ./scripts/initDev.ts",
         "prepare": "husky install",
         "lint": "eslint '**/*.{ts,js}'",
         "lint-fix": "eslint '--fix **/*.{ts,js}'",
         "pretty": "prettier --write '**/*.{ts,js}'",
         "test": "jest",
         "test:ci": "jest --collectCoverage",
-        "swagger": "npx ts-node ./api/bot/swagger.ts"
+        "swagger": "npx ts-node ./api/bot/swagger.ts",
+        "init": "tsx ./scripts/initDev.ts"
     },
     "author": "Nick Kiselev",
     "license": "ISC",

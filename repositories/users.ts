@@ -45,7 +45,7 @@ class UserRepository extends BaseRepository {
             .all();
     }
 
-    addUser(userid: number, username?: string, roles: string[] = ["default"]) {
+    addUser(userid: number, username: Optional<string>, roles: string[] = ["default"]) {
         try {
             return this.db
                 .insert(users)

@@ -1,6 +1,7 @@
 import fundsRepository from "@repositories/funds";
 
-import { ACCOUNTANT_USER, ADMIN_USER, GUEST_USER, prepareDb } from "../dbSetup";
+import { TEST_USERS } from "@data/seed";
+
 import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
 import { createMockBot, createMockMessage } from "../mocks/mockHelpers";
 
@@ -13,15 +14,11 @@ describe("Bot Funds commands:", () => {
         status: "open",
     };
 
-    beforeAll(() => {
-        prepareDb();
-    });
-
     afterEach(() => fundsRepository.clearFunds());
 
     test("/addfund should properly add a fund to a list returned by /funds", async () => {
         await mockBot.processUpdate(createMockMessage("/funds"));
-        await mockBot.processUpdate(createMockMessage("/addfund Test_Fund with target 500 USD", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/addfund Test_Fund with target 500 USD", TEST_USERS.admin));
         await mockBot.processUpdate(createMockMessage("/funds"));
 
         const results = mockBot.popResults();
@@ -34,10 +31,13 @@ describe("Bot Funds commands:", () => {
     });
 
     test("/adddonation should properly add a donation to an added fund to a list returned by /funds", async () => {
-        await mockBot.processUpdate(createMockMessage("/addfund Test_Fund_With_Donations with target 500 USD", ADMIN_USER));
+        await mockBot.processUpdate(createMockMessage("/addfund Test_Fund_With_Donations with target 500 USD", TEST_USERS.admin));
 
         await mockBot.processUpdate(
-            createMockMessage(`/adddonation 5000 USD from @${GUEST_USER.username} to Test_Fund_With_Donations`, ADMIN_USER)
+            createMockMessage(
+                `/adddonation 5000 USD from @${TEST_USERS.guest.username} to Test_Fund_With_Donations`,
+                TEST_USERS.admin
+            )
         );
 
         await mockBot.processUpdate(createMockMessage("/funds"));
@@ -45,15 +45,15 @@ describe("Bot Funds commands:", () => {
         expect(mockBot.popResults()).toEqual([
             "funds\\.addfund\\.success",
             "funds\\.adddonation\\.success",
-            "funds\\.funds🟢 Test\\_Fund\\_With\\_Donations \\- funds\\.fund\\.collected 5000 funds\\.fund\\.from 500 USD\n      [guestusername](t\\.me/guestusername) \\- 5000 USD\n\n",
+            "funds\\.funds🟢 Test\\_Fund\\_With\\_Donations \\- funds\\.fund\\.collected 5000 funds\\.fund\\.from 500 USD\n      [guest](t\\.me/guest) \\- 5000 USD\n\n",
         ]);
     });
 
     test("/costs should allow only accountants to add costs", async () => {
         fundsRepository.addFund(mockRentFund);
 
-        await mockBot.processUpdate(createMockMessage(`/costs 50 USD from @${GUEST_USER.username}`));
-        await mockBot.processUpdate(createMockMessage(`/costs 50 USD from @${GUEST_USER.username}`, ACCOUNTANT_USER));
+        await mockBot.processUpdate(createMockMessage(`/costs 50 USD from @${TEST_USERS.guest.username}`));
+        await mockBot.processUpdate(createMockMessage(`/costs 50 USD from @${TEST_USERS.guest.username}`, TEST_USERS.accountant));
 
         expect(mockBot.popResults()).toEqual(["funds\\.fund\\.text", "funds\\.adddonation\\.success"]);
 

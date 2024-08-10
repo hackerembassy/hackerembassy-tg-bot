@@ -1,6 +1,3 @@
--- Current sql file was generated after introspecting the database
--- If you want to run this migration please uncomment this code before executing migrations
-/*
 CREATE TABLE `topics` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
@@ -81,4 +78,3 @@ CREATE INDEX `accountant_idx` ON `donations` (`accountant_id`);--> statement-bre
 CREATE INDEX `donation_user_idx` ON `donations` (`user_id`);--> statement-breakpoint
 CREATE INDEX `fundname_idx` ON `funds` (`name`);--> statement-breakpoint
 CREATE INDEX `username_idx` ON `users` (`username`);
-*/

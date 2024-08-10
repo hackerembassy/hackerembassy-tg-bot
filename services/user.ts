@@ -1,49 +1,10 @@
 import TelegramBot from "node-telegram-bot-api";
 
 import { User } from "@data/models";
-import { AutoInsideMode } from "@data/types";
+import { DefaultUser } from "@data/seed";
 import usersRepository from "@repositories/users";
 
 import logger from "./logger";
-
-export const DefaultUser = {
-    userid: 0,
-    username: null,
-    first_name: null,
-    roles: "default",
-    mac: null,
-    birthday: null,
-    autoinside: AutoInsideMode.Disabled,
-    emoji: null,
-    language: null,
-};
-
-export const ServiceUsers = {
-    anon: {
-        ...DefaultUser,
-        userid: 1,
-        username: "anon",
-        roles: "service",
-    },
-    paid: {
-        ...DefaultUser,
-        userid: 2,
-        username: "paid",
-        roles: "service",
-    },
-    safe: {
-        ...DefaultUser,
-        userid: 3,
-        username: "safe",
-        roles: "service",
-    },
-    hass: {
-        ...DefaultUser,
-        userid: 4,
-        username: "hass",
-        roles: "service",
-    },
-};
 
 class UserService {
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {

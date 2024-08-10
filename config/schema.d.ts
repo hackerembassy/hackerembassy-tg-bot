@@ -201,8 +201,8 @@ export interface NeuralConfig {
 
 export interface StableDiffusionConfig {
     base: string;
-    steps?: 15;
-    denoising?: 0.57;
+    steps?: number;
+    denoising?: number;
     sampler?: string;
 }
 export interface OllamaConfig {

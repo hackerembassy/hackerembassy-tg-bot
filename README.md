@@ -37,7 +37,6 @@ This bot is built to handle various tasks related to managing our hackerspace. I
 -   English and Russian languages
 
 An sqlite database is used to store data in the file ./data/db/data.db.
-Test file with the correct schema ./data/sample.db.
 To edit the database manually, I recommend https://sqlitebrowser.org/
 
 User roles:
@@ -46,6 +45,7 @@ User roles:
 -   accountant - manages donations and fees
 -   member - a resident of the space, can open and close the space
 -   trusted - a guest of the space, who has gained the resident's trust
+-   service - a role for special accounts, like anon, safe etc.
 -   default - regular guest, presence in the database is not required
 
 ## Hosting
@@ -66,7 +66,7 @@ All main dependencies in the cloud and internal service are installed using npm 
    npm install
 4. Get a token for your test bot from the bot https://t.me/BotFather
 5. Prepare the bot for the first launch (ssh-keygen must be added to PATH)
-   npm run init-dev
+   npm run init
 6. Start the bot in automatic restart mode when the source code changes
    npm run dev - bot only
    npm run dev-service - service only
@@ -82,9 +82,8 @@ bot/routes.ts - mapping text commands to their handlers
 bot/recurring-actions.ts - setting up actions that the bot performs automatically according to a timer  
 bot/handlers/\*.ts - user command handlers
 
-data/sample.db - base template for updating the schema (TODO proper migrations)  
-data/db/data.db - main sqlite database (you can copy sample.db and rename it to data.db)
-data/db.ts - service for working with the database
+data/db.ts - instance of the database
+data/scripts.ts - scripts for database operations
 
 repositories - repositories on top of the database service  
 resources - all sorts of additional resources, pictures, texts, etc.  

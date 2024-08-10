@@ -18,7 +18,7 @@ import {
 } from "@services/status";
 import wiki from "@services/wiki";
 import { createTokenSecuredMiddleware } from "@utils/middleware";
-import { ServiceUsers } from "@services/user";
+import { SERVICE_USERS } from "@data/seed";
 
 const router = Router();
 
@@ -182,7 +182,7 @@ router.post("/open", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.openSpace(ServiceUsers.hass);
+    SpaceStateService.openSpace(SERVICE_USERS.hass);
 
     return res.send({ message: "Success" });
 });
@@ -197,7 +197,7 @@ router.post("/close", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.closeSpace(ServiceUsers.hass);
+    SpaceStateService.closeSpace(SERVICE_USERS.hass);
     UserStateService.evictPeople();
 
     return res.send({ message: "Success" });

@@ -2,8 +2,8 @@ import nock from "nock";
 import TelegramBot from "node-telegram-bot-api";
 
 import { addRoutes, startRouting } from "@hackembot/router";
+import { TEST_USERS } from "@data/seed";
 
-import { GUEST_USER } from "../dbSetup";
 import { HackerEmbassyBotMock } from "./HackerEmbassyBotMock";
 
 export function mockTelegramApiRequests() {
@@ -33,7 +33,7 @@ export function createMockBot() {
     return botMock;
 }
 
-export function createMockMessage(text: string, fromUser = GUEST_USER, timestamp: number = Date.now()): TelegramBot.Update {
+export function createMockMessage(text: string, fromUser = TEST_USERS.guest, timestamp: number = Date.now()): TelegramBot.Update {
     return {
         update_id: 0,
         message: {

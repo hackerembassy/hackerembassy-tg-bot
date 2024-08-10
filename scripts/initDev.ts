@@ -1,18 +1,16 @@
 /* eslint-disable no-console */
 import { execSync } from "child_process";
-import { existsSync, mkdirSync, promises, renameSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, renameSync, writeFileSync } from "fs";
 import { createInterface } from "readline/promises";
+
+import { getOrCreateDb } from "@data/scripts";
 
 (async function initScript() {
     console.log(
         "[DEV] Preparing bot before the first launch.\n ! You need to have ssh-keygen installed in PATH to succesfully generate keys for embassy API"
     );
 
-    // Copy sample db
-    if (!existsSync("./data/db")) {
-        mkdirSync("./data/db", { recursive: true });
-    }
-    await promises.copyFile("./data/sample.db", "./data/db/data.db");
+    getOrCreateDb(true);
 
     const UsersRepository = (await import("@repositories/users")).default;
 
@@ -39,16 +37,26 @@ import { createInterface } from "readline/promises";
 
     // Create .env file
     const envData = `HACKERBOTTOKEN="${tgBotApiToken}"
-UNLOCKKEY="DevTestKey"
-LUCITOKEN="replace_with_luci_token"
-MQTTUSER="replace_with_mqtt_user"
-MQTTPASSWORD="replace_with_mqtt_password"
-WIFIUSER="replace_with_wifi_user"
-WIFIPASSWORD="replace_with_wifi_password"
-HASSTOKEN="replace_with_hass_token"
-HACKERGOOGLEAPIKEY="replace_with_google_api_key"
-OPENAIAPIKEY="replace_with_google_api_key"
-`;
+    LUCITOKEN="_"
+    UNLOCKKEY="_"
+    GUESTKEY="_"
+    MQTTUSER="_"
+    MQTTPASSWORD="_"
+    WIFIUSER="_"
+    WIFIPASSWORD="_"
+    GAMINGUSER="_"
+    GAMINGPASSWORD="_"
+    SONAR_TOKEN="_"
+    HASSTOKEN="_"
+    HACKERGOOGLEAPIKEY="_"
+    OPENAIAPIKEY="_"
+    WIKIAPIKEY="_"
+    UNIFIUSER="_"
+    UNIFIPASSWORD="_"
+    ALARMCODE="_"
+    DOOR_ENDPOINT="_"
+    DOOR_TOKEN="_"
+    `;
 
     writeFileSync(".env", envData);
 

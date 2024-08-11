@@ -8,7 +8,7 @@ import { anyItemIsInList } from "@utils/filters";
 import broadcast, { BroadcastEvents } from "./broadcast";
 import { fetchDevicesInside } from "./embassy";
 
-export type UserVisit = { username: string; userId: number; usertime: ElapsedTimeObject };
+export type UserVisit = { user: User; userId: number; usertime: ElapsedTimeObject };
 
 export async function hasDeviceInside(user: User): Promise<boolean> {
     try {
@@ -144,7 +144,7 @@ export class UserStateService {
                     Number(us.date) <= toDate.getTime()
             );
             usersVisits.push({
-                username: recentUser.username ?? "anon",
+                user: recentUser,
                 userId: recentUser.userid,
                 usertime: UserStateService.getUserTotalTime(userStates),
             });

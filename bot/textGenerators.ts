@@ -1,7 +1,6 @@
 import config from "config";
 
 import { PrintersConfig } from "@config";
-import usersRepository from "@repositories/users";
 import { Coins, formatValueForCurrency, sumDonations } from "@services/currency";
 import { HSEvent } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
@@ -18,10 +17,11 @@ import {
 import { REPLACE_MARKER } from "@utils/text";
 import { Fund, Need, Topic, User, UserStateEx, DonationEx } from "data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
+import { UserVisit } from "@services/status";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
-import { formatUsername, toEscapedTelegramMarkdown, userLink } from "./core/helpers";
+import { effectiveName, formatUsername, toEscapedTelegramMarkdown, userLink } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 
@@ -157,13 +157,18 @@ export function getStatusMessage(
     stateText +=
         inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {
-        stateText += `${formatUsername(userStatus.user.username, mode, options.isApi)} ${getUserBadgesWithStatus(userStatus)}\n`;
+        // TODO rework this
+        const name = userStatus.user.username
+            ? formatUsername(userStatus.user.username, mode, options.isApi)
+            : userStatus.user.first_name;
+        stateText += `${name} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
     stateText += going.length > 0 ? `\n${t("status.status.going", { count: going.length })}` : "";
     for (const userStatus of going) {
-        stateText += `${formatUsername(userStatus.user.username, mode, options.isApi)} ${getUserBadges(
-            userStatus.user.username
-        )} ${userStatus.note ? `(${userStatus.note})` : ""}\n`;
+        const name = userStatus.user.username
+            ? formatUsername(userStatus.user.username, mode, options.isApi)
+            : userStatus.user.first_name;
+        stateText += `${name} ${getUserBadges(userStatus.user)} ${userStatus.note ? `(${userStatus.note})` : ""}\n`;
     }
     stateText += "\n";
     stateText += climateInfo ? getClimateMessage(climateInfo, options) : REPLACE_MARKER;
@@ -181,12 +186,7 @@ export function getClimateMessage(climateInfo: SpaceClimate, options: { withSecr
     }\n`;
 }
 
-export function getUserBadges(username: Nullable<string>): string {
-    if (!username) return "";
-
-    const user = usersRepository.getUserByName(username);
-    if (!user) return "";
-
+export function getUserBadges(user: User): string {
     const roleBadges = `${user.roles?.includes("member") ? "🔑" : ""}${user.roles?.includes("accountant") ? "📒" : ""}${
         user.roles?.includes("trusted") ? "🎓" : ""
     }`;
@@ -197,7 +197,7 @@ export function getUserBadges(username: Nullable<string>): string {
 }
 
 export function getUserBadgesWithStatus(userStatus: UserStateEx): string {
-    const userBadges = getUserBadges(userStatus.user.username);
+    const userBadges = getUserBadges(userStatus.user);
     const autoBadge = userStatus.type === (UserStateChangeType.Auto as number) ? "📲" : "";
     const ghostBadge = userStatus.status === (UserStateType.InsideSecret as number) ? "👻" : "";
 
@@ -214,7 +214,7 @@ export function getResidentsList(residents: Optional<User[]>, mode: { mention: b
     if (!residents) return userList;
 
     for (const user of residents.toSorted((a, b) => a.username?.localeCompare(b.username ?? "") ?? 0)) {
-        userList += `- ${formatUsername(user.username, mode)} ${getUserBadges(user.username)}\n`;
+        userList += `- ${formatUsername(user.username, mode)} ${getUserBadges(user)}\n`;
     }
 
     return t("basic.residents", { userList });
@@ -352,11 +352,7 @@ export function getPrinterStatusText(status: PrinterStatus): string {
     return message;
 }
 
-export function getStatsText(
-    userTimes: { usertime: ElapsedTimeObject; username: string }[],
-    dateBoundaries: DateBoundary,
-    shouldMentionPeriod = false
-) {
+export function getStatsText(userTimes: UserVisit[], dateBoundaries: DateBoundary, shouldMentionPeriod = false) {
     let stats = `${shouldMentionPeriod ? t("status.stats.period", dateBoundaries) : t("status.stats.start")}:\n\n`;
 
     for (let i = 0; i < userTimes.length; i++) {
@@ -380,8 +376,8 @@ export function getStatsText(
         }
 
         const place = `${medal}${i + 1}`.padEnd(4, " ");
-        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)} ${userTime.username} ${getUserBadges(
-            userTime.username
+        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)} ${effectiveName(userTime.user)} ${getUserBadges(
+            userTime.user
         )}#\`#\`#\`\n`;
     }
 

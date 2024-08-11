@@ -6,8 +6,10 @@ import { compareMonthNames } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
 import { DonationEx, Fund } from "@data/models";
+import { effectiveName } from "@hackembot/core/helpers";
 
 import { DefaultCurrency, convertCurrency, formatValueForCurrency } from "./currency";
+import { UserVisit } from "./status";
 
 interface SimplifiedDonation {
     username: string;
@@ -148,12 +150,9 @@ export async function exportDonationsToLineChart(donations: DonationEx[], title:
 
 // Chart generation functions
 
-export async function createUserStatsDonut(
-    userTimes: { username: string; usertime: { totalSeconds: number } }[],
-    title: string
-): Promise<Buffer> {
+export async function createUserStatsDonut(userTimes: UserVisit[], title: string): Promise<Buffer> {
     return await createDonut(
-        userTimes.map(ut => ut.username),
+        userTimes.map(ut => effectiveName(ut.user)) as string[],
         userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
         title,
         { height: 1500, width: 2500 }

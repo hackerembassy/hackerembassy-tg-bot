@@ -159,19 +159,25 @@ export default class ServiceHandlers implements BotHandlers {
         const chat = memberUpdated.chat;
         const currentUser = UsersRepository.getUserByUserId(tgUser.id);
 
-        if (!botConfig.moderatedChats.includes(chat.id)) {
-            return await bot.sendWelcomeMessage(chat, tgUser, currentUser?.language ?? DEFAULT_LANGUAGE);
+        if (!botConfig.features.antispam || !botConfig.moderatedChats.includes(chat.id)) {
+            if (botConfig.features.welcome) await bot.sendWelcomeMessage(chat, tgUser, currentUser?.language ?? DEFAULT_LANGUAGE);
+
+            return;
         }
 
         if (!currentUser) {
             UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
             bot.lockChatMember(chat.id, tgUser.id);
+
             logger.info(`New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
         } else if (!currentUser.roles?.includes("restricted")) {
             logger.info(
                 `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
             );
-            return await bot.sendWelcomeMessage(chat, tgUser);
+
+            if (botConfig.features.welcome) await bot.sendWelcomeMessage(chat, tgUser);
+
+            return;
         } else {
             bot.lockChatMember(chat.id, tgUser.id);
             logger.info(`Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`);

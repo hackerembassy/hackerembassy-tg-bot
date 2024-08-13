@@ -235,17 +235,19 @@ export default class BasicHandlers implements BotHandlers {
                 InlineButton(t("basic.start.buttons.funds"), "funds", ButtonFlags.Editing),
             ],
             [
-                InlineButton(t("basic.start.buttons.control"), "controlpanel", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.topics"), "topics", ButtonFlags.Editing),
                 InlineButton(t("basic.start.buttons.info"), "infopanel", ButtonFlags.Editing),
             ],
             [
                 InlineButton(t("basic.start.buttons.birthdays"), "birthdays", ButtonFlags.Editing),
                 InlineButton(t("basic.start.buttons.needs"), "needs", ButtonFlags.Editing),
             ],
-            [
-                InlineButton(t("basic.start.buttons.printers"), "printers", ButtonFlags.Editing),
-                InlineButton(t("basic.start.buttons.topics"), "topics", ButtonFlags.Editing),
-            ],
+            botConfig.features.embassy
+                ? [
+                      InlineButton(t("basic.start.buttons.control"), "controlpanel", ButtonFlags.Editing),
+                      InlineButton(t("basic.start.buttons.printers"), "printers", ButtonFlags.Editing),
+                  ]
+                : [],
             [InlineButton(t("basic.start.buttons.me"), "me"), InlineButton(t("basic.start.buttons.help"), "help")],
         ];
 
@@ -331,34 +333,38 @@ export default class BasicHandlers implements BotHandlers {
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
-                InlineButton(t("basic.meme.buttons.moan"), "playinspace", ButtonFlags.Silent, { params: "moan" }),
-                InlineButton(t("basic.meme.buttons.fart"), "playinspace", ButtonFlags.Silent, { params: "fart" }),
-                InlineButton(t("basic.meme.buttons.adler"), "playinspace", ButtonFlags.Silent, { params: "adler" }),
-                InlineButton(t("basic.meme.buttons.rzd"), "playinspace", ButtonFlags.Silent, { params: "rzd" }),
-            ],
-            [
-                InlineButton(t("basic.meme.buttons.rickroll"), "playinspace", ButtonFlags.Silent, { params: "rickroll" }),
-                InlineButton(t("basic.meme.buttons.zhuchok"), "playinspace", ButtonFlags.Silent, { params: "zhuchok" }),
-                InlineButton(t("basic.meme.buttons.rfoxed"), "playinspace", ButtonFlags.Silent, { params: "rfoxed" }),
-                InlineButton(t("basic.meme.buttons.nani"), "playinspace", ButtonFlags.Silent, { params: "nani" }),
-            ],
-            [
                 InlineButton(t("basic.meme.buttons.cat"), "cat", ButtonFlags.Simple, { params: "./resources/images/cats" }),
                 InlineButton(t("basic.meme.buttons.dog"), "dog", ButtonFlags.Simple, { params: "./resources/images/dogs" }),
-                InlineButton(t("basic.meme.buttons.cab"), "cab", ButtonFlags.Simple, { params: "./resources/images/cab" }),
                 InlineButton(t("basic.meme.buttons.cock"), "cock", ButtonFlags.Simple, { params: "./resources/images/roosters" }),
             ],
-            [
-                InlineButton(t("basic.meme.buttons.sad"), "playinspace", ButtonFlags.Silent, { params: "sad" }),
-                InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", ButtonFlags.Silent, { params: "badumtss" }),
-                InlineButton(t("basic.meme.buttons.dushno"), "playinspace", ButtonFlags.Silent, { params: "dushno" }),
-            ],
-            [InlineButton(t("basic.meme.buttons.all"), "availablesounds")],
-            [
-                InlineButton(t("basic.meme.buttons.stop"), "stopmedia", ButtonFlags.Silent),
-                InlineButton(t("general.buttons.back"), "controlpanel", ButtonFlags.Editing),
-            ],
         ];
+
+        if (botConfig.features.embassy)
+            inline_keyboard.push(
+                [
+                    InlineButton(t("basic.meme.buttons.moan"), "playinspace", ButtonFlags.Silent, { params: "moan" }),
+                    InlineButton(t("basic.meme.buttons.fart"), "playinspace", ButtonFlags.Silent, { params: "fart" }),
+                    InlineButton(t("basic.meme.buttons.adler"), "playinspace", ButtonFlags.Silent, { params: "adler" }),
+                    InlineButton(t("basic.meme.buttons.rzd"), "playinspace", ButtonFlags.Silent, { params: "rzd" }),
+                ],
+                [
+                    InlineButton(t("basic.meme.buttons.rickroll"), "playinspace", ButtonFlags.Silent, { params: "rickroll" }),
+                    InlineButton(t("basic.meme.buttons.zhuchok"), "playinspace", ButtonFlags.Silent, { params: "zhuchok" }),
+                    InlineButton(t("basic.meme.buttons.rfoxed"), "playinspace", ButtonFlags.Silent, { params: "rfoxed" }),
+                    InlineButton(t("basic.meme.buttons.nani"), "playinspace", ButtonFlags.Silent, { params: "nani" }),
+                ],
+
+                [
+                    InlineButton(t("basic.meme.buttons.sad"), "playinspace", ButtonFlags.Silent, { params: "sad" }),
+                    InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", ButtonFlags.Silent, { params: "badumtss" }),
+                    InlineButton(t("basic.meme.buttons.dushno"), "playinspace", ButtonFlags.Silent, { params: "dushno" }),
+                ],
+                [InlineButton(t("basic.meme.buttons.all"), "availablesounds")],
+                [
+                    InlineButton(t("basic.meme.buttons.stop"), "stopmedia", ButtonFlags.Silent),
+                    InlineButton(t("general.buttons.back"), "controlpanel", ButtonFlags.Editing),
+                ]
+            );
 
         await bot.sendOrEditMessage(
             msg.chat.id,

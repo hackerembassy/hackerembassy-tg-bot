@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { UserRole } from "@data/types";
+import config from "config";
 
+import { UserRole } from "@data/types";
 import broadcast, { BroadcastEvents } from "@services/broadcast";
 import { AvailableModels } from "@services/neural";
 import logger from "@services/logger";
 import { DURATION_STRING_REGEX } from "@utils/date";
+import { BotConfig } from "@config";
 
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import AdminHandlers from "./handlers/admin";
@@ -19,6 +21,8 @@ import ServiceHandlers from "./handlers/service";
 import StatusHandlers from "./handlers/status";
 import TopicsHandlers from "./handlers/subscriptions";
 import { OptionalParam } from "./core/helpers";
+
+const botConfig = config.get<BotConfig>("bot");
 
 // Typical role sets
 const TrustedMembers = ["member", "trusted"] as UserRole[];
@@ -59,7 +63,6 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     // Panels
     bot.addRoute(["start", "startpanel", "sp"], BasicHandlers.startPanelHandler, OptionalParam(/(.*)/), match => [match[1]]);
     bot.addRoute(["infopanel", "info", "ip", "faq"], BasicHandlers.infoPanelHandler);
-    bot.addRoute(["controlpanel", "cp"], BasicHandlers.controlPanelHandler, null, null, Members);
     bot.addRoute(["memepanel", "meme", "memes", "mp"], BasicHandlers.memePanelHandler, null, null, TrustedMembers);
 
     // Issues
@@ -97,10 +100,12 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["evict", "outforceall"], StatusHandlers.evictHandler, null, null, Members);
     bot.addRoute(["going", "coming", "cuming", "g"], StatusHandlers.goingHandler, OptionalParam(/(.*)/), match => [match[1]]);
     bot.addRoute(["notgoing", "notcoming", "notcuming", "ng"], StatusHandlers.notGoingHandler);
-    bot.addRoute(["autoinside"], StatusHandlers.autoinsideHandler, OptionalParam(/(.*\S)/), match => [match[1]]);
+
+    if (botConfig.features.autoinside)
+        bot.addRoute(["autoinside"], StatusHandlers.autoinsideHandler, OptionalParam(/(.*\S)/), match => [match[1]]);
+
     bot.addRoute(["setmac"], StatusHandlers.setmacHandler, OptionalParam(/(?:(.*\S))/), match => [match[1]]);
     bot.addRoute(["superstatus", "ss"], ServiceHandlers.superstatusHandler, null, null, Members);
-    bot.addRoute(["knock", "knockknock", "tuktuk", "tuk"], EmbassyHandlers.knockHandler);
 
     // Stats
     bot.addRoute(["me"], StatusHandlers.profileHandler);
@@ -147,81 +152,231 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         TrustedMembers
     );
 
-    // Cams
+    // Funds
+    bot.addRoute(["funds", "fs"], FundsHandlers.fundsHandler);
+    bot.addRoute(["fund", "f"], FundsHandlers.fundHandler, /(.*\S)/, match => [match[1]]);
+    bot.addRoute(["fundsall", "fundshistory", "fsa"], FundsHandlers.fundsallHandler);
     bot.addRoute(
-        ["downstairs", "webcam", "webcum", "cam", "cum", "firstfloor", "ff", "cam1a", "cum1a"],
-        EmbassyHandlers.webcamHandler,
-        null,
-        () => ["downstairs"],
+        ["addfund"],
+        FundsHandlers.addFundHandler,
+        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)/,
+        match => [match[1], match[2], match[3]],
+        Accountants
+    );
+    bot.addRoute(
+        ["updatefund"],
+        FundsHandlers.updateFundHandler,
+        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/,
+        match => [match[1], match[2], match[3], match[4]],
+        Accountants
+    );
+    bot.addRoute(["removefund"], FundsHandlers.removeFundHandler, /(.*\S)/, match => [match[1]], Accountants);
+    bot.addRoute(["exportfund", "csv", "ef"], FundsHandlers.exportCSVHandler, /(.*\S)/, match => [match[1]]);
+    bot.addRoute(["exportdonut", "donut", "ed"], FundsHandlers.exportDonutHandler, /(.*\S)/, match => [match[1]]);
+    bot.addRoute(["closefund"], FundsHandlers.closeFundHandler, /(.*\S)/, match => [match[1]], Accountants);
+    bot.addRoute(
+        ["changefundstatus"],
+        FundsHandlers.changeFundStatusHandler,
+        /of (.*\S) to (.*\S)/,
+        match => [match[1], match[2]],
+        Accountants
+    );
+    bot.addRoute(["showcostsdonut", "costsdonut"], FundsHandlers.showCostsDonutHandler);
+    bot.addRoute(
+        ["residentscosts", "residentsdonated", "residentcosts", "rcosts"],
+        FundsHandlers.residentsDonatedHandler,
+        OptionalParam(/(all|paid|left)/),
+        match => [match[1]],
         Members
     );
     bot.addRoute(
-        ["downstairs2", "firstfloor2", "ff2", "cam1b", "cum1b"],
-        EmbassyHandlers.webcamHandler,
-        null,
-        () => ["downstairs2"],
+        ["residentscostshistory", "historycosts", "rhcosts", "rhcs"],
+        FundsHandlers.resdientsHistoryHandler,
+        OptionalParam(/(\d\d\d\d)/),
+        match => [match[1]],
         Members
     );
-    bot.addRoute(
-        ["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"],
-        EmbassyHandlers.webcamHandler,
-        null,
-        () => ["upstairs"],
-        Members
-    );
-    bot.addRoute(
-        ["outdoors", "doorcam", "doorcum", "precam", "precum", "dc"],
-        EmbassyHandlers.webcamHandler,
-        null,
-        () => ["outdoors"],
-        Members
-    );
-    bot.addRoute(
-        ["face", "facecam", "facecum", "facecontrol"],
-        EmbassyHandlers.webcamHandler,
-        null,
-        () => ["facecontrol"],
-        Members
-    );
-    bot.addRoute(["kitchen", "kitchencam", "kitchencum"], EmbassyHandlers.webcamHandler, null, () => ["kitchen"], Members);
-    bot.addRoute(
-        ["printerscam", "funroom", "funcam", "funcum"],
-        EmbassyHandlers.webcamHandler,
-        null,
-        () => ["printers"],
-        Members
-    );
-    bot.addRoute(["allcams", "cams", "allcums", "cums", "allc"], EmbassyHandlers.allCamsHandler, null, null, Members);
+    bot.addRoute(["showcosts", "scosts", "scs"], FundsHandlers.showCostsHandler);
 
-    // Sensors
-    bot.addRoute(["climate", "temp"], EmbassyHandlers.climateHandler);
-
-    // Devices
+    // Donations
     bot.addRoute(
-        ["gayming", "gaming"],
-        EmbassyHandlers.deviceHandler,
-        OptionalParam(/(status|help|up|down)/),
-        match => ["gaming", match[1]],
-        Members
+        ["costs", "cs", "rent"],
+        FundsHandlers.costsHandler,
+        OptionalParam(/(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/),
+        match => [match[1], match[2], match[3]]
+    );
+    bot.addRoute(
+        ["adddonation", "ad"],
+        FundsHandlers.addDonationHandler,
+        /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/,
+        match => [match[1], match[2], match[3], match[4]],
+        Accountants
+    );
+    bot.addRoute(["removedonation"], FundsHandlers.removeDonationHandler, /(\d+)/, match => [match[1]], Accountants);
+    bot.addRoute(
+        ["transferdonation", "td"],
+        FundsHandlers.transferDonationHandler,
+        /(\d+) to (.*\S)/,
+        match => [match[1], match[2]],
+        Accountants
     );
 
-    // Network utils
-    bot.addRoute(["isalive", "alive", "probe"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1]], Members);
-    bot.addRoute(["ping"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1], true], Members);
+    bot.addRoute(["tosafe"], FundsHandlers.transferDonationHandler, /(\d+)/, match => [match[1], "safe"], Accountants);
 
-    // Neural
     bot.addRoute(
-        ["txt2img", "img2img", "toimg", "sd", "generateimage"],
-        EmbassyHandlers.stableDiffusiondHandler,
+        ["topaid", "paid", "tp"],
+        FundsHandlers.transferDonationHandler,
+        /(\d+)/,
+        match => [match[1], "paid"],
+        Accountants
+    );
+
+    bot.addRoute(
+        ["tosafeall"],
+        FundsHandlers.transferAllToHandler,
+        OptionalParam(/(.*)/),
+        match => ["safe", match[1]],
+        Accountants
+    );
+    bot.addRoute(
+        ["topaidall", "paidall"],
+        FundsHandlers.transferAllToHandler,
+        OptionalParam(/(.*)/),
+        match => ["paid", match[1]],
+        Accountants
+    );
+    bot.addRoute(
+        ["changedonation"],
+        FundsHandlers.changeDonationHandler,
+        /(\d+) to (\S+)\s?(\D*?)/,
+        match => [match[1], match[2], match[3]],
+        Accountants
+    );
+    bot.addRoute(["debt", "mymoney"], FundsHandlers.debtHandler, OptionalParam(/(\S+)/), match => [match[1]], Accountants);
+
+    // Needs
+    bot.addRoute(["needs"], NeedsHandlers.needsHandler);
+    bot.addRoute(["buy", "need"], NeedsHandlers.buyHandler, /(.*)/, match => [match[1]]);
+    bot.addRoute(["bought"], NeedsHandlers.boughtHandler, /(.*)/, match => [match[1]]);
+    bot.addRoute(["boughtbutton"], NeedsHandlers.boughtButtonHandler, null, match => [match[1]]); // button
+    bot.addRoute(["boughtundo"], NeedsHandlers.boughtUndoHandler, /(\d+)/, match => [match[1]]); // button
+
+    // Birthdays
+    if (botConfig.features.birthday) {
+        bot.addRoute(["birthdays", "birthday"], BirthdayHandlers.birthdayHandler);
+        bot.addRoute(["forcebirthdaywishes", "fbw"], BirthdayHandlers.forceBirthdayWishHandler, null, null, Admins);
+        bot.addRoute(["mybirthday", "mybday", "bday"], BirthdayHandlers.myBirthdayHandler, OptionalParam(/(.*\S)/), match => [
+            match[1],
+        ]);
+    }
+
+    // Admin
+    bot.addRoute(["getuser", "user", "gu"], AdminHandlers.getUserHandler, OptionalParam(/(\S+?)/), match => [match[1]], Admins);
+    bot.addRoute(["getrestrictedusers", "restricted"], AdminHandlers.getRestrictedUsersHandler, null, null, Admins);
+    bot.addRoute(["updateroles"], AdminHandlers.updateRolesHandler, /of (\S+?) to (\S+)/, match => [match[1], match[2]], Admins);
+    bot.addRoute(["restrict"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "restricted"], Admins);
+    bot.addRoute(["restrictbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "restricted"], Admins);
+    bot.addRoute(["unblock"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "default"], Admins);
+    bot.addRoute(["unblockbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "default"], Admins);
+    bot.addRoute(["removeuser"], AdminHandlers.removeUserHandler, /(\S+)/, match => [match[1]], Admins);
+    bot.addRoute(["removeuserbyid"], AdminHandlers.removeUserByIdHandler, /(\d+)/, match => [match[1]], Admins);
+    bot.addRoute(["custom", "forward"], AdminHandlers.customHandler, OptionalParam(/(.*)/ims), match => [match[1]], Admins);
+    bot.addRoute(
+        ["customtest", "customt", "forwardtest", "forwardt"],
+        AdminHandlers.customHandler,
         OptionalParam(/(.*)/ims),
+        match => [match[1], true],
+        Members
+    );
+    bot.addRoute(["selecttarget", "target"], AdminHandlers.selectForwardTargetHandler, null, null, Admins);
+    bot.addRoute(["getlogs", "logs", "log"], AdminHandlers.getLogHandler, null, null, Admins);
+    bot.addRoute(["getstate", "state"], AdminHandlers.getStateHandler, null, null, Admins);
+    bot.addRoute(["cleanstate", "clearstate"], AdminHandlers.cleanStateHandler, null, null, Admins);
+    bot.addRoute(["stoplive", "cleanlive"], AdminHandlers.stopLiveHandler, OptionalParam(/(\S+)/), match => [match[1]], Admins);
+    bot.addRoute(
+        ["setflag", "setf", "set"],
+        AdminHandlers.setFlagHandler,
+        /(\S+?) (true|false|1|0)/,
+        match => [match[1], match[2]],
+        Admins
+    );
+    bot.addRoute(["getflags", "getf"], AdminHandlers.getFlagsHandler, null, null, Admins);
+
+    // Memes
+    bot.addRoute(["randomdog", "dog"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/dogs"]);
+    bot.addRoute(["randomcat", "cat"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/cats"]);
+    bot.addRoute(["randomcock", "cock"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/roosters"]);
+    bot.addRoute(["randomzhabka", "randomtoad", "zhabka", "zhaba", "toad", "wednesday"], MemeHandlers.randomZhabkaHandler);
+    bot.addRoute(["syrniki", "pidarasi", "pidorasi"], MemeHandlers.imageHandler, null, () => [
+        "./resources/images/memes/syrniki.jpeg",
+    ]);
+    bot.addRoute(["slap"], MemeHandlers.slapHandler, OptionalParam(/(\S+)/), match => [match[1]]);
+
+    // Chat control
+    bot.addRoute(["clear"], ServiceHandlers.clearHandler, OptionalParam(/(\d*)/), match => [match[1]], Members);
+    bot.addRoute(
+        ["combine", "squash", "sq"],
+        ServiceHandlers.combineHandler,
+        OptionalParam(/(\d*)/),
+        match => [match[1]],
+        Members
+    );
+    bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
+    bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, Members);
+    bot.addRoute(["ban", "block"], AdminHandlers.banHandler, OptionalParam(/(\S+)/), match => [match[1]], Members);
+
+    // Language
+    bot.addRoute(
+        ["setlanguage", "setlang", "lang", "language"],
+        ServiceHandlers.setLanguageHandler,
+        OptionalParam(/(\S+)/),
         match => [match[1]]
     );
-    bot.addRoute(["ask", "gpt"], EmbassyHandlers.askHandler, OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.GPT]);
-    bot.addRoute(["ollama", "llama", "lama"], EmbassyHandlers.askHandler, OptionalParam(/(.*)/ims), match => [
-        match[1],
-        AvailableModels.OLLAMA,
-    ]);
-    bot.addRoute(["shouldigo", "shouldvisit", "shouldgo", "should"], StatusHandlers.shouldIGoHandler);
+    bot.addRoute(["ru", "russian"], ServiceHandlers.setLanguageHandler, null, () => ["ru"]);
+    bot.addRoute(["en", "english"], ServiceHandlers.setLanguageHandler, null, () => ["en"]);
+
+    // Hacker Embassy specific commands
+    if (botConfig.features.embassy) addEmbassySpecificRoutes(bot);
+}
+
+export function addEventHandlers(bot: HackerEmbassyBot) {
+    broadcast.addListener(BroadcastEvents.SpaceOpened, state => {
+        StatusHandlers.openedNotificationHandler(bot, state);
+    });
+    broadcast.addListener(BroadcastEvents.SpaceClosed, state => {
+        StatusHandlers.closedNotificationHandler(bot, state);
+    });
+    broadcast.addListener(BroadcastEvents.SpaceUnlocked, username => {
+        EmbassyHandlers.unlockedNotificationHandler(bot, username);
+    });
+}
+
+export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {
+    // Routing messages
+    bot.on("message", message => bot.routeMessage(message));
+    bot.on("voice", message => EmbassyHandlers.voiceInSpaceHandler(bot, message));
+    bot.on("callback_query", bot.routeCallback);
+    bot.onExt("chat_member", ServiceHandlers.newMemberHandler);
+
+    if (botConfig.features.reactions) bot.on("message", message => bot.reactToMessage(message));
+
+    // Debug logging
+    if (debug) {
+        logger.debug("[debug] routes are added");
+
+        bot.on("chat_member", member => {
+            logger.debug(`chat_member: ${JSON.stringify(member)}`);
+        });
+
+        bot.on("message", (message, metadata) => {
+            logger.debug(`message: ${JSON.stringify(message)};\nmetadata: ${JSON.stringify(metadata)}`);
+        });
+    }
+}
+
+function addEmbassySpecificRoutes(bot: HackerEmbassyBot) {
+    // Control
+    bot.addRoute(["controlpanel", "cp"], BasicHandlers.controlPanelHandler, null, null, Members);
 
     // Printers
     bot.addRoute(["printers"], EmbassyHandlers.printersHandler);
@@ -324,6 +479,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["sad", "sadtrombone"], EmbassyHandlers.playinspaceHandler, null, () => ["sad"]);
     bot.addRoute(["dushno", "openwindow"], EmbassyHandlers.playinspaceHandler, null, () => ["dushno"]);
     bot.addRoute(["anthem", "uk", "british"], EmbassyHandlers.playinspaceHandler, null, () => ["anthem"]);
+    bot.addRoute(["knock", "knockknock", "tuktuk", "tuk"], EmbassyHandlers.knockHandler);
 
     // Text
     bot.addRoute(["textinspace", "text"], EmbassyHandlers.textinspaceHandler, OptionalParam(/(.*)/ims), match => [match[1]]);
@@ -334,74 +490,100 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1]]
     );
 
-    // Funds
-    bot.addRoute(["funds", "fs"], FundsHandlers.fundsHandler);
-    bot.addRoute(["fund", "f"], FundsHandlers.fundHandler, /(.*\S)/, match => [match[1]]);
-    bot.addRoute(["fundsall", "fundshistory", "fsa"], FundsHandlers.fundsallHandler);
+    // Memes
     bot.addRoute(
-        ["addfund"],
-        FundsHandlers.addFundHandler,
-        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)/,
-        match => [match[1], match[2], match[3]],
-        Accountants
+        ["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"],
+        MemeHandlers.randomImagePathHandler,
+        null,
+        () => ["./resources/images/cab"]
     );
-    bot.addRoute(
-        ["updatefund"],
-        FundsHandlers.updateFundHandler,
-        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/,
-        match => [match[1], match[2], match[3], match[4]],
-        Accountants
-    );
-    bot.addRoute(["removefund"], FundsHandlers.removeFundHandler, /(.*\S)/, match => [match[1]], Accountants);
-    bot.addRoute(["exportfund", "csv", "ef"], FundsHandlers.exportCSVHandler, /(.*\S)/, match => [match[1]]);
-    bot.addRoute(["exportdonut", "donut", "ed"], FundsHandlers.exportDonutHandler, /(.*\S)/, match => [match[1]]);
-    bot.addRoute(["closefund"], FundsHandlers.closeFundHandler, /(.*\S)/, match => [match[1]], Accountants);
-    bot.addRoute(
-        ["changefundstatus"],
-        FundsHandlers.changeFundStatusHandler,
-        /of (.*\S) to (.*\S)/,
-        match => [match[1], match[2]],
-        Accountants
-    );
-    bot.addRoute(["showcostsdonut", "costsdonut"], FundsHandlers.showCostsDonutHandler);
-    bot.addRoute(
-        ["residentscosts", "residentsdonated", "residentcosts", "rcosts"],
-        FundsHandlers.residentsDonatedHandler,
-        OptionalParam(/(all|paid|left)/),
-        match => [match[1]],
-        Members
-    );
-    bot.addRoute(
-        ["residentscostshistory", "historycosts", "rhcosts", "rhcs"],
-        FundsHandlers.resdientsHistoryHandler,
-        OptionalParam(/(\d\d\d\d)/),
-        match => [match[1]],
-        Members
-    );
-    bot.addRoute(["showcosts", "scosts", "scs"], FundsHandlers.showCostsHandler);
 
-    // Donations
+    // Checks
+    if (botConfig.features.outage)
+        bot.addRoute(["ena", "checkena", "checkoutages", "outages"], EmbassyHandlers.checkOutageMentionsHandler);
+
+    // Cams
     bot.addRoute(
-        ["costs", "cs", "rent"],
-        FundsHandlers.costsHandler,
-        OptionalParam(/(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/),
-        match => [match[1], match[2], match[3]]
+        ["downstairs", "webcam", "webcum", "cam", "cum", "firstfloor", "ff", "cam1a", "cum1a"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["downstairs"],
+        Members
     );
     bot.addRoute(
-        ["adddonation", "ad"],
-        FundsHandlers.addDonationHandler,
-        /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/,
-        match => [match[1], match[2], match[3], match[4]],
-        Accountants
+        ["downstairs2", "firstfloor2", "ff2", "cam1b", "cum1b"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["downstairs2"],
+        Members
     );
-    bot.addRoute(["removedonation"], FundsHandlers.removeDonationHandler, /(\d+)/, match => [match[1]], Accountants);
     bot.addRoute(
-        ["transferdonation", "td"],
-        FundsHandlers.transferDonationHandler,
-        /(\d+) to (.*\S)/,
-        match => [match[1], match[2]],
-        Accountants
+        ["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["upstairs"],
+        Members
     );
+    bot.addRoute(
+        ["outdoors", "doorcam", "doorcum", "precam", "precum", "dc"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["outdoors"],
+        Members
+    );
+    bot.addRoute(
+        ["face", "facecam", "facecum", "facecontrol"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["facecontrol"],
+        Members
+    );
+    bot.addRoute(["kitchen", "kitchencam", "kitchencum"], EmbassyHandlers.webcamHandler, null, () => ["kitchen"], Members);
+    bot.addRoute(
+        ["printerscam", "funroom", "funcam", "funcum"],
+        EmbassyHandlers.webcamHandler,
+        null,
+        () => ["printers"],
+        Members
+    );
+    bot.addRoute(["allcams", "cams", "allcums", "cums", "allc"], EmbassyHandlers.allCamsHandler, null, null, Members);
+
+    // Sensors
+    bot.addRoute(["climate", "temp"], EmbassyHandlers.climateHandler);
+
+    // Devices
+    bot.addRoute(
+        ["gayming", "gaming"],
+        EmbassyHandlers.deviceHandler,
+        OptionalParam(/(status|help|up|down)/),
+        match => ["gaming", match[1]],
+        Members
+    );
+
+    // Network utils
+    bot.addRoute(["isalive", "alive", "probe"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1]], Members);
+    bot.addRoute(["ping"], EmbassyHandlers.pingHandler, /(\S+)/, match => [match[1], true], Members);
+
+    // Neural
+    if (botConfig.features.ai) {
+        bot.addRoute(
+            ["txt2img", "img2img", "toimg", "sd", "generateimage"],
+            EmbassyHandlers.stableDiffusiondHandler,
+            OptionalParam(/(.*)/ims),
+            match => [match[1]]
+        );
+        bot.addRoute(["ask", "gpt"], EmbassyHandlers.askHandler, OptionalParam(/(.*)/ims), match => [
+            match[1],
+            AvailableModels.GPT,
+        ]);
+        bot.addRoute(["ollama", "llama", "lama"], EmbassyHandlers.askHandler, OptionalParam(/(.*)/ims), match => [
+            match[1],
+            AvailableModels.OLLAMA,
+        ]);
+        bot.addRoute(["shouldigo", "shouldvisit", "shouldgo", "should"], StatusHandlers.shouldIGoHandler);
+    }
+
+    // Funds
     bot.addRoute(
         ["tocab", "givecab", "tc"],
         FundsHandlers.transferDonationHandler,
@@ -409,19 +591,11 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1], "CabiaRangris"],
         Accountants
     );
-    bot.addRoute(["tosafe"], FundsHandlers.transferDonationHandler, /(\d+)/, match => [match[1], "safe"], Accountants);
     bot.addRoute(
         ["tonick", "givenick", "tn"],
         FundsHandlers.transferDonationHandler,
         /(\d+)/,
         match => [match[1], "korn9509"],
-        Accountants
-    );
-    bot.addRoute(
-        ["topaid", "paid", "tp"],
-        FundsHandlers.transferDonationHandler,
-        /(\d+)/,
-        match => [match[1], "paid"],
         Accountants
     );
     bot.addRoute(
@@ -431,148 +605,4 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => ["CabiaRangris", match[1]],
         Accountants
     );
-    bot.addRoute(
-        ["tosafeall"],
-        FundsHandlers.transferAllToHandler,
-        OptionalParam(/(.*)/),
-        match => ["safe", match[1]],
-        Accountants
-    );
-    bot.addRoute(
-        ["topaidall", "paidall"],
-        FundsHandlers.transferAllToHandler,
-        OptionalParam(/(.*)/),
-        match => ["paid", match[1]],
-        Accountants
-    );
-    bot.addRoute(
-        ["changedonation"],
-        FundsHandlers.changeDonationHandler,
-        /(\d+) to (\S+)\s?(\D*?)/,
-        match => [match[1], match[2], match[3]],
-        Accountants
-    );
-    bot.addRoute(["debt", "mymoney"], FundsHandlers.debtHandler, OptionalParam(/(\S+)/), match => [match[1]], Accountants);
-
-    // Needs
-    bot.addRoute(["needs"], NeedsHandlers.needsHandler);
-    bot.addRoute(["buy", "need"], NeedsHandlers.buyHandler, /(.*)/, match => [match[1]]);
-    bot.addRoute(["bought"], NeedsHandlers.boughtHandler, /(.*)/, match => [match[1]]);
-    bot.addRoute(["boughtbutton"], NeedsHandlers.boughtButtonHandler, null, match => [match[1]]); // button
-    bot.addRoute(["boughtundo"], NeedsHandlers.boughtUndoHandler, /(\d+)/, match => [match[1]]); // button
-
-    // Birthdays
-    bot.addRoute(["birthdays", "birthday"], BirthdayHandlers.birthdayHandler);
-    bot.addRoute(["forcebirthdaywishes", "fbw"], BirthdayHandlers.forceBirthdayWishHandler, null, null, Admins);
-    bot.addRoute(["mybirthday", "mybday", "bday"], BirthdayHandlers.myBirthdayHandler, OptionalParam(/(.*\S)/), match => [
-        match[1],
-    ]);
-
-    // Admin
-    bot.addRoute(["getuser", "user", "gu"], AdminHandlers.getUserHandler, OptionalParam(/(\S+?)/), match => [match[1]], Admins);
-    bot.addRoute(["getrestrictedusers", "restricted"], AdminHandlers.getRestrictedUsersHandler, null, null, Admins);
-    bot.addRoute(["updateroles"], AdminHandlers.updateRolesHandler, /of (\S+?) to (\S+)/, match => [match[1], match[2]], Admins);
-    bot.addRoute(["restrict"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "restricted"], Admins);
-    bot.addRoute(["restrictbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "restricted"], Admins);
-    bot.addRoute(["unblock"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "default"], Admins);
-    bot.addRoute(["unblockbyid"], AdminHandlers.updateRolesByIdHandler, /(\d+?)/, match => [match[1], "default"], Admins);
-    bot.addRoute(["removeuser"], AdminHandlers.removeUserHandler, /(\S+)/, match => [match[1]], Admins);
-    bot.addRoute(["removeuserbyid"], AdminHandlers.removeUserByIdHandler, /(\d+)/, match => [match[1]], Admins);
-    bot.addRoute(["custom", "forward"], AdminHandlers.customHandler, OptionalParam(/(.*)/ims), match => [match[1]], Admins);
-    bot.addRoute(
-        ["customtest", "customt", "forwardtest", "forwardt"],
-        AdminHandlers.customHandler,
-        OptionalParam(/(.*)/ims),
-        match => [match[1], true],
-        Members
-    );
-    bot.addRoute(["selecttarget", "target"], AdminHandlers.selectForwardTargetHandler, null, null, Admins);
-    bot.addRoute(["getlogs", "logs", "log"], AdminHandlers.getLogHandler, null, null, Admins);
-    bot.addRoute(["getstate", "state"], AdminHandlers.getStateHandler, null, null, Admins);
-    bot.addRoute(["cleanstate", "clearstate"], AdminHandlers.cleanStateHandler, null, null, Admins);
-    bot.addRoute(["stoplive", "cleanlive"], AdminHandlers.stopLiveHandler, OptionalParam(/(\S+)/), match => [match[1]], Admins);
-    bot.addRoute(
-        ["setflag", "setf", "set"],
-        AdminHandlers.setFlagHandler,
-        /(\S+?) (true|false|1|0)/,
-        match => [match[1], match[2]],
-        Admins
-    );
-    bot.addRoute(["getflags", "getf"], AdminHandlers.getFlagsHandler, null, null, Admins);
-
-    // Memes
-    bot.addRoute(["randomdog", "dog"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/dogs"]);
-    bot.addRoute(["randomcat", "cat"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/cats"]);
-    bot.addRoute(["randomcock", "cock"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/roosters"]);
-    bot.addRoute(
-        ["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"],
-        MemeHandlers.randomImagePathHandler,
-        null,
-        () => ["./resources/images/cab"]
-    );
-    bot.addRoute(["randomzhabka", "randomtoad", "zhabka", "zhaba", "toad", "wednesday"], MemeHandlers.randomZhabkaHandler);
-    bot.addRoute(["syrniki", "pidarasi", "pidorasi"], MemeHandlers.imageHandler, null, () => [
-        "./resources/images/memes/syrniki.jpeg",
-    ]);
-    bot.addRoute(["slap"], MemeHandlers.slapHandler, OptionalParam(/(\S+)/), match => [match[1]]);
-
-    // Chat control
-    bot.addRoute(["clear"], ServiceHandlers.clearHandler, OptionalParam(/(\d*)/), match => [match[1]], Members);
-    bot.addRoute(
-        ["combine", "squash", "sq"],
-        ServiceHandlers.combineHandler,
-        OptionalParam(/(\d*)/),
-        match => [match[1]],
-        Members
-    );
-    bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
-    bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, Members);
-    bot.addRoute(["ban", "block"], AdminHandlers.banHandler, OptionalParam(/(\S+)/), match => [match[1]], Members);
-
-    // Language
-    bot.addRoute(
-        ["setlanguage", "setlang", "lang", "language"],
-        ServiceHandlers.setLanguageHandler,
-        OptionalParam(/(\S+)/),
-        match => [match[1]]
-    );
-    bot.addRoute(["ru", "russian"], ServiceHandlers.setLanguageHandler, null, () => ["ru"]);
-    bot.addRoute(["en", "english"], ServiceHandlers.setLanguageHandler, null, () => ["en"]);
-
-    // Checks
-    bot.addRoute(["ena", "checkena", "checkoutages", "outages"], EmbassyHandlers.checkOutageMentionsHandler);
-}
-
-export function addEventHandlers(bot: HackerEmbassyBot) {
-    broadcast.addListener(BroadcastEvents.SpaceOpened, state => {
-        StatusHandlers.openedNotificationHandler(bot, state);
-    });
-    broadcast.addListener(BroadcastEvents.SpaceClosed, state => {
-        StatusHandlers.closedNotificationHandler(bot, state);
-    });
-    broadcast.addListener(BroadcastEvents.SpaceUnlocked, username => {
-        EmbassyHandlers.unlockedNotificationHandler(bot, username);
-    });
-}
-
-export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {
-    // Routing messages
-    bot.on("message", message => bot.routeMessage(message));
-    bot.on("message", message => bot.reactToMessage(message));
-    bot.on("voice", message => EmbassyHandlers.voiceInSpaceHandler(bot, message));
-    bot.on("callback_query", bot.routeCallback);
-    bot.onExt("chat_member", ServiceHandlers.newMemberHandler);
-
-    // Debug logging
-    if (debug) {
-        logger.debug("[debug] routes are added");
-
-        bot.on("chat_member", member => {
-            logger.debug(`chat_member: ${JSON.stringify(member)}`);
-        });
-
-        bot.on("message", (message, metadata) => {
-            logger.debug(`message: ${JSON.stringify(message)};\nmetadata: ${JSON.stringify(metadata)}`);
-        });
-    }
 }

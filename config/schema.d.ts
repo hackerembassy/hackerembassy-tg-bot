@@ -28,8 +28,10 @@ export interface BotConfig {
     persistedfolderpath: string;
     maxchathistory: number;
     live: LiveConfig;
+    reminders: RemindersConfig;
     debug: boolean;
     moderatedChats: number[];
+    features: FeaturesConfig;
 }
 
 export interface BotApiConfig {
@@ -60,6 +62,33 @@ export interface RateLimits {
 export interface LiveConfig {
     camRefreshInterval: number;
     statusRefreshInterval: number;
+}
+
+export interface RemindersConfig {
+    utility: UtilityReminder;
+    internet: UtilityReminder;
+}
+
+export interface UtilityReminder {
+    firstDay: number;
+    lastDay: number;
+    message: string;
+    warning: string;
+}
+
+export interface FeaturesConfig {
+    reminders: boolean;
+    autoinside: boolean;
+    outage: boolean;
+    wednesday: boolean;
+    birthday: boolean;
+    welcome: boolean;
+    reactions: boolean;
+    ai: boolean;
+    /** Welcome feature and bot admin rights in the chat are required for antispam */
+    antispam: boolean;
+    /** Integration with Yerevan Hacker Embassy infra and space-specific commands */
+    embassy: boolean;
 }
 
 export interface CalendarConfig {

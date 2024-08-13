@@ -13,46 +13,50 @@ import StatusHandlers from "./handlers/status";
 const botConfig = config.get<BotConfig>("bot");
 
 export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
-    setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, null, false), 6 * HOUR);
-    setInterval(() => MemeHandlers.remindItIsWednesdayHandler(bot), 6 * HOUR);
-    setInterval(
-        () =>
-            bot.sendNotification(
-                `📢 Котики, сегодня надо заплатить за газ и электричество, не забудьте пожалуйста`,
-                13,
-                botConfig.chats.key
-            ),
-        HALFDAY
-    );
-    setInterval(
-        () =>
-            bot.sendNotification(
-                `📢 Котики, сегодня надо заплатить за интернет 9900 AMD, не забудьте пожалуйста`,
-                13,
-                botConfig.chats.key
-            ),
-        HALFDAY
-    );
-    setInterval(
-        () =>
-            bot.sendNotification(
-                `📢 Котики, проверьте оплату за газ и электричество, иначе их отключат завтра`,
-                20,
-                botConfig.chats.key
-            ),
-        HALFDAY
-    );
-    setInterval(
-        () => bot.sendNotification(`📢 Котики, проверьте оплату за интернет, иначе его отключат завтра`, 18, botConfig.chats.key),
-        HALFDAY
-    );
-
-    setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
-    setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
-    setInterval(() => StatusHandlers.timedOutHandler(bot), MINUTE);
-
-    setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), HOUR / 6);
-
+    // Live cam and status updates
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);
+
+    // Autoinside polling
+    if (botConfig.features.autoinside) {
+        setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
+        setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
+        setInterval(() => StatusHandlers.timedOutHandler(bot), MINUTE);
+    }
+
+    // Embassy outage mentions
+    if (botConfig.features.outage) setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), HOUR / 6);
+
+    // Utility and Internet payments notifications
+    if (botConfig.features.reminders) setupPaymentReminders(bot);
+
+    // Meme reminders
+    if (botConfig.features.birthday) setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, null, false), 6 * HOUR);
+    if (botConfig.features.wednesday) setInterval(() => MemeHandlers.remindItIsWednesdayHandler(bot), 6 * HOUR);
+}
+
+function setupPaymentReminders(bot: HackerEmbassyBot) {
+    setInterval(
+        () =>
+            bot.sendNotification(botConfig.reminders.utility.message, botConfig.reminders.utility.firstDay, botConfig.chats.key),
+        HALFDAY
+    );
+    setInterval(
+        () =>
+            bot.sendNotification(
+                botConfig.reminders.internet.message,
+                botConfig.reminders.internet.firstDay,
+                botConfig.chats.key
+            ),
+        HALFDAY
+    );
+    setInterval(
+        () => bot.sendNotification(botConfig.reminders.utility.warning, botConfig.reminders.utility.lastDay, botConfig.chats.key),
+        HALFDAY
+    );
+    setInterval(
+        () =>
+            bot.sendNotification(botConfig.reminders.internet.warning, botConfig.reminders.internet.lastDay, botConfig.chats.key),
+        HALFDAY
+    );
 }

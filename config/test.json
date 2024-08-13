@@ -1,7 +1,18 @@
 {
     "bot": {
         "timezone": "Asia/Yerevan",
-        "defaultLocale": "test"
+        "defaultLocale": "test",
+        "features": {
+            "reminders": true,
+            "autoinside": true,
+            "outage": true,
+            "wednesday": true,
+            "birthday": true,
+            "reactions": true,
+            "welcome": true,
+            "antispam": true,
+            "embassy": true
+        }
     },
     "embassy-api": {
         "timeout": 100

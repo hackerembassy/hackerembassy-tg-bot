@@ -56,7 +56,8 @@
             "reactions": true,
             "welcome": true,
             "antispam": true,
-            "embassy": true
+            "embassy": true,
+            "ai": true
         },
         "moderatedChats": [-1001605898533],
         "debug": false

@@ -9,5 +9,6 @@ sec
 log
 
 !config/default.json
+!config/spaceapi.json
 !config/schema.d.ts
 !deploy/entrypoint.sh

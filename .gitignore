@@ -5,6 +5,7 @@
 .direnv
 config/local.json
 config/spaceapi.local.json
+translation.local.yaml
 node_modules
 data.db
 data/db/*

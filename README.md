@@ -50,7 +50,7 @@ User roles:
 
 ## Hosting
 
-The bot is hosted on a VPS located at gateway.hackem.cc. The service, embassy-api is hosted on the le-fail space computer by the window on the first floor and it helps bot to communicate with internal systems of the space, such as 3D printers, routers, cameras, doorbells, sensors, etc.. If you need any help with deployment, CI/CD or a test bot token, reach out to @tectonick and @Himura2la. You can also create your own test bot using the BotFather bot in Telegram.
+The bot is hosted on a VPS located at gateway.hackem.cc. The service, embassy-api, is hosted on two devices on the first floor; both are load-balanced, and one of them has backup power. The service helps bot to communicate with internal systems of the space, such as 3D printers, routers, cameras, doorbells, sensors, etc. If you need any help with deployment, CI/CD or a test bot token, reach out to @tectonick and @Himura2la. You can also create your own test bot using the BotFather bot in Telegram.
 
 ## Dependencies
 
@@ -95,8 +95,19 @@ scripts - scripts for automating some dev manipulations
 bot.ts - bot start file  
 embassy.ts - start file of the internal space service
 
-## Environment variables needed
+## Configuration
 
+### General configuration
+Configuration files are present in the config folder. To customize the default supported configuration present in default.json, you should create a new file named local.json. Check schema.d.ts for type reference.
+Hacker Embassy specific features can be disabled in the bot:features section.
+
+### Translations
+If you want to serve your own translations, you should create translation.local.yaml files in the respective folders in /resources/locales. They will take priority over default translation.yaml files.
+
+### Space api
+If you want this bot to serve SpaceApi, you can create your own spaceapi template. Create config/spaceapi.local.json with your own values. Check config/spaceapi.json for reference, which is going to be used if the local version is not provided.
+
+### Environment variables needed
 HACKERBOTTOKEN - Telegram API token  
 UNLOCKKEY - Key for secure integrations between Bot and embassy API  
 GUESTKEY - Key for trusted integrations
@@ -113,12 +124,11 @@ HACKERGOOGLEAPIKEY - Google Calendar API token
 OPENAIAPIKEY - OpenAI API token  
 SONAR_TOKEN - Sonar Cloud analysis token  
 
-## Additional notes
+You can use a .env file in the root folder for development. Check the .env.example file for reference.
+
+### Additional notes
 
 To interact between the bot and the service, you will need to have "sec" folder with rsa keys in the pub.key and priv.key files.
 Also, the UNLOCKKEY environment variable must be the same on the bot and on the service.
 Check the port settings in the config folder.
 For local development, it is better to create your own configuration in the config/local.json file
-
-## Space api
-If you want this bot to serve SpaceApi, you can create your own spaceapi template. Create config/spaceapi.local.json with your own values. Check config/spaceapi.json for reference, which is going to be used if the local version is not provided.

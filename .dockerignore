@@ -10,5 +10,7 @@ log
 
 !config/default.json
 !config/spaceapi.json
+!config/local.json
+!config/spaceapi.local.json
 !config/schema.d.ts
 !deploy/entrypoint.sh

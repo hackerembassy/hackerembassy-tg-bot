@@ -32,6 +32,9 @@ use(Backend).init({
     supportedLngs: SUPPORTED_LANGUAGES,
     preload: SUPPORTED_LANGUAGES,
     fallbackLng: DEFAULT_LANGUAGE,
+    ns: ["translation", "translation.local"],
+    defaultNS: "translation.local",
+    fallbackNS: "translation",
     interpolation: {
         escapeValue: false,
     },

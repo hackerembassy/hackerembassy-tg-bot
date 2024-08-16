@@ -181,7 +181,6 @@ export default class StatusHandlers implements BotHandlers {
     ) {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = StatusRepository.getSpaceLastState();
-        if (!state) return;
 
         const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
         const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
@@ -226,11 +225,6 @@ export default class StatusHandlers implements BotHandlers {
 
         const state = StatusRepository.getSpaceLastState();
         const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
-
-        if (!state) {
-            bot.sendMessageExt(msg.chat.id, t("status.status.undefined"), msg);
-            return;
-        }
 
         const statusMessage = StatusHandlers.getStatusMessage(state, recentUserStates, mode, short);
         const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(bot, msg, state, short);
@@ -295,7 +289,7 @@ export default class StatusHandlers implements BotHandlers {
             const user = bot.context(msg).user;
 
             const prompt = t("status.shouldigo.prompt", {
-                state: state?.open || user.roles?.includes("member") ? t("status.status.opened") : t("status.status.closed"),
+                state: state.open || user.roles?.includes("member") ? t("status.status.opened") : t("status.status.closed"),
                 going: going.length ? going.map(u => u.user.username).join(", ") : 0,
                 inside: inside.length ? inside.map(u => u.user.username).join(", ") : 0,
             });
@@ -462,7 +456,7 @@ export default class StatusHandlers implements BotHandlers {
         // check that space is open
         const state = StatusRepository.getSpaceLastState();
 
-        if (!state?.open && !user.roles?.includes("member") && !force) return false;
+        if (!state.open && !user.roles?.includes("member") && !force) return false;
 
         const userstate = {
             status: ghost ? UserStateType.InsideSecret : UserStateType.Inside,

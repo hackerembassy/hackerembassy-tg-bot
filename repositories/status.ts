@@ -2,19 +2,22 @@ import { desc, between, and, eq } from "drizzle-orm";
 
 import { State, UserState } from "@data/models";
 import { states, userstates } from "@data/schema";
+import { DefaultState } from "@data/seed";
 
 import BaseRepository from "./base";
 
 class StatusRepository extends BaseRepository {
     getSpaceLastState() {
-        return this.db.query.states
-            .findFirst({
-                orderBy: desc(states.date),
-                with: {
-                    changer: true,
-                },
-            })
-            .sync();
+        return (
+            this.db.query.states
+                .findFirst({
+                    orderBy: desc(states.date),
+                    with: {
+                        changer: true,
+                    },
+                })
+                .sync() ?? DefaultState
+        );
     }
 
     getAllUserStates() {

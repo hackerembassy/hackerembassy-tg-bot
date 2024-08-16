@@ -99,26 +99,24 @@ router.get("/status", async (_, res) => {
     const state = StatusRepository.getSpaceLastState();
     let content = `🔐 Статус спейса неопределен`;
 
-    if (state) {
-        const allUserStates = UserStateService.getRecentUserStates();
-        const inside = allUserStates.filter(filterPeopleInside);
-        const going = allUserStates.filter(filterPeopleGoing);
-        const climateResponse = await requestToEmbassy(`/climate`);
-        const climateInfo = (await climateResponse.json()) as SpaceClimate;
+    const allUserStates = UserStateService.getRecentUserStates();
+    const inside = allUserStates.filter(filterPeopleInside);
+    const going = allUserStates.filter(filterPeopleGoing);
+    const climateResponse = await requestToEmbassy(`/climate`);
+    const climateInfo = (await climateResponse.json()) as SpaceClimate;
 
-        content = TextGenerators.getStatusMessage(
-            state,
-            inside,
-            going,
-            climateInfo,
-            { mention: true },
-            {
-                short: false,
-                withSecrets: false,
-                isApi: true,
-            }
-        );
-    }
+    content = TextGenerators.getStatusMessage(
+        state,
+        inside,
+        going,
+        climateInfo,
+        { mention: true },
+        {
+            short: false,
+            withSecrets: false,
+            isApi: true,
+        }
+    );
 
     res.send(stripCustomMarkup(content));
 });

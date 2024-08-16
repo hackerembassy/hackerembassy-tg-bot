@@ -58,7 +58,7 @@ Node v20.10.0
 All main dependencies in the cloud and internal service are installed using npm i
 [Deprecated] To convert the doorcam stream to jpg, you need to install ffmpeg on the bot service and add it to PATH.
 
-## Local deployment:
+## Local deployment
 
 1. Install nodejs version 20+
 2. Go to the cloned repository folder
@@ -73,6 +73,14 @@ All main dependencies in the cloud and internal service are installed using npm 
    npm run dev-both - bot and service at the same time
 7. To run tests
    npm run test
+
+## Running bot in production mode
+### Direct way
+1. npm run build
+2. npm run start
+### Docker way
+1. docker compose build bot
+2. docker-compose up
 
 ## Main files
 

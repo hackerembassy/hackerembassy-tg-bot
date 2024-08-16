@@ -5,8 +5,11 @@ services:
             context: "."
             dockerfile: ./deploy/Containerfile
         volumes:
-            - data:/app/data
+            - config:/app/config/sec
+            - db:/app/data/db
+            - logs:/app/log
         environment:
+            - NODE_ENV=production
             - BOTDEBUG=true
             - HACKERBOTTOKEN=$HACKERBOTTOKEN
             - UNLOCKKEY=$UNLOCKKEY
@@ -14,6 +17,12 @@ services:
             - HACKERGOOGLEAPIKEY=$HACKERGOOGLEAPIKEY
             - OPENAIAPIKEY=$OPENAIAPIKEY
             - WIKIAPIKEY=$WIKIAPIKEY
+        ports:
+            - "3000:3000"
 volumes:
-    data:
-        name: "hackerembassy-bot-data"
+    config:
+        name: "hackerembassy-tg-config"
+    db:
+        name: "hackerembassy-tg-bot-db"
+    logs:
+        name: "hackerembassy-tg-bot-logs"

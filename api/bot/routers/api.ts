@@ -47,11 +47,6 @@ router.get("/space", (_, res) => {
             error: "SpaceApi template is not defined",
         });
 
-    if (!status)
-        return res.status(500).json({
-            error: "Status is not defined",
-        });
-
     return res.json({
         ...spaceApiTemplate,
         state: {
@@ -67,11 +62,6 @@ router.get("/space", (_, res) => {
 
 router.get("/status", hassTokenOptional, (req, res) => {
     const status = StatusRepository.getSpaceLastState();
-
-    if (!status)
-        return res.status(500).json({
-            error: "Status is not defined",
-        });
 
     const recentUserStates = UserStateService.getRecentUserStates();
 

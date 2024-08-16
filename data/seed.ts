@@ -1,7 +1,7 @@
-import { User } from "./models";
+import { StateEx, User } from "./models";
 import { AutoInsideMode } from "./types";
 
-export const DefaultUser = {
+export const DefaultUser: User = {
     userid: 0,
     username: null,
     first_name: null,
@@ -58,6 +58,14 @@ export const TEST_USERS = {
         userid: 12,
         username: "guest",
     },
+};
+
+export const DefaultState: StateEx = {
+    id: 0,
+    open: 0,
+    date: 0,
+    changer_id: 0,
+    changer: SERVICE_USERS.anon,
 };
 
 export const SEED_SERVICE_USERS: User[] = [SERVICE_USERS.anon, SERVICE_USERS.paid, SERVICE_USERS.safe, SERVICE_USERS.hass];

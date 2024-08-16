@@ -47,3 +47,12 @@ export async function downloadTmpFile(url: string, postfix: string) {
 
     return { tmpPath, cleanup };
 }
+
+export function readFirstExistingFile(...files: string[]): string | null {
+    for (const file of files) {
+        if (fs.existsSync(file)) {
+            return fs.readFileSync(file, "utf-8");
+        }
+    }
+    return null;
+}

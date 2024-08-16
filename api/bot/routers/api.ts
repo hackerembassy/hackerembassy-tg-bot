@@ -1,7 +1,5 @@
 import { Router } from "express";
 
-import { State, User, UserState } from "@data/models";
-
 import StatusHandlers from "@hackembot/handlers/status";
 import FundsRepository from "@repositories/funds";
 import StatusRepository from "@repositories/status";
@@ -19,6 +17,18 @@ import {
 import wiki from "@services/wiki";
 import { createTokenSecuredMiddleware } from "@utils/middleware";
 import { SERVICE_USERS } from "@data/seed";
+import { readFirstExistingFile } from "@utils/filesystem";
+
+function loadSpaceApiTemplate() {
+    try {
+        const spaceApiFile = readFirstExistingFile("./config/spaceapi.local.json", "./config/spaceapi.json");
+
+        return spaceApiFile ? (JSON.parse(spaceApiFile) as object) : undefined;
+    } catch (error) {
+        logger.error(error);
+        return undefined;
+    }
+}
 
 const router = Router();
 
@@ -26,73 +36,33 @@ const hassTokenRequired = createTokenSecuredMiddleware(logger, process.env["UNLO
 const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"], true);
 const guestTokenRequired = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
 
-const createSpaceApiResponse = (status: State & { changer: User }, inside: UserState[]) => ({
-    api: "0.13",
-    api_compatibility: ["14"],
-    space: "Hacker Embassy",
-    logo: "https://gateway.hackem.cc/static/hackemlogo.jpg",
-    url: "https://hackem.cc/",
-    location: {
-        address: "Pushkina str. 38/18, Yerevan, Armenia",
-        lon: 44.51338,
-        lat: 40.18258,
-        timezone: "Asia/Yerevan",
-    },
-    contact: {
-        email: "hacker.embassy@proton.me",
-        matrix: "#hacker-embassy:matrix.org",
-        telegram: "@hacker_embassy",
-    },
-    issue_report_channels: ["email"],
-    state: {
-        open: !!status.open,
-        message: status.open ? "open for public" : "closed for public",
-        trigger_person: status.changer.username,
-    },
-    sensors: {
-        people_now_present: [{ value: inside.length }],
-    },
-    projects: ["https://github.com/hackerembassy"],
-    feeds: {
-        calendar: {
-            type: "ical",
-            url: "https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics",
-        },
-    },
-    links: [
-        {
-            name: "Wiki",
-            url: "https://lore.hackem.cc/",
-        },
-        {
-            name: "Status of public services",
-            url: "https://uptime.hackem.cc/status/external",
-        },
-        {
-            name: "Instagram",
-            url: "https://www.instagram.com/hackerembassy",
-        },
-    ],
-    membership_plans: [
-        {
-            name: "Membership",
-            value: 100,
-            currency: "USD",
-            billing_interval: "monthly",
-        },
-    ],
-});
+const spaceApiTemplate = loadSpaceApiTemplate();
 
 router.get("/space", (_, res) => {
     const status = StatusRepository.getSpaceLastState();
     const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
+
+    if (!spaceApiTemplate)
+        return res.status(500).json({
+            error: "SpaceApi template is not defined",
+        });
 
     if (!status)
         return res.status(500).json({
             error: "Status is not defined",
         });
 
-    return res.json(createSpaceApiResponse(status, inside));
+    return res.json({
+        ...spaceApiTemplate,
+        state: {
+            open: !!status.open,
+            message: status.open ? "open for public" : "closed for public",
+            trigger_person: status.changer.username,
+        },
+        sensors: {
+            people_now_present: [{ value: inside.length }],
+        },
+    });
 });
 
 router.get("/status", hassTokenOptional, (req, res) => {

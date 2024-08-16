@@ -119,3 +119,6 @@ To interact between the bot and the service, you will need to have "sec" folder 
 Also, the UNLOCKKEY environment variable must be the same on the bot and on the service.
 Check the port settings in the config folder.
 For local development, it is better to create your own configuration in the config/local.json file
+
+## Space api
+If you want this bot to serve SpaceApi, you can create your own spaceapi template. Create config/spaceapi.local.json with your own values. Check config/spaceapi.json for reference, which is going to be used if the local version is not provided.

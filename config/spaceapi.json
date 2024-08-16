@@ -1,0 +1,56 @@
+{
+    "api": "0.13",
+    "api_compatibility": ["14"],
+    "space": "Hacker Embassy",
+    "logo": "https://gateway.hackem.cc/static/hackemlogo.jpg",
+    "url": "https://hackem.cc/",
+    "location": {
+        "address": "Pushkina str. 38/18, Yerevan, Armenia",
+        "lon": 44.51338,
+        "lat": 40.18258,
+        "timezone": "Asia/Yerevan"
+    },
+    "contact": {
+        "email": "hacker.embassy@proton.me",
+        "matrix": "#hacker-embassy:matrix.org",
+        "telegram": "@hacker_embassy"
+    },
+    "issue_report_channels": ["email"],
+    "state": {
+        "open": "unknown",
+        "message": "unknown",
+        "trigger_person": "unknown"
+    },
+    "sensors": {
+        "people_now_present": 0
+    },
+    "projects": ["https://github.com/hackerembassy"],
+    "feeds": {
+        "calendar": {
+            "type": "ical",
+            "url": "https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics"
+        }
+    },
+    "links": [
+        {
+            "name": "Wiki",
+            "url": "https://lore.hackem.cc/"
+        },
+        {
+            "name": "Status of public services",
+            "url": "https://uptime.hackem.cc/status/external"
+        },
+        {
+            "name": "Instagram",
+            "url": "https://www.instagram.com/hackerembassy"
+        }
+    ],
+    "membership_plans": [
+        {
+            "name": "Membership",
+            "value": 100,
+            "currency": "USD",
+            "billing_interval": "monthly"
+        }
+    ]
+}

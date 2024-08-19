@@ -128,12 +128,6 @@ basic:
         🧙🏻‍♂️ Contact any Space resident, he will present your candidacy to the Space Council.
     events:
         text: |
-            🗓You can follow our events on the calendar
-            {{calendarLink}}
-            Sign up with a plus sign ➕ at the bottom of the page or take {{iCalLink}}
-            Or even open the calendar directly in the cart {{openCalendarInTelegram}}
-            Upcoming events can be found by the command /upcoming, today's events - by the command /today
-
             🎭 What's happening here:
             - Master classes and presentations on various topics from 3D printing, modeling and soldering to neural networks, theorem proving algorithms and shibari. We will announce the date in advance in the chat.
             - We often hold musical meetings on Mondays at 21.00: we bring guitars, play Rocksmith and jam.
@@ -141,7 +135,12 @@ basic:
             - On any other day, the space can also receive guests, see the space status to find out more.
 
             💸 Visits are free (free), but any donations to help our projects and rentals are very welcome.
-            More details can be found using the command {{donateCommand}}
+        calendar: |
+            🗓You can follow our events on the calendar
+            {{calendarLink}}
+            Sign up with a plus sign ➕ at the bottom of the page or take {{iCalLink}}
+            Or even open the calendar directly in the cart {{openCalendarInTelegram}}
+            Upcoming events can be found by the command /upcoming, today's events - by the command /today
         buttons:
             today: 📣 Today
             upcoming: 📆 Upcoming
@@ -151,7 +150,7 @@ basic:
         today: |
             📣 Today the following events are taking place in the space:
         entrance: |
-            🎁 Admission is free as always, but we will welcome any donations to support the space. See /donate for more information.
+            🎁 Admission is free as always, but we will welcome any donations to support the space.
         notoday: |
             🏖 There are no planned events on Space today.
 

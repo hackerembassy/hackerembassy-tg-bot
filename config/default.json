@@ -57,17 +57,22 @@
             "welcome": true,
             "antispam": true,
             "embassy": true,
-            "ai": true
+            "ai": true,
+            "calendar": true
         },
         "moderatedChats": [-1001605898533],
         "debug": false
     },
     "api": {
         "port": 3000,
-        "static": "resources/static"
+        "static": "resources/static",
+        "features": {
+            "calendar": true
+        }
     },
     "calendar": {
         "url": "https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan&hl=en",
+        "ical": "https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics",
         "defaultRequestAmount": 5
     },
     "logger": {

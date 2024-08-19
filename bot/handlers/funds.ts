@@ -237,7 +237,7 @@ export default class FundsHandlers implements BotHandlers {
             FundsRepository.addDonationTo(fund.id, user.userid, value, accountant.userid, preparedCurrency);
         const text = success
             ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
-                  username: helpers.formatUsername(sponsorName, bot.context(msg).mode),
+                  username: helpers.formatUsername(sponsorName),
                   value,
                   currency: preparedCurrency,
                   fundName,
@@ -349,7 +349,7 @@ export default class FundsHandlers implements BotHandlers {
 
                 resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${helpers.formatUsername(
                     resident.username,
-                    bot.context(msg).mode
+                    bot.context(msg).mode.mention
                 )}\n`;
             }
         }

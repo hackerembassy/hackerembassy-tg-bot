@@ -82,7 +82,7 @@ export default class EmbassyHandlers implements BotHandlers {
         try {
             await bot.sendMessageExt(
                 botConfig.chats.alerts,
-                t("embassy.unlock.success-alert", { user: helpers.formatUsername(username, { mention: false }) }),
+                t("embassy.unlock.success-alert", { user: helpers.formatUsername(username) }),
                 null
             );
         } catch (error) {

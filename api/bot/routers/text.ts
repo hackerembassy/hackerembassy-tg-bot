@@ -1,4 +1,5 @@
 import { Router } from "express";
+import config from "config";
 
 import * as TextGenerators from "@hackembot/textGenerators";
 import { stripCustomMarkup } from "@hackembot/core/helpers";
@@ -7,9 +8,12 @@ import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 import FundsRepository from "@repositories/funds";
 import { requestToEmbassy } from "@services/embassy";
-import { getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
+import { getClosestEventsFromCalendar, getTodayEvents, getTodayEventsCached } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
 import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/status";
+
+import { BotApiConfig } from "@config";
+const apiConfig = config.get<BotApiConfig>("api");
 
 const router = Router();
 
@@ -39,6 +43,9 @@ const ApiTextCommandsList = [
         description: "Мероприятия у нас",
         regex: "^events$",
     },
+];
+
+const ApiCalendarCommandsList = [
     {
         command: "upcoming",
         description: "Ближайшие мероприятия",
@@ -52,7 +59,7 @@ const ApiTextCommandsList = [
 ];
 
 router.get("/", (_, res) => {
-    res.json(ApiTextCommandsList);
+    res.json(apiConfig.features.calendar ? { ...ApiTextCommandsList, ...ApiCalendarCommandsList } : ApiTextCommandsList);
 });
 
 router.get("/join", (_, res) => {
@@ -61,20 +68,22 @@ router.get("/join", (_, res) => {
 });
 
 router.get("/events", (_, res) => {
-    const message = TextGenerators.getEventsText(true);
+    const message = TextGenerators.getEventsText(apiConfig.features.calendar, undefined, true);
     res.send(message);
 });
 
-router.get("/upcoming", async (_, res) => {
-    const events = await getClosestEventsFromCalendar();
-    const messageText = TextGenerators.getEventsList(events);
-    res.send(messageText);
-});
+if (apiConfig.features.calendar) {
+    router.get("/upcoming", async (_, res) => {
+        const events = await getClosestEventsFromCalendar();
+        const messageText = TextGenerators.getEventsList(events);
+        res.send(messageText);
+    });
 
-router.get("/today", async (_, res) => {
-    const messageText = TextGenerators.getTodayEventsText(await getTodayEvents());
-    res.send(messageText);
-});
+    router.get("/today", async (_, res) => {
+        const messageText = TextGenerators.getTodayEventsText(await getTodayEventsCached());
+        res.send(messageText);
+    });
+}
 
 router.get("/funds", async (_, res) => {
     const funds = FundsRepository.getAllFunds().filter(p => p.status === "open");
@@ -104,19 +113,13 @@ router.get("/status", async (_, res) => {
     const going = allUserStates.filter(filterPeopleGoing);
     const climateResponse = await requestToEmbassy(`/climate`);
     const climateInfo = (await climateResponse.json()) as SpaceClimate;
+    const todayEvents = apiConfig.features.calendar ? await getTodayEvents() : null;
 
-    content = TextGenerators.getStatusMessage(
-        state,
-        inside,
-        going,
-        climateInfo,
-        { mention: true },
-        {
-            short: false,
-            withSecrets: false,
-            isApi: true,
-        }
-    );
+    content = TextGenerators.getStatusMessage(state, inside, going, todayEvents, climateInfo, {
+        short: false,
+        withSecrets: false,
+        isApi: true,
+    });
 
     res.send(stripCustomMarkup(content));
 });

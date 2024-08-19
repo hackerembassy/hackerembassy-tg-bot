@@ -86,30 +86,32 @@ export default class BasicHandlers implements BotHandlers {
     }
 
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const calendarAppLink = `${bot.url}/calendar`;
-        const message = TextGenerators.getEventsText(false, calendarAppLink);
+        const message = TextGenerators.getEventsText(botConfig.features.calendar, `${bot.url}/calendar`);
 
         const defaultInlineKeyboard = [
-            [
-                AnnoyingInlineButton(bot, msg, t("basic.events.buttons.today"), "today", ButtonFlags.Editing),
-                AnnoyingInlineButton(bot, msg, t("basic.events.buttons.upcoming"), "upcoming", ButtonFlags.Editing),
-            ],
+            botConfig.features.calendar
+                ? [
+                      AnnoyingInlineButton(bot, msg, t("basic.events.buttons.today"), "today", ButtonFlags.Editing),
+                      AnnoyingInlineButton(bot, msg, t("basic.events.buttons.upcoming"), "upcoming", ButtonFlags.Editing),
+                  ]
+                : [],
             [AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
-        const inline_keyboard = bot.context(msg).isPrivate()
-            ? [
-                  [
-                      {
-                          text: t("basic.events.opencalendar"),
-                          web_app: {
-                              url: calendarUrl,
+        const inline_keyboard =
+            bot.context(msg).isPrivate() && botConfig.features.calendar
+                ? [
+                      [
+                          {
+                              text: t("basic.events.opencalendar"),
+                              web_app: {
+                                  url: calendarUrl,
+                              },
                           },
-                      },
-                  ],
-                  ...defaultInlineKeyboard,
-              ]
-            : defaultInlineKeyboard;
+                      ],
+                      ...defaultInlineKeyboard,
+                  ]
+                : defaultInlineKeyboard;
 
         await bot.sendOrEditMessage(
             msg.chat.id,
@@ -383,7 +385,10 @@ export default class BasicHandlers implements BotHandlers {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
         const inline_keyboard = [
-            [AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing)],
+            [
+                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
+                AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing),
+            ],
         ];
 
         try {
@@ -411,7 +416,10 @@ export default class BasicHandlers implements BotHandlers {
         let messageText: string = "";
 
         const inline_keyboard = [
-            [AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing)],
+            [
+                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
+                AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing),
+            ],
         ];
 
         try {

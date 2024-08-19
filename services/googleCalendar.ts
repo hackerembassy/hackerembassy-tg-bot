@@ -2,8 +2,9 @@ import config from "config";
 import { DateTime } from "luxon";
 import fetch from "node-fetch";
 import { RRuleSet, rrulestr } from "rrule";
+import memoize from "memoizee";
 
-import { getToday } from "@utils/date";
+import { getToday, MINUTE } from "@utils/date";
 import { CalendarConfig } from "@config";
 
 import logger from "./logger";
@@ -166,3 +167,5 @@ export async function getTodayEvents(): Promise<HSEvent[]> {
 
     return events.filter(e => e.start < tomorrowDate);
 }
+
+export const getTodayEventsCached = memoize(getTodayEvents, { maxAge: MINUTE, promise: true });

@@ -11,14 +11,14 @@ export function OptionalParam(paramregex: RegExp) {
     return new OptionalRegExp(`(?: ${paramregex.source})?`, paramregex.flags);
 }
 
-export function formatUsername(username: Optional<string>, mode = { mention: false }, isApi = false): string {
+export function formatUsername(username: Optional<string>, mention = false, isApi = false): string {
     if (!username) return "[No username provided]";
 
     username = username.replace("@", "");
 
     if (isApi) return `@${username}`;
 
-    if (mode.mention) return `@${username}`.replaceAll("_", "\\_");
+    if (mention) return `@${username}`.replaceAll("_", "\\_");
     else return `#[${username}#]#(t.me/${username}#)`;
 }
 

@@ -63,7 +63,7 @@ export default class MemeHandlers implements BotHandlers {
 
         if (!extractedTarget) return bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
 
-        const target = formatUsername(extractedTarget, { mention: true });
+        const target = formatUsername(extractedTarget, true);
         const caption = t("meme.slap.user", {
             from: userLink(sender),
             target,

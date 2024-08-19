@@ -179,7 +179,7 @@ export default class AdminHandlers implements BotHandlers {
 
         const success = UsersRepository.updateRoles(user.userid, roles);
         const text = success
-            ? t("admin.updateRoles.success", { username: helpers.formatUsername(username, bot.context(msg).mode), roles })
+            ? t("admin.updateRoles.success", { username: helpers.formatUsername(username), roles })
             : t("admin.updateRoles.fail");
 
         return bot.sendMessageExt(msg.chat.id, text, msg);
@@ -199,7 +199,7 @@ export default class AdminHandlers implements BotHandlers {
 
         const success = UsersRepository.removeUserByUsername(username);
         const text = success
-            ? t("admin.removeUser.success", { username: helpers.formatUsername(username, bot.context(msg).mode) })
+            ? t("admin.removeUser.success", { username: helpers.formatUsername(username) })
             : t("admin.removeUser.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);

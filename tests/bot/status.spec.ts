@@ -22,18 +22,6 @@ describe("Bot Status commands:", () => {
         ]);
     });
 
-    test("/status should mention people inside if -mention key is used", async () => {
-        await mockBot.processUpdate(createMockMessage("/open", TEST_USERS.admin));
-        await mockBot.processUpdate(createMockMessage("/in", TEST_USERS.admin));
-        await mockBot.processUpdate(createMockMessage("/status -mention"));
-
-        expect(mockBot.popResults()).toEqual([
-            "status\\.open",
-            "status\\.in\\.gotin\n\nstatus\\.in\\.tryautoinside",
-            "status\\.status\\.state\nstatus\\.status\\.insidechecked@admin 🔑📒\n\n\x1astatus\\.status\\.updated",
-        ]);
-    });
-
     test("/out and /outforce should allow to leave anyone no matter if the space is opened or closed ", async () => {
         await mockBot.processUpdate(createMockMessage("/close", TEST_USERS.admin));
         await mockBot.processUpdate(createMockMessage("/in", TEST_USERS.admin));

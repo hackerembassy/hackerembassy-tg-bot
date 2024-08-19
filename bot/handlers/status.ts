@@ -26,8 +26,9 @@ import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
 
 import { State, StateEx, User, UserStateEx } from "data/models";
-
 import { UserStateType, UserStateChangeType, AutoInsideMode } from "data/types";
+
+import { getTodayEventsCached, HSEvent } from "@services/googleCalendar";
 
 import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
@@ -121,13 +122,14 @@ export default class StatusHandlers implements BotHandlers {
         recentUserStates: UserStateEx[],
         mode: BotMessageContextMode,
         short: boolean,
+        todayEvents: Nullable<HSEvent[]> = null,
         climateInfo: Nullable<SpaceClimate> = null,
         withSecretData: boolean = false
     ) {
         const inside = recentUserStates.filter(mode.secret ? filterAllPeopleInside : filterPeopleInside);
         const going = recentUserStates.filter(filterPeopleGoing);
 
-        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, climateInfo, mode, {
+        let statusMessage = TextGenerators.getStatusMessage(state, inside, going, todayEvents, climateInfo, {
             short,
             withSecrets: withSecretData,
             isApi: false,
@@ -184,6 +186,8 @@ export default class StatusHandlers implements BotHandlers {
 
         const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
         const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+        const todayEvents = botConfig.features.calendar ? await getTodayEventsCached() : null;
+
         bot.context(resultMessage).language = language;
 
         const statusMessage = StatusHandlers.getStatusMessage(
@@ -191,6 +195,7 @@ export default class StatusHandlers implements BotHandlers {
             recentUserStates,
             mode,
             short,
+            todayEvents,
             climateInfo,
             resultMessage.chat.id === botConfig.chats.horny
         );
@@ -225,8 +230,9 @@ export default class StatusHandlers implements BotHandlers {
 
         const state = StatusRepository.getSpaceLastState();
         const recentUserStates = bot.botState.flags.hideGuests && !mode.secret ? [] : UserStateService.getRecentUserStates();
+        const todayEvents = botConfig.features.calendar ? await getTodayEventsCached() : null;
 
-        const statusMessage = StatusHandlers.getStatusMessage(state, recentUserStates, mode, short);
+        const statusMessage = StatusHandlers.getStatusMessage(state, recentUserStates, mode, short, todayEvents);
         const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(bot, msg, state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
@@ -315,16 +321,11 @@ export default class StatusHandlers implements BotHandlers {
             [AnnoyingInlineButton(bot, msg, t("status.buttons.whoelse"), "status")],
         ];
 
-        await bot.sendMessageExt(
-            msg.chat.id,
-            t("status.open", { username: helpers.formatUsername(msg.from?.username, bot.context(msg).mode) }),
-            msg,
-            {
-                reply_markup: {
-                    inline_keyboard,
-                },
-            }
-        );
+        await bot.sendMessageExt(msg.chat.id, t("status.open", { username: helpers.formatUsername(msg.from?.username) }), msg, {
+            reply_markup: {
+                inline_keyboard,
+            },
+        });
     }
 
     static async openedNotificationHandler(bot: HackerEmbassyBot, state: StateEx) {

@@ -31,12 +31,13 @@ export interface BotConfig {
     reminders: RemindersConfig;
     debug: boolean;
     moderatedChats: number[];
-    features: FeaturesConfig;
+    features: BotFeaturesConfig;
 }
 
 export interface BotApiConfig {
     port: number;
     static: string;
+    features: ApiFeaturesConfig;
 }
 
 export interface LoggerConfig {
@@ -76,7 +77,7 @@ export interface UtilityReminder {
     warning: string;
 }
 
-export interface FeaturesConfig {
+export interface BotFeaturesConfig {
     reminders: boolean;
     autoinside: boolean;
     outage: boolean;
@@ -85,14 +86,20 @@ export interface FeaturesConfig {
     welcome: boolean;
     reactions: boolean;
     ai: boolean;
+    calendar: boolean;
     /** Welcome feature and bot admin rights in the chat are required for antispam */
     antispam: boolean;
     /** Integration with Yerevan Hacker Embassy infra and space-specific commands */
     embassy: boolean;
 }
 
+export interface ApiFeaturesConfig {
+    calendar: boolean;
+}
+
 export interface CalendarConfig {
     url: string;
+    ical: string;
     defaultRequestAmount: number;
 }
 

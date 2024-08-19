@@ -1,6 +1,6 @@
 import config from "config";
 
-import { PrintersConfig } from "@config";
+import { PrintersConfig, CalendarConfig } from "@config";
 import { Coins, formatValueForCurrency, sumDonations } from "@services/currency";
 import { HSEvent } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
@@ -15,7 +15,7 @@ import {
     shortDateTimeOptions,
 } from "@utils/date";
 import { REPLACE_MARKER } from "@utils/text";
-import { Fund, Need, Topic, User, UserStateEx, DonationEx } from "data/models";
+import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 import { UserVisit } from "@services/status";
 
@@ -24,6 +24,7 @@ import { BotMessageContextMode } from "./core/types";
 import { effectiveName, formatUsername, toEscapedTelegramMarkdown, userLink } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
+const calendarConfig = config.get<CalendarConfig>("calendar");
 
 type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boolean };
 
@@ -114,69 +115,87 @@ export function generateDonationsList(
     for (const donation of donations) {
         donationList += `      ${options.showAdmin ? `[id:${donation.id}] - ` : ""}${formatUsername(
             donation.user.username,
-            mode,
+            mode.mention,
             options.isApi
         )} - ${formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${
-            options.showAdmin ? ` ➡️ ${formatUsername(donation.accountant.username, mode, options.isApi)}` : ""
+            options.showAdmin ? ` ➡️ ${formatUsername(donation.accountant.username, mode.mention, options.isApi)}` : ""
         }\n`;
     }
 
     return donationList;
 }
 
+export function getTodayEventsShortText(todayEvents: HSEvent[], short: boolean = false): string {
+    const eventsHeader = !short ? t("basic.events.todaysimple") : "";
+    const eventsList = getEventsList(todayEvents, true);
+
+    return `${eventsHeader}${eventsList}`;
+}
+
+export function getStatusHeader(state: StateEx, short: boolean = false, isApi: boolean = false): string {
+    return t(short ? "status.status.state_pin" : "status.status.state", {
+        stateEmoji: state.open ? "🔓" : "🔒",
+        state: state.open ? t("status.status.opened") : t("status.status.closed"),
+        stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
+        changedBy: isApi ? formatUsername(state.changer.username, false, isApi) : userLink(state.changer),
+    });
+}
+
+export function getShortStatus(inside: UserStateEx[], going: UserStateEx[]) {
+    const insideText =
+        inside.length > 0 ? t("status.status.insidechecked_pin", { count: inside.length }) : t("status.status.nooneinside_pin");
+    const goingText = going.length > 0 ? `${t("status.status.going_pin", { count: going.length })}` : "";
+
+    return `${insideText}  ${goingText}\n`;
+}
+
 export function getStatusMessage(
-    state: { open: number; changer: User },
+    state: StateEx,
     inside: UserStateEx[],
     going: UserStateEx[],
+    todayEvents: Nullable<HSEvent[]>,
     climateInfo: Nullable<SpaceClimate>,
-    mode: { mention: boolean },
     options: {
         short: boolean;
         withSecrets: boolean;
         isApi: boolean;
     }
 ): string {
-    let stateText = t(options.short ? "status.status.state_pin" : "status.status.state", {
-        stateEmoji: state.open ? "🔓" : "🔒",
-        state: state.open ? t("status.status.opened") : t("status.status.closed"),
-        stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
-        changedBy: options.isApi ? formatUsername(state.changer.username, mode, options.isApi) : userLink(state.changer),
-    });
-
-    if (options.short) {
-        stateText += "  ";
-        stateText +=
-            inside.length > 0
-                ? t("status.status.insidechecked_pin", { count: inside.length })
-                : t("status.status.nooneinside_pin");
-        stateText += "  ";
-        stateText += going.length > 0 ? `${t("status.status.going_pin", { count: going.length })}` : "";
-        stateText += "\n ";
-    }
+    // Status header
+    let stateText = getStatusHeader(state, options.short, options.isApi);
+    stateText += options.short ? `  ${getShortStatus(inside, going)}` : "";
+    stateText += todayEvents && todayEvents.length > 0 ? `\n${getTodayEventsShortText(todayEvents, options.short)}\n` : "";
     stateText += "\n";
+
+    // People inside
     stateText +=
         inside.length > 0 ? t("status.status.insidechecked", { count: inside.length }) : t("status.status.nooneinside") + "\n";
     for (const userStatus of inside) {
         // TODO rework this
         const name = userStatus.user.username
-            ? formatUsername(userStatus.user.username, mode, options.isApi)
+            ? formatUsername(userStatus.user.username, false, options.isApi)
             : userStatus.user.first_name;
         stateText += `${name} ${getUserBadgesWithStatus(userStatus)}\n`;
     }
+
+    // People going
     stateText += going.length > 0 ? `\n${t("status.status.going", { count: going.length })}` : "";
     for (const userStatus of going) {
         const name = userStatus.user.username
-            ? formatUsername(userStatus.user.username, mode, options.isApi)
+            ? formatUsername(userStatus.user.username, false, options.isApi)
             : userStatus.user.first_name;
         stateText += `${name} ${getUserBadges(userStatus.user)} ${userStatus.note ? `(${userStatus.note})` : ""}\n`;
     }
     stateText += "\n";
+
+    // Misc
     stateText += climateInfo ? getClimateMessage(climateInfo, options) : REPLACE_MARKER;
     stateText += !options.isApi
         ? t("status.status.updated", {
               updatedDate: new Date().toLocaleString("RU-ru").replace(",", "").substring(0, 21),
           })
         : "";
+
     return stateText;
 }
 
@@ -205,7 +224,9 @@ export function getUserBadgesWithStatus(userStatus: UserStateEx): string {
 }
 
 export function getAccountsList(accountants: Optional<User[]>, mode: { mention: boolean }, isApi = false): string {
-    return accountants ? accountants.reduce((list, user) => `${list}${formatUsername(user.username, mode, isApi)}  `, "") : "";
+    return accountants
+        ? accountants.reduce((list, user) => `${list}${formatUsername(user.username, mode.mention, isApi)}  `, "")
+        : "";
 }
 
 export function getResidentsList(residents: Optional<User[]>, mode: { mention: boolean }): string {
@@ -214,7 +235,7 @@ export function getResidentsList(residents: Optional<User[]>, mode: { mention: b
     if (!residents) return userList;
 
     for (const user of residents.toSorted((a, b) => a.username?.localeCompare(b.username ?? "") ?? 0)) {
-        userList += `- ${formatUsername(user.username, mode)} ${getUserBadges(user)}\n`;
+        userList += `- ${formatUsername(user.username, mode.mention)} ${getUserBadges(user)}\n`;
     }
 
     return t("basic.residents", { userList });
@@ -260,17 +281,18 @@ export function getJoinText(isApi: boolean = false): string {
     });
 }
 
-export function getEventsText(isApi: boolean = false, calendarAppLink: string | undefined = undefined): string {
-    return t("basic.events.text", {
-        calendarLink: isApi
-            ? "<a href='https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan'>Hacker Embassy Public Events</a>"
-            : "#[Hacker Embassy Public Events#]#(https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan#)",
-        iCalLink: isApi
-            ? "<a href='https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics'>iCal</a>"
-            : "#[iCal#]#(https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics#)",
-        donateCommand: `${!isApi ? "/" : ""}donate`,
-        openCalendarInTelegram: !isApi && calendarAppLink ? `#[Open in Telegram#]#(${calendarAppLink}#)` : "",
-    });
+export function getEventsText(includeCalendar: boolean, calendarAppLink?: string, isApi: boolean = false): string {
+    const calendarText = includeCalendar
+        ? t("basic.events.calendar", {
+              calendarLink: isApi
+                  ? `<a href='${calendarConfig.url}'>Hacker Embassy Public Events</a>`
+                  : `#[Hacker Embassy Public Events#]#(${calendarConfig.url}#)`,
+              iCalLink: isApi ? `<a href='${calendarConfig.ical}'>iCal</a>` : `#[iCal#]#(${calendarConfig.ical}#)`,
+              openCalendarInTelegram: calendarAppLink ? `#[Open in Telegram#]#(${calendarAppLink}#)` : "",
+          })
+        : "";
+
+    return `${calendarText}\n${t("basic.events.text")}`;
 }
 
 const shortMonthNames: string[] = [
@@ -312,7 +334,7 @@ export function getBirthdaysList(birthdayUsers: Nullable<User[]> | undefined, mo
             usersList = "";
             for (const user of usersWithBirthdayThisMonth) {
                 message += `${user.day} ${t(shortMonthNames[user.month - 1])} - ${
-                    user.username ? formatUsername(user.username, mode) : userLink(user)
+                    user.username ? formatUsername(user.username, mode.mention) : userLink(user)
                 }\n`;
             }
         }
@@ -394,23 +416,23 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
     return `${days} ${hours} ${minutes}`;
 }
 
-export function HSEventToString(event: HSEvent, timeOnly: boolean = false): string {
-    const dateTimeOptions = event.allDay ? onlyDateOptions : timeOnly ? onlyTimeOptions : shortDateTimeOptions;
+export function HSEventToString(event: HSEvent, short: boolean = false): string {
+    const dateTimeOptions = event.allDay ? onlyDateOptions : short ? onlyTimeOptions : shortDateTimeOptions;
     const eventStart = event.start.toLocaleString("RU-ru", dateTimeOptions);
     const eventEnd = event.end.toLocaleString("RU-ru", dateTimeOptions);
     const eventTime = event.allDay ? eventStart : `${eventStart} - ${eventEnd}`;
 
     let result = `${event.summary}: ${eventTime}`;
 
-    if (event.description) {
+    if (!short && event.description) {
         result += `\n${toEscapedTelegramMarkdown(event.description)}`;
     }
 
     return result;
 }
 
-export function getEventsList(events: HSEvent[]): string {
-    return events.map(event => HSEventToString(event)).join("\n\n");
+export function getEventsList(events: HSEvent[], short: boolean = false): string {
+    return events.map(event => HSEventToString(event, short)).join(short ? "\n" : "\n\n");
 }
 
 export function getTodayEventsText(todayEvents: HSEvent[]): string {
@@ -444,8 +466,8 @@ export function getInMessage(
 
     if (isSuccess) {
         const insidePart = t(force ? "status.inforce.gotin" : "status.in.gotin", {
-            username: formatUsername(usernameOrFirstname, mode),
-            memberusername: force ? formatUsername(inviter, mode) : undefined,
+            username: formatUsername(usernameOrFirstname, mode.mention),
+            memberusername: force ? formatUsername(inviter, mode.mention) : undefined,
         });
         const untilPart = until ? t("status.in.until", { until: until.toLocaleString() }) : "";
         const tryAutoInsidePart = !force ? "\n\n" + t("status.in.tryautoinside") : "";

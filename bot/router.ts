@@ -52,13 +52,15 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["donateequipment", "equipment"], BasicHandlers.donateEquipmentHandler);
 
     // Events
-    bot.addRoute(
-        ["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"],
-        BasicHandlers.upcomingEventsHandler,
-        OptionalParam(/(\d)/),
-        match => [match[1]]
-    );
-    bot.addRoute(["todayevents", "today", "te"], BasicHandlers.todayEventsHandler);
+    if (botConfig.features.calendar) {
+        bot.addRoute(
+            ["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"],
+            BasicHandlers.upcomingEventsHandler,
+            OptionalParam(/(\d)/),
+            match => [match[1]]
+        );
+        bot.addRoute(["todayevents", "today", "te"], BasicHandlers.todayEventsHandler);
+    }
 
     // Panels
     bot.addRoute(["start", "startpanel", "sp"], BasicHandlers.startPanelHandler, OptionalParam(/(.*)/), match => [match[1]]);

@@ -11,7 +11,8 @@
             "reactions": true,
             "welcome": true,
             "antispam": true,
-            "embassy": true
+            "embassy": true,
+            "calendar": false
         }
     },
     "embassy-api": {

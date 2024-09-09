@@ -31,7 +31,13 @@ import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
 import { OptionalRegExp, hasRole, prepareMessageForMarkdown, tgUserLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
-import { FULL_PERMISSIONS, IGNORE_UPDATE_TIMEOUT, MAX_MESSAGE_LENGTH, RESTRICTED_PERMISSIONS } from "./constants";
+import {
+    DEFAULT_TEMPORARY_MESSAGE_TIMEOUT,
+    FULL_PERMISSIONS,
+    IGNORE_UPDATE_TIMEOUT,
+    MAX_MESSAGE_LENGTH,
+    RESTRICTED_PERMISSIONS,
+} from "./constants";
 import MessageHistory from "./MessageHistory";
 import { RateLimiter, UserRateLimiter } from "./RateLimit";
 import {
@@ -121,8 +127,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         return this.contextMap.get(msg) ?? this.startContext(msg, UserService.prepareUser(msg.from as TelegramBot.User));
     }
 
-    startContext(msg: TelegramBot.Message, user: User) {
-        const newContext = new BotMessageContext(user, msg);
+    startContext(msg: TelegramBot.Message, user: User, command?: string) {
+        const newContext = new BotMessageContext(user, msg, command);
         this.contextMap.set(msg, newContext);
 
         return newContext;
@@ -366,6 +372,24 @@ export default class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(null);
     }
 
+    async sendTemporaryMessage(
+        chatId: TelegramBot.ChatId,
+        text: string,
+        msg: TelegramBot.Message,
+        options: TelegramBot.SendMessageOptions = {},
+        timeout = DEFAULT_TEMPORARY_MESSAGE_TIMEOUT
+    ): Promise<void> {
+        const message = await this.sendMessageExt(chatId, text, msg, options);
+
+        if (message) {
+            setTimeout(() => {
+                this.deleteMessage(msg.chat.id, message.message_id).catch(() => {});
+                // try deleting the initial message if the bot has admin rights
+                this.deleteMessage(msg.chat.id, msg.message_id).catch(() => {});
+            }, timeout);
+        }
+    }
+
     tryPinChatMessage(message: TelegramBot.Message, user: User) {
         try {
             if (hasRole(user, "admin", "member"))
@@ -442,7 +466,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Prepare context
             const user = UserService.prepareUser(message.from as TelegramBot.User);
-            const messageContext = this.startContext(message, user);
+            const messageContext = this.startContext(message, user, command);
             messageContext.language = isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 

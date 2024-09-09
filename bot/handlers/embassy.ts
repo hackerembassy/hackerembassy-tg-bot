@@ -372,7 +372,7 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
-    static async knockHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async heyHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!PUBLIC_CHATS.includes(msg.chat.id)) {
             await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
             return;
@@ -385,10 +385,10 @@ export default class EmbassyHandlers implements BotHandlers {
 
         const text =
             residentsInside.length > 0
-                ? t("embassy.knock.knock", {
+                ? t("embassy.hey.text", {
                       residentsInside: residentsInside.reduce((acc, resident) => acc + `@${resident.user.username} `, ""),
                   })
-                : t("embassy.knock.noresidents");
+                : t("embassy.hey.noresidents");
         await bot.sendMessageExt(msg.chat.id, text, msg);
 
         if (residentsInside.length > 0) {
@@ -397,7 +397,7 @@ export default class EmbassyHandlers implements BotHandlers {
             await EmbassyHandlers.sayinspaceHandler(
                 bot,
                 msg,
-                `Тук-тук резиденты, к вам хочет зайти ${effectiveName(bot.context(msg).user)}. Ответьте ему в главном чатике.`
+                `Эй, резиденты, вас зовет ${effectiveName(bot.context(msg).user)}. Ответьте пожожда в чатике.`
             );
         }
     }

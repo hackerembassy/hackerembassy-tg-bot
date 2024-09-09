@@ -19,7 +19,7 @@ const defaultCommands = [
     { command: "going", description: "Планирую сегодня в спейс" },
     { command: "in", description: "Отметиться находящимся в спейсе" },
     { command: "out", description: "Отметиться ушедшим из спейса" },
-    { command: "knock", description: "Уведомить резидентов в спейсе, что их ждут в чате" },
+    { command: "hey", description: "Уведомить резидентов в спейсе, что их ждут в чате" },
     { command: "funds", description: "Наши открытые сборы" },
     {
         command: "birthdays",

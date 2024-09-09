@@ -38,7 +38,6 @@ import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 const botConfig = config.get<BotConfig>("bot");
-const statsStartDateString = "2023-01-01";
 
 export default class StatusHandlers implements BotHandlers {
     static isStatusError = false;
@@ -695,37 +694,30 @@ export default class StatusHandlers implements BotHandlers {
         await StatusHandlers.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
-    static async statsHandler(
-        bot: HackerEmbassyBot,
-        msg: Message,
-        fromDateString?: string,
-        toDateString?: string
-    ): Promise<Message | void> {
+    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
-        const fromDate = new Date(fromDateString ?? statsStartDateString);
+        if (!fromDateString && !toDateString) return bot.sendMessageExt(msg.chat.id, t("status.stats.help"), msg);
+
+        const fromDate = new Date(fromDateString ? fromDateString : botConfig.launchDate);
         const toDate = toDateString ? new Date(toDateString) : new Date();
         toDate.setHours(23, 59, 59, 999);
 
-        if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-            await bot.sendMessageExt(msg.chat.id, t("status.stats.invaliddates"), msg);
-            return;
-        }
+        if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime()))
+            return bot.sendMessageExt(msg.chat.id, t("status.stats.invaliddates"), msg);
 
         const userTimes = UserStateService.getAllVisits(fromDate, toDate);
         const shouldMentionPeriod = Boolean(fromDateString || toDateString);
         const dateBoundaries = { from: toDateObject(fromDate), to: toDateObject(toDate) };
 
-        if (userTimes.length === 0) {
-            await bot.sendMessageExt(msg.chat.id, t("status.stats.nousertimes"), msg);
-            return;
-        }
+        if (userTimes.length === 0) return bot.sendMessageExt(msg.chat.id, t("status.stats.nousertimes"), msg);
 
         const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod);
         const statsTitle = t("status.stats.hoursinspace", dateBoundaries);
         const statsDonut = await createUserStatsDonut(userTimes, statsTitle);
 
-        await bot.sendLongMessage(msg.chat.id, statsText, msg);
         await bot.sendPhotoExt(msg.chat.id, statsDonut, msg);
+
+        return bot.sendLongMessage(msg.chat.id, statsText, msg);
     }
 }

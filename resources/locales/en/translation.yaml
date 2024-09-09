@@ -402,9 +402,9 @@ embassy:
             🎶 List of available sounds
             {{sounds}}
         fail: ⚠️ Could not find available sounds
-    knock:
-        knock: |
-            📢 Knock-knock {{residentsInside}}
+    hey:
+        text: |
+            📢 Hey, {{residentsInside}}
         noresidents: 🛏 And the residents didn’t check in inside
     neural:
         sd:
@@ -566,6 +566,11 @@ service:
         error: ⚠️ Something went wrong, probably took too long to respond
     removebuttons:
         error: ⚠️ Failed to remove buttons
+    deprecated:
+        notsupported: |
+            🚫 Command #`{{command}}#` is deprecated
+        replaced: |
+            🔄 Use #`{{replacement}}#` instead
 status:
     buttons:
         in: 🤝 I am in
@@ -591,6 +596,7 @@ status:
             💵 The following donations were made:
             {{donationList}}
         total: 💰 Total added to space {{total}} {{currency}}
+        notfound: ⚠️ User not found
     mac:
         help: |
             📡 Using this command you can set MAC addresses for auto-login and lock control functions
@@ -637,7 +643,7 @@ status:
 
             {{statusMessage}}
         messageopened: This is a great reason to come in, so ring the bell or write to those inside - they will open it for you
-        messageclosed: We are waiting for one of the residents to open it. Maybe there is no one inside, or there is a closed meeting of residents, or they forgot to do /open again? Who knows... Better ask them in chat or tag them with the /knock command.
+        messageclosed: We are waiting for one of the residents to open it. Maybe there is no one inside, or there is a closed meeting of residents, or they forgot to do /open again? Who knows... Better ask them in chat or tag them with the /hey command.
         updated: ⏱ Updated at {{updatedDate}}
         opened: "#*opened#*"
         closed: "#*closed#*"
@@ -701,8 +707,14 @@ status:
         nousertimes: "📭 No marks found for this period"
         hoursinspace: "Hours spent in space from {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{ to.year}}"
         period: "🕔 From {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{to.year }} these users spent in space (based on marks)"
-        tryautoinside: "📲 Do you want to know accurate statistics about yourself? Don't forget to check in with /in and /out, or better yet, use /autoinside to do it automatically"
-        help: "ℹ️ You can also get statistics for the current month /month, the previous month /lastmonth, and for any period #`/stats from 2023-05-01 to 2023-05-25#`"
+        tryautoinside: |
+            📲 Do you want to know accurate statistics about yourself? Don't forget to check in with /in and /out, or better yet, use /autoinside to do it automatically
+        help: |
+            ℹ️ Stats commands:
+            • This month - /month
+            • Previous month - /lastmonth
+            • For the entire existence of the bot - /allstats
+            • Any period - #`/stats from 2023-05-01 to 2023-05-25#`
 meme:
     its_wednesday: 🐸 Kwa-kwa, today is Wednesday! The chance of getting /zhabka from me today is higher than ever (even where they are not usually found)!
     not_wednesday: 🐸 Oh, the toads are sleeping today. Come back on Wednesday!

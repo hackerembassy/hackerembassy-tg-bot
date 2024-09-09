@@ -21,6 +21,7 @@ export interface BotConfig {
     instance: InstanceConfig;
     timezone: string;
     defaultLocale: string;
+    launchDate: string;
     chats: ChatsConfig;
     timeouts: AutoinsideTimeouts;
     rateLimits: RateLimits;

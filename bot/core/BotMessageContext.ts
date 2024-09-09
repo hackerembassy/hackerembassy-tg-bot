@@ -29,7 +29,8 @@ export default class BotMessageContext {
 
     constructor(
         public user: User,
-        private msg: TelegramBot.Message
+        private msg: TelegramBot.Message,
+        public command?: string
     ) {}
 
     public run<R>(callback: () => R) {

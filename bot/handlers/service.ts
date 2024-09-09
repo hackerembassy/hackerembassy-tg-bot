@@ -17,6 +17,8 @@ import StatusHandlers from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
 
+const DeprecatedReplacementMap = new Map<string, string>([["knock", "hey"]]);
+
 export default class ServiceHandlers implements BotHandlers {
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
@@ -120,6 +122,17 @@ export default class ServiceHandlers implements BotHandlers {
         } else {
             bot.sendRestrictedMessage(msg);
         }
+    }
+
+    static deprecatedHandler(bot: HackerEmbassyBot, msg: Message) {
+        const command = bot.context(msg).command;
+        const replacement = command ? DeprecatedReplacementMap.get(command) : undefined;
+
+        const text =
+            t("service.deprecated.notsupported", { command }) +
+            (replacement ? "\n" + t("service.deprecated.replaced", { replacement }) : "");
+
+        bot.sendTemporaryMessage(msg.chat.id, text, msg);
     }
 
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {

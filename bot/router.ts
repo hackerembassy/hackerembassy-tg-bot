@@ -114,10 +114,11 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["profile"], StatusHandlers.profileHandler, /(\S+)/, match => [match[1]], Accountants);
     bot.addRoute(["mystats"], StatusHandlers.statsOfHandler);
     bot.addRoute(["statsof"], StatusHandlers.statsOfHandler, /(\S+)/, match => [match[1]]);
-    bot.addRoute(["stats"], StatusHandlers.statsHandler, OptionalParam(/(?:from (\S+))?(?: to (\S+))?/), match => [
+    bot.addRoute(["stats"], StatusHandlers.statsHandler, OptionalParam(/(?:from (\S+) ?)?(?:to (\S+))?/), match => [
         match[1],
         match[2],
     ]);
+    bot.addRoute(["statsall", "allstats"], StatusHandlers.statsHandler, null, () => [botConfig.launchDate]);
     bot.addRoute(["month", "statsmonth", "monthstats"], StatusHandlers.statsMonthHandler);
     bot.addRoute(["lastmonth", "statslastmonth", "lastmonthstats"], StatusHandlers.statsMonthHandler, null, () => [
         new Date().getMonth() - 1,
@@ -326,6 +327,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, Members);
     bot.addRoute(["ban", "block"], AdminHandlers.banHandler, OptionalParam(/(\S+)/), match => [match[1]], Members);
+    bot.addRoute(["knock"], ServiceHandlers.deprecatedHandler);
 
     // Language
     bot.addRoute(
@@ -466,22 +468,34 @@ function addEmbassySpecificRoutes(bot: HackerEmbassyBot) {
     bot.addRoute(["sayinspace", "say", "announce"], EmbassyHandlers.sayinspaceHandler, OptionalParam(/(.*)/ims), match => [
         match[1],
     ]);
-    bot.addRoute(["playinspace", "play"], EmbassyHandlers.playinspaceHandler, /(.*)/ims, match => [match[1]]);
-    bot.addRoute(["stopmedia", "stop"], EmbassyHandlers.stopMediaHandler);
-    bot.addRoute(["availablesounds", "sounds"], EmbassyHandlers.availableSoundsHandler);
-    bot.addRoute(["fartinspace", "fart"], EmbassyHandlers.playinspaceHandler, null, () => ["fart"]);
-    bot.addRoute(["moaninspace", "moan"], EmbassyHandlers.playinspaceHandler, null, () => ["moan"]);
-    bot.addRoute(["rickroll", "nevergonnagiveyouup"], EmbassyHandlers.playinspaceHandler, null, () => ["rickroll"]);
-    bot.addRoute(["rzd"], EmbassyHandlers.playinspaceHandler, null, () => ["rzd"]);
-    bot.addRoute(["adler"], EmbassyHandlers.playinspaceHandler, null, () => ["adler"]);
-    bot.addRoute(["rfoxed", "rf0x1d"], EmbassyHandlers.playinspaceHandler, null, () => ["rfoxed"]);
-    bot.addRoute(["nani", "omaewamoushindeiru"], EmbassyHandlers.playinspaceHandler, null, () => ["nani"]);
-    bot.addRoute(["zhuchok", "zhenya", "anya", "zhanya"], EmbassyHandlers.playinspaceHandler, null, () => ["zhuchok"]);
-    bot.addRoute(["badum", "badumtss"], EmbassyHandlers.playinspaceHandler, null, () => ["badumtss"]);
-    bot.addRoute(["sad", "sadtrombone"], EmbassyHandlers.playinspaceHandler, null, () => ["sad"]);
-    bot.addRoute(["dushno", "openwindow"], EmbassyHandlers.playinspaceHandler, null, () => ["dushno"]);
-    bot.addRoute(["anthem", "uk", "british"], EmbassyHandlers.playinspaceHandler, null, () => ["anthem"]);
-    bot.addRoute(["knock", "knockknock", "tuktuk", "tuk"], EmbassyHandlers.knockHandler);
+    bot.addRoute(["playinspace", "play"], EmbassyHandlers.playinspaceHandler, /(.*)/ims, match => [match[1]], TrustedMembers);
+    bot.addRoute(["stopmedia", "stop"], EmbassyHandlers.stopMediaHandler, null, null, TrustedMembers);
+    bot.addRoute(["availablesounds", "sounds"], EmbassyHandlers.availableSoundsHandler, null, null, TrustedMembers);
+    bot.addRoute(["fartinspace", "fart"], EmbassyHandlers.playinspaceHandler, null, () => ["fart"], TrustedMembers);
+    bot.addRoute(["moaninspace", "moan"], EmbassyHandlers.playinspaceHandler, null, () => ["moan"], TrustedMembers);
+    bot.addRoute(
+        ["rickroll", "nevergonnagiveyouup"],
+        EmbassyHandlers.playinspaceHandler,
+        null,
+        () => ["rickroll"],
+        TrustedMembers
+    );
+    bot.addRoute(["rzd"], EmbassyHandlers.playinspaceHandler, null, () => ["rzd"], TrustedMembers);
+    bot.addRoute(["adler"], EmbassyHandlers.playinspaceHandler, null, () => ["adler"], TrustedMembers);
+    bot.addRoute(["rfoxed", "rf0x1d"], EmbassyHandlers.playinspaceHandler, null, () => ["rfoxed"], TrustedMembers);
+    bot.addRoute(["nani", "omaewamoushindeiru"], EmbassyHandlers.playinspaceHandler, null, () => ["nani"], TrustedMembers);
+    bot.addRoute(
+        ["zhuchok", "zhenya", "anya", "zhanya"],
+        EmbassyHandlers.playinspaceHandler,
+        null,
+        () => ["zhuchok"],
+        TrustedMembers
+    );
+    bot.addRoute(["badum", "badumtss"], EmbassyHandlers.playinspaceHandler, null, () => ["badumtss"], TrustedMembers);
+    bot.addRoute(["sad", "sadtrombone"], EmbassyHandlers.playinspaceHandler, null, () => ["sad"], TrustedMembers);
+    bot.addRoute(["dushno", "openwindow"], EmbassyHandlers.playinspaceHandler, null, () => ["dushno"], TrustedMembers);
+    bot.addRoute(["anthem", "uk", "british"], EmbassyHandlers.playinspaceHandler, null, () => ["anthem"], TrustedMembers);
+    bot.addRoute(["hey"], EmbassyHandlers.heyHandler);
 
     // Text
     bot.addRoute(["textinspace", "text"], EmbassyHandlers.textinspaceHandler, OptionalParam(/(.*)/ims), match => [match[1]]);

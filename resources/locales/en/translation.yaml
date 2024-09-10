@@ -724,6 +724,12 @@ meme:
         help: |
             🖐 Using this command you can slap someone
             #`/slap username#`
+    hug:
+        user: |
+            🫂 {{from}} hugs {{target}} with warmth and tenderness
+        help: |
+            🫂 Using this command you can hug someone
+            #`/hug username#`
 topics:
     general:
         error: ⚠️ Something went wrong

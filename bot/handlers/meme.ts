@@ -92,6 +92,43 @@ export default class MemeHandlers implements BotHandlers {
 
         return bot.sendMessageExt(msg.chat.id, caption, msg);
     }
+
+    // TODO: deduplicate hugHandler and slapHandler
+    static async hugHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
+        const sender = bot.context(msg).user;
+        const extractedTarget = username ?? effectiveName(msg.reply_to_message?.from);
+
+        if (!extractedTarget) return bot.sendMessageExt(msg.chat.id, t("meme.hug.help"), msg);
+
+        const target = formatUsername(extractedTarget, true);
+        const caption = t("meme.hug.user", {
+            from: userLink(sender),
+            target,
+        });
+
+        let source: string;
+
+        switch (target.slice(1)) {
+            case bot.Name:
+                source = "./resources/images/animations/hug-bot.gif";
+                break;
+            case "CabiaRangris":
+                source = "./resources/images/animations/hug-cab.gif";
+                break;
+            case effectiveName(sender):
+                source = "./resources/images/animations/hug-self.gif";
+                break;
+            default:
+                source = `./resources/images/animations/hug-${randomInteger(0, 4)}.gif`;
+                break;
+        }
+
+        const gif = await getImageFromPath(source).catch(() => null);
+
+        if (gif) return bot.sendAnimationExt(msg.chat.id, gif, msg, { caption });
+
+        return bot.sendMessageExt(msg.chat.id, caption, msg);
+    }
 }
 
 // Legend

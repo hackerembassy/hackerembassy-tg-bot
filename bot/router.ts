@@ -314,6 +314,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         "./resources/images/memes/syrniki.jpeg",
     ]);
     bot.addRoute(["slap"], MemeHandlers.slapHandler, OptionalParam(/(\S+)/), match => [match[1]]);
+    bot.addRoute(["hug"], MemeHandlers.hugHandler, OptionalParam(/(\S+)/), match => [match[1]]);
 
     // Chat control
     bot.addRoute(["clear"], ServiceHandlers.clearHandler, OptionalParam(/(\d*)/), match => [match[1]], Members);

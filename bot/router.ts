@@ -162,14 +162,14 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["addfund"],
         FundsHandlers.addFundHandler,
-        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*)/,
+        /(.*\S) with target (\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*)/,
         match => [match[1], match[2], match[3]],
         Accountants
     );
     bot.addRoute(
         ["updatefund"],
         FundsHandlers.updateFundHandler,
-        /(.*\S) with target (\d+(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/,
+        /(.*\S) with target (\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/,
         match => [match[1], match[2], match[3], match[4]],
         Accountants
     );
@@ -205,13 +205,13 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["costs", "cs", "rent"],
         FundsHandlers.costsHandler,
-        OptionalParam(/(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/),
+        OptionalParam(/(\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/),
         match => [match[1], match[2], match[3]]
     );
     bot.addRoute(
         ["adddonation", "ad"],
         FundsHandlers.addDonationHandler,
-        /(\d+(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/,
+        /(\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/,
         match => [match[1], match[2], match[3], match[4]],
         Accountants
     );

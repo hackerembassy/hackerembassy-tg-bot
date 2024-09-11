@@ -8,7 +8,7 @@ import { equalsIns } from "@utils/text";
 import { DonationEx, Fund } from "@data/models";
 import { effectiveName } from "@hackembot/core/helpers";
 
-import { DefaultCurrency, convertCurrency, formatValueForCurrency } from "./currency";
+import { DefaultCurrency, convertCurrency, formatValueForCurrency, toBasicMoneyString } from "./currency";
 import { UserVisit } from "./status";
 
 interface SimplifiedDonation {
@@ -100,7 +100,7 @@ export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     const spread = colorScheme.length / labels.length;
     const customColorScheme = labels.map((_, index) => colorScheme[Math.floor(index * spread + spread / 2) % colorScheme.length]);
     const donutLabels = [
-        { text: `${target} ${fund.target_currency}`, font: { size: 30 } },
+        { text: `${toBasicMoneyString(target)} ${fund.target_currency}`, font: { size: 30 } },
         { text: "min", font: { size: 20 } },
     ];
 
@@ -317,10 +317,10 @@ export async function getDonationsSummary(fund: Fund, limit?: number) {
         .map((d, index) => ({
             rank: index + 1,
             username: d.user.username ?? "Unknown",
-            value: d.value,
+            value: toBasicMoneyString(d.value),
             currency: d.currency,
             converted_value: d.converted_value,
-            combined_value: `${d.value} ${d.currency}`,
+            combined_value: `${toBasicMoneyString(d.value)} ${d.currency}`,
         }));
 
     // Processing data for HASS
@@ -331,8 +331,8 @@ export async function getDonationsSummary(fund: Fund, limit?: number) {
     return {
         fund: {
             name: fund.name,
-            target_value: fund.target_value,
-            collected_value,
+            target_value: toBasicMoneyString(fund.target_value),
+            collected_value: toBasicMoneyString(collected_value),
             target_currency: fund.target_currency,
             status: fund.status,
         },

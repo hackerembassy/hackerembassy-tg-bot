@@ -108,6 +108,15 @@ export function parseMoneyValue(value: string) {
     return Number(value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", ""));
 }
 
+export function toBasicMoneyString(value: number): string {
+    return new Intl.NumberFormat("en", {
+        style: "decimal",
+        trailingZeroDisplay: "stripIfInteger",
+        minimumFractionDigits: 2,
+        useGrouping: false,
+    }).format(value);
+}
+
 export async function prepareCurrency(currencyInput: string): Promise<Nullable<string>> {
     if (!currencyInput.length) return currencyConfig.default;
 

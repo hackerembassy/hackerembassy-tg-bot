@@ -1,7 +1,7 @@
 import config from "config";
 
 import { PrintersConfig, CalendarConfig } from "@config";
-import { Coins, formatValueForCurrency, sumDonations } from "@services/currency";
+import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/currency";
 import { HSEvent } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
 import { PrinterStatus } from "@services/printer3d";
@@ -43,10 +43,9 @@ export async function createFundList(
         const sumOfAllDonations = await sumDonations(fundDonations, fund.target_currency);
         const fundStatus = generateFundStatus(fund, sumOfAllDonations, isHistory);
 
-        list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${formatValueForCurrency(
-            sumOfAllDonations,
-            fund.target_currency
-        )} ${t("funds.fund.from")} ${fund.target_value} ${fund.target_currency}\n`;
+        list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${toBasicMoneyString(
+            sumOfAllDonations
+        )} ${t("funds.fund.from")} ${toBasicMoneyString(fund.target_value)} ${fund.target_currency}\n`;
 
         if (!isHistory) list += generateDonationsList(fundDonations, { showAdmin, isApi }, mode);
         if (showAdmin) list += generateAdminFundHelp(fund, isHistory);
@@ -117,7 +116,7 @@ export function generateDonationsList(
             donation.user.username,
             mode.mention,
             options.isApi
-        )} - ${formatValueForCurrency(donation.value, donation.currency)} ${donation.currency}${
+        )} - ${toBasicMoneyString(donation.value)} ${donation.currency}${
             options.showAdmin ? ` ➡️ ${formatUsername(donation.accountant.username, mode.mention, options.isApi)}` : ""
         }\n`;
     }

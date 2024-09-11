@@ -9,6 +9,7 @@ import {
     parseMoneyValue,
     prepareCurrency,
     sumDonations,
+    toBasicMoneyString,
 } from "@services/currency";
 import * as ExportHelper from "@services/export";
 import logger from "@services/logger";
@@ -111,7 +112,13 @@ export default class FundsHandlers implements BotHandlers {
 
         await bot.sendMessageExt(
             msg.chat.id,
-            success ? t("funds.addfund.success", { fundName, targetValue, currency: preparedCurrency }) : t("funds.addfund.fail"),
+            success
+                ? t("funds.addfund.success", {
+                      fundName,
+                      targetValue: toBasicMoneyString(targetValue),
+                      currency: preparedCurrency,
+                  })
+                : t("funds.addfund.fail"),
             msg
         );
     }
@@ -145,7 +152,11 @@ export default class FundsHandlers implements BotHandlers {
         return bot.sendMessageExt(
             msg.chat.id,
             success
-                ? t("funds.updatefund.success", { fundName, targetValue, currency: preparedCurrency })
+                ? t("funds.updatefund.success", {
+                      fundName,
+                      targetValue: toBasicMoneyString(targetValue),
+                      currency: preparedCurrency,
+                  })
                 : t("funds.updatefund.fail"),
             msg
         );
@@ -238,7 +249,7 @@ export default class FundsHandlers implements BotHandlers {
         const text = success
             ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
                   username: helpers.formatUsername(sponsorName),
-                  value,
+                  value: toBasicMoneyString(value),
                   currency: preparedCurrency,
                   fundName,
               })
@@ -279,7 +290,7 @@ export default class FundsHandlers implements BotHandlers {
 
             const textInSpace = t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
                 username: sponsorName,
-                value,
+                value: toBasicMoneyString(value),
                 currency: preparedCurrency,
                 fundName,
             }).replace("💸 ", "");

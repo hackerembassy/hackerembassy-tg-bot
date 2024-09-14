@@ -4,6 +4,7 @@ import { NodeSSH } from "node-ssh";
 
 import { EmbassyApiConfig } from "@config";
 import logger from "@services/logger";
+import { DeviceCheckingMethod } from "@services/embassy";
 import { wakeOnLan, ping, NeworkDevicesLocator } from "@utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -27,17 +28,17 @@ router.get("/inside", async (req, res, next) => {
         const method = req.query.method;
 
         switch (method) {
-            case "openwrt":
+            case DeviceCheckingMethod.OpenWRT:
                 if (!luciToken) throw Error("Missing Luci token");
 
                 // We don't use our Xiaomi openWRT device as wifi access point anymore
                 res.json(await NeworkDevicesLocator.getDevicesFromOpenWrt(embassyApiConfig.spacenetwork.routerip, luciToken));
                 break;
-            case "scan":
+            case DeviceCheckingMethod.Scan:
                 // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
                 res.json(await NeworkDevicesLocator.findDevicesUsingNmap(embassyApiConfig.spacenetwork.networkRange));
                 break;
-            case "unifi":
+            case DeviceCheckingMethod.Unifi:
                 // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
                 if (!unifiUser || !unifiPassword) throw Error("Missing unifi credentials");
 
@@ -50,7 +51,7 @@ router.get("/inside", async (req, res, next) => {
                 );
                 break;
             // Our main wifi access point
-            case "keenetic":
+            case DeviceCheckingMethod.Keenetic:
             default:
                 if (!wifiUser || !wifiPassword) throw Error("Missing keenetic ssh credentials");
 

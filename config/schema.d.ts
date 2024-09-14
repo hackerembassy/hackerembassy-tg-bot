@@ -166,11 +166,16 @@ export interface EmbassyServiceConfig {
 }
 
 export interface SpaceNetworkConfig {
-    devicesCheckingMethod: string;
+    deviceCheckingMethod: DeviceCheckingMethod;
     networkRange: string;
     routerip: string;
     wifiip: string;
     unifiorigin: string;
+}
+
+export interface DeviceCheckingMethod {
+    primary: string;
+    secondary?: string;
 }
 
 export interface SpeakerConfig {

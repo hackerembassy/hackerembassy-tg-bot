@@ -34,15 +34,28 @@ export async function requestToEmbassy(
     return await fetchWithTimeout(`${EmbassyBase}${endpoint}`, options);
 }
 
+export enum DeviceCheckingMethod {
+    OpenWRT = "openwrt",
+    Scan = "scan",
+    Unifi = "unifi",
+    Keenetic = "keenetic",
+}
+
 export async function fetchDevicesInside() {
-    const response = await requestToEmbassy(
-        `/devices/inside?method=${embassyApiConfig.spacenetwork.devicesCheckingMethod}`,
-        "GET",
-        undefined,
-        50000
-    );
+    const primaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.primary as DeviceCheckingMethod;
+    const secondaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.secondary as DeviceCheckingMethod | undefined;
 
-    if (!response.ok) throw new Error("Failed to fetch devices inside");
+    const primaryRequest = requestToEmbassy(`/devices/inside?method=${primaryMethod}`, "GET", undefined, 50000);
+    const secondaryRequest = secondaryMethod
+        ? requestToEmbassy(`/devices/inside?method=${secondaryMethod}`, "GET", undefined, 50000)
+        : Promise.resolve(undefined);
 
-    return (await response.json()) as string[];
+    const [primaryResponse, secondaryResponse] = await Promise.allSettled([primaryRequest, secondaryRequest]);
+
+    const devicesList = [
+        ...(primaryResponse.status === "fulfilled" && primaryResponse.value.ok ? await primaryResponse.value.json() : []),
+        ...(secondaryResponse.status === "fulfilled" && secondaryResponse.value?.ok ? await secondaryResponse.value.json() : []),
+    ];
+
+    return devicesList as string[];
 }

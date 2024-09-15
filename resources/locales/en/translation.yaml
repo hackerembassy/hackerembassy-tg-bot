@@ -149,6 +149,8 @@ basic:
             🗓 Our upcoming events:
         today: |
             📣 Today the following events are taking place in the space:
+        todaysimple: |
+            Events today:
         entrance: |
             🎁 Admission is free as always, but we will welcome any donations to support the space.
         notoday: |

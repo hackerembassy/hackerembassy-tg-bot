@@ -39,23 +39,70 @@ export enum DeviceCheckingMethod {
     Scan = "scan",
     Unifi = "unifi",
     Keenetic = "keenetic",
+    Prometheus = "prometheus",
+}
+
+export type PrometheusResponse = {
+    status: "success" | "error";
+    data: {
+        resultType: string;
+        result: Array<{
+            metric: {
+                __name__: string;
+                bssid: string;
+                channel: string;
+                encryption: string;
+                frequency: string;
+                instance: string;
+                job: string;
+                ssid: string;
+                station: string;
+                vif: string;
+            };
+            value: [number, string];
+        }>;
+    };
+};
+
+async function getDevicesFromPrometheus() {
+    const response = await fetchWithTimeout(
+        `${embassyApiConfig.spacenetwork.prometheusorigin}/api/v1/query?query=hostapd_station_flag_assoc`
+    );
+
+    if (!response.ok) throw new Error(`Prometheus query failed with status ${response.status}`);
+
+    const json = (await response.json()) as PrometheusResponse;
+
+    if (json.status !== "success") throw new Error(`Prometheus query failed`);
+
+    return json.data.result.map(result => result.metric.station);
+}
+
+async function deviceRequest(method: DeviceCheckingMethod) {
+    if (method === DeviceCheckingMethod.Prometheus) {
+        return getDevicesFromPrometheus();
+    }
+
+    const embassyRequest = await requestToEmbassy(`/devices/inside?method=${method}`, "GET", undefined, 50000);
+
+    if (!embassyRequest.ok) throw new Error(`Embassy request failed with status ${embassyRequest.status}`);
+
+    return embassyRequest.json();
 }
 
 export async function fetchDevicesInside() {
     const primaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.primary as DeviceCheckingMethod;
     const secondaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.secondary as DeviceCheckingMethod | undefined;
 
-    const primaryRequest = requestToEmbassy(`/devices/inside?method=${primaryMethod}`, "GET", undefined, 50000);
-    const secondaryRequest = secondaryMethod
-        ? requestToEmbassy(`/devices/inside?method=${secondaryMethod}`, "GET", undefined, 50000)
-        : Promise.resolve(undefined);
-
-    const [primaryResponse, secondaryResponse] = await Promise.allSettled([primaryRequest, secondaryRequest]);
+    const [primaryResponse, secondaryResponse] = await Promise.allSettled([
+        deviceRequest(primaryMethod),
+        secondaryMethod ? deviceRequest(secondaryMethod) : Promise.resolve(undefined),
+    ]);
 
     const devicesList = [
-        ...(primaryResponse.status === "fulfilled" && primaryResponse.value.ok ? await primaryResponse.value.json() : []),
-        ...(secondaryResponse.status === "fulfilled" && secondaryResponse.value?.ok ? await secondaryResponse.value.json() : []),
+        ...(primaryResponse.status === "fulfilled" && primaryResponse.value ? await primaryResponse.value : []),
+        ...(secondaryResponse.status === "fulfilled" && secondaryResponse.value ? await secondaryResponse.value : []),
     ];
 
-    return devicesList as string[];
+    return devicesList;
 }

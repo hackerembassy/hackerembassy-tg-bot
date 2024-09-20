@@ -171,6 +171,7 @@ export interface SpaceNetworkConfig {
     routerip: string;
     wifiip: string;
     unifiorigin: string;
+    prometheusorigin: string;
 }
 
 export interface DeviceCheckingMethod {

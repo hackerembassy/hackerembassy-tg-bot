@@ -84,7 +84,7 @@ export async function exportFundToDonut(fundname: string): Promise<Buffer> {
         alldonations.map(async d => {
             const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
             return {
-                username: d.user.username ?? "Unknown",
+                username: d.user.username ?? d.user.first_name ?? "Unknown",
                 donation: Number(convertedValue),
             };
         })
@@ -316,7 +316,7 @@ export async function getDonationsSummary(fund: Fund, limit?: number) {
         .slice(0, limit)
         .map((d, index) => ({
             rank: index + 1,
-            username: d.user.username ?? "Unknown",
+            username: d.user.username ?? d.user.first_name ?? "Unknown",
             value: toBasicMoneyString(d.value),
             currency: d.currency,
             converted_value: d.converted_value,

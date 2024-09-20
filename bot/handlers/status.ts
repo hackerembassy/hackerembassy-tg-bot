@@ -383,8 +383,13 @@ export default class StatusHandlers implements BotHandlers {
             return bot.sendMessageExt(msg.chat.id, "👻", msg);
 
         const eventDate = new Date();
-        const force = username !== undefined;
-        const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : sender;
+        const mention = helpers.getMentions(msg)[0];
+        const force = username !== undefined || mention !== undefined;
+        const target = mention
+            ? UsersRepository.getUserByUserId(mention.id)
+            : username
+              ? UsersRepository.getUserByName(username.replace("@", ""))
+              : sender;
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
 
@@ -416,8 +421,14 @@ export default class StatusHandlers implements BotHandlers {
         const context = bot.context(msg);
         const sender = context.user;
         const eventDate = new Date();
-        const force = username !== undefined;
-        const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : sender;
+
+        const mention = helpers.getMentions(msg)[0];
+        const force = username !== undefined || mention !== undefined;
+        const target = mention
+            ? UsersRepository.getUserByUserId(mention.id)
+            : username
+              ? UsersRepository.getUserByName(username.replace("@", ""))
+              : sender;
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
 

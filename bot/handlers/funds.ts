@@ -228,7 +228,9 @@ export default class FundsHandlers implements BotHandlers {
     ) {
         const value = parseMoneyValue(valueString);
         const preparedCurrency = await prepareCurrency(currency);
-        const user = UsersRepository.getUserByName(sponsorName.replace("@", ""));
+        const user =
+            UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
+            UsersRepository.getUserByUserId(helpers.getMentions(msg)[0]?.id);
         const accountant = bot.context(msg).user;
 
         if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);

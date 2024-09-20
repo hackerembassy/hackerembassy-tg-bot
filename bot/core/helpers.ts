@@ -1,5 +1,7 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
+import TelegramBot from "node-telegram-bot-api";
+
 import { UserRole } from "@data/types";
 import { User } from "@data/models";
 
@@ -41,6 +43,10 @@ export function hasRole(user: User, ...roles: UserRole[]) {
 
 export function splitRoles(user: User) {
     return user.roles?.split("|") as UserRole[];
+}
+
+export function getMentions(msg: TelegramBot.Message) {
+    return msg.entities?.filter(e => e.type === "text_mention").map(e => e.user) ?? [];
 }
 
 /**

@@ -43,21 +43,19 @@ export enum DeviceCheckingMethod {
 }
 
 export type PrometheusResponse = {
-    status: "success" | "error";
+    status: string;
     data: {
         resultType: string;
         result: Array<{
             metric: {
                 __name__: string;
                 bssid: string;
-                channel: string;
-                encryption: string;
-                frequency: string;
+                ht_support: string;
                 instance: string;
                 job: string;
+                mac: string;
                 ssid: string;
-                station: string;
-                vif: string;
+                vht_support: string;
             };
             value: [number, string];
         }>;
@@ -66,7 +64,7 @@ export type PrometheusResponse = {
 
 async function getDevicesFromPrometheus() {
     const response = await fetchWithTimeout(
-        `${embassyApiConfig.spacenetwork.prometheusorigin}/api/v1/query?query=hostapd_station_flag_assoc`
+        `${embassyApiConfig.spacenetwork.prometheusorigin}/api/v1/query?query=dawn_station_signal_dbm`
     );
 
     if (!response.ok) throw new Error(`Prometheus query failed with status ${response.status}`);
@@ -75,7 +73,7 @@ async function getDevicesFromPrometheus() {
 
     if (json.status !== "success") throw new Error(`Prometheus query failed`);
 
-    return json.data.result.map(result => result.metric.station);
+    return json.data.result.map(result => result.metric.mac);
 }
 
 async function deviceRequest(method: DeviceCheckingMethod) {
@@ -104,5 +102,5 @@ export async function fetchDevicesInside() {
         ...(secondaryResponse.status === "fulfilled" && secondaryResponse.value ? await secondaryResponse.value : []),
     ];
 
-    return devicesList;
+    return devicesList.map((device: string) => device.toLowerCase());
 }

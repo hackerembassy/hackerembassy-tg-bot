@@ -43,19 +43,22 @@ export enum DeviceCheckingMethod {
 }
 
 export type PrometheusResponse = {
-    status: string;
+    status: "success" | "error";
     data: {
         resultType: string;
         result: Array<{
             metric: {
                 __name__: string;
                 bssid: string;
-                ht_support: string;
+                channel: string;
+                encryption: string;
+                frequency: string;
                 instance: string;
                 job: string;
-                mac: string;
                 ssid: string;
-                vht_support: string;
+                mac?: string; // Only for dawn_station_signal_dbm
+                station?: string; // Only for hostapd_station_flag_assoc
+                vif: string;
             };
             value: [number, string];
         }>;
@@ -64,7 +67,7 @@ export type PrometheusResponse = {
 
 async function getDevicesFromPrometheus() {
     const response = await fetchWithTimeout(
-        `${embassyApiConfig.spacenetwork.prometheusorigin}/api/v1/query?query=dawn_station_signal_dbm`
+        `${embassyApiConfig.spacenetwork.prometheusorigin}/api/v1/query?query=dawn_station_signal_dbm%20or%20hostapd_station_flag_assoc`
     );
 
     if (!response.ok) throw new Error(`Prometheus query failed with status ${response.status}`);
@@ -73,7 +76,7 @@ async function getDevicesFromPrometheus() {
 
     if (json.status !== "success") throw new Error(`Prometheus query failed`);
 
-    return json.data.result.map(result => result.metric.mac);
+    return json.data.result.map(result => result.metric.mac ?? result.metric.station).filter(Boolean);
 }
 
 async function deviceRequest(method: DeviceCheckingMethod) {

@@ -384,7 +384,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const eventDate = new Date();
         const mention = helpers.getMentions(msg)[0];
-        const force = username !== undefined || mention !== undefined;
+        const force = username !== undefined || (!context.isButtonResponse && mention !== undefined);
         const target = mention
             ? UsersRepository.getUserByUserId(mention.id)
             : username
@@ -423,7 +423,7 @@ export default class StatusHandlers implements BotHandlers {
         const eventDate = new Date();
 
         const mention = helpers.getMentions(msg)[0];
-        const force = username !== undefined || mention !== undefined;
+        const force = username !== undefined || (!context.isButtonResponse && mention !== undefined);
         const target = mention
             ? UsersRepository.getUserByUserId(mention.id)
             : username

@@ -58,8 +58,12 @@ const ApiCalendarCommandsList = [
     },
 ];
 
+const CombinedCommandsList = apiConfig.features.calendar
+    ? [...ApiTextCommandsList, ...ApiCalendarCommandsList]
+    : ApiTextCommandsList;
+
 router.get("/", (_, res) => {
-    res.json(apiConfig.features.calendar ? { ...ApiTextCommandsList, ...ApiCalendarCommandsList } : ApiTextCommandsList);
+    res.json(CombinedCommandsList);
 });
 
 router.get("/join", (_, res) => {

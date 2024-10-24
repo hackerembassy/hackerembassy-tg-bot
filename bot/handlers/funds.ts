@@ -26,6 +26,7 @@ import * as TextGenerators from "../textGenerators";
 import EmbassyHandlers from "./embassy";
 
 const CALLBACK_DATA_RESTRICTION = 21;
+const ALTERNATIVE_DONATION_USERNAMES = ["dipierro", "keimoger"];
 
 // Converter library needs time to initialize all currencies, so we need to init it in advance
 initConvert();
@@ -268,6 +269,8 @@ export default class FundsHandlers implements BotHandlers {
 
             if (value === 42069 || value === 69420 || value === 69 || value === 420) {
                 animeImage = await getImageFromPath(`./resources/images/memes/comedy.jpg`);
+            } else if (user.username && ALTERNATIVE_DONATION_USERNAMES.includes(user.username)) {
+                animeImage = await getImageFromPath(`./resources/images/anime/guy.jpg`);
             } else {
                 const happinessLevel =
                     valueInDefaultCurrency < 10000

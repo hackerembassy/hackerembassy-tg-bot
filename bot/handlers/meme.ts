@@ -17,9 +17,10 @@ const botConfig = config.get<BotConfig>("bot");
 const ZHABKA_CHANCE = 0.35;
 const ZHABKAS_PATH = "./resources/images/toads";
 const ITS_WEDNESDAY_YEAAAH = ["𓆏", "𓆏", "𓆏"].length;
+const NOT_WEDNESDAY_SAD_IMAGE = "./resources/images/memes/notwednesday.jpg";
 
 export default class MemeHandlers implements BotHandlers {
-    static readonly 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺() === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓈝[𓈴](𓎶[𓁪𓁫][𓁷], 𓆲(𓃾), 𓎶));
+    static readonly 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺() === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓉡(𓈝, 𓎶, 𓃾));
 
     static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
         await MemeHandlers.𓆏(bot, msg);
@@ -133,13 +134,10 @@ export default class MemeHandlers implements BotHandlers {
 
 // Legend
 const 𓉢 = MemeHandlers.randomImagePathHandler;
+const 𓉡 = MemeHandlers.imageHandler;
 const 𓁺 = () => getToday().getDay();
 const 𓀥 = ITS_WEDNESDAY_YEAAAH;
 const 𓇠 = ZHABKAS_PATH;
-const 𓆲 = t;
-const 𓈴 = "sendMessageExt";
-const 𓁪𓁫 = "chat";
-const 𓁷 = "id";
-const 𓃾 = "meme.not_wednesday";
+const 𓃾 = NOT_WEDNESDAY_SAD_IMAGE;
 type 𓇍 = HackerEmbassyBot;
 type 𓇝 = Message;

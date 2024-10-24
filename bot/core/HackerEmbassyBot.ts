@@ -443,7 +443,6 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     async routeMessage(message: TelegramBot.Message) {
         try {
-            console.log(message);
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
 

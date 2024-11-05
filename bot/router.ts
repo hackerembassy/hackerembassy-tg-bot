@@ -328,6 +328,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["chatid"], ServiceHandlers.chatidHandler);
     bot.addRoute(["removebuttons", "rb", "static"], ServiceHandlers.removeButtons, null, null, Members);
     bot.addRoute(["ban", "block"], AdminHandlers.banHandler, OptionalParam(/(\S+)/), match => [match[1]], Members);
+    bot.addRoute(["autoremove", "silent"], AdminHandlers.autoRemoveHandler, OptionalParam(/(\S+)/), match => [match[1]], Admins);
     bot.addRoute(["knock"], ServiceHandlers.deprecatedHandler);
 
     // Language

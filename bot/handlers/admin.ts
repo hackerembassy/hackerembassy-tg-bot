@@ -1,15 +1,19 @@
 import fs from "fs";
 
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
+import config from "config";
 
 import UsersRepository from "@repositories/users";
 import logger, { getLatestLogFilePath } from "@services/logger";
+import { BotConfig } from "@config";
 
 import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotCustomEvent, BotHandlers } from "../core/types";
 import * as helpers from "../core/helpers";
+
+const botConfig = config.get<BotConfig>("bot");
 
 export default class AdminHandlers implements BotHandlers {
     /**
@@ -229,6 +233,29 @@ export default class AdminHandlers implements BotHandlers {
 
     static async getFlagsHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, JSON.stringify(bot.botState.flags), msg);
+    }
+
+    static async autoRemoveHandler(bot: HackerEmbassyBot, msg: Message, chat: string | undefined) {
+        if (!chat) return await bot.sendMessageExt(msg.chat.id, "Please provide a chat id, clear or list command", msg);
+
+        switch (chat) {
+            case "clear":
+                bot.autoRemoveChats = [];
+                return await bot.sendMessageExt(msg.chat.id, "Banned chats are cleared", msg);
+            case "list":
+                return await bot.sendMessageExt(msg.chat.id, `Banned chats: ${bot.autoRemoveChats.join(", ")}`, msg);
+            case "main":
+                bot.autoRemoveChats.push(botConfig.chats.main);
+                break;
+            case "offtopic":
+                bot.autoRemoveChats.push(botConfig.chats.offtopic);
+                break;
+            case "horny":
+                bot.autoRemoveChats.push(botConfig.chats.horny);
+                break;
+            default:
+                bot.autoRemoveChats.push(chat);
+        }
     }
 
     static async banHandler(bot: HackerEmbassyBot, msg: Message, target?: number | string) {

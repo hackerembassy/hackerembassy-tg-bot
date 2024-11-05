@@ -32,6 +32,8 @@ import { OptionalRegExp, hasRole, prepareMessageForMarkdown, tgUserLink } from "
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {
+    DEFAULT_CLEAR_QUEUE_LENGTH,
+    DEFAULT_CLEAR_QUEUE_TIMEOUT,
     DEFAULT_TEMPORARY_MESSAGE_TIMEOUT,
     FULL_PERMISSIONS,
     IGNORE_UPDATE_TIMEOUT,
@@ -85,6 +87,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public routeMap = new Map<string, BotRoute>();
     public restrictedImage: Nullable<Buffer> = null;
     public pollingError: Error | null = null;
+    public autoRemoveChats: ChatId[] = [];
 
     private contextMap = new Map();
     public forwardTarget = botConfig.chats.main;
@@ -432,6 +435,32 @@ export default class HackerEmbassyBot extends TelegramBot {
         RateLimiter.executeOverTime(messageResponses);
     }
 
+    private deleteQueue: number[] = [];
+    private deleteTimeout: NodeJS.Timeout | null = null;
+
+    // Prevents spamming delete messages to cause 429 errors
+    async deleteMessageQueued(
+        chatId: ChatId,
+        messageId: number,
+        timeout = DEFAULT_CLEAR_QUEUE_TIMEOUT,
+        queueSize = DEFAULT_CLEAR_QUEUE_LENGTH
+    ) {
+        if (this.deleteQueue.length === queueSize) {
+            const messages = this.deleteQueue;
+            this.deleteQueue = [];
+            await this.deleteMessages(chatId, messages);
+        } else {
+            this.deleteQueue.push(messageId);
+            if (!this.deleteTimeout) {
+                this.deleteTimeout = setTimeout(() => {
+                    this.deleteMessages(chatId, this.deleteQueue);
+                    this.deleteQueue = [];
+                    this.deleteTimeout = null;
+                }, timeout);
+            }
+        }
+    }
+
     private shouldIgnore(text?: string): boolean {
         if (!text) return true;
 
@@ -451,6 +480,9 @@ export default class HackerEmbassyBot extends TelegramBot {
                 this.forwardTarget = message.chat_shared.chat_id;
                 return;
             }
+
+            if (this.autoRemoveChats.includes(message.chat.id))
+                return this.deleteMessageQueued(message.chat.id, message.message_id);
 
             // Get command from message text
             const text = (message.text ?? message.caption) as string;

@@ -256,6 +256,8 @@ export default class AdminHandlers implements BotHandlers {
             default:
                 bot.autoRemoveChats.push(chat);
         }
+
+        return await bot.sendMessageExt(msg.chat.id, `Chat ${chat} is added to the silent list`, msg);
     }
 
     static async banHandler(bot: HackerEmbassyBot, msg: Message, target?: number | string) {

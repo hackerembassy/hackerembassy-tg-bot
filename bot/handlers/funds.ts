@@ -68,12 +68,7 @@ export default class FundsHandlers implements BotHandlers {
         // telegram callback_data is restricted to 64 bytes
         const inline_keyboard =
             fundName.length < CALLBACK_DATA_RESTRICTION
-                ? [
-                      [
-                          InlineButton(t("funds.fund.buttons.csv"), "ef", undefined, { params: fundName }),
-                          InlineButton(t("funds.fund.buttons.donut"), "ed", undefined, { params: fundName }),
-                      ],
-                  ]
+                ? [[InlineButton(t("funds.fund.buttons.donut"), "ed", undefined, { params: fundName })]]
                 : [];
 
         const fundlist = await TextGenerators.createFundList([fund], donations, { showAdmin }, bot.context(msg).mode);

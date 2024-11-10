@@ -37,7 +37,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
 
     async processUpdate(update: TelegramBot.Update) {
         super.processUpdate(update);
-        await sleep(10); // Simulating async processing and clearing microtasks
+        await sleep(100); // Simulating async processing and clearing microtasks
     }
 
     public popResults(): string[] {

@@ -383,8 +383,9 @@ export default class StatusHandlers implements BotHandlers {
             return bot.sendMessageExt(msg.chat.id, "👻", msg);
 
         const eventDate = new Date();
-        const mention = helpers.getMentions(msg)[0];
-        const force = username !== undefined || (!context.isButtonResponse && mention !== undefined);
+
+        const mention = !context.isButtonResponse ? helpers.getMentions(msg)[0] : undefined;
+        const force = username !== undefined || mention !== undefined;
         const target = mention
             ? UsersRepository.getUserByUserId(mention.id)
             : username
@@ -422,8 +423,8 @@ export default class StatusHandlers implements BotHandlers {
         const sender = context.user;
         const eventDate = new Date();
 
-        const mention = helpers.getMentions(msg)[0];
-        const force = username !== undefined || (!context.isButtonResponse && mention !== undefined);
+        const mention = !context.isButtonResponse ? helpers.getMentions(msg)[0] : undefined;
+        const force = username !== undefined || mention !== undefined;
         const target = mention
             ? UsersRepository.getUserByUserId(mention.id)
             : username

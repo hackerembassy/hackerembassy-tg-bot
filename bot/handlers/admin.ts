@@ -7,6 +7,8 @@ import UsersRepository from "@repositories/users";
 import logger, { getLatestLogFilePath } from "@services/logger";
 import { BotConfig } from "@config";
 
+import { User } from "@data/models";
+
 import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import t from "../core/localization";
@@ -165,14 +167,28 @@ export default class AdminHandlers implements BotHandlers {
         await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);
     }
 
-    static async getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
-        if (!query) return await bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
+    static getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
+        if (!query) return bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
 
         const user = UsersRepository.getUserByName(query) ?? UsersRepository.getUserByUserId(query);
 
-        if (!user) return await bot.sendMessageExt(msg.chat.id, "User not found", msg);
+        if (!user) return bot.sendMessageExt(msg.chat.id, "User not found", msg);
 
-        return await bot.sendMessageExt(msg.chat.id, JSON.stringify(user), msg);
+        return bot.sendMessageExt(msg.chat.id, JSON.stringify(user), msg);
+    }
+
+    static setUserHandler(bot: HackerEmbassyBot, msg: Message, json: string) {
+        if (!json) return bot.sendMessageExt(msg.chat.id, "Please provide a serialized user", msg);
+
+        try {
+            const updatedUser = JSON.parse(json) as User;
+            UsersRepository.updateUser(updatedUser.userid, updatedUser);
+
+            return bot.sendMessageExt(msg.chat.id, `User ${updatedUser.userid} was updated`, msg);
+        } catch (error) {
+            logger.error(error);
+            return bot.sendMessageExt(msg.chat.id, `User was not updated. Error ${(error as Error).message}`, msg);
+        }
     }
 
     static updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {

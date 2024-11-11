@@ -274,7 +274,8 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     }
 
     // Admin
-    bot.addRoute(["getuser", "user", "gu"], AdminHandlers.getUserHandler, OptionalParam(/(\S+?)/), match => [match[1]], Admins);
+    bot.addRoute(["getuser", "user"], AdminHandlers.getUserHandler, OptionalParam(/(\S+?)/), match => [match[1]], Admins);
+    bot.addRoute(["setuser"], AdminHandlers.setUserHandler, OptionalParam(/(.*)/ims), match => [match[1]], Admins);
     bot.addRoute(["getrestrictedusers", "restricted"], AdminHandlers.getRestrictedUsersHandler, null, null, Admins);
     bot.addRoute(["updateroles"], AdminHandlers.updateRolesHandler, /of (\S+?) to (\S+)/, match => [match[1], match[2]], Admins);
     bot.addRoute(["restrict"], AdminHandlers.updateRolesHandler, /(\S+?)/, match => [match[1], "restricted"], Admins);

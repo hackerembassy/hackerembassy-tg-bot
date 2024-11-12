@@ -89,11 +89,14 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
 }
 
 export async function arp(ip: string): Promise<string> {
-    const device = (await find({ address: ip })) as unknown as { mac: string } | undefined;
+    // The ⁠local-devices library cannot parse ARP results for single IP address resolution on Alpine
+    const devices = await find({ skipNameResolution: true });
 
-    if (!device) throw new Error(`Device not found for IP ${ip}`);
+    const mac = devices.find(d => d.ip === ip)?.mac;
 
-    return device.mac;
+    if (!mac) throw Error(`MAC not found for IP ${ip}`);
+
+    return mac;
 }
 
 export class NeworkDevicesLocator {

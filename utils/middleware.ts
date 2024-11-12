@@ -16,6 +16,14 @@ export function createErrorMiddleware(logger: Logger): ErrorRequestHandler {
     };
 }
 
+export function createDebugMiddleware(): RequestHandler {
+    return function debug(req, res, next): void {
+        // eslint-disable-next-line no-console
+        console.log(req);
+        next();
+    };
+}
+
 export function createTokenSecuredMiddleware(logger: Logger, token?: string, allowAnonymous: boolean = false): RequestHandler {
     return function tokenSecured(req, res, next): void {
         req.authenticated = tokenPresent(req as RequestWithOptionalTokenBody, token);

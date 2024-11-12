@@ -89,7 +89,9 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
 }
 
 export async function arp(ip: string): Promise<string> {
-    const device = (await find({ address: ip })) as unknown as { mac: string };
+    const device = (await find({ address: ip })) as unknown as { mac: string } | undefined;
+
+    if (!device) throw new Error(`Device not found for IP ${ip}`);
 
     return device.mac;
 }

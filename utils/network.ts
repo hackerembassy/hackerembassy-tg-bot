@@ -88,9 +88,9 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
     });
 }
 
-export async function arp(ip: string): Promise<string> {
+export async function arp(ip: string, networkRange: string): Promise<string> {
     // The ⁠local-devices library cannot parse ARP results for single IP address resolution on Alpine
-    const devices = await find({ skipNameResolution: true });
+    const devices = await find({ address: networkRange, skipNameResolution: true });
 
     const mac = devices.find(d => d.ip === ip)?.mac;
 

@@ -86,7 +86,7 @@ router.get("/linkmac", async (req, res, next) => {
 
         if (!ip) throw Error("Missing IP");
 
-        const mac = await arp(ip.replace("::ffff:", ""));
+        const mac = await arp(ip.replace("::ffff:", ""), embassyApiConfig.spacenetwork.networkRange);
 
         res.send(linkMacPage(mac));
     } catch (error) {

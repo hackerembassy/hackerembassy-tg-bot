@@ -5,7 +5,7 @@ import { NodeSSH } from "node-ssh";
 import { EmbassyApiConfig } from "@config";
 import logger from "@services/logger";
 import { DeviceCheckingMethod } from "@services/embassy";
-import { wakeOnLan, ping, NeworkDevicesLocator } from "@utils/network";
+import { wakeOnLan, ping, NeworkDevicesLocator, arp } from "@utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
@@ -18,6 +18,18 @@ const gamingUser = process.env["GAMINGUSER"];
 const gamingPassword = process.env["GAMINGPASSWORD"];
 
 const router = Router();
+
+function linkMacPage(mac: string) {
+    return `<html>\
+        <head>\
+        </head>\
+        <body style="margin:0;">\
+            <a onclick="event.target.innerText = 'You can close this window now'; window.close();" \
+            style="display:block;height: 100dvh;margin: 0;box-sizing: border-box;text-align: center;padding: 35vh 10vw;background: brown;text-decoration: none;font-size: 10vw;color: white;box-shadow: 0 0 10vw black inset;text-shadow: 0 0 1vw #000000;" \
+            href=https://t.me/${embassyApiConfig.tgbot.username}?start=setmac__${mac.replaceAll(":", "-")}>Press to set your mac to ${mac}</a>\
+        </body>\
+    </html>`;
+}
 
 /**
  * Endpoint to get mac addresses of devices, which are currently connected to the space internal network
@@ -63,6 +75,20 @@ router.get("/inside", async (req, res, next) => {
                     )
                 );
         }
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get("/linkmac", async (req, res, next) => {
+    try {
+        const ip = req.ip;
+
+        if (!ip) throw Error("Missing IP");
+
+        const mac = await arp(ip.replace("::ffff:", ""));
+
+        res.send(linkMacPage(mac));
     } catch (error) {
         next(error);
     }

@@ -9,6 +9,8 @@ const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
 export const EmbassyBase = `${embassyApiConfig.service.host}:${embassyApiConfig.service.port}`;
 export const EmbassyBaseIP = `http://${embassyApiConfig.service.ip}:${embassyApiConfig.service.port}`;
+export const EmbassyBaseLocalDns = `http://${embassyApiConfig.service.localdns}:${embassyApiConfig.service.port}`;
+export const EmbassyLinkMacUrl = `${EmbassyBaseLocalDns}/devices/linkmac`;
 
 export async function requestToEmbassy(
     endpoint: string,

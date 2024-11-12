@@ -484,8 +484,9 @@ export default class HackerEmbassyBot extends TelegramBot {
             if (this.autoRemoveChats.includes(message.chat.id))
                 return this.deleteMessageQueued(message.chat.id, message.message_id);
 
-            // Get command from message text
-            const text = (message.text ?? message.caption) as string;
+            // Get command from message text or a deeplink
+            const deeplink = message.text?.match(/\/start (.*)/)?.[1].replaceAll("__", " ");
+            const text = deeplink ? `/${deeplink}` : ((message.text ?? message.caption) as string);
 
             if (this.shouldIgnore(text)) return;
 

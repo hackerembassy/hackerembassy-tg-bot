@@ -224,12 +224,7 @@ export default class BasicHandlers implements BotHandlers {
         await bot.sendOrEditMessage(msg.chat.id, message, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
     }
 
-    static async startPanelHandler(bot: HackerEmbassyBot, msg: Message, deepLinkCmd?: string) {
-        if (deepLinkCmd) {
-            bot.routeMessage({ ...msg, text: `/${deepLinkCmd}` });
-            return;
-        }
-
+    static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [InlineButton(t("basic.start.buttons.status"), "status", ButtonFlags.Editing)],
             [

@@ -35,8 +35,15 @@ export function InlineDeepLinkButton(text: string, botName: string, cmd: string)
     };
 }
 
-export function AnnoyingInlineButton(bot: HackerEmbassyBot, msg: Message, text: string, command: string, flags?: ButtonFlags) {
+export function AnnoyingInlineButton(
+    bot: HackerEmbassyBot,
+    msg: Message,
+    text: string,
+    command: string,
+    flags?: ButtonFlags,
+    options?: any
+) {
     return bot.context(msg).mode.forward || AnnoyingChats.includes(msg.chat.id)
         ? InlineDeepLinkButton(text, bot.Name!, command)
-        : InlineButton(text, command, flags);
+        : InlineButton(text, command, flags, options);
 }

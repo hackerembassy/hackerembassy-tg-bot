@@ -93,6 +93,9 @@
         }
     },
     "embassy-api": {
+        "tgbot": {
+            "username": "HackerEmbassyBot"
+        },
         "devices": {
             "gaming": {
                 "host": "gayming.lan",
@@ -104,7 +107,8 @@
             "port": 8001,
             "ip": "172.17.0.1",
             "host": "http://172.17.0.1",
-            "static": "static"
+            "static": "static",
+            "localdns": "botservice.lan"
         },
         "spacenetwork": {
             "deviceCheckingMethod": {

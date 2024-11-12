@@ -600,6 +600,10 @@ status:
         total: 💰 Total added to space {{total}} {{currency}}
         notfound: ⚠️ User not found
     mac:
+        buttons:
+            detect: 🔍 Detect automatically
+            autoinside: 📲 Enable autoinside
+            remove: 🗑 Remove MAC
         help: |
             📡 Using this command you can set MAC addresses for auto-login and lock control functions
 
@@ -617,16 +621,17 @@ status:
         isset: 📲 The MAC addresses {{usermac}} are specified for the user {{username}}
         isnotset: 📲 MAC address is not set for user {{username}}
     autoinside:
+        buttons:
+            status: 👁‍🗨 Status
+            enable: 📲 Enable
+            disable: 📵 Disable
+            mac: 📡 Control MACs
+            ghost: 👻 Ghost
         help: |
             ⏲ ​​Using this command, you can automatically register in the space as soon as the MAC address of your device is detected on the network.
             📌 If the device is inactive on the space network for {{timeout}} minutes, the user will be automatically logged out.
             📌 When the feature is enabled, the current status of the device on the network takes precedence over manual login/logout commands.
             ⚠️ To work, be sure to set the MAC address of your device and disable its randomization for the space network.
-
-            #`/setmac#` - Managing your MAC address
-            #`/autoinside status#` - Autoinside and autoout status
-            #`/autoinside enable#` - Enable auto login and auto logout
-            #`/autoinside disable#` - Disable auto-in and auto-out
         ghost: "#`/autoinside ghost#` - Check in for residents only"
         fail: ⚠️ Failed to enable auto-login, although MAC is set. Someone give my developer a hard time.
         nomac: |

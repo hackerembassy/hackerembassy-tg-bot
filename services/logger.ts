@@ -12,9 +12,10 @@ const loggerConfig = config.get<LoggerConfig>("logger");
 const datePattern = "YYYY-MM-DD";
 const timePattern = "HH:mm:ss";
 const fullPattern = `${datePattern} ${timePattern}`;
+const logLevel = process.env["BOTDEBUG"] ? "debug" : loggerConfig.level;
 
 const rotatedFile = new transports.DailyRotateFile({
-    level: loggerConfig.level,
+    level: logLevel,
     filename: `${loggerConfig.logFolder}/%DATE%.log`,
     datePattern,
     zippedArchive: true,
@@ -23,7 +24,7 @@ const rotatedFile = new transports.DailyRotateFile({
 });
 
 const logger = createLogger({
-    level: loggerConfig.level,
+    level: logLevel,
     format: format.combine(
         format.timestamp({
             format: fullPattern,

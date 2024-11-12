@@ -7,7 +7,7 @@ import express from "express";
 import { EmbassyApiConfig } from "@config";
 import logger from "@services/logger";
 import { catErrorPage } from "@utils/meme";
-import { createErrorMiddleware } from "@utils/middleware";
+import { createDebugMiddleware, createErrorMiddleware } from "@utils/middleware";
 
 import spaceRouter from "./routers/space";
 import speakerRouter from "./routers/speaker";
@@ -22,10 +22,12 @@ const port = embassyApiConfig.service.port;
 const app = express();
 const staticPath = path.join(__dirname, "../..", embassyApiConfig.service.static);
 
+if (process.env["BOTDEBUG"] === "true") app.use(createDebugMiddleware());
 app.use(cors());
 app.use(express.json());
 app.use(express.static(staticPath));
 app.use(createErrorMiddleware(logger));
+
 app.use("/space", spaceRouter);
 app.use("/speaker", speakerRouter);
 app.use("/neural", neuralRouter);

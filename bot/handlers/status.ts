@@ -7,7 +7,7 @@ import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 import fundsRepository, { COSTS_PREFIX } from "@repositories/funds";
 import { DefaultCurrency, sumDonations } from "@services/currency";
-import { fetchDevicesInside, requestToEmbassy } from "@services/embassy";
+import { fetchDevicesInside, requestToEmbassy, EmbassyLinkMacUrl } from "@services/embassy";
 import { createUserStatsDonut } from "@services/export";
 import * as ExportHelper from "@services/export";
 import { SpaceClimate } from "@services/hass";
@@ -31,7 +31,7 @@ import { UserStateType, UserStateChangeType, AutoInsideMode } from "data/types";
 import { getTodayEventsCached, HSEvent } from "@services/googleCalendar";
 
 import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton } from "../core/InlineButtons";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/InlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
@@ -47,11 +47,20 @@ export default class StatusHandlers implements BotHandlers {
         const userLink = helpers.userLink(user);
 
         let message = t("status.mac.fail");
+        let inline_keyboard: InlineKeyboardButton[][] = [];
 
         if (!cmd || cmd === "help") {
             message = t("status.mac.help");
+            inline_keyboard = [[InlineLinkButton(t("status.mac.buttons.detect"), EmbassyLinkMacUrl)]];
         } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(user.userid, cmd)) {
             message = t("status.mac.set", { cmd, username: userLink });
+            inline_keyboard = [
+                [
+                    AnnoyingInlineButton(bot, msg, t("status.mac.buttons.autoinside"), "autoinside", ButtonFlags.Simple, {
+                        params: "enable",
+                    }),
+                ],
+            ];
         } else if (cmd === "remove") {
             UsersRepository.setMACs(user.userid, null);
             UsersRepository.updateUser(user.userid, { autoinside: AutoInsideMode.Disabled });
@@ -65,7 +74,40 @@ export default class StatusHandlers implements BotHandlers {
             else message = t("status.mac.isnotset", { username: userLink });
         }
 
-        await bot.sendMessageExt(msg.chat.id, message, msg);
+        await bot.sendMessageExt(msg.chat.id, message, msg, {
+            reply_markup: {
+                inline_keyboard,
+            },
+        });
+    }
+
+    static getAutoInsideKeyboard(bot: HackerEmbassyBot, msg: Message, secret: boolean) {
+        const inline_keyboard = [
+            [
+                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.status"), "autoinside", ButtonFlags.Simple, {
+                    params: "status",
+                }),
+            ],
+            [
+                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.enable"), "autoinside", ButtonFlags.Simple, {
+                    params: "enable",
+                }),
+                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.disable"), "autoinside", ButtonFlags.Simple, {
+                    params: "disable",
+                }),
+            ],
+            [AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.mac"), "setmac", ButtonFlags.Simple)],
+        ];
+
+        if (secret) {
+            inline_keyboard.splice(2, 0, [
+                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.ghost"), "autoinside", ButtonFlags.Simple, {
+                    params: "ghost",
+                }),
+            ]);
+        }
+
+        return inline_keyboard;
     }
 
     static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
@@ -76,6 +118,7 @@ export default class StatusHandlers implements BotHandlers {
         const usermac = user.mac;
 
         let message = t("status.autoinside.fail");
+        let inline_keyboard: InlineKeyboardButton[][] = [];
 
         try {
             switch (cmd) {
@@ -83,20 +126,14 @@ export default class StatusHandlers implements BotHandlers {
                 case "ghost":
                     if (!usermac) {
                         message = t("status.autoinside.nomac");
-                    } else if (
-                        UsersRepository.updateUser(user.userid, {
-                            autoinside: cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled,
-                        })
-                    )
-                        message = t("status.autoinside.set", {
-                            usermac,
-                            username: userLink,
-                        });
+                    } else {
+                        const mode = cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled;
+                        UsersRepository.updateUser(user.userid, { autoinside: mode });
+                        message = TextGenerators.getAutoinsideMessageStatus(mode as AutoInsideMode, usermac, userLink);
+                    }
                     break;
                 case "disable":
-                    UsersRepository.updateUser(user.userid, {
-                        autoinside: AutoInsideMode.Disabled,
-                    });
+                    UsersRepository.updateUser(user.userid, { autoinside: AutoInsideMode.Disabled });
                     message = t("status.autoinside.removed", { username: userLink });
                     break;
                 case "status":
@@ -104,16 +141,20 @@ export default class StatusHandlers implements BotHandlers {
                     break;
                 case "help":
                 default:
-                    message =
-                        t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 }) +
-                        (mode.secret ? t("status.autoinside.ghost") : "");
+                    inline_keyboard = StatusHandlers.getAutoInsideKeyboard(bot, msg, mode.secret);
+
+                    message = t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 });
                     break;
             }
         } catch (error) {
             logger.error(error);
         }
 
-        return await bot.sendMessageExt(msg.chat.id, message, msg);
+        return await bot.sendMessageExt(msg.chat.id, message, msg, {
+            reply_markup: {
+                inline_keyboard,
+            },
+        });
     }
 
     static getStatusMessage(

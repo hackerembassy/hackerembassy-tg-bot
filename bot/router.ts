@@ -63,7 +63,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     }
 
     // Panels
-    bot.addRoute(["start", "startpanel", "sp"], BasicHandlers.startPanelHandler, OptionalParam(/(.*)/), match => [match[1]]);
+    bot.addRoute(["start", "startpanel", "sp"], BasicHandlers.startPanelHandler);
     bot.addRoute(["infopanel", "info", "ip", "faq"], BasicHandlers.infoPanelHandler);
     bot.addRoute(["memepanel", "meme", "memes", "mp"], BasicHandlers.memePanelHandler, null, null, TrustedMembers);
 

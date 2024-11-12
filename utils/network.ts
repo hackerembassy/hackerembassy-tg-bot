@@ -88,6 +88,12 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
     });
 }
 
+export async function arp(ip: string): Promise<string> {
+    const device = (await find({ address: ip })) as unknown as { mac: string };
+
+    return device.mac;
+}
+
 export class NeworkDevicesLocator {
     static async getDevicesFromKeenetic(routerip: string, username: string, password: string) {
         const ssh = new NodeSSH();

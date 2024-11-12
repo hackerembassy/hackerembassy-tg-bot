@@ -129,6 +129,7 @@ export interface PrinterEndpoint {
 }
 
 export interface EmbassyApiConfig {
+    tgbot: TgBotConfig;
     devices: DevicesConfig;
     service: EmbassyServiceConfig;
     spacenetwork: SpaceNetworkConfig;
@@ -141,6 +142,10 @@ export interface EmbassyApiConfig {
     alarm: AlarmConfig;
     climate: ClimateConfig;
     hostsToMonitor?: string[] | null;
+}
+
+export interface TgBotConfig {
+    username: string;
 }
 
 export interface DoorbellConfig {
@@ -163,6 +168,7 @@ export interface EmbassyServiceConfig {
     statusCheckInterval: number;
     port: number;
     static: string;
+    localdns: string;
 }
 
 export interface SpaceNetworkConfig {

@@ -25,8 +25,11 @@ function linkMacPage(mac: string) {
         </head>\
         <body style="margin:0;">\
             <a onclick="event.target.innerText = 'You can close this window now'; window.close();" \
-            style="display:block;height: 100dvh;margin: 0;box-sizing: border-box;text-align: center;padding: 35vh 10vw;background: brown;text-decoration: none;font-size: 10vw;color: white;box-shadow: 0 0 10vw black inset;text-shadow: 0 0 1vw #000000;" \
-            href=https://t.me/${embassyApiConfig.tgbot.username}?start=setmac__${mac.replaceAll(":", "-")}>Press to set your mac to ${mac}</a>\
+            style="display:block;height: 100dvh;margin: 0;box-sizing: border-box;text-align: center;padding: 35vh 10vw;background: brown;text-decoration: none;font-size: 9vw;color: white;box-shadow: 0 0 10vw black inset;text-shadow: 0 0 1vw #000000;" \
+            href=https://t.me/${embassyApiConfig.tgbot.username}?start=setmac__${mac.replaceAll(
+        ":",
+        "-"
+    )}>Press to set your mac to ${mac}</a>\
         </body>\
     </html>`;
 }

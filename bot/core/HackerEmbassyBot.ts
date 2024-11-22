@@ -28,7 +28,7 @@ import { chunkSubstr } from "@utils/text";
 import UserService from "@services/user";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
-import { OptionalRegExp, hasRole, prepareMessageForMarkdown, tgUserLink } from "./helpers";
+import { OptionalRegExp, hasRole, isBanned, prepareMessageForMarkdown, tgUserLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {
@@ -504,6 +504,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
             // Check restritions
+            if (isBanned(user)) return;
             if (route.restrictions.length > 0 && !this.canUserCall(user, command))
                 return this.sendRestrictedMessage(message, route);
 

@@ -440,6 +440,28 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    static async htmlinspaceHandler(bot: HackerEmbassyBot, msg: Message, html?: string) {
+        bot.sendChatAction(msg.chat.id, "typing", msg);
+
+        try {
+            if (!html || html.length === 0) {
+                bot.sendMessageExt(msg.chat.id, t("embassy.html.help"), msg);
+                return;
+            }
+
+            const response =
+                html === "remove" || html === "clear"
+                    ? await requestToEmbassy(`/screen/close_popup`, "POST")
+                    : await requestToEmbassy(`/screen/popup`, "POST", { html }, 30000);
+
+            if (response.ok) await bot.sendMessageExt(msg.chat.id, t("embassy.html.success"), msg);
+            else throw Error("Failed to send a message to the led matrix");
+        } catch (error) {
+            logger.error(error);
+            await bot.sendMessageExt(msg.chat.id, t("embassy.html.fail"), msg);
+        }
+    }
+
     static async sendDonationsSummaryHandler(bot: HackerEmbassyBot, msg: Message, fund?: string) {
         try {
             const selectedFund = fund ? fundsRepository.getFundByName(fund) : fundsRepository.getLatestCosts();

@@ -137,6 +137,11 @@
             "playpath": "/api/services/media_player/play_media",
             "stoppath": "/api/services/media_player/media_stop"
         },
+        "browser": {
+            "target": "aee0b5cb4cd6bef1303d9e2c4be1a22e",
+            "popuppath": "/api/services/browser_mod/popup",
+            "closepath": "/api/services/browser_mod/close_popup"
+        },
         "doorbell": {
             "host": "doorbell-shelly.lan",
             "hasspath": "/api/services/switch/turn_on"

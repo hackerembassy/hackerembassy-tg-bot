@@ -390,8 +390,14 @@ embassy:
     text:
         help: |
             🗣 Using this command you can display a text message on a space led matrix, for example #`/text Hello, hackers#`
-        success: 🗣 Message sent to led-matrix
+        success: 🗣 Message sent to the led-matrix
         fail: ⚠️ Couldn't send message
+    html:
+        help: |
+            🗣 Using this command you can display a html page on a space internal monitor, for example #`/html <h1>Hello, hackers<h1>#`
+            Clear html with #`/html clear#`
+        success: 🗣 Html sent to the internal monitor
+        fail: ⚠️ Couldn't send html
     play:
         help: 🗣 Using this command you can play any sound from the link
         success: 🗣 Sound sent to speaker

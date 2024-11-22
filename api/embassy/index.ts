@@ -16,6 +16,7 @@ import devicesRouter from "./routers/devices";
 import printersRouter from "./routers/printers";
 import climateRouter from "./routers/climate";
 import camerasRouter from "./routers/cameras";
+import screenRouter from "./routers/screen";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const port = embassyApiConfig.service.port;
@@ -35,6 +36,7 @@ app.use("/devices", devicesRouter);
 app.use("/printers", printersRouter);
 app.use("/climate", climateRouter);
 app.use("/cameras", camerasRouter);
+app.use("/screen", screenRouter);
 
 app.get("/healthcheck", (_, res, next) => {
     try {

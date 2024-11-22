@@ -136,12 +136,19 @@ export interface EmbassyApiConfig {
     mqtthost: string;
     hassorigin: string;
     speaker: SpeakerConfig;
+    browser: BrowserConfig;
     cams: CamConfig;
     doorbell: DoorbellConfig;
     ledmatrix: LedMatrixConfig;
     alarm: AlarmConfig;
     climate: ClimateConfig;
     hostsToMonitor?: string[] | null;
+}
+
+export interface BrowserConfig {
+    target: string;
+    popuppath: string;
+    closepath: string;
 }
 
 export interface TgBotConfig {

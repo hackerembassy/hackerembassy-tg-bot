@@ -123,6 +123,24 @@ export async function playInSpace(link: string): Promise<void> {
     if (response.status !== 200) throw Error("Speaker request failed");
 }
 
+export async function showPopupInSpace(html: string): Promise<void> {
+    const response = await postToHass(embassyApiConfig.browser.popuppath, {
+        browser_id: embassyApiConfig.browser.target,
+        content: html,
+        size: "fullscreen",
+    });
+
+    if (response.status !== 200) throw Error("Browser request failed");
+}
+
+export async function closePopup(): Promise<void> {
+    const response = await postToHass(embassyApiConfig.browser.closepath, {
+        browser_id: embassyApiConfig.browser.target,
+    });
+
+    if (response.status !== 200) throw Error("Browser request failed");
+}
+
 export async function stopMediaInSpace(): Promise<void> {
     const response = await postToHass(embassyApiConfig.speaker.stoppath, {
         entity_id: embassyApiConfig.speaker.entity,

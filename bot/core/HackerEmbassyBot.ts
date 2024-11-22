@@ -580,7 +580,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (!data.cmd) throw Error("Missing calback command");
 
         // Check restritions
-        if (!this.canUserCall(user, data.cmd)) return;
+        if (isBanned(user) || !this.canUserCall(user, data.cmd)) return;
 
         // Get route handler
         const handler = this.routeMap.get(data.cmd)?.handler;

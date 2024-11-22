@@ -170,7 +170,7 @@ export default class AdminHandlers implements BotHandlers {
     static getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
         if (!query) return bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
 
-        const user = UsersRepository.getUserByName(query) ?? UsersRepository.getUserByUserId(query);
+        const user = UsersRepository.getUserByName(query.replace("@", "")) ?? UsersRepository.getUserByUserId(query);
 
         if (!user) return bot.sendMessageExt(msg.chat.id, "User not found", msg);
 
@@ -289,7 +289,7 @@ export default class AdminHandlers implements BotHandlers {
                 typeof effectiveTarget === "number"
                     ? UsersRepository.getUserByUserId(effectiveTarget)
                     : (UsersRepository.getUserByUserId(Number(effectiveTarget)) ??
-                      UsersRepository.getUserByName(effectiveTarget));
+                      UsersRepository.getUserByName(effectiveTarget.replace("@", "")));
 
             const wasBanned =
                 user &&
@@ -308,6 +308,8 @@ export default class AdminHandlers implements BotHandlers {
             const isButtonResponse = bot.context(msg).isButtonResponse;
 
             if (wasBanned) {
+                UsersRepository.updateRoles(user.userid, ["banned"]);
+
                 if (reply) messagesToDelete.push(reply.message_id);
                 if (isButtonResponse) messagesToDelete.push(msg.message_id);
             } else if (!isButtonResponse) {

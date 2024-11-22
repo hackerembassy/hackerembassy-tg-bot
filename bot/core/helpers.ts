@@ -41,6 +41,10 @@ export function hasRole(user: User, ...roles: UserRole[]) {
     return user.roles?.length !== 0 ? splitRoles(user).filter(r => roles.includes(r)).length > 0 : false;
 }
 
+export function isBanned(user: User) {
+    return user.roles?.includes("banned");
+}
+
 export function splitRoles(user: User) {
     return user.roles?.split("|") as UserRole[];
 }

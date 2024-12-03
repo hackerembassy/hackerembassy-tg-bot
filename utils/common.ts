@@ -19,3 +19,13 @@ export function debounce(func: Function, delay: number): (...args: any[]) => voi
 export function randomInteger(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+export function splitArray<T>(array: T[], size: number): T[][] {
+    const result = [];
+
+    for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+    }
+
+    return result;
+}

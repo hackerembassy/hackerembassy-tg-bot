@@ -4,11 +4,14 @@ import { Topic } from "@data/models";
 
 import logger from "@services/logger";
 import SubscriptionsService from "@services/subscriptions";
+import { splitArray } from "@utils/common";
+
+import { MAX_MENTIONS_WITH_NOTIFICATIONS } from "@hackembot/core/constants";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
-import { DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/RateLimit";
+import { DEFAULT_API_RATE_LIMIT, DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
 import { userLink } from "../core/helpers";
 import { listTopics } from "../textGenerators";
@@ -69,13 +72,20 @@ export default class TopicsHandlers implements BotHandlers {
             if (!subscriptions.length)
                 return bot.sendMessageExt(msg.chat.id, t("topics.general.nosubscribers", { topic: topicname }), msg);
 
-            const text = subscriptions
-                .map(subscription =>
-                    subscription.user.username ? `@${subscription.user.username}` : userLink(subscription.user)
-                )
-                .join(" ");
+            const mentions = subscriptions.map(subscription =>
+                subscription.user.username ? `@${subscription.user.username}` : userLink(subscription.user)
+            );
 
-            return bot.sendMessageExt(msg.chat.id, text, msg);
+            return RateLimiter.executeOverTime(
+                splitArray(mentions, MAX_MENTIONS_WITH_NOTIFICATIONS).map(
+                    chunk => () => bot.sendMessageExt(msg.chat.id, chunk.join(" "), msg)
+                ),
+                DEFAULT_API_RATE_LIMIT,
+                error => {
+                    logger.error(error);
+                    return null;
+                }
+            );
         } catch (error) {
             logger.error(error);
             return bot.sendMessageExt(msg.chat.id, t("topics.general.error"), msg);

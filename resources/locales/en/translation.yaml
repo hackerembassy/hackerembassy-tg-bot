@@ -395,9 +395,13 @@ embassy:
     html:
         help: |
             🗣 Using this command you can display a html page on a space internal monitor, for example #`/html <h1>Hello, hackers<h1>#`
-            Clear html with #`/html clear#`
-        success: 🗣 Html sent to the internal monitor
-        fail: ⚠️ Couldn't send html
+            Clear the screen with #`/html clear#`
+        success: 🗣 Sent to the internal monitor
+        fail: ⚠️ Failed to send
+    gif:
+        help: |
+            🗣 Using this command you can display a gif image on a space internal monitor, for example #`/gif https://c.tenor.com/WsPxFXB9CkUAAAAC/tenor.gif#`
+            Clear the screen with #`/gif clear#`
     play:
         help: 🗣 Using this command you can play any sound from the link
         success: 🗣 Sound sent to speaker
@@ -697,8 +701,8 @@ status:
         gotout: 🔴 {{memberusername}} sent {{username}} home.
     going: 🚕 {{username}} plans to go to space today {{note}}
     notgoing: 🛌 {{username}} is no longer planning to go to space today.
-    shouldigo: 
-        context: “You are a Telegram bot for the hackspace, always responding humorously and oddly. I will most likely not be allowed into the closed space, but I will be gladly accepted into the open space.” 
+    shouldigo:
+        context: “You are a Telegram bot for the hackspace, always responding humorously and oddly. I will most likely not be allowed into the closed space, but I will be gladly accepted into the open space.”
         prompt: “Should I go to the hackspace today if the space is {{state}} for me, {{going}} are planning to visit, and {{inside}} is inside?”
         fail: I can't decide if I should go to the space today. Try again
     emoji:

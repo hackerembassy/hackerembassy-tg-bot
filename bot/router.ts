@@ -503,6 +503,7 @@ function addEmbassySpecificRoutes(bot: HackerEmbassyBot) {
     // Text
     bot.addRoute(["textinspace", "text"], EmbassyHandlers.textinspaceHandler, OptionalParam(/(.*)/ims), match => [match[1]]);
     bot.addRoute(["htmlinspace", "html"], EmbassyHandlers.htmlinspaceHandler, OptionalParam(/(.*)/ims), match => [match[1]]);
+    bot.addRoute(["gifinspace", "gif"], EmbassyHandlers.gifinspaceHandler, OptionalParam(/(.*)/ims), match => [match[1]]);
     bot.addRoute(
         ["donationsummary", "textdonations"],
         EmbassyHandlers.sendDonationsSummaryHandler,

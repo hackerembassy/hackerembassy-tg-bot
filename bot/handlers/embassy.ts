@@ -440,6 +440,28 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    static isClearScreenCommand(command?: string) {
+        return command === "clear" || command === "remove";
+    }
+
+    static gifinspaceHandler(bot: HackerEmbassyBot, msg: Message, gifUrl?: string) {
+        if (!gifUrl || gifUrl.length === 0) {
+            bot.sendMessageExt(msg.chat.id, t("embassy.gif.help"), msg);
+            return;
+        }
+
+        const gifHtml = EmbassyHandlers.isClearScreenCommand(gifUrl)
+            ? gifUrl
+            : `
+            <html>
+              <body>
+                <img style="width: 100vw;height:100vh;" src="${gifUrl}">
+              </body>
+            </html>`;
+
+        return EmbassyHandlers.htmlinspaceHandler(bot, msg, gifHtml);
+    }
+
     static async htmlinspaceHandler(bot: HackerEmbassyBot, msg: Message, html?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -449,10 +471,9 @@ export default class EmbassyHandlers implements BotHandlers {
                 return;
             }
 
-            const response =
-                html === "remove" || html === "clear"
-                    ? await requestToEmbassy(`/screen/close_popup`, "POST")
-                    : await requestToEmbassy(`/screen/popup`, "POST", { html }, 30000);
+            const response = EmbassyHandlers.isClearScreenCommand(html)
+                ? await requestToEmbassy(`/screen/close_popup`, "POST")
+                : await requestToEmbassy(`/screen/popup`, "POST", { html }, 30000);
 
             if (response.ok) await bot.sendMessageExt(msg.chat.id, t("embassy.html.success"), msg);
             else throw Error("Failed to send a message to the led matrix");

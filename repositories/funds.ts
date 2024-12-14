@@ -144,8 +144,8 @@ class FundsRepository extends BaseRepository {
         return this.db.delete(funds).where(eq(funds.id, funds.id)).run().changes > 0;
     }
 
-    addDonation(donation: Omit<Donation, "id">): boolean {
-        return this.db.insert(donations).values(donation).run().changes > 0;
+    addDonation(donation: Omit<Donation, "id">): number | bigint {
+        return this.db.insert(donations).values(donation).run().lastInsertRowid;
     }
 
     addDonationTo(
@@ -154,7 +154,7 @@ class FundsRepository extends BaseRepository {
         value: number,
         accountant_id: number,
         currency: string = currencyConfig.default
-    ): boolean {
+    ): number | bigint {
         return this.addDonation({
             fund_id,
             user_id,

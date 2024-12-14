@@ -222,39 +222,42 @@ export default class FundsHandlers implements BotHandlers {
         sponsorName: string,
         fundName: string
     ) {
-        const value = parseMoneyValue(valueString);
-        const preparedCurrency = await prepareCurrency(currency);
-        const user =
-            UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
-            UsersRepository.getUserByUserId(helpers.getMentions(msg)[0]?.id);
-        const accountant = bot.context(msg).user;
-
-        if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
-
-        const fund = FundsRepository.getFundByName(fundName);
-
-        if (!fund) return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.nofund"), msg);
-
-        const existingUserDonations = FundsRepository.getDonationsForName(fundName).filter(
-            donation => donation.user_id === user.userid
-        );
-        const hasAlreadyDonated = existingUserDonations.length > 0;
-
-        const success =
-            !isNaN(value) &&
-            preparedCurrency &&
-            FundsRepository.addDonationTo(fund.id, user.userid, value, accountant.userid, preparedCurrency);
-        const text = success
-            ? t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
-                  username: helpers.formatUsername(sponsorName),
-                  value: toBasicMoneyString(value),
-                  currency: preparedCurrency,
-                  fundName,
-              })
-            : t("funds.adddonation.fail");
-
         try {
-            if (!success) throw new Error("Failed to add donation");
+            const value = parseMoneyValue(valueString);
+            const preparedCurrency = await prepareCurrency(currency);
+            const user =
+                UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
+                UsersRepository.getUserByUserId(helpers.getMentions(msg)[0]?.id);
+            const accountant = bot.context(msg).user;
+
+            if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+
+            const fund = FundsRepository.getFundByName(fundName);
+
+            if (!fund) return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.nofund"), msg);
+
+            const existingUserDonations = FundsRepository.getDonationsForName(fundName).filter(
+                donation => donation.user_id === user.userid
+            );
+            const hasAlreadyDonated = existingUserDonations.length > 0;
+
+            if (isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
+
+            const lastInsertRowid = FundsRepository.addDonationTo(
+                fund.id,
+                user.userid,
+                value,
+                accountant.userid,
+                preparedCurrency
+            );
+
+            const text = t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
+                username: helpers.formatUsername(sponsorName),
+                value: toBasicMoneyString(value),
+                currency: preparedCurrency,
+                donationId: lastInsertRowid,
+                fundName,
+            });
 
             const valueInDefaultCurrency = await convertCurrency(value, preparedCurrency, DefaultCurrency);
 
@@ -302,7 +305,7 @@ export default class FundsHandlers implements BotHandlers {
         } catch (error) {
             logger.error(error);
 
-            return bot.sendMessageExt(msg.chat.id, text, msg);
+            return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.fail"), msg);
         }
     }
 

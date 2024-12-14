@@ -483,8 +483,10 @@ funds:
         fail: ⚠️ Failed to transfer donation
         nothing: ⚠️ Nothing transferred, fucker
     adddonation:
-        success: 💸 {{username}} donated {{value}} {{currency}} to {{fundName}}
-        increased: 💸 {{username}} increased his donation to the {{fundName}} collection by another {{value}} {{currency}}
+        success: |
+            💸 [#`{{donationId}}#`] {{username}} donated {{value}} {{currency}} to #`{{fundName}}#`
+        increased: |
+            💸 [#`{{donationId}}#`] {{username}} increased his donation to #`{{fundName}}#` by another {{value}} {{currency}}
         fail: ⚠️ Failed to add donation (maybe something is wrong with the currency or amount?)
     removedonation:
         success: 🗑 Donation removed [id:{{donationId}}]

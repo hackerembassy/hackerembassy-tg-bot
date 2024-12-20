@@ -30,6 +30,7 @@ export interface BotConfig {
     maxchathistory: number;
     live: LiveConfig;
     reminders: RemindersConfig;
+    funds: FundsConfig;
     debug: boolean;
     moderatedChats: number[];
     features: BotFeaturesConfig;
@@ -69,6 +70,10 @@ export interface LiveConfig {
 export interface RemindersConfig {
     utility: UtilityReminder;
     internet: UtilityReminder;
+}
+
+export interface FundsConfig {
+    alternativeUsernames: string[];
 }
 
 export interface UtilityReminder {

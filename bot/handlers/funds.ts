@@ -1,5 +1,8 @@
 import { Message } from "node-telegram-bot-api";
 
+import config from "config";
+
+import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import FundsRepository, { COSTS_PREFIX } from "@repositories/funds";
 import {
@@ -25,8 +28,9 @@ import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 import EmbassyHandlers from "./embassy";
 
+const botConfig = config.get<BotConfig>("bot");
+
 const CALLBACK_DATA_RESTRICTION = 21;
-const ALTERNATIVE_DONATION_USERNAMES = ["dipierro", "keimoger"];
 
 // Converter library needs time to initialize all currencies, so we need to init it in advance
 initConvert();
@@ -267,7 +271,7 @@ export default class FundsHandlers implements BotHandlers {
 
             if (value === 42069 || value === 69420 || value === 69 || value === 420) {
                 animeImage = await getImageFromPath(`./resources/images/memes/comedy.jpg`);
-            } else if (user.username && ALTERNATIVE_DONATION_USERNAMES.includes(user.username)) {
+            } else if (user.username && botConfig.funds.alternativeUsernames.includes(user.username)) {
                 animeImage = await getImageFromPath(`./resources/images/anime/guy.jpg`);
             } else {
                 const happinessLevel =

@@ -184,7 +184,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         match => [match[1], match[2]],
         Accountants
     );
-    bot.addRoute(["showcostsdonut", "costsdonut"], FundsHandlers.showCostsDonutHandler);
+    bot.addRoute(["showcostsdonut", "costsdonut", "cdonut"], FundsHandlers.showCostsDonutHandler);
     bot.addRoute(
         ["residentscosts", "residentsdonated", "residentcosts", "rcosts"],
         FundsHandlers.residentsDonatedHandler,
@@ -257,8 +257,8 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     );
     bot.addRoute(["debt", "mymoney"], FundsHandlers.debtHandler, OptionalParam(/(\S+)/), match => [match[1]], Accountants);
 
-    bot.addRoute(["sponsors"], FundsHandlers.sponsorsHandler);
-    bot.addRoute(["refreshsponsors", "refreshsponsorships"], FundsHandlers.refreshSponsorshipsHandler, null, null, Accountants);
+    bot.addRoute(["getsponsors", "sponsors"], FundsHandlers.sponsorsHandler);
+    bot.addRoute(["refreshsponsors", "recalculatesponsors"], FundsHandlers.refreshSponsorshipsHandler, null, null, Accountants);
 
     // Needs
     bot.addRoute(["needs"], NeedsHandlers.needsHandler);

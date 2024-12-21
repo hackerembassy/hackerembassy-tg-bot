@@ -224,7 +224,20 @@ export default class FundsHandlers implements BotHandlers {
         const sponsors = UsersRepository.getSponsors();
         const sponsorsList = TextGenerators.getSponsorsList(sponsors);
 
-        await bot.sendLongMessage(msg.chat.id, t("funds.sponsors.list", { list: sponsorsList }), msg);
+        const inline_keyboard = [
+            [
+                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
+                AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing),
+            ],
+        ];
+
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            t("funds.sponsors.list", { list: sponsorsList }),
+            msg,
+            { reply_markup: { inline_keyboard } },
+            msg.message_id
+        );
     }
 
     static async refreshSponsorshipsHandler(bot: HackerEmbassyBot, msg?: Message) {

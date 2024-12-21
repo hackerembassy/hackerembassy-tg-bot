@@ -71,6 +71,9 @@ basic:
         We contribute to the development of the space: paying rent and utilities, taking care of the space, helping in purchasing equipment.
         We will be glad to receive any support.
 
+        🫶 Starting from a certain amount of donations over the past {{period}} months, you receive the status of our sponsor:
+        {{sponsorshipTierList}}
+
         You can donate to us in the following ways:
         💵 Cash upon meeting (the best option).
           {{donateCashCommand}}
@@ -206,6 +209,7 @@ basic:
             location: 🗺 How to find
             donate: 🎁 How to donate
             residents: 👩‍💻 Our residents
+            sponsors: 🫶 Our sponsors
             back: ↩️ Back
     meme:
         text: |
@@ -508,6 +512,8 @@ funds:
             🏅 Our beloved sponsors 🏅 
             
             {{list}}
+
+            🫶 Want to be part of this list? Just press How to Donate below
     refreshsponsorships:
         success: 🔄 Sponsorships updated
         fail: ⚠️ Failed to update sponsorships

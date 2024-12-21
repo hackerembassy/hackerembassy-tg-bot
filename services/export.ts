@@ -3,7 +3,7 @@ import ChartJsImage from "chartjs-to-image";
 
 import config from "config";
 
-import { BotConfig } from "@config";
+import { BotConfig, SponsorshipLevelsConfig } from "@config";
 import FundsRepository from "@repositories/funds";
 import { compareMonthNames } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
@@ -23,6 +23,27 @@ export enum SponsorshipLevel {
     Bronze = 1,
     None = 0,
 }
+
+export const SponsorshipNameToLevel = new Map<keyof SponsorshipLevelsConfig, SponsorshipLevel>([
+    ["bronze", SponsorshipLevel.Bronze],
+    ["silver", SponsorshipLevel.Silver],
+    ["gold", SponsorshipLevel.Gold],
+    ["platinum", SponsorshipLevel.Platinum],
+]);
+
+export const SponsorshipLevelToName = new Map<SponsorshipLevel, keyof SponsorshipLevelsConfig>([
+    [SponsorshipLevel.Bronze, "bronze"],
+    [SponsorshipLevel.Silver, "silver"],
+    [SponsorshipLevel.Gold, "gold"],
+    [SponsorshipLevel.Platinum, "platinum"],
+]);
+
+export const SponsorshipLevelToEmoji = new Map<SponsorshipLevel, string>([
+    [SponsorshipLevel.Bronze, "🥉"],
+    [SponsorshipLevel.Silver, "🥈"],
+    [SponsorshipLevel.Gold, "🥇"],
+    [SponsorshipLevel.Platinum, "💎"],
+]);
 
 interface SimplifiedDonation {
     username: string;
@@ -363,43 +384,13 @@ export async function getSponsorshipLevel(user: User): Promise<SponsorshipLevel>
     const userDonations = FundsRepository.getDonationsOf(user.userid, false, false, startPeriodDate);
     const sum = await sumDonations(userDonations);
 
-    return sum > fundsConfig.sponsorship.levels.platinum
+    return sum >= fundsConfig.sponsorship.levels.platinum
         ? SponsorshipLevel.Platinum
-        : sum > fundsConfig.sponsorship.levels.gold
+        : sum >= fundsConfig.sponsorship.levels.gold
           ? SponsorshipLevel.Gold
-          : sum > fundsConfig.sponsorship.levels.silver
+          : sum >= fundsConfig.sponsorship.levels.silver
             ? SponsorshipLevel.Silver
-            : sum > fundsConfig.sponsorship.levels.bronze
+            : sum >= fundsConfig.sponsorship.levels.bronze
               ? SponsorshipLevel.Bronze
               : SponsorshipLevel.None;
-}
-
-export function getSponsorshipEmoji(sponsorship: Nullable<SponsorshipLevel>) {
-    switch (sponsorship) {
-        case SponsorshipLevel.Platinum:
-            return "💎";
-        case SponsorshipLevel.Gold:
-            return "🥇";
-        case SponsorshipLevel.Silver:
-            return "🥈";
-        case SponsorshipLevel.Bronze:
-            return "🥉";
-        default:
-            return "";
-    }
-}
-
-export function getSponsorshipName(sponsorship: Nullable<SponsorshipLevel>) {
-    switch (sponsorship) {
-        case SponsorshipLevel.Platinum:
-            return "platinum";
-        case SponsorshipLevel.Gold:
-            return "gold";
-        case SponsorshipLevel.Silver:
-            return "silver";
-        case SponsorshipLevel.Bronze:
-            return "bronze";
-        default:
-            return "";
-    }
 }

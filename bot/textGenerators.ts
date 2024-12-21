@@ -1,6 +1,6 @@
 import config from "config";
 
-import { PrintersConfig, CalendarConfig } from "@config";
+import { PrintersConfig, CalendarConfig, BotConfig, CurrencyConfig } from "@config";
 import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/currency";
 import { HSEvent } from "@services/googleCalendar";
 import { SpaceClimate } from "@services/hass";
@@ -18,7 +18,7 @@ import { REPLACE_MARKER } from "@utils/text";
 import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 import { UserVisit } from "@services/status";
-import { getSponsorshipEmoji, getSponsorshipName, SponsorshipLevel } from "@services/export";
+import { SponsorshipLevel, SponsorshipLevelToEmoji, SponsorshipLevelToName, SponsorshipNameToLevel } from "@services/export";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
@@ -26,6 +26,8 @@ import { effectiveName, formatUsername, toEscapedTelegramMarkdown, userLink } fr
 
 const printersConfig = config.get<PrintersConfig>("printers");
 const calendarConfig = config.get<CalendarConfig>("calendar");
+const currencyConfig = config.get<CurrencyConfig>("currency");
+const botConfig = config.get<BotConfig>("bot");
 
 type FundListOptions = { showAdmin?: boolean; isHistory?: boolean; isApi?: boolean };
 
@@ -209,7 +211,7 @@ export function getUserBadges(user: User): string {
     const roleBadges = `${user.roles?.includes("member") ? "🔑" : ""}${user.roles?.includes("accountant") ? "📒" : ""}${
         user.roles?.includes("trusted") ? "🎓" : ""
     }`;
-    const sponsorshipBadge = user.sponsorship ? getSponsorshipEmoji(user.sponsorship as SponsorshipLevel) : "";
+    const sponsorshipBadge = user.sponsorship ? SponsorshipLevelToEmoji.get(user.sponsorship) : "";
     const customBadge = user.emoji ?? "";
     const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";
 
@@ -263,6 +265,14 @@ export function getNeedsList(needs: (Need & { requester: User })[]): string {
 
 export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = false): string {
     const cryptoCommands = !isApi ? Coins.map(coin => `/${coin.shortname}`).join("  ") : "";
+    const currency = currencyConfig.default;
+
+    const sponsorshipTierList = Array.from(SponsorshipNameToLevel.entries())
+        .map(
+            ([name, level]) =>
+                `${SponsorshipLevelToEmoji.get(level)} ${name} - ${botConfig.funds.sponsorship.levels[name]} ${currency}`
+        )
+        .join("\n");
 
     return t("basic.donate", {
         donateCashCommand: !isApi ? "/cash" : "",
@@ -271,6 +281,9 @@ export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = fa
         fundsCommand: !isApi ? "/funds" : "funds",
         cryptoCommands,
         accountantsList: accountants ? getAccountsList(accountants, { mention: false }, isApi) : "",
+        sponsorshipTierList,
+        period: botConfig.funds.sponsorship.period,
+        currency,
     });
 }
 
@@ -511,8 +524,8 @@ export function getNewDonationText(
     sponsorship: SponsorshipLevel,
     hasAlreadyDonated: boolean
 ) {
-    const sponsorshipEmoji = getSponsorshipEmoji(sponsorship);
-    const tiername = getSponsorshipName(sponsorship);
+    const sponsorshipEmoji = SponsorshipLevelToEmoji.get(sponsorship);
+    const tiername = SponsorshipLevelToName.get(sponsorship);
     const oldSponsorship = user.sponsorship as SponsorshipLevel;
     const username = formatUsername(user.username);
 
@@ -544,6 +557,6 @@ export function getSponsorsList(sponsors: User[]): string {
                 ? (a.username ?? a.first_name ?? "").localeCompare(b.username ?? b.first_name ?? "")
                 : (b.sponsorship ?? 0) - (a.sponsorship ?? 0)
         )
-        .map(s => `${getSponsorshipEmoji(s.sponsorship)} ${userLink(s)}`)
+        .map(s => `${SponsorshipLevelToEmoji.get(s.sponsorship ?? SponsorshipLevel.None) ?? ""} ${userLink(s)}`)
         .join("\n");
 }

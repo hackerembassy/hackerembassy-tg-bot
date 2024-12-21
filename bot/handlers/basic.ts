@@ -154,8 +154,8 @@ export default class BasicHandlers implements BotHandlers {
     static async donateHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
-                AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing),
                 AnnoyingInlineButton(bot, msg, t("basic.start.buttons.funds"), "funds"),
+                AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing),
             ],
         ];
 
@@ -310,8 +310,9 @@ export default class BasicHandlers implements BotHandlers {
             ],
             [
                 InlineButton(t("basic.info.buttons.residents"), "getresidents", ButtonFlags.Editing),
-                InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.sponsors"), "getsponsors", ButtonFlags.Editing),
             ],
+            [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
         await bot.sendOrEditMessage(

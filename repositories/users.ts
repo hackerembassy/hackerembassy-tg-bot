@@ -13,6 +13,10 @@ class UserRepository extends BaseRepository {
         return this.db.select().from(users).all();
     }
 
+    getSponsors() {
+        return this.db.select().from(users).where(isNotNull(users.sponsorship)).all();
+    }
+
     getUserByName(username: string) {
         return this.db
             .select()

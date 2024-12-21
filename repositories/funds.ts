@@ -1,6 +1,6 @@
 import config from "config";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 
 import { CurrencyConfig } from "@config";
 import { Fund, Donation } from "@data/models";
@@ -66,10 +66,10 @@ class FundsRepository extends BaseRepository {
         return this.db.select().from(donations).where(eq(donations.fund_id, fund.id)).all();
     }
 
-    getDonationsOf(user_id: number, joinFunds = false, joinUsers = false) {
+    getDonationsOf(user_id: number, joinFunds = false, joinUsers = false, since?: Date) {
         return this.db.query.donations
             .findMany({
-                where: eq(donations.user_id, user_id),
+                where: and(eq(donations.user_id, user_id), since ? gte(donations.date, since) : undefined),
                 with: {
                     fund: joinFunds ? true : undefined,
                     user: joinUsers ? true : undefined,
@@ -161,6 +161,7 @@ class FundsRepository extends BaseRepository {
             value,
             currency,
             accountant_id,
+            date: new Date(),
         });
     }
 

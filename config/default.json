@@ -63,7 +63,16 @@
         },
         "moderatedChats": [-1001605898533],
         "funds": {
-            "alternativeUsernames": ["dipierro", "keimoger", "MrPhoenix"]
+            "alternativeUsernames": ["dipierro", "keimoger", "MrPhoenix"],
+            "sponsorship": {
+                "levels": {
+                    "platinum": 262144,
+                    "gold": 131072,
+                    "silver": 65536,
+                    "bronze": 32768
+                },
+                "period": 3
+            }
         },
         "debug": false
     },

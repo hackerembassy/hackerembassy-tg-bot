@@ -18,6 +18,7 @@ import { REPLACE_MARKER } from "@utils/text";
 import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 import { UserVisit } from "@services/status";
+import { getSponsorshipEmoji, SponsorshipLevel } from "@services/export";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
@@ -208,10 +209,11 @@ export function getUserBadges(user: User): string {
     const roleBadges = `${user.roles?.includes("member") ? "🔑" : ""}${user.roles?.includes("accountant") ? "📒" : ""}${
         user.roles?.includes("trusted") ? "🎓" : ""
     }`;
+    const sponsorshipBadge = user.sponsorship ? getSponsorshipEmoji(user.sponsorship as SponsorshipLevel) : "";
     const customBadge = user.emoji ?? "";
     const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";
 
-    return `${roleBadges}${customBadge}${birthdayBadge}`;
+    return `${roleBadges}${sponsorshipBadge}${customBadge}${birthdayBadge}`;
 }
 
 export function getUserBadgesWithStatus(userStatus: UserStateEx): string {
@@ -498,4 +500,42 @@ export function getAutoinsideMessageStatus(
                 username,
             });
     }
+}
+
+export function getNewDonationText(
+    user: User,
+    value: number,
+    currency: string,
+    lastInsertRowid: number | bigint,
+    fundName: string,
+    sponsorship: SponsorshipLevel,
+    hasAlreadyDonated: boolean
+) {
+    const sponsorshipEmoji = getSponsorshipEmoji(sponsorship);
+    const oldSponsorship = user.sponsorship;
+    const username = formatUsername(user.username);
+
+    const donationtext = t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
+        username,
+        value: toBasicMoneyString(value),
+        currency,
+        donationId: lastInsertRowid,
+        fundName,
+    });
+
+    const sponsorshipText =
+        sponsorship && oldSponsorship !== sponsorship
+            ? "\n" +
+              t("funds.adddonation.sponsorship", {
+                  username,
+                  emoji: sponsorshipEmoji,
+                  sponsorship,
+              })
+            : "";
+
+    return `${donationtext}${sponsorshipText}`;
+}
+
+export function getSponsortsList(sponsors: User[]) {
+    return sponsors.map(s => `${getSponsorshipEmoji(s.sponsorship as SponsorshipLevel)} ${userLink(s)}`).join("\n");
 }

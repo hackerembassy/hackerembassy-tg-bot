@@ -37,3 +37,13 @@ export function chunkSubstr(str: string, size: number) {
 
     return chunks;
 }
+
+export function replaceUnsafeSymbolsForAscii(message: string) {
+    return message
+        .replace(/\[.+?\]/, "")
+        .replaceAll(/[💸|💎|🥇|🥈|🥉] /gu, "")
+        .replaceAll(/[#|`]/g, "")
+        .replaceAll(/\(.*?\)/g, "")
+        .replaceAll(/-/g, "\u002D")
+        .replaceAll(/\n/g, " ");
+}

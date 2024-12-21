@@ -108,6 +108,14 @@ export class UserStateService {
         return Array.from(this.lastUserStateCache.values());
     }
 
+    static refreshCachedUser(user: User): void {
+        const userState = this.lastUserStateCache.get(user.userid);
+
+        if (!userState) return;
+
+        this.lastUserStateCache.set(user.userid, { ...userState, user });
+    }
+
     static pushPeopleState(state: Omit<UserStateEx, "id">): void {
         const newState = statusRepository.pushPeopleState(state);
         this.lastUserStateCache.set(state.user_id, { ...state, ...newState });

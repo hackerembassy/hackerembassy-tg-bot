@@ -1,15 +1,22 @@
 import { writeToBuffer } from "@fast-csv/format";
 import ChartJsImage from "chartjs-to-image";
 
+import config from "config";
+
+import { BotConfig } from "@config";
 import FundsRepository from "@repositories/funds";
 import { compareMonthNames } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
-import { DonationEx, Fund } from "@data/models";
+import { DonationEx, Fund, User } from "@data/models";
 import { effectiveName } from "@hackembot/core/helpers";
 
-import { DefaultCurrency, convertCurrency, formatValueForCurrency, toBasicMoneyString } from "./currency";
+import { DefaultCurrency, convertCurrency, formatValueForCurrency, sumDonations, toBasicMoneyString } from "./currency";
 import { UserVisit } from "./status";
+
+const fundsConfig = config.get<BotConfig>("bot").funds;
+
+export type SponsorshipLevel = "platimun" | "gold" | "silver" | "bronze" | null;
 
 interface SimplifiedDonation {
     username: string;
@@ -342,4 +349,36 @@ export async function getDonationsSummary(fund: Fund, limit?: number) {
             fund_stats,
         },
     };
+}
+
+export async function getSponsorshipLevel(user: User): Promise<SponsorshipLevel> {
+    const startPeriodDate = new Date();
+    startPeriodDate.setMonth(startPeriodDate.getMonth() - fundsConfig.sponsorship.period);
+    const userDonations = FundsRepository.getDonationsOf(user.userid, false, false, startPeriodDate);
+    const sum = await sumDonations(userDonations);
+
+    return sum > fundsConfig.sponsorship.levels.platinum
+        ? "platimun"
+        : sum > fundsConfig.sponsorship.levels.gold
+          ? "gold"
+          : sum > fundsConfig.sponsorship.levels.silver
+            ? "silver"
+            : sum > fundsConfig.sponsorship.levels.bronze
+              ? "bronze"
+              : null;
+}
+
+export function getSponsorshipEmoji(sponsorship: SponsorshipLevel) {
+    switch (sponsorship) {
+        case "platimun":
+            return "💎";
+        case "gold":
+            return "🥇";
+        case "silver":
+            return "🥈";
+        case "bronze":
+            return "🥉";
+        default:
+            return "";
+    }
 }

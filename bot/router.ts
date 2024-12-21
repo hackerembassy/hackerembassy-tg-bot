@@ -257,6 +257,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     );
     bot.addRoute(["debt", "mymoney"], FundsHandlers.debtHandler, OptionalParam(/(\S+)/), match => [match[1]], Accountants);
 
+    bot.addRoute(["sponsors"], FundsHandlers.sponsorsHandler);
+    bot.addRoute(["refreshsponsors", "refreshsponsorships"], FundsHandlers.refreshSponsorshipsHandler, null, null, Accountants);
+
     // Needs
     bot.addRoute(["needs"], NeedsHandlers.needsHandler);
     bot.addRoute(["buy", "need"], NeedsHandlers.buyHandler, /(.*)/, match => [match[1]]);

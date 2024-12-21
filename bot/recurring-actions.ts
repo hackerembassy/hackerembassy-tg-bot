@@ -1,7 +1,7 @@
 import config from "config";
 
 import { BotConfig } from "@config";
-import { HALFDAY, HOUR, MINUTE } from "@utils/date";
+import { DAY, HALFDAY, HOUR, MINUTE } from "@utils/date";
 
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import { BotCustomEvent } from "./core/types";
@@ -9,6 +9,7 @@ import BirthdayHandlers from "./handlers/birthday";
 import EmbassyHandlers from "./handlers/embassy";
 import MemeHandlers from "./handlers/meme";
 import StatusHandlers from "./handlers/status";
+import FundsHandlers from "./handlers/funds";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -16,6 +17,9 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     // Live cam and status updates
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);
+
+    // Recalculate sponsorships
+    setInterval(() => FundsHandlers.refreshSponsorshipsHandler(bot), DAY);
 
     // Autoinside polling
     if (botConfig.features.autoinside) {

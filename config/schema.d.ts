@@ -74,6 +74,15 @@ export interface RemindersConfig {
 
 export interface FundsConfig {
     alternativeUsernames: string[];
+    sponsorship: {
+        levels: {
+            platinum: number;
+            gold: number;
+            silver: number;
+            bronze: number;
+        };
+        period: number;
+    };
 }
 
 export interface UtilityReminder {

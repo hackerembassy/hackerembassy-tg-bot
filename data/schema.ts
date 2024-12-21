@@ -44,6 +44,7 @@ export const users = sqliteTable(
         autoinside: integer("autoinside").default(0),
         emoji: text("emoji").default(sql`(NULL)`),
         language: text("language"),
+        sponsorship: text("sponsorship").default(sql`(NULL)`),
     },
     table => {
         return {
@@ -71,6 +72,7 @@ export const donations = sqliteTable(
             .references(() => funds.id),
         value: integer("value").notNull(),
         currency: text("currency").notNull(),
+        date: integer("date", { mode: "timestamp" }).default(sql`0`),
         user_id: integer("user_id")
             .notNull()
             .references(() => users.userid),

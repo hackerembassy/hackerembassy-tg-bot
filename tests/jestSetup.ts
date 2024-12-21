@@ -17,6 +17,13 @@ jest.mock("@services/currency", () => {
     };
 });
 
+jest.mock("@services/export", () => {
+    return {
+        ...jest.requireActual("@services/export"),
+        getSponsorshipLevel: jest.fn(() => null),
+    };
+});
+
 jest.mock("@utils/network", () => {
     return {
         default: jest.fn(),

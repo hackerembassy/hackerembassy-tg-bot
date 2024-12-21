@@ -8,6 +8,13 @@
       "when": 1734740679193,
       "tag": "0000_greedy_purple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1734793041817,
+      "tag": "0001_solid_red_wolf",
+      "breakpoints": true
     }
   ]
 }

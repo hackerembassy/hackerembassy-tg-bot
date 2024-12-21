@@ -44,7 +44,7 @@ export const users = sqliteTable(
         autoinside: integer("autoinside").default(0),
         emoji: text("emoji").default(sql`(NULL)`),
         language: text("language"),
-        sponsorship: text("sponsorship").default(sql`(NULL)`),
+        sponsorship: integer("sponsorship").default(sql`0`),
     },
     table => {
         return {

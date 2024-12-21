@@ -489,7 +489,7 @@ funds:
             💸 [#`{{donationId}}#`] {{username}} increased his donation to #`{{fundName}}#` by another {{value}} {{currency}}
         fail: ⚠️ Failed to add donation (maybe something is wrong with the currency or amount?)
         sponsorship: |
-            {{emoji}} {{username}} now has {{sponsorship}} level
+            {{emoji}} {{username}} now has {{tiername}} level
     removedonation:
         success: 🗑 Donation removed [id:{{donationId}}]
         fail: ⚠️ Failed to delete the donation (maybe it didn’t exist?)

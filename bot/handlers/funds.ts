@@ -222,7 +222,7 @@ export default class FundsHandlers implements BotHandlers {
 
     static async sponsorsHandler(bot: HackerEmbassyBot, msg: Message) {
         const sponsors = UsersRepository.getSponsors();
-        const sponsorsList = TextGenerators.getSponsortsList(sponsors);
+        const sponsorsList = TextGenerators.getSponsorsList(sponsors);
 
         await bot.sendLongMessage(msg.chat.id, t("funds.sponsors.list", { list: sponsorsList }), msg);
     }

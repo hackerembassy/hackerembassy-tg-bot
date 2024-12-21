@@ -16,7 +16,13 @@ import { UserVisit } from "./status";
 
 const fundsConfig = config.get<BotConfig>("bot").funds;
 
-export type SponsorshipLevel = "platimun" | "gold" | "silver" | "bronze" | null;
+export enum SponsorshipLevel {
+    Platinum = 4,
+    Gold = 3,
+    Silver = 2,
+    Bronze = 1,
+    None = 0,
+}
 
 interface SimplifiedDonation {
     username: string;
@@ -358,26 +364,41 @@ export async function getSponsorshipLevel(user: User): Promise<SponsorshipLevel>
     const sum = await sumDonations(userDonations);
 
     return sum > fundsConfig.sponsorship.levels.platinum
-        ? "platimun"
+        ? SponsorshipLevel.Platinum
         : sum > fundsConfig.sponsorship.levels.gold
-          ? "gold"
+          ? SponsorshipLevel.Gold
           : sum > fundsConfig.sponsorship.levels.silver
-            ? "silver"
+            ? SponsorshipLevel.Silver
             : sum > fundsConfig.sponsorship.levels.bronze
-              ? "bronze"
-              : null;
+              ? SponsorshipLevel.Bronze
+              : SponsorshipLevel.None;
 }
 
-export function getSponsorshipEmoji(sponsorship: SponsorshipLevel) {
+export function getSponsorshipEmoji(sponsorship: Nullable<SponsorshipLevel>) {
     switch (sponsorship) {
-        case "platimun":
+        case SponsorshipLevel.Platinum:
             return "💎";
-        case "gold":
+        case SponsorshipLevel.Gold:
             return "🥇";
-        case "silver":
+        case SponsorshipLevel.Silver:
             return "🥈";
-        case "bronze":
+        case SponsorshipLevel.Bronze:
             return "🥉";
+        default:
+            return "";
+    }
+}
+
+export function getSponsorshipName(sponsorship: Nullable<SponsorshipLevel>) {
+    switch (sponsorship) {
+        case SponsorshipLevel.Platinum:
+            return "platinum";
+        case SponsorshipLevel.Gold:
+            return "gold";
+        case SponsorshipLevel.Silver:
+            return "silver";
+        case SponsorshipLevel.Bronze:
+            return "bronze";
         default:
             return "";
     }

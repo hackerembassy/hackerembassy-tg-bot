@@ -18,7 +18,7 @@ import { REPLACE_MARKER } from "@utils/text";
 import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 import { UserVisit } from "@services/status";
-import { getSponsorshipEmoji, SponsorshipLevel } from "@services/export";
+import { getSponsorshipEmoji, getSponsorshipName, SponsorshipLevel } from "@services/export";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
@@ -512,7 +512,8 @@ export function getNewDonationText(
     hasAlreadyDonated: boolean
 ) {
     const sponsorshipEmoji = getSponsorshipEmoji(sponsorship);
-    const oldSponsorship = user.sponsorship;
+    const tiername = getSponsorshipName(sponsorship);
+    const oldSponsorship = user.sponsorship as SponsorshipLevel;
     const username = formatUsername(user.username);
 
     const donationtext = t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
@@ -529,13 +530,20 @@ export function getNewDonationText(
               t("funds.adddonation.sponsorship", {
                   username,
                   emoji: sponsorshipEmoji,
-                  sponsorship,
+                  tiername,
               })
             : "";
 
     return `${donationtext}${sponsorshipText}`;
 }
 
-export function getSponsortsList(sponsors: User[]) {
-    return sponsors.map(s => `${getSponsorshipEmoji(s.sponsorship as SponsorshipLevel)} ${userLink(s)}`).join("\n");
+export function getSponsorsList(sponsors: User[]): string {
+    return sponsors
+        .sort((a, b) =>
+            b.sponsorship === a.sponsorship
+                ? (a.username ?? a.first_name ?? "").localeCompare(b.username ?? b.first_name ?? "")
+                : (b.sponsorship ?? 0) - (a.sponsorship ?? 0)
+        )
+        .map(s => `${getSponsorshipEmoji(s.sponsorship)} ${userLink(s)}`)
+        .join("\n");
 }

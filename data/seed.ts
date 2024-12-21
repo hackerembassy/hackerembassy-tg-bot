@@ -11,7 +11,7 @@ export const DefaultUser: User = {
     autoinside: AutoInsideMode.Disabled,
     emoji: null,
     language: null,
-    sponsorship: null,
+    sponsorship: 0,
 };
 
 export const SERVICE_USERS = {

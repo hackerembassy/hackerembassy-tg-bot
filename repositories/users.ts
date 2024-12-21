@@ -1,5 +1,5 @@
 import { ChatId } from "node-telegram-bot-api";
-import { eq, like, gt, isNotNull, and, sql } from "drizzle-orm";
+import { eq, like, gt, isNotNull, and, sql, ne } from "drizzle-orm";
 
 import { anyItemIsInList } from "@utils/filters";
 
@@ -14,7 +14,7 @@ class UserRepository extends BaseRepository {
     }
 
     getSponsors() {
-        return this.db.select().from(users).where(isNotNull(users.sponsorship)).all();
+        return this.db.select().from(users).where(ne(users.sponsorship, 0)).all();
     }
 
     getUserByName(username: string) {

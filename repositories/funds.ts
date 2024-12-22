@@ -33,9 +33,10 @@ class FundsRepository extends BaseRepository {
         return this.db.select().from(funds).where(eq(funds.id, id)).get();
     }
 
-    getAllDonations(joinFunds = false, joinUsers = false) {
+    getAllDonations(joinFunds = false, joinUsers = false, since?: Date) {
         return this.db.query.donations
             .findMany({
+                where: since ? gte(donations.date, since) : undefined,
                 with: {
                     fund: joinFunds ? true : undefined,
                     user: joinUsers ? true : undefined,

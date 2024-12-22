@@ -5,7 +5,7 @@ import FundsRepository from "@repositories/funds";
 import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 
-import { getDonationsSummary } from "@services/export";
+import { getDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/export";
 import logger from "@services/logger";
 import {
     filterAllPeopleInside,
@@ -184,6 +184,20 @@ router.get("/donations", async (req, res) => {
     if (!fund) return res.status(500).send({ error: "Costs fund is not found" });
 
     return res.json(await getDonationsSummary(fund, limit));
+});
+
+router.get("/sponsors", hassTokenOptional, (req, res) => {
+    const sponsors = UsersRepository.getSponsors();
+    res.json(
+        sponsors.map(s => {
+            return {
+                userid: req.authenticated ? s.userid : undefined,
+                username: s.username,
+                first_name: s.first_name,
+                sponsorship: SponsorshipLevelToName.get(s.sponsorship as SponsorshipLevel),
+            };
+        })
+    );
 });
 
 router.get("/wiki/tree", async (_, res, next) => {

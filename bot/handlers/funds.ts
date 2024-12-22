@@ -4,7 +4,9 @@ import config from "config";
 
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
+import { User } from "@data/models";
 import FundsRepository, { COSTS_PREFIX } from "@repositories/funds";
+import UserService from "@services/user";
 import {
     convertCurrency,
     DefaultCurrency,
@@ -18,7 +20,6 @@ import * as ExportHelper from "@services/export";
 import logger from "@services/logger";
 import { getToday } from "@utils/date";
 import { getImageFromPath } from "@utils/filesystem";
-import { UserStateService } from "@services/status";
 import { replaceUnsafeSymbolsForAscii } from "@utils/text";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -242,15 +243,16 @@ export default class FundsHandlers implements BotHandlers {
 
     static async refreshSponsorshipsHandler(bot: HackerEmbassyBot, msg?: Message) {
         try {
-            logger.info("Recalculating sponsorships");
+            const donations = FundsRepository.getAllDonations(false, true, ExportHelper.getSponsorshipStartPeriodDate());
+            const sponsorDataMap = ExportHelper.getUserDonationMap(donations);
 
-            for (const user of UsersRepository.getUsers()) {
-                const sponsorship = await ExportHelper.getSponsorshipLevel(user);
-                const updatedUser = { ...user, sponsorship };
-
-                // TODO - move both to service
-                UsersRepository.updateUser(user.userid, updatedUser);
-                UserStateService.refreshCachedUser(updatedUser);
+            for (const { user, donations } of sponsorDataMap) {
+                const oldSponsorship = user.sponsorship;
+                user.sponsorship = await ExportHelper.getSponsorshipLevel(donations);
+                if (oldSponsorship !== user.sponsorship) {
+                    UserService.saveUser(user);
+                    logger.info(`Updated sponsorship for ${user.username} from ${oldSponsorship} to ${user.sponsorship}`);
+                }
             }
 
             if (msg) bot.sendMessageExt(msg.chat.id, t("funds.refreshsponsorships.success"), msg);
@@ -258,6 +260,21 @@ export default class FundsHandlers implements BotHandlers {
             logger.error(error);
 
             if (msg) bot.sendMessageExt(msg.chat.id, t("funds.refreshsponsorships.fail"), msg);
+        }
+    }
+
+    static async getAnimeImageForDonation(value: number, currency: string, user: User) {
+        const valueInDefaultCurrency = await convertCurrency(value, currency, DefaultCurrency);
+
+        if (!valueInDefaultCurrency) throw new Error("Failed to convert currency");
+
+        if (value === 42069 || value === 69420 || value === 69 || value === 420) {
+            return getImageFromPath(`./resources/images/memes/comedy.jpg`);
+        } else if (user.username && botConfig.funds.alternativeUsernames.includes(user.username)) {
+            return getImageFromPath(`./resources/images/anime/guy.jpg`);
+        } else {
+            const happinessLevel = value < 10000 ? 1 : value < 20000 ? 2 : value < 40000 ? 3 : value < 80000 ? 4 : 5; // lol
+            return getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
         }
     }
 
@@ -270,26 +287,27 @@ export default class FundsHandlers implements BotHandlers {
         fundName: string
     ) {
         try {
+            // Prepare and validate input
             const value = parseMoneyValue(valueString);
             const preparedCurrency = await prepareCurrency(currency);
+            if (isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
+
             const user =
                 UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
                 UsersRepository.getUserByUserId(helpers.getMentions(msg)[0]?.id);
             const accountant = bot.context(msg).user;
-
             if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
 
             const fund = FundsRepository.getFundByName(fundName);
-
             if (!fund) return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.nofund"), msg);
 
+            // Check if user has already donated to this fund
             const existingUserDonations = FundsRepository.getDonationsForName(fundName).filter(
                 donation => donation.user_id === user.userid
             );
             const hasAlreadyDonated = existingUserDonations.length > 0;
 
-            if (isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
-
+            // Add donation to the fund
             const lastInsertRowid = FundsRepository.addDonationTo(
                 fund.id,
                 user.userid,
@@ -298,55 +316,41 @@ export default class FundsHandlers implements BotHandlers {
                 preparedCurrency
             );
 
-            const valueInDefaultCurrency = await convertCurrency(value, preparedCurrency, DefaultCurrency);
+            // Update user sponsorship level
+            const userDonations = FundsRepository.getDonationsOf(
+                user.userid,
+                false,
+                false,
+                ExportHelper.getSponsorshipStartPeriodDate()
+            );
+            const sponsorship = await ExportHelper.getSponsorshipLevel(userDonations);
+            const hasUpdatedSponsorship = user.sponsorship !== sponsorship;
 
-            if (!valueInDefaultCurrency) throw new Error("Failed to convert currency");
-
-            let animeImage: Nullable<Buffer> = null;
-
-            if (value === 42069 || value === 69420 || value === 69 || value === 420) {
-                animeImage = await getImageFromPath(`./resources/images/memes/comedy.jpg`);
-            } else if (user.username && botConfig.funds.alternativeUsernames.includes(user.username)) {
-                animeImage = await getImageFromPath(`./resources/images/anime/guy.jpg`);
-            } else {
-                const happinessLevel =
-                    valueInDefaultCurrency < 10000
-                        ? 1
-                        : valueInDefaultCurrency < 20000
-                          ? 2
-                          : valueInDefaultCurrency < 40000
-                            ? 3
-                            : valueInDefaultCurrency < 80000
-                              ? 4
-                              : 5; // lol
-                animeImage = await getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
+            if (hasUpdatedSponsorship) {
+                user.sponsorship = sponsorship;
+                UserService.saveUser(user);
             }
 
-            if (!animeImage) throw new Error("Failed to get image");
-
-            const sponsorship = await ExportHelper.getSponsorshipLevel(user);
-
-            // TODO - move both to service
-            UsersRepository.updateUser(user.userid, { sponsorship });
-            UserStateService.refreshCachedUser({ ...user, sponsorship });
-
-            const caption = TextGenerators.getNewDonationText(
+            // Send message to the chat
+            const newDonationText = TextGenerators.getNewDonationText(
                 user,
                 value,
                 preparedCurrency,
                 lastInsertRowid,
                 fundName,
-                sponsorship,
                 hasAlreadyDonated
             );
+            const sponsorshipText = hasUpdatedSponsorship ? "\n" + TextGenerators.getNewSponsorshipText(user, sponsorship) : "";
+            const caption = `${newDonationText}${sponsorshipText}`;
+            const animeImage = await FundsHandlers.getAnimeImageForDonation(value, preparedCurrency, user);
 
-            await bot.sendPhotoExt(msg.chat.id, animeImage, msg, {
-                caption,
-            });
+            animeImage
+                ? await bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption })
+                : await bot.sendMessageExt(msg.chat.id, caption, msg);
 
+            // Send notification to Space
             bot.context(msg).mode.silent = true;
-
-            const textInSpace = replaceUnsafeSymbolsForAscii(caption);
+            const textInSpace = replaceUnsafeSymbolsForAscii(newDonationText);
 
             return Promise.allSettled([
                 EmbassyHandlers.textinspaceHandler(bot, msg, textInSpace),

@@ -5,6 +5,7 @@ export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api
 export const DEFAULT_TEMPORARY_MESSAGE_TIMEOUT = 8000; // Milliseconds
 export const DEFAULT_CLEAR_QUEUE_TIMEOUT = 5000;
 export const DEFAULT_CLEAR_QUEUE_LENGTH = 10;
+export const IMPERSONATION_MARKER = "~~";
 
 export const RESTRICTED_PERMISSIONS = {
     can_send_messages: false,

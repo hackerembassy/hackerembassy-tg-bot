@@ -36,6 +36,13 @@ describe("Bot behavior shared for all commands:", () => {
         expect(mockBot.popResults()).toHaveLength(3);
     });
 
+    test("bot should respond to commands as impersonated user only when requested by admin", async () => {
+        await mockBot.processUpdate(createMockMessage(`/in ~~${TEST_USERS.accountant.username}`, TEST_USERS.admin));
+        await mockBot.processUpdate(createMockMessage(`/in ~~${TEST_USERS.accountant.username}`, TEST_USERS.guest));
+
+        expect(mockBot.popResults()).toEqual(["status\\.in\\.gotin\n\nstatus\\.in\\.tryautoinside", "status\\.in\\.notready"]);
+    });
+
     test("bot should not respond to messages when another bot is mentioned", async () => {
         await mockBot.processUpdate(createMockMessage(`/status@${mockBot.Name}1`));
         await mockBot.processUpdate(createMockMessage(`/status@${mockBot.Name}1 short`));

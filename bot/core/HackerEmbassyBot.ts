@@ -37,6 +37,7 @@ import {
     DEFAULT_TEMPORARY_MESSAGE_TIMEOUT,
     FULL_PERMISSIONS,
     IGNORE_UPDATE_TIMEOUT,
+    IMPERSONATION_MARKER,
     MAX_MESSAGE_LENGTH,
     RESTRICTED_PERMISSIONS,
 } from "./constants";
@@ -470,6 +471,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         return !text.startsWith("/") || forAnotherBot;
     }
 
+    private extractImpersonatedUser(text: string): string | number {
+        const identifier = text.split(IMPERSONATION_MARKER)[1];
+        return identifier.startsWith("@") ? identifier.slice(1) : Number.parseInt(identifier);
+    }
+
     async routeMessage(message: TelegramBot.Message) {
         try {
             // Skip old updates
@@ -498,7 +504,13 @@ export default class HackerEmbassyBot extends TelegramBot {
             if (!route) return;
 
             // Prepare context
-            const user = UserService.prepareUser(message.from as TelegramBot.User);
+            const actualUser = UserService.prepareUser(message.from as TelegramBot.User);
+            const impersonatedUser =
+                hasRole(actualUser, "admin") && text.includes(IMPERSONATION_MARKER)
+                    ? UserService.getUser(this.extractImpersonatedUser(text))
+                    : null;
+            const user = impersonatedUser ?? actualUser;
+
             const messageContext = this.startContext(message, user, command);
             messageContext.language = isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
@@ -510,6 +522,8 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Parse global modifiers and set them to the context
             let textToMatch = text.replace(commandWithCase, command);
+
+            if (impersonatedUser) textToMatch = textToMatch.slice(0, textToMatch.indexOf(IMPERSONATION_MARKER));
 
             for (const key of Object.keys(messageContext.mode)) {
                 if (textToMatch.includes(`-${key}`)) messageContext.mode[key as keyof BotMessageContextMode] = true;

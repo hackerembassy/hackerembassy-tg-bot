@@ -191,7 +191,7 @@ export function getStatusMessage(
     stateText += "\n";
 
     // Misc
-    stateText += climateInfo ? getClimateMessage(climateInfo, options) : REPLACE_MARKER;
+    stateText += climateInfo ? getClimateMessage(climateInfo, options) : options.isApi ? "" : REPLACE_MARKER;
     stateText += !options.isApi
         ? t("status.status.updated", {
               updatedDate: new Date().toLocaleString("RU-ru").replace(",", "").substring(0, 21),
@@ -521,42 +521,35 @@ export function getNewDonationText(
     currency: string,
     lastInsertRowid: number | bigint,
     fundName: string,
-    sponsorship: SponsorshipLevel,
     hasAlreadyDonated: boolean
 ) {
-    const sponsorshipEmoji = SponsorshipLevelToEmoji.get(sponsorship);
-    const tiername = SponsorshipLevelToName.get(sponsorship);
-    const oldSponsorship = user.sponsorship as SponsorshipLevel;
-    const username = formatUsername(user.username);
-
-    const donationtext = t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
-        username,
+    return t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
+        username: formatUsername(user.username),
         value: toBasicMoneyString(value),
         currency,
         donationId: lastInsertRowid,
         fundName,
     });
-
-    const sponsorshipText =
-        sponsorship && oldSponsorship !== sponsorship
-            ? "\n" +
-              t("funds.adddonation.sponsorship", {
-                  username,
-                  emoji: sponsorshipEmoji,
-                  tiername,
-              })
-            : "";
-
-    return `${donationtext}${sponsorshipText}`;
 }
 
-export function getSponsorsList(sponsors: User[]): string {
+export function getNewSponsorshipText(user: User, sponsorship: SponsorshipLevel) {
+    return t("funds.adddonation.sponsorship", {
+        username: formatUsername(user.username),
+        emoji: SponsorshipLevelToEmoji.get(sponsorship),
+        tiername: SponsorshipLevelToName.get(sponsorship),
+    });
+}
+
+export function getSponsorsList(sponsors: User[], isApi = false): string {
     return sponsors
         .sort((a, b) =>
             b.sponsorship === a.sponsorship
                 ? (a.username ?? a.first_name ?? "").localeCompare(b.username ?? b.first_name ?? "")
                 : (b.sponsorship ?? 0) - (a.sponsorship ?? 0)
         )
-        .map(s => `${SponsorshipLevelToEmoji.get(s.sponsorship ?? SponsorshipLevel.None) ?? ""} ${userLink(s)}`)
+        .map(
+            s =>
+                `${SponsorshipLevelToEmoji.get(s.sponsorship ?? SponsorshipLevel.None) ?? ""} ${isApi ? formatUsername(s.username, false, true) : userLink(s)}`
+        )
         .join("\n");
 }

@@ -8,7 +8,7 @@ import FundsRepository from "@repositories/funds";
 import { compareMonthNames } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
-import { DonationEx, Fund, User } from "@data/models";
+import { Donation, DonationEx, Fund, User } from "@data/models";
 import { effectiveName } from "@hackembot/core/helpers";
 
 import { DefaultCurrency, convertCurrency, formatValueForCurrency, sumDonations, toBasicMoneyString } from "./currency";
@@ -378,12 +378,29 @@ export async function getDonationsSummary(fund: Fund, limit?: number) {
     };
 }
 
-export async function getSponsorshipLevel(user: User): Promise<SponsorshipLevel> {
+export function getUserDonationMap(donations: DonationEx[]) {
+    const sponsorDataMap = new Map<number, { user: User; donations: Donation[] }>();
+
+    for (const donation of donations) {
+        let sponsorData = sponsorDataMap.get(donation.user_id);
+        if (!sponsorData) {
+            sponsorData = { user: donation.user, donations: [] };
+            sponsorDataMap.set(donation.user_id, sponsorData);
+        }
+        sponsorData.donations.push(donation);
+    }
+
+    return sponsorDataMap.values();
+}
+
+export function getSponsorshipStartPeriodDate() {
     const startPeriodDate = new Date();
     startPeriodDate.setMonth(startPeriodDate.getMonth() - fundsConfig.sponsorship.period);
-    const userDonations = FundsRepository.getDonationsOf(user.userid, false, false, startPeriodDate);
-    const sum = await sumDonations(userDonations);
+    return startPeriodDate;
+}
 
+export async function getSponsorshipLevel(donations: Donation[]) {
+    const sum = await sumDonations(donations);
     return sum >= fundsConfig.sponsorship.levels.platinum
         ? SponsorshipLevel.Platinum
         : sum >= fundsConfig.sponsorship.levels.gold

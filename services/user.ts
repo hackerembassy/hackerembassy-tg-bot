@@ -5,6 +5,7 @@ import { DefaultUser } from "@data/seed";
 import usersRepository from "@repositories/users";
 
 import logger from "./logger";
+import { UserStateService } from "./status";
 
 class UserService {
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {
@@ -38,6 +39,17 @@ class UserService {
         }
 
         return dbuser;
+    }
+
+    public getUser(identifier: number | string) {
+        return typeof identifier === "string"
+            ? usersRepository.getUserByName(identifier)
+            : usersRepository.getUserByUserId(identifier);
+    }
+
+    public saveUser(user: User) {
+        UserStateService.refreshCachedUser(user);
+        return usersRepository.updateUser(user.userid, user);
     }
 }
 

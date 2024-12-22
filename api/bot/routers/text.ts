@@ -39,6 +39,11 @@ const ApiTextCommandsList = [
         regex: "^funds$",
     },
     {
+        command: "sponsors",
+        description: "Наши почетные спонсоры",
+        regex: "^sponsors$",
+    },
+    {
         command: "events",
         description: "Мероприятия у нас",
         regex: "^events$",
@@ -108,6 +113,12 @@ router.get("/donate", (_, res) => {
     res.send(message);
 });
 
+router.get("/sponsors", (_, res) => {
+    const sponsors = UsersRepository.getSponsors();
+    const message = TextGenerators.getSponsorsList(sponsors, true);
+    res.send(message);
+});
+
 router.get("/status", async (_, res) => {
     const state = StatusRepository.getSpaceLastState();
     let content = `🔐 Статус спейса неопределен`;
@@ -115,8 +126,8 @@ router.get("/status", async (_, res) => {
     const allUserStates = UserStateService.getRecentUserStates();
     const inside = allUserStates.filter(filterPeopleInside);
     const going = allUserStates.filter(filterPeopleGoing);
-    const climateResponse = await requestToEmbassy(`/climate`);
-    const climateInfo = (await climateResponse.json()) as SpaceClimate;
+    const climateResponse = await requestToEmbassy(`/climate`).catch(() => null);
+    const climateInfo = climateResponse?.ok ? ((await climateResponse.json()) as SpaceClimate) : null;
     const todayEvents = apiConfig.features.calendar ? await getTodayEvents() : null;
 
     content = TextGenerators.getStatusMessage(state, inside, going, todayEvents, climateInfo, {

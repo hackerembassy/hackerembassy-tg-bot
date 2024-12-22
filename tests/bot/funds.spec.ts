@@ -44,7 +44,7 @@ describe("Bot Funds commands:", () => {
 
         expect(mockBot.popResults()).toEqual([
             "funds\\.addfund\\.success",
-            "funds\\.adddonation\\.success",
+            "funds\\.adddonation\\.success\nfunds\\.adddonation\\.sponsorship",
             "funds\\.funds🟢 Test\\_Fund\\_With\\_Donations \\- funds\\.fund\\.collected 5000 funds\\.fund\\.from 500 USD\n      [guest](t\\.me/guest) \\- 5000 USD\n\n",
         ]);
     });

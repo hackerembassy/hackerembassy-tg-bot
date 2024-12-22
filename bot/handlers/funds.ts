@@ -270,6 +270,8 @@ export default class FundsHandlers implements BotHandlers {
 
         if (value === 42069 || value === 69420 || value === 69 || value === 420) {
             return getImageFromPath(`./resources/images/memes/comedy.jpg`);
+        } else if (value === 8266) {
+            return getImageFromPath(`./resources/images/memes/8266.jpg`);
         } else if (user.username && botConfig.funds.alternativeUsernames.includes(user.username)) {
             return getImageFromPath(`./resources/images/anime/guy.jpg`);
         } else {

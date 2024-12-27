@@ -306,6 +306,16 @@
           }
         }
       }
+    },
+    "/api/wiki/hooks/documents.update": {
+      "post": {
+        "description": "",
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
   },
   "components": {

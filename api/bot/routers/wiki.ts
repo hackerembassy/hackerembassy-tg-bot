@@ -1,0 +1,53 @@
+import { Router } from "express";
+import config from "config";
+
+import bot from "@hackembot/instance";
+import wiki, { OutlineWebhookPayload } from "@services/wiki";
+import { WikiConfig } from "@config";
+import { createOutlineVerificationMiddleware } from "@utils/middleware";
+import logger from "@services/logger";
+
+const wikiConfig = config.get<WikiConfig>("wiki");
+const outlineSignedMiddleware = createOutlineVerificationMiddleware(logger, process.env.OUTLINE_SIGNING_SECRET);
+const router = Router();
+
+router.get("/tree", async (_, res, next) => {
+    try {
+        const list = await wiki.listPagesAsTree();
+
+        res.set("Cache-Control", "public, max-age=3600").json(list);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get("/page/:id", async (req, res, next): Promise<any> => {
+    try {
+        if (!req.params.id) return res.status(400).send({ error: "Missing page id" });
+
+        const content = await wiki.getPageContent(req.params.id);
+
+        res.set("Cache-Control", "public, max-age=60").json({ id: req.params.id, content });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Webhook for Outline
+router.post("/hooks/documents.update", outlineSignedMiddleware, async (req, res, next): Promise<any> => {
+    try {
+        const body = req.body as Optional<OutlineWebhookPayload>;
+        if (!body || body.event !== "documents.update") return res.sendStatus(400);
+
+        const { title, url, updatedBy } = body.payload.model;
+        const fullUrl = `${wikiConfig.baseUrl}${url}`;
+
+        await bot.sendAlert(`📝 \\u0023wiki page #[${title}#]#(${fullUrl}#) was updated by ${updatedBy.name}`);
+
+        res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
+
+export default router;

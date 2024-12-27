@@ -17,6 +17,7 @@ services:
             - HACKERGOOGLEAPIKEY=$HACKERGOOGLEAPIKEY
             - OPENAIAPIKEY=$OPENAIAPIKEY
             - WIKIAPIKEY=$WIKIAPIKEY
+            - OUTLINE_SIGNING_SECRET=$OUTLINE_SIGNING_SECRET
         ports:
             - "3000:3000"
 volumes:

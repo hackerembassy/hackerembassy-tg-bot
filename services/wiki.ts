@@ -37,6 +37,78 @@ export type PageListResponse = {
     };
 };
 
+export type OutlineWebhookPayload = {
+    id: string;
+    actorId: string;
+    webhookSubscriptionId: string;
+    createdAt: string;
+    event: string;
+    payload: {
+        id: string;
+        model: {
+            id: string;
+            url: string;
+            urlId: string;
+            title: string;
+            data: {
+                type: string;
+                content: Array<{
+                    type: string;
+                    content: Array<{
+                        text: string;
+                        type: string;
+                    }>;
+                }>;
+            };
+            text: string;
+            icon: any;
+            color: any;
+            tasks: {
+                completed: number;
+                total: number;
+            };
+            createdAt: string;
+            createdBy: {
+                id: string;
+                name: string;
+                avatarUrl: any;
+                color: string;
+                role: string;
+                isSuspended: boolean;
+                createdAt: string;
+                updatedAt: string;
+                lastActiveAt: string;
+                timezone: string;
+            };
+            updatedAt: string;
+            updatedBy: {
+                id: string;
+                name: string;
+                avatarUrl: any;
+                color: string;
+                role: string;
+                isSuspended: boolean;
+                createdAt: string;
+                updatedAt: string;
+                lastActiveAt: string;
+                timezone: string;
+            };
+            publishedAt: string;
+            archivedAt: any;
+            deletedAt: any;
+            collaboratorIds: Array<string>;
+            revision: number;
+            fullWidth: boolean;
+            collectionId: string;
+            parentDocumentId: any;
+            isCollectionDeleted: boolean;
+            templateId: any;
+            template: boolean;
+            insightsEnabled: boolean;
+        };
+    };
+};
+
 /** @deprecated */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class WikiJs {
@@ -136,12 +208,12 @@ class WikiJs {
 }
 
 class OutlineWiki {
-    private endpoint: string;
+    private apiEndpoint: string;
     private token: string;
     private publicCollectionId: string;
 
-    constructor(endpoint: string, publicCollectionId: string, token: string) {
-        this.endpoint = endpoint;
+    constructor(baseUrl: string, publicCollectionId: string, token: string) {
+        this.apiEndpoint = `${baseUrl}/api/`;
         this.token = token;
         this.publicCollectionId = publicCollectionId;
     }
@@ -168,7 +240,7 @@ class OutlineWiki {
     private async wikiRequest(query: string, body: any, useToken = true) {
         if (useToken && !this.token) throw new Error("No token provided");
 
-        const response = await fetch(this.endpoint + query, {
+        const response = await fetch(this.apiEndpoint + query, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -183,4 +255,4 @@ class OutlineWiki {
     }
 }
 
-export default new OutlineWiki(wikiConfig.endpoint, wikiConfig.publicCollectionId, process.env["WIKIAPIKEY"] ?? "");
+export default new OutlineWiki(wikiConfig.baseUrl, wikiConfig.publicCollectionId, process.env["WIKIAPIKEY"] ?? "");

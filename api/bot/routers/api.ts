@@ -14,10 +14,11 @@ import {
     SpaceStateService,
     UserStateService,
 } from "@services/status";
-import wiki from "@services/wiki";
 import { createTokenSecuredMiddleware } from "@utils/middleware";
 import { SERVICE_USERS } from "@data/seed";
 import { readFirstExistingFile } from "@utils/filesystem";
+
+import wikiRouter from "./wiki";
 
 function loadSpaceApiTemplate() {
     try {
@@ -30,7 +31,8 @@ function loadSpaceApiTemplate() {
     }
 }
 
-const router = Router();
+const apiRouter = Router();
+apiRouter.use("/wiki", wikiRouter);
 
 const hassTokenRequired = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
 const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"], true);
@@ -38,7 +40,7 @@ const guestTokenRequired = createTokenSecuredMiddleware(logger, process.env["GUE
 
 const spaceApiTemplate = loadSpaceApiTemplate();
 
-router.get("/space", (_, res) => {
+apiRouter.get("/space", (_, res) => {
     const status = StatusRepository.getSpaceLastState();
     const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
 
@@ -60,7 +62,7 @@ router.get("/space", (_, res) => {
     });
 });
 
-router.get("/status", hassTokenOptional, (req, res) => {
+apiRouter.get("/status", hassTokenOptional, (req, res) => {
     const status = StatusRepository.getSpaceLastState();
 
     const recentUserStates = UserStateService.getRecentUserStates();
@@ -87,13 +89,13 @@ router.get("/status", hassTokenOptional, (req, res) => {
     });
 });
 
-router.get("/inside", hassTokenOptional, (req, res) => {
+apiRouter.get("/inside", hassTokenOptional, (req, res) => {
     const inside = UserStateService.getRecentUserStates().filter(req.authenticated ? filterAllPeopleInside : filterPeopleInside);
     res.json(inside);
 });
 
 // Legacy HASS api
-router.get("/insidecount", hassTokenOptional, (req, res) => {
+apiRouter.get("/insidecount", hassTokenOptional, (req, res) => {
     try {
         const inside = UserStateService.getRecentUserStates().filter(
             req.authenticated ? filterAllPeopleInside : filterPeopleInside
@@ -104,7 +106,7 @@ router.get("/insidecount", hassTokenOptional, (req, res) => {
     }
 });
 
-router.post("/setgoing", guestTokenRequired, (req, res) => {
+apiRouter.post("/setgoing", guestTokenRequired, (req, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -132,7 +134,7 @@ router.post("/setgoing", guestTokenRequired, (req, res) => {
     }
 });
 
-router.post("/open", hassTokenRequired, (_, res) => {
+apiRouter.post("/open", hassTokenRequired, (_, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -147,7 +149,7 @@ router.post("/open", hassTokenRequired, (_, res) => {
     return res.send({ message: "Success" });
 });
 
-router.post("/close", hassTokenRequired, (_, res) => {
+apiRouter.post("/close", hassTokenRequired, (_, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -163,7 +165,7 @@ router.post("/close", hassTokenRequired, (_, res) => {
     return res.send({ message: "Success" });
 });
 
-router.get("/donations", async (req, res) => {
+apiRouter.get("/donations", async (req, res) => {
     /*  #swagger.parameters['fund'] = {
                 in: 'query',
                 description: 'Fund name to show donations for. By default shows the latest fund for costs',
@@ -186,7 +188,7 @@ router.get("/donations", async (req, res) => {
     return res.json(await getDonationsSummary(fund, limit));
 });
 
-router.get("/sponsors", hassTokenOptional, (req, res) => {
+apiRouter.get("/sponsors", hassTokenOptional, (req, res) => {
     const sponsors = UsersRepository.getSponsors();
     res.json(
         sponsors.map(s => {
@@ -200,26 +202,4 @@ router.get("/sponsors", hassTokenOptional, (req, res) => {
     );
 });
 
-router.get("/wiki/tree", async (_, res, next) => {
-    try {
-        const list = await wiki.listPagesAsTree();
-
-        res.set("Cache-Control", "public, max-age=3600").json(list);
-    } catch (error) {
-        next(error);
-    }
-});
-
-router.get("/wiki/page/:id", async (req, res, next): Promise<any> => {
-    try {
-        if (!req.params.id) return res.status(400).send({ error: "Missing page id" });
-
-        const content = await wiki.getPageContent(req.params.id);
-
-        res.set("Cache-Control", "public, max-age=60").json({ id: req.params.id, content });
-    } catch (error) {
-        next(error);
-    }
-});
-
-export default router;
+export default apiRouter;

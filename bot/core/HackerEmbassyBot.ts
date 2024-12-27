@@ -338,6 +338,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
     }
 
+    sendAlert(text: string) {
+        return this.sendMessageExt(botConfig.chats.alerts, text, null);
+    }
+
     async sendMessageExt(
         chatId: TelegramBot.ChatId,
         text: string,

@@ -6,6 +6,7 @@ import wiki, { OutlineWebhookPayload } from "@services/wiki";
 import { WikiConfig } from "@config";
 import { createOutlineVerificationMiddleware } from "@utils/middleware";
 import logger from "@services/logger";
+import { MINUTE } from "@utils/date";
 
 const wikiConfig = config.get<WikiConfig>("wiki");
 const outlineSignedMiddleware = createOutlineVerificationMiddleware(logger, process.env.OUTLINE_SIGNING_SECRET);
@@ -33,16 +34,30 @@ router.get("/page/:id", async (req, res, next): Promise<any> => {
     }
 });
 
+// Outline spams webhook with multiple requests for the same page quite often
+const debounceTimers = new Map<string, NodeJS.Timeout>();
+const WEBHOOK_DEBOUNCE = MINUTE;
+
 // Webhook for Outline
-router.post("/hooks/documents.update", outlineSignedMiddleware, async (req, res, next): Promise<any> => {
+router.post("/hooks/documents.update", outlineSignedMiddleware, (req, res, next): any => {
     try {
         const body = req.body as Optional<OutlineWebhookPayload>;
         if (!body || body.event !== "documents.update") return res.sendStatus(400);
 
         const { title, url, updatedBy } = body.payload.model;
-        const fullUrl = `${wikiConfig.baseUrl}${url}`;
 
-        await bot.sendAlert(`📝 \\u0023wiki page #[${title}#]#(${fullUrl}#) was updated by ${updatedBy.name}`);
+        if (debounceTimers.has(url)) {
+            clearTimeout(debounceTimers.get(url));
+        }
+
+        const timeoutId = setTimeout(() => {
+            const fullUrl = `${wikiConfig.baseUrl}${url}`;
+
+            bot.sendAlert(`📝 \\u0023wiki page #[${title}#]#(${fullUrl}#) was updated by ${updatedBy.name}`);
+            debounceTimers.delete(url);
+        }, WEBHOOK_DEBOUNCE);
+
+        debounceTimers.set(url, timeoutId);
 
         res.sendStatus(200);
     } catch (error) {

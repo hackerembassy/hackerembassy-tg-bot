@@ -47,3 +47,19 @@ export function replaceUnsafeSymbolsForAscii(message: string) {
         .replaceAll(/-/g, "\u002D")
         .replaceAll(/\n/g, " ");
 }
+
+export function safeJsonParse<T>(str: string) {
+    try {
+        return JSON.parse(str) as T;
+    } catch {
+        return undefined;
+    }
+}
+
+export function safeJsonStringify(obj: any) {
+    try {
+        return JSON.stringify(obj);
+    } catch {
+        return undefined;
+    }
+}

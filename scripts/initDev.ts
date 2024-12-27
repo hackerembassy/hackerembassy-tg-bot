@@ -51,6 +51,7 @@ import { getOrCreateDb } from "@data/scripts";
     HACKERGOOGLEAPIKEY="_"
     OPENAIAPIKEY="_"
     WIKIAPIKEY="_"
+    OUTLINE_SIGNING_SECRET="_"
     UNIFIUSER="_"
     UNIFIPASSWORD="_"
     ALARMCODE="_"

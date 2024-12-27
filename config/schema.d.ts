@@ -12,7 +12,7 @@ export interface Config {
 }
 
 export interface WikiConfig {
-    endpoint: string;
+    baseUrl: string;
     publicCollectionId: string;
     defaultLocale: string;
 }

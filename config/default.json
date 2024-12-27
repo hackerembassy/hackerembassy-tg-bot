@@ -213,7 +213,7 @@
         "fiatUpdateInterval": 3600000
     },
     "wiki": {
-        "endpoint": "https://lore.hackem.cc/api/",
+        "baseUrl": "https://lore.hackem.cc",
         "publicCollectionId": "0007ce9a-3eab-4afa-95b9-e9ef7dfb98a2",
         "defaultLocale": "ru"
     },

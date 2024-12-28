@@ -747,7 +747,7 @@ export default class StatusHandlers implements BotHandlers {
         await StatusHandlers.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
-    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string) {
+    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string): Promise<any> {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         if (!fromDateString && !toDateString) return bot.sendMessageExt(msg.chat.id, t("status.stats.help"), msg);
@@ -765,12 +765,13 @@ export default class StatusHandlers implements BotHandlers {
 
         if (userTimes.length === 0) return bot.sendMessageExt(msg.chat.id, t("status.stats.nousertimes"), msg);
 
-        const statsText = TextGenerators.getStatsText(userTimes, dateBoundaries, shouldMentionPeriod);
         const statsTitle = t("status.stats.hoursinspace", dateBoundaries);
-        const statsDonut = await createUserStatsDonut(userTimes, statsTitle);
+        const statsTexts = TextGenerators.getStatsTexts(userTimes, dateBoundaries, shouldMentionPeriod);
 
-        await bot.sendPhotoExt(msg.chat.id, statsDonut, msg);
+        await bot.sendPhotoExt(msg.chat.id, await createUserStatsDonut(userTimes, statsTitle), msg);
 
-        return bot.sendLongMessage(msg.chat.id, statsText, msg);
+        for (const statsText of statsTexts) {
+            await bot.sendMessageExt(msg.chat.id, statsText, msg);
+        }
     }
 }

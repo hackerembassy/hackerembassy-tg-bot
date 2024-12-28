@@ -189,7 +189,7 @@ export async function createUserStatsDonut(userTimes: UserVisit[], title: string
         userTimes.map(ut => effectiveName(ut.user)) as string[],
         userTimes.map(ut => (ut.usertime.totalSeconds / 3600).toFixed(0)),
         title,
-        { height: 1500, width: 2500 }
+        { height: 1600, width: 2500 }
     ).toBinary();
 }
 

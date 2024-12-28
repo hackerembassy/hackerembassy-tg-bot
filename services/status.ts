@@ -2,13 +2,13 @@ import { User, UserState, UserStateEx } from "@data/models";
 import { UserStateChangeType, UserStateType } from "@data/types";
 
 import statusRepository from "@repositories/status";
-import { convertToElapsedObject, ElapsedTimeObject, isToday } from "@utils/date";
+import { convertToElapsedObject, ElapsedTimeObject, isToday, MONTH } from "@utils/date";
 import { anyItemIsInList } from "@utils/filters";
 
 import broadcast, { BroadcastEvents } from "./broadcast";
 import { fetchDevicesInside } from "./embassy";
 
-export type UserVisit = { user: User; userId: number; usertime: ElapsedTimeObject };
+export type UserVisit = { user: User; usertime: ElapsedTimeObject };
 
 export async function hasDeviceInside(user: User): Promise<boolean> {
     try {
@@ -86,23 +86,15 @@ export class SpaceStateService {
 export class UserStateService {
     private static lastUserStateCache: Map<number, UserStateEx> = new Map();
 
-    private static findRecentStates(allUserStates: UserStateEx[]) {
-        const usersLastStates: UserStateEx[] = [];
-
-        for (const userstate of allUserStates) {
-            if (!usersLastStates.find(us => us.user_id === userstate.user_id)) {
-                usersLastStates.push({ ...userstate, date: new Date(userstate.date).getTime() });
-            }
-        }
-
-        return usersLastStates;
-    }
-
     static getRecentUserStates() {
         if (this.lastUserStateCache.size === 0) {
-            const allUserStates = statusRepository.getAllUserStates();
-            const recentStates = UserStateService.findRecentStates(allUserStates);
-            this.lastUserStateCache = new Map(recentStates.map(us => [us.user_id, us]));
+            const allUserStates = statusRepository.getAllUserStates(new Date().getTime() - MONTH);
+
+            for (const userstate of allUserStates) {
+                if (this.lastUserStateCache.has(userstate.user_id)) continue;
+
+                this.lastUserStateCache.set(userstate.user_id, userstate);
+            }
         }
 
         return Array.from(this.lastUserStateCache.values());
@@ -139,21 +131,19 @@ export class UserStateService {
     }
 
     static getAllVisits(fromDate: Date, toDate: Date): UserVisit[] {
-        // TODO query only required dates
-        const allUserStates = statusRepository.getAllUserStates();
-        const recentUsers = UserStateService.getRecentUserStates().map(us => us.user);
+        const allUserStates = statusRepository.getAllUserStates(fromDate.getTime(), toDate.getTime());
+        const userStateMap = new Map<number, UserStateEx[]>();
         const usersVisits: UserVisit[] = [];
 
-        for (const recentUser of recentUsers) {
-            const userStates = allUserStates.filter(
-                us =>
-                    us.user_id === recentUser.userid &&
-                    Number(us.date) >= fromDate.getTime() &&
-                    Number(us.date) <= toDate.getTime()
-            );
+        for (const userState of allUserStates) {
+            if (!userStateMap.has(userState.user_id)) userStateMap.set(userState.user_id, []);
+
+            userStateMap.get(userState.user_id)?.push(userState);
+        }
+
+        for (const userStates of userStateMap.values()) {
             usersVisits.push({
-                user: recentUser,
-                userId: recentUser.userid,
+                user: userStates[0].user,
                 usertime: UserStateService.getUserTotalTime(userStates),
             });
         }

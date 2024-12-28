@@ -22,6 +22,8 @@ export const MINUTE = 60 * 1000;
 export const HOUR = 60 * MINUTE;
 export const HALFDAY = 12 * HOUR;
 export const DAY = 24 * HOUR;
+export const WEEK = 7 * DAY;
+export const MONTH = 30 * DAY;
 
 export const DURATION_STRING_REGEX = /(?:(\d+)h\s?)?(?:(\d+)m)?/;
 

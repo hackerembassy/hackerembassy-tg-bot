@@ -19,6 +19,7 @@ import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
 import { UserVisit } from "@services/status";
 import { SponsorshipLevel, SponsorshipLevelToEmoji, SponsorshipLevelToName, SponsorshipNameToLevel } from "@services/export";
+import { splitArray } from "@utils/common";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
@@ -388,39 +389,38 @@ export function getPrinterStatusText(status: PrinterStatus): string {
     return message;
 }
 
-export function getStatsText(userTimes: UserVisit[], dateBoundaries: DateBoundary, shouldMentionPeriod = false) {
-    let stats = `${shouldMentionPeriod ? t("status.stats.period", dateBoundaries) : t("status.stats.start")}:\n\n`;
+export function getStatsTexts(userTimes: UserVisit[], dateBoundaries: DateBoundary, shouldMentionPeriod = false) {
+    const MAX_USERS_PER_MESSAGE = 75;
+    const header = `${shouldMentionPeriod ? t("status.stats.period", dateBoundaries) : t("status.stats.start")}:\n\n`;
+    const footer = `\n${t("status.stats.tryautoinside")}\n${t("status.stats.help")}`;
+
+    if (userTimes.length <= MAX_USERS_PER_MESSAGE) return [header + getStatsList(userTimes) + footer];
+
+    const splitUserTimes = splitArray(userTimes, MAX_USERS_PER_MESSAGE);
+    const messages = [header + getStatsList(splitUserTimes[0])];
+
+    for (let i = 1; i < splitUserTimes.length; i++) {
+        const list = getStatsList(splitUserTimes[i], i * MAX_USERS_PER_MESSAGE);
+        messages.push(i === splitUserTimes.length - 1 ? list + footer : list);
+    }
+
+    return messages;
+}
+
+export function getStatsList(userTimes: UserVisit[], offset = 0): string {
+    const lines = [];
 
     for (let i = 0; i < userTimes.length; i++) {
         const userTime = userTimes[i];
-
-        let medal: string;
-
-        switch (i + 1) {
-            case 1:
-                medal = "🥇";
-                break;
-            case 2:
-                medal = "🥈";
-                break;
-            case 3:
-                medal = "🥉";
-                break;
-            default:
-                medal = i < 10 ? "🧁" : i === userTimes.length - 1 ? "🍆" : "🍪";
-                break;
-        }
-
-        const place = `${medal}${i + 1}`.padEnd(4, " ");
-        stats += `#\`#\`#\` ${place}${fixedWidthPeriod(userTime.usertime)} ${effectiveName(userTime.user)} ${getUserBadges(
-            userTime.user
-        )}#\`#\`#\`\n`;
+        const userPlace = i + offset + 1;
+        const medal = userPlace === 1 ? "🥇" : userPlace === 2 ? "🥈" : userPlace === 3 ? "🥉" : userPlace < 11 ? "🧁" : "🍪";
+        const place = `${medal}${userPlace}`.padEnd(4, " ");
+        lines.push(
+            `${place}${fixedWidthPeriod(userTime.usertime)} ${effectiveName(userTime.user)} ${getUserBadges(userTime.user)}`
+        );
     }
 
-    stats += `\n${t("status.stats.tryautoinside")}`;
-    stats += `\n${t("status.stats.help")}`;
-
-    return stats;
+    return `#\`#\`#\`\n${lines.join("\n")}#\`#\`#\``;
 }
 
 export function fixedWidthPeriod(usertime: ElapsedTimeObject) {

@@ -20,10 +20,11 @@ class StatusRepository extends BaseRepository {
         );
     }
 
-    getAllUserStates() {
+    getAllUserStates(fromDate: number = 0, toDate: number = Date.now()) {
         return this.db.query.userstates
             .findMany({
                 orderBy: desc(userstates.date),
+                where: between(userstates.date, fromDate, toDate),
                 with: {
                     user: true,
                 },

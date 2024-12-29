@@ -30,6 +30,9 @@ const Members = ["member"] as UserRole[];
 const Accountants = ["accountant"] as UserRole[];
 const Admins = ["admin"] as UserRole[];
 
+// Common regexes
+const CaptureListOfIds = /(\d[\d\s,]*)/;
+
 export function addRoutes(bot: HackerEmbassyBot): void {
     // Info
     bot.addRoute(["help"], BasicHandlers.helpHandler, OptionalParam(/(\S+)/), match => [match[1]]);
@@ -219,17 +222,17 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(
         ["transferdonation", "td"],
         FundsHandlers.transferDonationHandler,
-        /(\d+) to (.*\S)/,
+        /(\d[\d\s,]*?) to (.*\S)/,
         match => [match[1], match[2]],
         Accountants
     );
 
-    bot.addRoute(["tosafe"], FundsHandlers.transferDonationHandler, /(\d+)/, match => [match[1], "safe"], Accountants);
+    bot.addRoute(["tosafe"], FundsHandlers.transferDonationHandler, CaptureListOfIds, match => [match[1], "safe"], Accountants);
 
     bot.addRoute(
         ["topaid", "paid", "tp"],
         FundsHandlers.transferDonationHandler,
-        /(\d+)/,
+        CaptureListOfIds,
         match => [match[1], "paid"],
         Accountants
     );
@@ -611,14 +614,14 @@ function addEmbassySpecificRoutes(bot: HackerEmbassyBot) {
     bot.addRoute(
         ["tocab", "givecab", "tc"],
         FundsHandlers.transferDonationHandler,
-        /(\d+)/,
+        CaptureListOfIds,
         match => [match[1], "CabiaRangris"],
         Accountants
     );
     bot.addRoute(
         ["tonick", "givenick", "tn"],
         FundsHandlers.transferDonationHandler,
-        /(\d+)/,
+        CaptureListOfIds,
         match => [match[1], "korn9509"],
         Accountants
     );

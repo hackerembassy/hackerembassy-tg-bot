@@ -197,28 +197,34 @@ export default class FundsHandlers implements BotHandlers {
         );
     }
 
-    static transferDonationHandler(bot: HackerEmbassyBot, msg: Message, id: number, accountantName: string) {
+    static transferDonationHandler(bot: HackerEmbassyBot, msg: Message, donations: string, accountantName: string) {
         const accountant = UsersRepository.getUserByName(accountantName.replace("@", ""));
 
         if (!accountant) return bot.sendMessageExt(msg.chat.id, t("funds.transferdonation.fail"), msg);
 
-        const success = FundsRepository.transferDonation(id, accountant.userid);
-        const donation = FundsRepository.getDonationById(id, false, true);
+        const donationIds = donations.replaceAll(/\s/g, "").split(",").map(Number);
+        const messages = [];
 
-        let text = t("funds.transferdonation.fail");
+        for (const donationId of donationIds) {
+            const success = FundsRepository.transferDonation(donationId, accountant.userid);
+            const donation = FundsRepository.getDonationById(donationId, true, true);
+            const text =
+                success && donation
+                    ? t("funds.transferdonation.success", {
+                          id: donationId,
+                          accountant: helpers.userLink(accountant),
+                          username: donation.user.username
+                              ? helpers.formatUsername(donation.user.username)
+                              : helpers.userLink(donation.user),
+                          fund: donation.fund,
+                          donation,
+                      })
+                    : t("funds.transferdonation.fail", { id: donations });
 
-        if (success && donation) {
-            const fund = FundsRepository.getFundById(donation.fund_id);
-            text = t("funds.transferdonation.success", {
-                id,
-                accountant: helpers.userLink(accountant),
-                username: helpers.userLink(donation.user),
-                fund,
-                donation,
-            });
+            messages.push(text);
         }
 
-        return bot.sendMessageExt(msg.chat.id, text, msg);
+        return RateLimiter.executeOverTime(messages.map(m => () => bot.sendMessageExt(msg.chat.id, m, msg)));
     }
 
     static async sponsorsHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -517,9 +523,7 @@ export default class FundsHandlers implements BotHandlers {
 
         if (donations.length === 0) return bot.sendMessageExt(msg.chat.id, t("funds.transferdonation.nothing"), msg);
 
-        return RateLimiter.executeOverTime(
-            donations.map(d => () => FundsHandlers.transferDonationHandler(bot, msg, d.id, username))
-        );
+        return FundsHandlers.transferDonationHandler(bot, msg, donations.map(d => d.id).join(","), username);
     }
 
     static async exportCSVHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {

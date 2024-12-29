@@ -482,9 +482,9 @@ funds:
         fail: ⚠️ Failed to change collection status
     transferdonation:
         success: |
-            ↪️ Donation [id:{{id}}] transferred to {{accountant}}
-            {{username}} donated to {{fund.name}} in the amount of {{donation.value}} {{donation.currency}}
-        fail: ⚠️ Failed to transfer donation
+            ↪️ Donation [#`{{id}}#`] transferred to {{accountant}}
+            {{username}} donated to #`{{fund.name}}#` in the amount of {{donation.value}} {{donation.currency}}
+        fail: ⚠️ Failed to transfer donation [#`{{id}}#`]
         nothing: ⚠️ Nothing transferred, fucker
     adddonation:
         success: |
@@ -528,10 +528,10 @@ funds:
             💰 Total {{total}} {{currency}} day
 
             🛂 You can transfer a donation using the following commands:
-            #`/tocab id#` - Separate donation to Cab by id
+            #`/tosafe id#` - Separate donation to safe by id (or several ids, separated by commas)
             #`/topaid id#` - Mark the donation as paid by id (went to the fund purpose)
+            #`/tocab id#` - Separate donation to Cab by id
             #`/tonick id#` - Separate donation to Kole by id
-            #`/tosafe id#` - Separate donation to safe by id
             #`/tosafeall fund_name#` - All your donations to safe from a certain fund
             #`/tosafeall#` - All your donations to safe (carefully)
             #`/transferdonation donation_id to username#` (td) - Transfer donation to another accountant

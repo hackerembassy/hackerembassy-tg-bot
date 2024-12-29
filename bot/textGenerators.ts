@@ -116,12 +116,12 @@ export function generateDonationsList(
     let donationList = "";
 
     for (const donation of donations) {
-        donationList += `      ${options.showAdmin ? `[id:${donation.id}] - ` : ""}${
+        donationList += `      ${options.showAdmin ? `[#\`${donation.id}#\`] - ` : ""}${
             donation.user.username
                 ? formatUsername(donation.user.username, mode.mention, options.isApi)
                 : donation.user.first_name
         } - ${toBasicMoneyString(donation.value)} ${donation.currency}${
-            options.showAdmin ? ` ➡️ ${formatUsername(donation.accountant.username, mode.mention, options.isApi)}` : ""
+            options.showAdmin ? ` →  ${donation.accountant.username}` : ""
         }\n`;
     }
 

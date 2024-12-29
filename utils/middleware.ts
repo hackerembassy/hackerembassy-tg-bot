@@ -7,6 +7,7 @@ import { Logger } from "winston";
 
 import { decrypt } from "./security";
 import { safeJsonStringify } from "./text";
+import { MINUTE } from "./date";
 
 // Optional type for a legacy hass module
 type RequestWithOptionalTokenBody = Request<ParamsDictionary, any, Optional<{ token?: string }>, ParsedQs, Record<string, any>>;
@@ -89,6 +90,14 @@ export function createOutlineVerificationMiddleware(logger: Logger, token?: stri
         }
 
         const [timestamp, signature] = header.split(",").map(part => part.split("=")[1]);
+        const parsedTimestamp = Number(timestamp);
+
+        if (isNaN(parsedTimestamp) || parsedTimestamp < Date.now() - MINUTE) {
+            logger.error(`Got request with outdated outline signature from ${req.ip}`);
+            res.status(401).send({ message: "Request is outdated" });
+            return;
+        }
+
         const bodyString = safeJsonStringify(req.body);
 
         if (!bodyString) {

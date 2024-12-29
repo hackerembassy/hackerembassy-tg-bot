@@ -131,7 +131,7 @@ HASSTOKEN - Home Assistant API token
 HACKERGOOGLEAPIKEY - Google Calendar API token  
 OPENAIAPIKEY - OpenAI API token  
 SONAR_TOKEN - Sonar Cloud analysis token  
-WIKIAPIKEY - Outline Wiki API token
+WIKIAPIKEY - Outline Wiki API token  
 OUTLINE_SIGNING_SECRET - Outline API signing secret for webhooks
 
 You can use a .env file in the root folder for development. Check the .env.example file for reference.

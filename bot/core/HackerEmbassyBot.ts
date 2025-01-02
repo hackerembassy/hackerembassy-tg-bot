@@ -27,6 +27,8 @@ import logger from "@services/logger";
 import { chunkSubstr } from "@utils/text";
 import UserService from "@services/user";
 
+import { hashMD5 } from "@utils/common";
+
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
 import { OptionalRegExp, hasRole, isBanned, prepareMessageForMarkdown, tgUserLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
@@ -178,7 +180,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     async sendPhotoExt(
         chatId: TelegramBot.ChatId,
-        photo: string | import("stream").Stream | Buffer,
+        photo: string | Stream | Buffer,
         msg: TelegramBot.Message,
         options: TelegramBot.SendPhotoOptions = {},
         fileOptions: TelegramBot.FileOptions = {}
@@ -196,9 +198,12 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
+        const photoHash = photo instanceof Stream ? null : hashMD5(photo);
+        const cachedFileId = photoHash ? this.botState.fileIdCache[photoHash] : null;
+
         const message = await this.sendPhoto(
             chatIdToUse,
-            photo,
+            cachedFileId ?? photo,
             {
                 ...options,
                 reply_markup: {
@@ -208,6 +213,11 @@ export default class HackerEmbassyBot extends TelegramBot {
             },
             fileOptions
         );
+
+        if (!cachedFileId && photoHash && message.photo) {
+            this.botState.fileIdCache[photoHash] = message.photo[0].file_id;
+            this.botState.debouncedPersistChanges();
+        }
 
         if (mode.pin) {
             this.tryPinChatMessage(message, context.user);
@@ -236,10 +246,18 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
-        const message = await this.sendAnimation(chatIdToUse, animation, {
+        const animationHash = animation instanceof Stream ? null : hashMD5(animation);
+        const cachedFileId = animationHash ? this.botState.fileIdCache[animationHash] : null;
+
+        const message = await this.sendAnimation(chatIdToUse, cachedFileId ?? animation, {
             ...options,
             message_thread_id: context.messageThreadId,
         });
+
+        if (!cachedFileId && animationHash && message.animation) {
+            this.botState.fileIdCache[animationHash] = message.animation.file_id;
+            this.botState.debouncedPersistChanges();
+        }
 
         if (mode.pin) {
             this.tryPinChatMessage(message, context.user);

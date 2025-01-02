@@ -1,3 +1,5 @@
+import crypto, { BinaryLike } from "crypto";
+
 export function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -28,4 +30,10 @@ export function splitArray<T>(array: T[], size: number): T[][] {
     }
 
     return result;
+}
+
+export function hashMD5(data: BinaryLike) {
+    const hash = crypto.createHash("md5");
+    hash.update(data);
+    return hash.digest("hex");
 }

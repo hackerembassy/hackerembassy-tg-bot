@@ -40,6 +40,7 @@ export default class BotState {
                 this.lastBirthdayWishTimestamp = persistedState.lastBirthdayWishTimestamp;
                 this.initLiveChats();
                 this.flags = persistedState.flags;
+                this.fileIdCache = persistedState.fileIdCache;
 
                 return;
             } catch (error) {
@@ -84,6 +85,7 @@ export default class BotState {
     public history: { [chatId: string]: Optional<MessageHistoryEntry[]> };
     public lastBirthdayWishTimestamp: number = 0;
     public flags: StateFlags;
+    public fileIdCache: { [key: string]: string } = {};
 
     clearLiveHandlers(chatId: number, event?: BotCustomEvent) {
         const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);
@@ -105,6 +107,7 @@ export default class BotState {
         this.history = {};
         this.lastBirthdayWishTimestamp = 0;
         this.flags = { ...DEFAULT_STATE_FLAGS };
+        this.fileIdCache = {};
         this.persistChanges();
     }
 

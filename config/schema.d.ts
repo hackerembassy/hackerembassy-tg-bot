@@ -108,6 +108,8 @@ export interface BotFeaturesConfig {
     antispam: boolean;
     /** Integration with Yerevan Hacker Embassy infra and space-specific commands */
     embassy: boolean;
+    /** Allows connecting chats to the admin-bot conversation */
+    chatbridge: boolean;
 }
 
 export interface ApiFeaturesConfig {

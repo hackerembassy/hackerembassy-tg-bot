@@ -32,6 +32,7 @@ const Admins = ["admin"] as UserRole[];
 
 // Common regexes
 const CaptureListOfIds = /(\d[\d\s,]*)/;
+const CaptureInteger = /(-?\d+)/;
 
 export function addRoutes(bot: HackerEmbassyBot): void {
     // Info
@@ -291,6 +292,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["removeuser"], AdminHandlers.removeUserHandler, /(\S+)/, match => [match[1]], Admins);
     bot.addRoute(["removeuserbyid"], AdminHandlers.removeUserByIdHandler, /(\d+)/, match => [match[1]], Admins);
     bot.addRoute(["custom", "forward"], AdminHandlers.customHandler, OptionalParam(/(.*)/ims), match => [match[1]], Admins);
+    bot.addRoute(["copy"], AdminHandlers.copyMessageHandler, /(\S+?)/, match => [match[1]], Admins);
     bot.addRoute(
         ["customtest", "customt", "forwardtest", "forwardt"],
         AdminHandlers.customHandler,
@@ -311,6 +313,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         Admins
     );
     bot.addRoute(["getflags", "getf"], AdminHandlers.getFlagsHandler, null, null, Admins);
+    bot.addRoute(["linkchat"], AdminHandlers.linkChatHandler, CaptureInteger, match => [match[1]], Admins);
+    bot.addRoute(["unlinkchat"], AdminHandlers.unlinkChatHandler, null, null, Admins);
+    bot.addRoute(["getlinkedchat"], AdminHandlers.getLinkedChatHandler, null, null, Admins);
 
     // Memes
     bot.addRoute(["randomdog", "dog"], MemeHandlers.randomImagePathHandler, null, () => ["./resources/images/dogs"]);
@@ -440,7 +445,7 @@ function addEmbassySpecificRoutes(bot: HackerEmbassyBot) {
     bot.addRoute(
         ["mideaaddtemp", "acaddtemp", "ac1addtemp"],
         EmbassyHandlers.addConditionerTempHandler,
-        /(-?\d*)/,
+        CaptureInteger,
         match => ["downstairs", Number(match[1])],
         TrustedMembers
     );
@@ -466,7 +471,7 @@ function addEmbassySpecificRoutes(bot: HackerEmbassyBot) {
     bot.addRoute(
         ["lgaddtemp", "ac2addtemp"],
         EmbassyHandlers.addConditionerTempHandler,
-        /(-?\d*)/,
+        CaptureInteger,
         match => ["upstairs", Number(match[1])],
         TrustedMembers
     );

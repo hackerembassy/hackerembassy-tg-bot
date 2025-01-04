@@ -62,6 +62,7 @@ import {
     SerializedFunction,
 } from "./types";
 import { ButtonFlags, InlineDeepLinkButton } from "./InlineButtons";
+import ChatBridge from "./ChatBridge";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -92,6 +93,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public restrictedImage: Nullable<Buffer> = null;
     public pollingError: Error | null = null;
     public autoRemoveChats: ChatId[] = [];
+    public chatBridge = new ChatBridge();
 
     private contextMap = new Map();
     public forwardTarget = botConfig.chats.main;
@@ -509,6 +511,17 @@ export default class HackerEmbassyBot extends TelegramBot {
         try {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
+
+            // Forward messages between chats
+            if (botConfig.features.chatbridge) {
+                const adminId = this.chatBridge.getLinkedAdmin(message.chat.id);
+                if (adminId)
+                    return this.forwardMessage(adminId, message.chat.id, message.message_id).catch(error => logger.error(error));
+
+                const chatId = this.chatBridge.getLinkedChat(message.chat.id);
+                if (chatId && !message.text?.startsWith("/"))
+                    return this.copyMessage(chatId, message.chat.id, message.message_id).catch(error => logger.error(error));
+            }
 
             // Change forward target if needed
             if (message.chat_shared?.chat_id) {

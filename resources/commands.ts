@@ -159,6 +159,7 @@ export const AdminCommandsList: string = `
 
 /getusers
 /getrestrictedusers
+/ban telegram_username_or_id
 #\`/removeuser telegram_username#\`
 #\`/removeuserbyid telegram_user_id#\`
 #\`/updateroles of telegram_username to user_role1|user_role2|user_role3#\`
@@ -173,9 +174,14 @@ export const AdminCommandsList: string = `
 /stoplive
 /setflag flag_name flag_value
 /getflags
-/target - Сменить чат для пересылки сообщений
+/target - Сменить чат для пересылки сообщений в forward или custom
+/forward text - Переслать сообщение в выбранный в target чат
+/copy target_id_or_alias - Скопировать сообщение в выбранный чат (в reply на сообщение)
+/linkchat - Привязать чат к текущему
+/unlinkchat - Отвязать чат от текущего
+/getlinkedchat - Получить привязанный чат
 
-\\* Roles: admin, accountant, member, trusted, default
+\\* Roles: admin, accountant, member, trusted, restricted, banned, default
 
 [END Команды админов]
 `;

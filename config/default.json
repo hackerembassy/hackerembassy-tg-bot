@@ -59,7 +59,8 @@
             "antispam": true,
             "embassy": true,
             "ai": true,
-            "calendar": true
+            "calendar": true,
+            "chatbridge": true
         },
         "moderatedChats": [-1001605898533],
         "funds": {

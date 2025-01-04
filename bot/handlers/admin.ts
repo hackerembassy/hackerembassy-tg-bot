@@ -331,4 +331,40 @@ export default class AdminHandlers implements BotHandlers {
             );
         }
     }
+
+    static linkChatHandler(bot: HackerEmbassyBot, msg: Message, target: string) {
+        if (!bot.context(msg).isPrivate()) return;
+
+        bot.chatBridge.link(Number(target), msg.chat.id);
+
+        bot.sendMessageExt(msg.chat.id, `Chat ${target} is linked to admin ${msg.from?.username}`, msg);
+    }
+
+    static unlinkChatHandler(bot: HackerEmbassyBot, msg: Message) {
+        if (!bot.context(msg).isPrivate()) return;
+
+        bot.chatBridge.unlink(msg.chat.id);
+
+        bot.sendMessageExt(msg.chat.id, `Chats are unlinked from admin ${msg.from?.username}`, msg);
+    }
+
+    static getLinkedChatHandler(bot: HackerEmbassyBot, msg: Message) {
+        if (!bot.context(msg).isPrivate()) return;
+
+        const linkedChats = bot.chatBridge.getLinkedChat(msg.chat.id);
+
+        linkedChats
+            ? bot.sendMessageExt(msg.chat.id, `Linked chat: ${linkedChats}`, msg)
+            : bot.sendMessageExt(msg.chat.id, "No linked chats", msg);
+    }
+
+    static async copyMessageHandler(bot: HackerEmbassyBot, msg: Message, target: string) {
+        if (!msg.reply_to_message) return;
+
+        const chatId = botConfig.chats[target as keyof typeof botConfig.chats] || Number(target);
+        if (isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, "Invalid chat id", msg);
+
+        await bot.copyMessage(chatId, msg.chat.id, msg.reply_to_message.message_id);
+        return bot.sendMessageExt(msg.chat.id, `Message is copied to chat ${target}`, msg);
+    }
 }

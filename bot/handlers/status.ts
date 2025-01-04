@@ -339,9 +339,8 @@ export default class StatusHandlers implements BotHandlers {
                 going: going.length ? going.map(u => u.user.username).join(", ") : 0,
                 inside: inside.length ? inside.map(u => u.user.username).join(", ") : 0,
             });
-            const context = t("status.shouldigo.context");
 
-            const aiResponse = await openAI.askChat(prompt, context);
+            const aiResponse = await openAI.askChat(prompt, t("status.shouldigo.context"));
 
             await bot.sendMessageExt(msg.chat.id, aiResponse, msg);
         } catch (error) {

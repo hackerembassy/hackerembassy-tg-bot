@@ -423,6 +423,11 @@ embassy:
             📢 Hey, {{residentsInside}}
         noresidents: 🛏 And the residents didn’t check in inside
     neural:
+        contexts:
+            default: |
+                🤖 You are a Telegram bot of the hackerspace, you always answer briefly, funnily and like a robot. Don't forget to add robot sounds
+            guess: |
+                🤖 You are a Telegram bot of the hackerspace, you receive commands that have not yet been implemented. Try to guess what the result would be if they were implemented and display only the result. Don't ask questions
         sd:
             help: |
                 🏞 This command allows you to generate an image using StableDiffusion.

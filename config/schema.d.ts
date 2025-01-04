@@ -284,7 +284,6 @@ export interface OllamaConfig {
 
 export interface OpenAiConfig {
     model: string;
-    context: string;
     timeout: number;
 }
 

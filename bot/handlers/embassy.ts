@@ -748,9 +748,11 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             // Guards
-            if (msg.chat.id !== botConfig.chats.horny && !hasRole(bot.context(msg).user, "trusted", "member"))
+            const user = bot.context(msg).user;
+            if (msg.chat.id !== botConfig.chats.horny && !hasRole(user, "trusted", "member"))
                 return bot.sendRestrictedMessage(msg);
-            if (!PUBLIC_CHATS.includes(msg.chat.id)) return bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
+            if (!PUBLIC_CHATS.includes(msg.chat.id) && !hasRole(user, "admin"))
+                return bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
             if (!prompt) return bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
 
             bot.sendChatAction(msg.chat.id, "typing", msg);
@@ -758,7 +760,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const response =
                 model === AvailableModels.GPT
-                    ? await openAI.askChat(prompt)
+                    ? await openAI.askChat(prompt, t("embassy.neural.contexts.default"))
                     : await requestToEmbassy("/neural/ollama/generate", "POST", { prompt }, 90000)
                           .then(response => response.json())
                           .then(data => (data as { response: string }).response);

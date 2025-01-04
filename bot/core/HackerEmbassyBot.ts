@@ -26,6 +26,7 @@ import { BotConfig } from "@config";
 import logger from "@services/logger";
 import { chunkSubstr } from "@utils/text";
 import UserService from "@services/user";
+import { openAI } from "@services/neural";
 
 import { hashMD5 } from "@utils/common";
 
@@ -126,6 +127,12 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (user) return hasRole(user, "admin", ...savedRestrictions);
 
         return savedRestrictions.includes("default");
+    }
+
+    canUserGuess(user: Nullable<User>, chat: TelegramBot.Chat): boolean {
+        if (!botConfig.features.ai || !user) return false;
+
+        return (hasRole(user, "member", "trusted", "admin") && PUBLIC_CHATS.includes(chat.id)) || hasRole(user, "admin");
     }
 
     context(msg: TelegramBot.Message): BotMessageContext {
@@ -523,8 +530,6 @@ export default class HackerEmbassyBot extends TelegramBot {
             const command = commandWithCase.toLowerCase();
             const route = this.routeMap.get(command);
 
-            if (!route) return;
-
             // Prepare context
             const actualUser = UserService.prepareUser(message.from as TelegramBot.User);
             const impersonatedUser =
@@ -536,6 +541,18 @@ export default class HackerEmbassyBot extends TelegramBot {
             const messageContext = this.startContext(message, user, command);
             messageContext.language = isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
+
+            // Try to guess the answer if no route is found for members, especially for @CabiaRangris
+            if (!route) {
+                return this.canUserGuess(user, message.chat)
+                    ? await messageContext.run(() =>
+                          openAI
+                              .askChat(text, t("embassy.neural.contexts.guess"))
+                              .then(guess => this.sendMessageExt(message.chat.id, guess, message))
+                              .catch(error => logger.error(error))
+                      )
+                    : null;
+            }
 
             // Check restritions
             if (isBanned(user)) return;

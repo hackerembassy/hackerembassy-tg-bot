@@ -60,9 +60,7 @@ type ApiErrorResponse = {
 export class OpenAI {
     constructor(private apiKey: string) {}
 
-    static readonly defaultContext = neuralConfig.openai.context;
-
-    async askChat(prompt: string, context: string = OpenAI.defaultContext) {
+    async askChat(prompt: string, context: string) {
         if (!this.apiKey) throw Error("OpenAI API key is not set");
 
         const myHeaders = new Headers();

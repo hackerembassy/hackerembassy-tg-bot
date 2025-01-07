@@ -84,6 +84,8 @@ const WelcomeMessageMap: {
     [botConfig.chats.horny]: "service.welcome.horny",
 };
 
+const GuessIgnoreList = new Set(botConfig.guess.ignoreList);
+
 export default class HackerEmbassyBot extends TelegramBot {
     public messageHistory: MessageHistory;
     public Name: Optional<string>;
@@ -557,7 +559,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Try to guess the answer if no route is found for members, especially for @CabiaRangris
             if (!route) {
-                return this.canUserGuess(user, message.chat)
+                return !GuessIgnoreList.has(command) && this.canUserGuess(user, message.chat)
                     ? await messageContext.run(() =>
                           openAI
                               .askChat(text, t("embassy.neural.contexts.guess"))

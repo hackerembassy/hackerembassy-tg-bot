@@ -33,6 +33,7 @@ export interface BotConfig {
     funds: FundsConfig;
     debug: boolean;
     moderatedChats: number[];
+    guess: GuessConfig;
     features: BotFeaturesConfig;
 }
 
@@ -92,6 +93,10 @@ export interface UtilityReminder {
     lastDay: number;
     message: string;
     warning: string;
+}
+
+export interface GuessConfig {
+    ignoreList: string[];
 }
 
 export interface BotFeaturesConfig {

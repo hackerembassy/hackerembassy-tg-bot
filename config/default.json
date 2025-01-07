@@ -63,6 +63,9 @@
             "chatbridge": true
         },
         "moderatedChats": [-1001605898533],
+        "guess": {
+            "ignoreList": ["q", "qs", "qrand", "qtop", "patternify", "piska", "leaders"]
+        },
         "funds": {
             "alternativeUsernames": ["dipierro", "keimoger", "MrPhoenix"],
             "sponsorship": {

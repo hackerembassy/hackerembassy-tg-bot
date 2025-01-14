@@ -25,13 +25,13 @@ import { UserRole } from "@data/types";
 import { BotConfig } from "@config";
 import logger from "@services/logger";
 import { chunkSubstr } from "@utils/text";
-import UserService from "@services/user";
+import UserService, { hasRole, isBanned } from "@services/user";
 import { openAI } from "@services/neural";
 
 import { hashMD5 } from "@utils/common";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
-import { OptionalRegExp, hasRole, isBanned, prepareMessageForMarkdown, tgUserLink } from "./helpers";
+import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {

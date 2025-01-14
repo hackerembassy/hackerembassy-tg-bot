@@ -1,4 +1,4 @@
-import { users, donations, funds, needs, subscriptions, topics, userstates, states } from "data/schema";
+import { users, donations, funds, needs, subscriptions, topics, userstates, states, apikeys } from "data/schema";
 
 export type User = typeof users.$inferSelect;
 export type Donation = typeof donations.$inferSelect;
@@ -8,6 +8,7 @@ export type Subscription = typeof subscriptions.$inferSelect;
 export type Topic = typeof topics.$inferSelect;
 export type UserState = typeof userstates.$inferSelect;
 export type State = typeof states.$inferSelect;
+export type ApiKey = typeof apikeys.$inferSelect;
 
 export type UserStateEx = UserState & { user: User };
 export type StateEx = State & { changer: User };

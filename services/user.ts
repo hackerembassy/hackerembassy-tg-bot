@@ -2,11 +2,27 @@ import TelegramBot from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 import { DefaultUser } from "@data/seed";
+import { UserRole } from "@data/types";
+
 import usersRepository from "@repositories/users";
 
 import logger from "./logger";
 import { UserStateService } from "./status";
 
+// helper functions
+export function splitRoles(user: User) {
+    return user.roles?.split("|") as UserRole[];
+}
+
+export function hasRole(user: User, ...roles: UserRole[]) {
+    return user.roles?.length !== 0 ? splitRoles(user).filter(r => roles.includes(r)).length > 0 : false;
+}
+
+export function isBanned(user: User) {
+    return user.roles?.includes("banned");
+}
+
+// service
 class UserService {
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {
         const user = usersRepository.getUserByUserId(tgUser.id);

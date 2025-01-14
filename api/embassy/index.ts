@@ -7,7 +7,7 @@ import express from "express";
 import { EmbassyApiConfig } from "@config";
 import logger from "@services/logger";
 import { catErrorPage } from "@utils/meme";
-import { createDebugMiddleware, createErrorMiddleware } from "@utils/middleware";
+import { createDebugMiddleware, createErrorMiddleware } from "@utils/express";
 
 import spaceRouter from "./routers/space";
 import speakerRouter from "./routers/speaker";

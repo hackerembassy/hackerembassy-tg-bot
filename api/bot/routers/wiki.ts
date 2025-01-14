@@ -4,12 +4,12 @@ import config from "config";
 import bot from "@hackembot/instance";
 import wiki, { OutlineWebhookPayload } from "@services/wiki";
 import { WikiConfig } from "@config";
-import { createOutlineVerificationMiddleware } from "@utils/middleware";
-import logger from "@services/logger";
 import { MINUTE } from "@utils/date";
 
+import { createOutlineVerificationMiddleware } from "../middleware";
+
 const wikiConfig = config.get<WikiConfig>("wiki");
-const outlineSignedMiddleware = createOutlineVerificationMiddleware(logger, process.env.OUTLINE_SIGNING_SECRET);
+const outlineSignedMiddleware = createOutlineVerificationMiddleware(process.env.OUTLINE_SIGNING_SECRET);
 const router = Router();
 
 router.get("/tree", async (_, res, next) => {

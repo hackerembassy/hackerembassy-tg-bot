@@ -39,7 +39,6 @@ import { getOrCreateDb } from "@data/scripts";
     const envData = `HACKERBOTTOKEN="${tgBotApiToken}"
     LUCITOKEN="_"
     UNLOCKKEY="_"
-    GUESTKEY="_"
     MQTTUSER="_"
     MQTTPASSWORD="_"
     WIFIUSER="_"

@@ -15,11 +15,13 @@ import { AvailableConditioner, ConditionerActions, ConditionerMode, ConditionerS
 import logger from "@services/logger";
 import { PrinterStatusResult } from "@services/printer3d";
 import { filterPeopleInside, hasDeviceInside, UserStateService } from "@services/status";
+import { UnlockMethod } from "@services/door";
+import { hasRole } from "@services/user";
+import { AvailableModels, openAI } from "@services/neural";
+
 import { sleep } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { filterFulfilled } from "@utils/filters";
-import { UnlockMethod } from "@services/door";
-import { AvailableModels, openAI } from "@services/neural";
 
 import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
@@ -27,7 +29,7 @@ import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
-import { effectiveName, hasRole } from "../core/helpers";
+import { effectiveName } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");

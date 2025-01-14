@@ -280,6 +280,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
         ]);
     }
 
+    // Tokens
+    bot.addRoute(["token"], ServiceHandlers.tokenHandler, OptionalParam(/(\S+?)/), match => [match[1]], TrustedMembers);
+
     // Admin
     bot.addRoute(["getuser", "user"], AdminHandlers.getUserHandler, OptionalParam(/(\S+?)/), match => [match[1]], Admins);
     bot.addRoute(["setuser"], AdminHandlers.setUserHandler, OptionalParam(/(.*)/ims), match => [match[1]], Admins);

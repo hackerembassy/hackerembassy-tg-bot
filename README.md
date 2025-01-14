@@ -118,7 +118,6 @@ If you want this bot to serve SpaceApi, you can create your own spaceapi templat
 ### Environment variables needed
 HACKERBOTTOKEN - Telegram API token  
 UNLOCKKEY - Key for secure integrations between Bot and embassy API  
-GUESTKEY - Key for trusted integrations
 MQTTUSER - Broker username  
 MQTTPASSWORD - Broker password  
 WIFIUSER - Keenetic router username  

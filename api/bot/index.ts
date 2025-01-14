@@ -12,7 +12,7 @@ import bot from "@hackembot/instance";
 import { BotApiConfig } from "@config";
 import logger from "@services/logger";
 import { catErrorPage } from "@utils/meme";
-import { createErrorMiddleware } from "@utils/middleware";
+import { createErrorMiddleware } from "@utils/express";
 
 import apiRouter from "./routers/api";
 import textRouter from "./routers/text";

@@ -606,6 +606,26 @@ service:
             🚫 Command #`{{command}}#` is deprecated
         replaced: |
             🔄 Use #`{{replacement}}#` instead
+    token:
+        help: |
+            🤖 This command can be used to manage the token for API access (currently just one)
+
+            #`/token set#` - Set a new token
+            #`/token remove#` - Remove the token
+            #`/token help#` - View this message
+        found: 🛂 You have a token set
+        notfound: 📴 No token is set for you
+        set: |
+            ✅ The token has been added, save it because it won't be shown again:
+            #`{{token}}#`
+        removed: |
+            🗑 The token has been removed, you can set a new one with the command
+            #`/token set#`
+        exists: |
+            ⚠️ You already have a token, remove it before setting a new one using
+            #`/token remove#`
+        missing: ⚠️ No installed token found
+        private: ⚠️ This command is only available in private chats
 status:
     buttons:
         in: 🤝 I am in

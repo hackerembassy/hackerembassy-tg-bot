@@ -437,7 +437,7 @@ export default class StatusHandlers implements BotHandlers {
         const inviterName = force ? helpers.effectiveName(sender) : undefined;
         const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
         const until = durationMs ? new Date(eventDate.getTime() + durationMs) : undefined;
-        const gotIn = StatusHandlers.LetIn(target, eventDate, until, force, ghost);
+        const gotIn = UserStateService.LetIn(target, eventDate, until, force, ghost);
 
         if (gotIn) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
@@ -473,7 +473,7 @@ export default class StatusHandlers implements BotHandlers {
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
 
-        const gotOut = StatusHandlers.LetOut(target, eventDate, force);
+        const gotOut = UserStateService.LetOut(target, eventDate, force);
         let message: string;
 
         if (gotOut) {
@@ -502,43 +502,6 @@ export default class StatusHandlers implements BotHandlers {
                 inline_keyboard,
             },
         });
-    }
-
-    static LetIn(user: User, date: Date, until?: Date, force = false, ghost = false) {
-        // check that space is open
-        const state = StatusRepository.getSpaceLastState();
-
-        if (!state.open && !user.roles?.includes("member") && !force) return false;
-
-        const userstate = {
-            status: ghost ? UserStateType.InsideSecret : UserStateType.Inside,
-            date: date.getTime(),
-            until: until?.getTime() ?? null,
-            user_id: user.userid,
-            type: force ? UserStateChangeType.Force : UserStateChangeType.Manual,
-            note: null,
-            user,
-        };
-
-        UserStateService.pushPeopleState(userstate);
-
-        return true;
-    }
-
-    static LetOut(user: User, date: Date, force = false, timedOut = false) {
-        const userstate = {
-            status: UserStateType.Outside,
-            date: date.getTime(),
-            until: null,
-            user_id: user.userid,
-            type: force ? UserStateChangeType.Force : timedOut ? UserStateChangeType.TimedOut : UserStateChangeType.Manual,
-            note: null,
-            user,
-        };
-
-        UserStateService.pushPeopleState(userstate);
-
-        return true;
     }
 
     static setGoingState(user: User, isGoing: boolean, note?: string) {
@@ -671,7 +634,7 @@ export default class StatusHandlers implements BotHandlers {
             .map(us => us.user);
 
         for (const user of timedOutUsers) {
-            StatusHandlers.LetOut(user, currentDate);
+            UserStateService.LetOut(user, currentDate);
         }
 
         if (timedOutUsers.length > 0) bot.CustomEmitter.emit(BotCustomEvent.statusLive);

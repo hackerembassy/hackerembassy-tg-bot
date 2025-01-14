@@ -19,11 +19,7 @@ export const funds = sqliteTable(
         target_currency: text("target_currency").notNull(),
         status: text("status").default("open").notNull(),
     },
-    table => {
-        return {
-            fundname_idx: index("fundname_idx").on(table.name),
-        };
-    }
+    table => [index("fundname_idx").on(table.name)]
 );
 
 export const topics = sqliteTable("topics", {
@@ -46,11 +42,7 @@ export const users = sqliteTable(
         language: text("language"),
         sponsorship: integer("sponsorship").default(sql`0`),
     },
-    table => {
-        return {
-            username_idx: index("username_idx").on(table.username),
-        };
-    }
+    table => [index("username_idx").on(table.username)]
 );
 
 export const subscriptions = sqliteTable("subscriptions", {
@@ -80,13 +72,11 @@ export const donations = sqliteTable(
             .notNull()
             .references(() => users.userid),
     },
-    table => {
-        return {
-            donation_fund_idx: index("donation_fund_idx").on(table.fund_id),
-            accountant_idx: index("accountant_idx").on(table.accountant_id),
-            donation_user_idx: index("donation_user_idx").on(table.user_id),
-        };
-    }
+    table => [
+        index("donation_fund_idx").on(table.fund_id),
+        index("accountant_idx").on(table.accountant_id),
+        index("donation_user_idx").on(table.user_id),
+    ]
 );
 
 export const needs = sqliteTable("needs", {
@@ -124,9 +114,5 @@ export const apikeys = sqliteTable(
             .notNull()
             .references(() => users.userid),
     },
-    table => {
-        return {
-            user_id_idx: index("user_id_idx").on(table.user_id),
-        };
-    }
+    table => [index("user_id_idx").on(table.user_id)]
 );

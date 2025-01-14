@@ -113,6 +113,43 @@ export class UserStateService {
         this.lastUserStateCache.set(state.user_id, { ...state, ...newState });
     }
 
+    static LetIn(user: User, date: Date = new Date(), until?: Date, force = false, ghost = false) {
+        // check that space is open
+        const state = statusRepository.getSpaceLastState();
+
+        if (!state.open && !user.roles?.includes("member") && !force) return false;
+
+        const userstate = {
+            status: ghost ? UserStateType.InsideSecret : UserStateType.Inside,
+            date: date.getTime(),
+            until: until?.getTime() ?? null,
+            user_id: user.userid,
+            type: force ? UserStateChangeType.Force : UserStateChangeType.Manual,
+            note: null,
+            user,
+        };
+
+        UserStateService.pushPeopleState(userstate);
+
+        return true;
+    }
+
+    static LetOut(user: User, date: Date = new Date(), force = false, timedOut = false) {
+        const userstate = {
+            status: UserStateType.Outside,
+            date: date.getTime(),
+            until: null,
+            user_id: user.userid,
+            type: force ? UserStateChangeType.Force : timedOut ? UserStateChangeType.TimedOut : UserStateChangeType.Manual,
+            note: null,
+            user,
+        };
+
+        UserStateService.pushPeopleState(userstate);
+
+        return true;
+    }
+
     static evictPeople(): void {
         const date = Date.now();
         const peopleInside = UserStateService.getRecentUserStates().filter(filterPeopleInside);

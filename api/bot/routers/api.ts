@@ -126,32 +126,25 @@ apiRouter.post("/setgoing", allowTrustedMembers, (req, res) => {
     }
 });
 
+apiRouter.post("/in", allowTrustedMembers, (req, res) => {
+    const success = UserStateService.LetIn(req.user as User);
+
+    return res.send({ message: success ? "Success" : "Failed" });
+});
+
+apiRouter.post("/out", allowTrustedMembers, (req, res) => {
+    const success = UserStateService.LetOut(req.user as User);
+
+    return res.send({ message: success ? "Success" : "Failed" });
+});
+
 apiRouter.post("/open", allowMembers, (req, res) => {
-    /*  #swagger.requestBody = {
-                required: true,
-                content: {
-                    "application/json": {
-                        schema: { $ref : '#/definitions/withHassToken' }  
-                    }
-                }
-            
-        } */
     SpaceStateService.openSpace(req.user as User);
 
     return res.send({ message: "Success" });
 });
 
 apiRouter.post("/close", allowMembers, (req, res) => {
-    /*  #swagger.requestBody = {
-                required: true,
-                content: {
-                    "application/json": {
-                        schema: { $ref : '#/definitions/withHassToken' }  
-                    }
-                }
-            
-        } */
-
     SpaceStateService.closeSpace(req.user as User);
     UserStateService.evictPeople();
 

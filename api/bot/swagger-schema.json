@@ -197,22 +197,32 @@
         }
       }
     },
-    "/api/open": {
+    "/api/in": {
       "post": {
         "description": "",
         "responses": {
           "200": {
             "description": "OK"
           }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/withHassToken"
-              }
-            }
+        }
+      }
+    },
+    "/api/out": {
+      "post": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/open": {
+      "post": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -223,16 +233,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/withHassToken"
-              }
-            }
           }
         }
       }

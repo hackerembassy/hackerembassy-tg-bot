@@ -7,12 +7,13 @@ import logger from "@services/logger";
 import DoorLock, { UnlockMethod } from "@services/door";
 
 import { EmbassyApiConfig } from "@config";
-import { createEncryptedAuthMiddleware } from "@utils/middleware";
+
+import { createEncryptedAuthMiddleware } from "../middleware";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const router = Router();
 
-const encryptedAuthRequired = createEncryptedAuthMiddleware(logger, process.env["UNLOCKKEY"]);
+const encryptedAuthRequired = createEncryptedAuthMiddleware();
 
 router.post("/unlock", encryptedAuthRequired, async (req: RequestWithBody<{ method?: "MQTT" | "HTTP" }>, res: Response) => {
     try {

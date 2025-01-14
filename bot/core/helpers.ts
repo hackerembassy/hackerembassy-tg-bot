@@ -2,7 +2,6 @@ import { NodeHtmlMarkdown } from "node-html-markdown";
 
 import TelegramBot from "node-telegram-bot-api";
 
-import { UserRole } from "@data/types";
 import { User } from "@data/models";
 
 import { ITelegramUser } from "./types";
@@ -35,18 +34,6 @@ export function userLink(user: Pick<User, "username" | "first_name" | "userid">)
 
 export function effectiveName(user?: ITelegramUser | User) {
     return user ? (user.username ?? user.first_name ?? undefined) : undefined;
-}
-
-export function hasRole(user: User, ...roles: UserRole[]) {
-    return user.roles?.length !== 0 ? splitRoles(user).filter(r => roles.includes(r)).length > 0 : false;
-}
-
-export function isBanned(user: User) {
-    return user.roles?.includes("banned");
-}
-
-export function splitRoles(user: User) {
-    return user.roles?.split("|") as UserRole[];
 }
 
 export function getMentions(msg: TelegramBot.Message) {

@@ -3,11 +3,11 @@ import fs from "fs";
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 import config from "config";
 
+import { User } from "@data/models";
 import UsersRepository from "@repositories/users";
 import logger, { getLatestLogFilePath } from "@services/logger";
+import { hasRole } from "@services/user";
 import { BotConfig } from "@config";
-
-import { User } from "@data/models";
 
 import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -292,9 +292,7 @@ export default class AdminHandlers implements BotHandlers {
                       UsersRepository.getUserByName(effectiveTarget.replace("@", "")));
 
             const wasBanned =
-                user &&
-                !helpers.hasRole(user, "admin", "accountant", "member") &&
-                (await bot.banChatMember(msg.chat.id, user.userid));
+                user && !hasRole(user, "admin", "accountant", "member") && (await bot.banChatMember(msg.chat.id, user.userid));
 
             const banMessage = await bot.sendMessageExt(
                 msg.chat.id,

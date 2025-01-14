@@ -4,7 +4,9 @@ import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
+import ApiKeysRepository from "@repositories/apikeys";
 import logger from "@services/logger";
+import { generateRandomKey, sha256 } from "@utils/security";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
@@ -263,5 +265,38 @@ export default class ServiceHandlers implements BotHandlers {
         }
 
         return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
+    }
+
+    static tokenHandler(bot: HackerEmbassyBot, msg: Message, command: string) {
+        const context = bot.context(msg);
+
+        if (!context.isPrivate()) return bot.sendMessageExt(msg.chat.id, t("service.token.private"), msg);
+
+        const user = context.user;
+        const key = ApiKeysRepository.getKeyByUser(user.userid);
+
+        switch (command) {
+            case "set": {
+                if (key) return bot.sendMessageExt(msg.chat.id, t("service.token.exists"), msg);
+
+                const newKey = generateRandomKey();
+                ApiKeysRepository.addKey(user.userid, sha256(newKey));
+
+                return bot.sendMessageExt(msg.chat.id, t("service.token.set", { token: newKey }), msg);
+            }
+            case "remove": {
+                if (!key) return bot.sendMessageExt(msg.chat.id, t("service.token.missing"), msg);
+                ApiKeysRepository.removeKey(key.id);
+
+                return bot.sendMessageExt(msg.chat.id, t("service.token.removed"), msg);
+            }
+            case "help":
+            default:
+                return bot.sendMessageExt(
+                    msg.chat.id,
+                    `${t("service.token.help")}\n${t(key ? "service.token.found" : "service.token.notfound")}`,
+                    msg
+                );
+        }
     }
 }

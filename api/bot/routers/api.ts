@@ -1,12 +1,12 @@
-import { Router } from "express";
+import { Router, Request } from "express";
 
+import { User } from "@data/models";
 import StatusHandlers from "@hackembot/handlers/status";
 import FundsRepository from "@repositories/funds";
 import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 
 import { getDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/export";
-import logger from "@services/logger";
 import {
     filterAllPeopleInside,
     filterPeopleGoing,
@@ -14,32 +14,27 @@ import {
     SpaceStateService,
     UserStateService,
 } from "@services/status";
-import { createTokenSecuredMiddleware } from "@utils/middleware";
-import { SERVICE_USERS } from "@data/seed";
-import { readFirstExistingFile } from "@utils/filesystem";
+
+import { hasRole } from "@services/user";
 
 import wikiRouter from "./wiki";
+import { createAuthentificationMiddlware, createAuthorizationMiddleware } from "../middleware";
+import { spaceApiTemplate } from "../templates";
 
-function loadSpaceApiTemplate() {
-    try {
-        const spaceApiFile = readFirstExistingFile("./config/spaceapi.local.json", "./config/spaceapi.json");
+// Middleware
+const authentificate = createAuthentificationMiddlware();
+const allowMembers = createAuthorizationMiddleware(["member"]);
+const allowTrustedMembers = createAuthorizationMiddleware(["member", "trusted"]);
 
-        return spaceApiFile ? (JSON.parse(spaceApiFile) as object) : undefined;
-    } catch (error) {
-        logger.error(error);
-        return undefined;
-    }
-}
-
+// Router
 const apiRouter = Router();
 apiRouter.use("/wiki", wikiRouter);
+apiRouter.use(authentificate);
 
-const hassTokenRequired = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"]);
-const hassTokenOptional = createTokenSecuredMiddleware(logger, process.env["UNLOCKKEY"], true);
-const guestTokenRequired = createTokenSecuredMiddleware(logger, process.env["GUESTKEY"]);
+// Helpers
+const isFromMemberOrHass = (req: Request): boolean => req.entity === "hass" || (req.user && hasRole(req.user as User, "member"));
 
-const spaceApiTemplate = loadSpaceApiTemplate();
-
+// Routes
 apiRouter.get("/space", (_, res) => {
     const status = StatusRepository.getSpaceLastState();
     const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
@@ -62,12 +57,12 @@ apiRouter.get("/space", (_, res) => {
     });
 });
 
-apiRouter.get("/status", hassTokenOptional, (req, res) => {
+apiRouter.get("/status", (req, res) => {
     const status = StatusRepository.getSpaceLastState();
 
     const recentUserStates = UserStateService.getRecentUserStates();
 
-    const inside = recentUserStates.filter(req.authenticated ? filterAllPeopleInside : filterPeopleInside).map(p => {
+    const inside = recentUserStates.filter(isFromMemberOrHass(req) ? filterAllPeopleInside : filterPeopleInside).map(p => {
         return {
             username: p.user.username,
             dateChanged: p.date,
@@ -89,16 +84,18 @@ apiRouter.get("/status", hassTokenOptional, (req, res) => {
     });
 });
 
-apiRouter.get("/inside", hassTokenOptional, (req, res) => {
-    const inside = UserStateService.getRecentUserStates().filter(req.authenticated ? filterAllPeopleInside : filterPeopleInside);
+apiRouter.get("/inside", (req, res) => {
+    const inside = UserStateService.getRecentUserStates().filter(
+        isFromMemberOrHass(req) ? filterAllPeopleInside : filterPeopleInside
+    );
     res.json(inside);
 });
 
 // Legacy HASS api
-apiRouter.get("/insidecount", hassTokenOptional, (req, res) => {
+apiRouter.get("/insidecount", (req, res) => {
     try {
         const inside = UserStateService.getRecentUserStates().filter(
-            req.authenticated ? filterAllPeopleInside : filterPeopleInside
+            isFromMemberOrHass(req) ? filterAllPeopleInside : filterPeopleInside
         );
         res.status(200).send(inside.length.toString());
     } catch {
@@ -106,7 +103,7 @@ apiRouter.get("/insidecount", hassTokenOptional, (req, res) => {
     }
 });
 
-apiRouter.post("/setgoing", guestTokenRequired, (req, res) => {
+apiRouter.post("/setgoing", allowTrustedMembers, (req, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -117,16 +114,11 @@ apiRouter.post("/setgoing", guestTokenRequired, (req, res) => {
             
         } */
     try {
-        const body = req.body as { username: string; isgoing: boolean; message?: string };
+        const body = req.body as { isgoing: boolean; message?: string };
 
-        if (typeof body.username !== "string" || typeof body.isgoing !== "boolean")
-            return res.status(400).send({ error: "Missing or incorrect parameters" });
+        if (typeof body.isgoing !== "boolean") return res.status(400).send({ error: "Missing or incorrect parameters" });
 
-        const user = UsersRepository.getUserByName(body.username);
-
-        if (!user) return res.status(400).send({ error: `Missing user with ${body.username}` });
-
-        StatusHandlers.setGoingState(user, body.isgoing, body.message);
+        StatusHandlers.setGoingState(req.user as User, body.isgoing, body.message);
 
         return res.json({ message: "Success" });
     } catch (error) {
@@ -134,7 +126,7 @@ apiRouter.post("/setgoing", guestTokenRequired, (req, res) => {
     }
 });
 
-apiRouter.post("/open", hassTokenRequired, (_, res) => {
+apiRouter.post("/open", allowMembers, (req, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -144,12 +136,12 @@ apiRouter.post("/open", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.openSpace(SERVICE_USERS.hass);
+    SpaceStateService.openSpace(req.user as User);
 
     return res.send({ message: "Success" });
 });
 
-apiRouter.post("/close", hassTokenRequired, (_, res) => {
+apiRouter.post("/close", allowMembers, (req, res) => {
     /*  #swagger.requestBody = {
                 required: true,
                 content: {
@@ -159,7 +151,8 @@ apiRouter.post("/close", hassTokenRequired, (_, res) => {
                 }
             
         } */
-    SpaceStateService.closeSpace(SERVICE_USERS.hass);
+
+    SpaceStateService.closeSpace(req.user as User);
     UserStateService.evictPeople();
 
     return res.send({ message: "Success" });
@@ -188,12 +181,12 @@ apiRouter.get("/donations", async (req, res) => {
     return res.json(await getDonationsSummary(fund, limit));
 });
 
-apiRouter.get("/sponsors", hassTokenOptional, (req, res) => {
+apiRouter.get("/sponsors", (req, res) => {
     const sponsors = UsersRepository.getSponsors();
     res.json(
         sponsors.map(s => {
             return {
-                userid: req.authenticated ? s.userid : undefined,
+                userid: isFromMemberOrHass(req) ? s.userid : undefined,
                 username: s.username,
                 first_name: s.first_name,
                 sponsorship: SponsorshipLevelToName.get(s.sponsorship as SponsorshipLevel),

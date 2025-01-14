@@ -10,10 +10,14 @@ declare global {
         interface Request {
             context?: RequestContext;
             authenticated?: boolean;
+            entity?: EntityType;
+            user?: any;
+            token?: string;
         }
     }
 
     type RequestWithBody<T> = import("express").Request<import("express-serve-static-core").ParamsDictionary, any, T, any>;
+    type EntityType = "hass" | "user";
 }
 
 export {};

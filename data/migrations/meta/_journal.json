@@ -15,6 +15,13 @@
       "when": 1734793041817,
       "tag": "0001_solid_red_wolf",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1736891038875,
+      "tag": "0002_wandering_komodo",
+      "breakpoints": true
     }
   ]
 }

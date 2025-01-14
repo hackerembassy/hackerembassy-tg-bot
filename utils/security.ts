@@ -1,4 +1,5 @@
 import { promises as fs } from "fs";
+import crypto from "crypto";
 
 import NodeRSA from "node-rsa";
 
@@ -13,4 +14,12 @@ export async function decrypt(message: string | Buffer): Promise<string> {
     const decryptedKey = key.decrypt(message);
 
     return decryptedKey.toString("utf8");
+}
+
+export function generateRandomKey(size = 32): string {
+    return crypto.randomBytes(size).toString("hex");
+}
+
+export function sha256(data: string) {
+    return crypto.createHash("sha256").update(data).digest("hex");
 }

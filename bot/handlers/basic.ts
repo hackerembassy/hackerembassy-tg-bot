@@ -10,6 +10,7 @@ import { getCoinDefinition, getCoinQR } from "@services/currency";
 import * as GitHub from "@services/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
 import logger from "@services/logger";
+import { splitRoles } from "@services/user";
 import { cropStringAtSpace } from "@utils/text";
 
 import * as Commands from "../../resources/commands";
@@ -22,7 +23,6 @@ import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 import { getEventsList } from "../textGenerators";
 import { CommandsMap } from "../../resources/commands";
-import { splitRoles } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 

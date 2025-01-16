@@ -3,26 +3,10 @@ import { UserStateChangeType, UserStateType } from "@data/types";
 
 import statusRepository from "@repositories/status";
 import { convertToElapsedObject, ElapsedTimeObject, isToday, MONTH } from "@utils/date";
-import { anyItemIsInList } from "@utils/filters";
 
 import broadcast, { BroadcastEvents } from "./broadcast";
-import { fetchDevicesInside } from "./embassy";
 
 export type UserVisit = { user: User; usertime: ElapsedTimeObject };
-
-export async function hasDeviceInside(user: User): Promise<boolean> {
-    try {
-        const devices = await fetchDevicesInside();
-
-        return user.mac ? isMacInside(user.mac, devices) : false;
-    } catch {
-        return false;
-    }
-}
-
-export function isMacInside(mac: string, devices: string[]): boolean {
-    return anyItemIsInList(mac.split(","), devices);
-}
 
 // Filters
 

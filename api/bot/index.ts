@@ -11,7 +11,7 @@ import bot from "@hackembot/instance";
 
 import { BotApiConfig } from "@config";
 import logger from "@services/logger";
-import { catErrorPage } from "@utils/meme";
+import { catErrorPage } from "@utils/html";
 import { createErrorMiddleware } from "@utils/express";
 
 import apiRouter from "./routers/api";

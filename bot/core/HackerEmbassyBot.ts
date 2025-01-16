@@ -16,19 +16,20 @@ import {
     ReplyKeyboardMarkup,
     SendMessageOptions,
 } from "node-telegram-bot-api";
+import { dir, file } from "tmp-promise";
 
-import { file } from "tmp-promise";
+import { BotConfig } from "@config";
 
 import { User } from "@data/models";
 import { UserRole } from "@data/types";
 
-import { BotConfig } from "@config";
 import logger from "@services/logger";
 import { chunkSubstr } from "@utils/text";
 import UserService, { hasRole, isBanned } from "@services/user";
 import { openAI } from "@services/neural";
 
 import { hashMD5 } from "@utils/common";
+import { readFileAsBase64 } from "@utils/filesystem";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
 import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "./helpers";
@@ -827,6 +828,17 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         await this.sendMessage(chat, message);
         logger.info(`Sent a notification to ${chat}: ${message}`);
+    }
+
+    async fetchFileAsBase64(fileId: string) {
+        const { path, cleanup } = await dir({
+            unsafeCleanup: true,
+        });
+        const photoPath = await this.downloadFile(fileId, path);
+        const fileString = await readFileAsBase64(photoPath);
+        cleanup();
+
+        return fileString;
     }
 
     addLiveMessage(

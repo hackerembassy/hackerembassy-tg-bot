@@ -94,3 +94,8 @@ export function createOutlineVerificationMiddleware(token?: string): RequestHand
         next();
     };
 }
+
+// Middleware Instances
+export const authentificate = createAuthentificationMiddlware();
+export const allowMembers = createAuthorizationMiddleware(["member"]);
+export const allowTrustedMembers = createAuthorizationMiddleware(["member", "trusted"]);

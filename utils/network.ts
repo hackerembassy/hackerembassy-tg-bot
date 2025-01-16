@@ -58,6 +58,11 @@ export async function getBufferFromResponse(response: Response): Promise<Buffer>
     return Buffer.from(await response.arrayBuffer());
 }
 
+export function successOrThrow(response: Response) {
+    if (!response.ok) throw new Error(`Request ${response.url} failed with status ${response.status}`);
+    return response.ok;
+}
+
 export async function wakeOnLan(mac: string) {
     return await wol.wake(mac);
 }

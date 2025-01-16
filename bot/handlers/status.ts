@@ -7,7 +7,7 @@ import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 import fundsRepository, { COSTS_PREFIX } from "@repositories/funds";
 import { DefaultCurrency, sumDonations } from "@services/currency";
-import { fetchDevicesInside, requestToEmbassy, EmbassyLinkMacUrl } from "@services/embassy";
+import embassyService, { EmbassyLinkMacUrl } from "@services/embassy";
 import { createUserStatsDonut } from "@services/export";
 import * as ExportHelper from "@services/export";
 import { SpaceClimate } from "@services/hass";
@@ -17,7 +17,6 @@ import {
     filterAllPeopleInside,
     filterPeopleGoing,
     filterPeopleInside,
-    isMacInside,
     SpaceStateService,
     UserStateService,
 } from "@services/status";
@@ -181,15 +180,13 @@ export default class StatusHandlers implements BotHandlers {
         return statusMessage;
     }
 
-    private static async queryClimate() {
-        let climateInfo: Nullable<SpaceClimate> = null;
+    private static queryClimate() {
         try {
-            const response = await requestToEmbassy(`/climate`, "GET", null, 4000);
-            climateInfo = (await response.json()) as SpaceClimate;
+            return embassyService.getSpaceClimate();
         } catch (error) {
             logger.error(error);
+            return null;
         }
-        return climateInfo;
     }
 
     static getStatusInlineKeyboard(bot: HackerEmbassyBot, msg: Message, state: State, short: boolean) {
@@ -585,20 +582,18 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinout(bot: HackerEmbassyBot, isIn: boolean): Promise<void> {
         try {
-            const devices = await fetchDevicesInside();
             const autousers = UsersRepository.getAutoinsideUsers();
             const insideUserStates = UserStateService.getRecentUserStates().filter(filterAllPeopleInside);
             const insideUserStatesMap = new Map(insideUserStates.map(u => [u.user_id, u]));
-
             const selectedautousers = isIn
                 ? autousers.filter(u => !insideUserStatesMap.has(u.userid))
                 : autousers.filter(u => insideUserStatesMap.get(u.userid)?.type === UserStateChangeType.Auto);
+            const usersWithDevices = await embassyService.usersWithDevices(selectedautousers);
 
             StatusHandlers.isStatusError = false;
 
-            for (const user of selectedautousers) {
-                const hasDeviceInside = isMacInside(user.mac as string, devices);
-                if (isIn ? hasDeviceInside : !hasDeviceInside) {
+            for (const user of usersWithDevices) {
+                if (isIn ? user.hasDeviceInside : !user.hasDeviceInside) {
                     const status = isIn
                         ? user.autoinside === AutoInsideMode.Ghost
                             ? UserStateType.InsideSecret

@@ -6,7 +6,7 @@ import express from "express";
 
 import { EmbassyApiConfig } from "@config";
 import logger from "@services/logger";
-import { catErrorPage } from "@utils/meme";
+import { catErrorPage } from "@utils/html";
 import { createDebugMiddleware, createErrorMiddleware } from "@utils/express";
 
 import spaceRouter from "./routers/space";

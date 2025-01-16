@@ -14,22 +14,18 @@ import {
     SpaceStateService,
     UserStateService,
 } from "@services/status";
-
 import { hasRole } from "@services/user";
 
 import wikiRouter from "./wiki";
-import { createAuthentificationMiddlware, createAuthorizationMiddleware } from "../middleware";
+import embassyRouter from "./embassy";
 import { spaceApiTemplate } from "../templates";
-
-// Middleware
-const authentificate = createAuthentificationMiddlware();
-const allowMembers = createAuthorizationMiddleware(["member"]);
-const allowTrustedMembers = createAuthorizationMiddleware(["member", "trusted"]);
+import { authentificate, allowTrustedMembers, allowMembers } from "../middleware";
 
 // Router
 const apiRouter = Router();
-apiRouter.use("/wiki", wikiRouter);
 apiRouter.use(authentificate);
+apiRouter.use("/wiki", wikiRouter);
+apiRouter.use("/embassy", embassyRouter);
 
 // Helpers
 const isFromMemberOrHass = (req: Request): boolean => req.entity === "hass" || (req.user && hasRole(req.user as User, "member"));

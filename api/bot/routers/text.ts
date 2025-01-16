@@ -7,9 +7,9 @@ import { stripCustomMarkup } from "@hackembot/core/helpers";
 import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 import FundsRepository from "@repositories/funds";
-import { requestToEmbassy } from "@services/embassy";
+import embassyService from "@services/embassy";
+
 import { getClosestEventsFromCalendar, getTodayEvents, getTodayEventsCached } from "@services/googleCalendar";
-import { SpaceClimate } from "@services/hass";
 import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/status";
 
 import { BotApiConfig } from "@config";
@@ -126,8 +126,7 @@ router.get("/status", async (_, res) => {
     const allUserStates = UserStateService.getRecentUserStates();
     const inside = allUserStates.filter(filterPeopleInside);
     const going = allUserStates.filter(filterPeopleGoing);
-    const climateResponse = await requestToEmbassy(`/climate`).catch(() => null);
-    const climateInfo = climateResponse?.ok ? ((await climateResponse.json()) as SpaceClimate) : null;
+    const climateInfo = await embassyService.getSpaceClimate().catch(() => null);
     const todayEvents = apiConfig.features.calendar ? await getTodayEvents() : null;
 
     content = TextGenerators.getStatusMessage(state, inside, going, todayEvents, climateInfo, {

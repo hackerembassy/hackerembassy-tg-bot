@@ -220,6 +220,7 @@ export interface SpeakerConfig {
     ttspath: string;
     playpath: string;
     stoppath: string;
+    voicepath: string;
 }
 
 export interface DevicesConfig {

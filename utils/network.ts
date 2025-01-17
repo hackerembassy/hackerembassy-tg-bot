@@ -104,6 +104,19 @@ export async function arp(ip: string, networkRange: string): Promise<string> {
     return mac;
 }
 
+export function runSSHCommand(host: string, port: number, username: string, key: string, command: string) {
+    const ssh = new NodeSSH();
+
+    return ssh
+        .connect({
+            host,
+            username,
+            port,
+            privateKeyPath: key,
+        })
+        .then(() => ssh.exec(command, [""]).finally(() => ssh.dispose()));
+}
+
 export class NeworkDevicesLocator {
     static async getDevicesFromKeenetic(routerip: string, username: string, password: string) {
         const ssh = new NodeSSH();

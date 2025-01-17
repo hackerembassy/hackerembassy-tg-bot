@@ -56,7 +56,6 @@ The bot is hosted on a VPS located at gateway.hackem.cc. The service, embassy-ap
 
 Node v20.10.0
 All main dependencies in the cloud and internal service are installed using npm i
-[Deprecated] To convert the doorcam stream to jpg, you need to install ffmpeg on the bot service and add it to PATH.
 
 ## Local deployment
 

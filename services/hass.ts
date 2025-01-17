@@ -1,15 +1,10 @@
-import path from "node:path";
-import { promises as fs } from "fs";
+import os from "os";
 
 import config from "config";
 import fetch, { Response } from "node-fetch";
 
 import { CamConfig, EmbassyApiConfig } from "@config";
-import { getBufferFromResponse } from "@utils/network";
-import { downloadTmpFile } from "@utils/filesystem";
-import { convertMedia } from "@utils/media";
-
-import { EmbassyBaseIP } from "./embassy";
+import { getBufferFromResponse, runSSHCommand } from "@utils/network";
 
 // Configs
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -90,33 +85,23 @@ export async function sayInSpace(text: string): Promise<void> {
     if (response.status !== 200) throw Error("Speaker request failed");
 }
 
-async function serveStaticFile(localPath: string, urlPath: string): Promise<string> {
-    const staticRootPath = path.join(__dirname, "..", embassyApiConfig.service.static);
-    const staticFilePath = path.join(staticRootPath, urlPath);
-
-    await fs.mkdir(path.parse(staticFilePath).dir, { recursive: true });
-    await fs.copyFile(localPath, staticFilePath);
-
-    return `${EmbassyBaseIP}/${urlPath}`;
-}
-
 export async function playInSpace(link: string): Promise<void> {
-    const requiresConversion = link.endsWith(".oga");
-
-    let linkToPlay = link;
-
-    if (requiresConversion) {
-        const { tmpPath, cleanup } = await downloadTmpFile(link, ".oga");
-        const convertedFilePath = await convertMedia(tmpPath, "mp3");
-
-        linkToPlay = await serveStaticFile(convertedFilePath, `/tmp/${Date.now()}.mp3`);
-
-        cleanup();
+    if (link.endsWith(".oga")) {
+        // ignore errors, ffmpeg writes to stderr
+        await runSSHCommand(
+            "hass.lan",
+            22269,
+            "hassio",
+            os.homedir() + "/.ssh/hass",
+            `wget -O /media/tmp/voice.oga ${link}`
+        ).catch(() => null);
+        await postToHass(embassyApiConfig.speaker.voicepath, {});
+        return;
     }
 
     const response = await postToHass(embassyApiConfig.speaker.playpath, {
         entity_id: embassyApiConfig.speaker.entity,
-        media_content_id: linkToPlay,
+        media_content_id: link,
         media_content_type: "music",
     });
 

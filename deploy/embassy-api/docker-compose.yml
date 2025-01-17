@@ -10,6 +10,7 @@ services:
             - data-volume:/app/data/db
             - ./sec:/app/config/sec
             - ./static:/app/static
+            - /root/.ssh:/root/.ssh
         env_file:
             - .env
         restart: unless-stopped

@@ -151,7 +151,8 @@
             "entity": "media_player.lenovodash",
             "ttspath": "/api/services/script/announce_in_space",
             "playpath": "/api/services/media_player/play_media",
-            "stoppath": "/api/services/media_player/media_stop"
+            "stoppath": "/api/services/media_player/media_stop",
+            "voicepath": "/api/services/script/convert_voice_and_play"
         },
         "browser": {
             "target": "aee0b5cb4cd6bef1303d9e2c4be1a22e",

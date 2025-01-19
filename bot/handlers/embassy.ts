@@ -453,10 +453,10 @@ export default class EmbassyHandlers implements BotHandlers {
 
     static async voiceInSpaceHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
-        const isMember = context.user.roles?.includes("member");
+        const isTrustedOrMember = hasRole(context.user, "trusted", "member");
         const voiceFileId = msg.voice?.file_id;
 
-        if (!context.isPrivate() || !voiceFileId || !isMember) return;
+        if (!context.isPrivate() || !voiceFileId || !isTrustedOrMember) return;
 
         const link = await bot.getFileLink(voiceFileId);
 

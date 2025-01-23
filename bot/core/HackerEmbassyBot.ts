@@ -558,18 +558,6 @@ export default class HackerEmbassyBot extends TelegramBot {
             messageContext.language = isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
 
-            // Try to guess the answer if no route is found for members, especially for @CabiaRangris
-            if (!route) {
-                return !GuessIgnoreList.has(command) && this.canUserGuess(user, message.chat)
-                    ? await messageContext.run(() =>
-                          openAI
-                              .askChat(text, t("embassy.neural.contexts.guess"))
-                              .then(guess => this.sendMessageExt(message.chat.id, guess, message))
-                              .catch(error => logger.error(error))
-                      )
-                    : null;
-            }
-
             // Check restritions
             if (isBanned(user)) return;
             if (route.restrictions.length > 0 && !this.canUserCall(user, command))

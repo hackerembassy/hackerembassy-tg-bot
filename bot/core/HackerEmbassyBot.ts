@@ -26,7 +26,6 @@ import { UserRole } from "@data/types";
 import logger from "@services/logger";
 import { chunkSubstr } from "@utils/text";
 import UserService, { hasRole, isBanned } from "@services/user";
-import { openAI } from "@services/neural";
 
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";

@@ -85,8 +85,6 @@ const WelcomeMessageMap: {
     [botConfig.chats.horny]: "service.welcome.horny",
 };
 
-const GuessIgnoreList = new Set(botConfig.guess.ignoreList);
-
 export default class HackerEmbassyBot extends TelegramBot {
     public messageHistory: MessageHistory;
     public Name: Optional<string>;
@@ -132,12 +130,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (user) return hasRole(user, "admin", ...savedRestrictions);
 
         return savedRestrictions.includes("default");
-    }
-
-    canUserGuess(user: Nullable<User>, chat: TelegramBot.Chat): boolean {
-        if (!botConfig.features.ai || !user) return false;
-
-        return (hasRole(user, "member", "trusted", "admin") && PUBLIC_CHATS.includes(chat.id)) || hasRole(user, "admin");
     }
 
     context(msg: TelegramBot.Message): BotMessageContext {
@@ -557,6 +549,8 @@ export default class HackerEmbassyBot extends TelegramBot {
             const messageContext = this.startContext(message, user, command);
             messageContext.language = isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
             messageContext.messageThreadId = message.is_topic_message ? message.message_thread_id : undefined;
+
+            if(!route) return;
 
             // Check restritions
             if (isBanned(user)) return;

@@ -564,7 +564,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                     ? await messageContext.run(() =>
                           openAI
                               .askChat(text, t("embassy.neural.contexts.guess"))
-                              .then(guess => this.sendMessageExt(message.chat.id, guess, message))
+                              .then(guess => this.sendMessageExt(message.chat.id, "[ai generated] " + guess, message))
                               .catch(error => logger.error(error))
                       )
                     : null;

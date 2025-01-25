@@ -93,7 +93,7 @@ export async function playInSpace(link: string): Promise<void> {
             22269,
             "hassio",
             os.homedir() + "/.ssh/hass",
-            `wget -O /media/tmp/voice.oga ${link}`
+            `wget --inet4-only -O /media/tmp/voice.oga ${link}`
         ).catch(() => null);
         await postToHass(embassyApiConfig.speaker.voicepath, {});
         return;

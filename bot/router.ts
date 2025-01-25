@@ -105,7 +105,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["out", "iamleaving"], StatusHandlers.outHandler);
     bot.addRoute(["evict", "outforceall"], StatusHandlers.evictHandler, null, null, Members);
     bot.addRoute(["going", "coming", "cuming", "g"], StatusHandlers.goingHandler, OptionalParam(/(.*)/), match => [match[1]]);
-    bot.addRoute(["notgoing", "notcoming", "notcuming", "ng"], StatusHandlers.notGoingHandler);
+    bot.addRoute(["notgoing", "notcoming", "notcuming", "ng"], StatusHandlers.notGoingHandler, OptionalParam(/(.*)/), match => [match[1]]);
 
     if (botConfig.features.autoinside)
         bot.addRoute(["autoinside"], StatusHandlers.autoinsideHandler, OptionalParam(/(.*\S)/), match => [match[1]]);

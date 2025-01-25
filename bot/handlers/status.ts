@@ -542,14 +542,15 @@ export default class StatusHandlers implements BotHandlers {
         });
     }
 
-    static async notGoingHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async notGoingHandler(bot: HackerEmbassyBot, msg: Message, note?: string) {
         const sender = bot.context(msg).user;
 
-        StatusHandlers.setGoingState(sender, false);
+        StatusHandlers.setGoingState(sender, false, note);
         bot.CustomEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.notgoing", {
             username: helpers.userLink(sender),
+            note
         });
 
         await bot.sendMessageExt(msg.chat.id, message, msg);

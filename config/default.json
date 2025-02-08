@@ -59,6 +59,7 @@
             "antispam": true,
             "embassy": true,
             "ai": true,
+            "agi": true,
             "calendar": true,
             "chatbridge": true
         },
@@ -208,6 +209,8 @@
         },
         "openai": {
             "model": "gpt-4o-mini",
+            "embeddings": "text-embedding-3-small",
+            "dimensions": 256,
             "timeout": 60000
         }
     },

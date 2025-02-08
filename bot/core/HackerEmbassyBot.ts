@@ -31,6 +31,12 @@ import { openAI } from "@services/neural";
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 
+import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/status";
+
+import StatusRepository from "@repositories/status";
+
+import { CommandsMap } from "resources/commands";
+
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
 import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "./helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
@@ -86,6 +92,7 @@ const WelcomeMessageMap: {
 };
 
 const GuessIgnoreList = new Set(botConfig.guess.ignoreList);
+// const AgiChats = new Set(botConfig.guess.agiChats);
 
 export default class HackerEmbassyBot extends TelegramBot {
     public messageHistory: MessageHistory;
@@ -510,6 +517,54 @@ export default class HackerEmbassyBot extends TelegramBot {
         return identifier.startsWith("@") ? identifier.slice(1) : Number.parseInt(identifier);
     }
 
+    private async tryAnsweringQuestion(message: TelegramBot.Message) {
+        if (!message.text || !message.text.includes("бот")) return;
+
+        const shouldAnswerOpinion = await openAI.askChat(message.text, t("embassy.neural.contexts.agi"));
+
+        console.log("shouldAnswerOpinion", shouldAnswerOpinion);
+
+        if (!shouldAnswerOpinion || shouldAnswerOpinion.toLowerCase() === "нет") return;
+
+        const topic = shouldAnswerOpinion.toLowerCase();
+
+        this.sendChatAction(message.chat.id, "typing", message);
+
+        const contexts = [];
+
+        if (topic.includes("статус")) {
+            const state = StatusRepository.getSpaceLastState();
+            const recentUserStates = this.botState.flags.hideGuests ? [] : UserStateService.getRecentUserStates();
+            const inside = recentUserStates.filter(filterPeopleInside);
+            const going = recentUserStates.filter(filterPeopleGoing);
+            const insideUsers = inside
+                .map(u => u.user.username)
+                .filter(u => u)
+                .join(", ");
+            const goingUsers = going
+                .map(u => u.user.username)
+                .filter(u => u)
+                .join(", ");
+
+            contexts.push(
+                `Если спросят про статус спейса, то вот информация, иначе игнорируй ее. Статус спейса: ${state.open ? "открыто" : "закрыто"} для гостей. Внутри ${inside.length} человек: ${insideUsers}. Планируют позже зайти ${going.length} человек: ${goingUsers}.`
+            );
+        }
+
+        if (topic.includes("спейс")) {
+            const relatedEmbeddings = await openAI.getClosestEmbeddingTexts(message.text);
+            contexts.push(...relatedEmbeddings);
+        }
+
+        if (topic.includes("команда")) {
+            contexts.push(Object.values(CommandsMap).join(", "));
+        }
+
+        const answer = await openAI.askChat(message.text, t("embassy.neural.contexts.knowledge"), ...contexts);
+
+        answer && this.sendMessageExt(message.chat.id, answer, message);
+    }
+
     async routeMessage(message: TelegramBot.Message) {
         try {
             // Skip old updates
@@ -525,6 +580,13 @@ export default class HackerEmbassyBot extends TelegramBot {
                 if (chatId && !message.text?.startsWith("/"))
                     return this.copyMessage(chatId, message.chat.id, message.message_id).catch(error => logger.error(error));
             }
+
+            if (
+                !message.text?.startsWith("/") &&
+                // !AgiChats.has(message.chat.id) &&
+                botConfig.features.agi
+            )
+                return this.tryAnsweringQuestion(message);
 
             // Change forward target if needed
             if (message.chat_shared?.chat_id) {

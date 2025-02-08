@@ -1,8 +1,13 @@
+import fs from "fs";
+
 import config from "config";
-import fetch, { Headers } from "node-fetch";
+import fetch from "node-fetch";
+import openai from "openai";
+
+import { ChatCompletionSystemMessageParam } from "openai/resources/chat/completions";
 
 import { NeuralConfig } from "@config";
-import { fetchWithTimeout } from "@utils/network";
+import { cosineSimilarity } from "@utils/math";
 
 const neuralConfig = config.get<NeuralConfig>("neural");
 
@@ -28,79 +33,72 @@ type ollamaGenerateResponse = {
     error?: string;
 };
 
-type ResponseChoice = {
-    index: number;
-    message: {
-        role: string;
-        content: string;
-    };
-    finish_reason: string;
-};
-
-type ChatCompletionResponse = {
-    id: string;
-    object: string;
-    created: number;
-    model: string;
-    choices: ResponseChoice[];
-    usage: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
-    };
-};
-
-type ApiErrorResponse = {
-    error: {
-        message: string;
-        type: string;
-    };
+type embedding = {
+    file: string;
+    text: string;
+    embedding: number[];
 };
 
 export class OpenAI {
-    constructor(private apiKey: string) {}
+    private client: openai;
+    private embeddings: embedding[];
 
-    async askChat(prompt: string, context: string) {
-        if (!this.apiKey) throw Error("OpenAI API key is not set");
+    constructor(apiKey: string) {
+        this.client = new openai({
+            apiKey,
+        });
+        const savedEmbeddings = fs.readFileSync("resources/embeddings.json", "utf-8");
 
-        const myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/json");
-        myHeaders.append("Authorization", `Bearer ${this.apiKey}`);
+        this.embeddings = JSON.parse(savedEmbeddings) as embedding[];
+    }
 
-        const raw = JSON.stringify({
-            model: neuralConfig.openai.model,
-            messages: [
-                {
-                    role: "system",
-                    content: context,
-                },
-                {
-                    role: "user",
-                    content: prompt,
-                },
-            ],
+    async getClosestEmbeddingTexts(text: string, count = 2) {
+        const embedding = await this.generateEmbedding(text);
+
+        const similarities = this.embeddings.map(e => ({
+            file: e.file,
+            text: e.text,
+            similarity: cosineSimilarity(embedding, e.embedding),
+        }));
+
+        similarities.sort((a, b) => b.similarity - a.similarity);
+
+        return similarities.slice(0, count).map(s => s.file + ": " + s.text);
+    }
+
+    async generateEmbedding(text: string) {
+        const embedding = await this.client.embeddings.create({
+            model: neuralConfig.openai.embeddings,
+            dimensions: neuralConfig.openai.dimensions,
+            input: text,
         });
 
-        const requestOptions = {
-            method: "POST",
-            headers: myHeaders,
-            body: raw,
-            timeout: neuralConfig.openai.timeout,
-        };
+        return embedding.data[0].embedding;
+    }
 
-        const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", requestOptions);
+    async askChat(prompt: string, ...contexts: string[]) {
+        const systemContexts = contexts.map(context => ({
+            role: "system",
+            content: context,
+        })) as ChatCompletionSystemMessageParam[];
 
-        if (!response.ok) {
-            if (response.status >= 500) throw Error(`OpenAI is not avaiable: ${response.statusText}`);
+        const response = await this.client.chat.completions.create(
+            {
+                model: neuralConfig.openai.model,
+                messages: [
+                    ...systemContexts,
+                    {
+                        role: "user",
+                        content: prompt,
+                    },
+                ],
+            },
+            {
+                timeout: neuralConfig.openai.timeout,
+            }
+        );
 
-            const errorBody = (await response.json()) as ApiErrorResponse;
-
-            throw Error(`${errorBody.error.type} ${errorBody.error.message}`);
-        }
-
-        const body = (await response.json()) as ChatCompletionResponse;
-
-        return body.choices[0].message.content;
+        return response.choices[0].message.content;
     }
 }
 

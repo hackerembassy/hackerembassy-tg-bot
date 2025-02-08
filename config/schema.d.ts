@@ -97,6 +97,7 @@ export interface UtilityReminder {
 
 export interface GuessConfig {
     ignoreList: string[];
+    agiChats: number[];
 }
 
 export interface BotFeaturesConfig {
@@ -108,6 +109,7 @@ export interface BotFeaturesConfig {
     welcome: boolean;
     reactions: boolean;
     ai: boolean;
+    agi: boolean;
     calendar: boolean;
     /** Welcome feature and bot admin rights in the chat are required for antispam */
     antispam: boolean;
@@ -293,6 +295,8 @@ export interface OllamaConfig {
 export interface OpenAiConfig {
     model: string;
     timeout: number;
+    embeddings: string;
+    dimensions: number;
 }
 
 export interface GithubConfig {

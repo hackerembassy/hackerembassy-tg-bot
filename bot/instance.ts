@@ -5,7 +5,7 @@ import config from "config";
 import { PollingOptions } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 import { fetchWithTimeout } from "@utils/network";
 
 import HackerEmbassyBot from "./core/HackerEmbassyBot";

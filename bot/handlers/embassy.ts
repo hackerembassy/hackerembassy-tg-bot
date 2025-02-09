@@ -5,14 +5,14 @@ import fetch from "node-fetch";
 import { BotConfig, EmbassyApiConfig } from "@config";
 import usersRepository from "@repositories/users";
 import fundsRepository from "@repositories/funds";
-import broadcast, { BroadcastEvents } from "@services/broadcast";
-import embassyService from "@services/embassy";
-import { getDonationsSummary } from "@services/export";
-import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/hass";
-import logger from "@services/logger";
-import { filterPeopleInside, UserStateService } from "@services/status";
-import { hasRole } from "@services/user";
-import { AvailableModels, openAI } from "@services/neural";
+import broadcast, { BroadcastEvents } from "@services/common/broadcast";
+import embassyService from "@services/embassy/embassy";
+import { getDonationsSummary } from "@services/funds/export";
+import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
+import logger from "@services/common/logger";
+import { AvailableModels, openAI } from "@services/external/neural";
+import { userService, hasRole } from "@services/domain/user";
+
 import { sleep } from "@utils/common";
 import { fullScreenImagePage } from "@utils/html";
 
@@ -322,8 +322,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
 
         const residents = usersRepository.getUsersByRole("member");
-        const residentsInside = UserStateService.getRecentUserStates()
-            .filter(filterPeopleInside)
+        const residentsInside = userService
+            .getPeopleInside()
             .filter(insider => residents.find(r => r.username === insider.user.username));
 
         const text =

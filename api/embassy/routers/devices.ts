@@ -3,8 +3,8 @@ import config from "config";
 import { NodeSSH } from "node-ssh";
 
 import { EmbassyApiConfig } from "@config";
-import logger from "@services/logger";
-import { DeviceCheckingMethod } from "@services/embassy";
+import logger from "@services/common/logger";
+import { DeviceCheckingMethod } from "@services/embassy/embassy";
 import { wakeOnLan, ping, NeworkDevicesLocator, arp } from "@utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");

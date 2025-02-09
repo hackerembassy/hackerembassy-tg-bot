@@ -2,7 +2,7 @@ import { Router } from "express";
 import config from "config";
 
 import bot from "@hackembot/instance";
-import wiki, { OutlineWebhookPayload } from "@services/wiki";
+import wiki, { OutlineWebhookPayload } from "@services/external/wiki";
 import { WikiConfig } from "@config";
 import { MINUTE } from "@utils/date";
 

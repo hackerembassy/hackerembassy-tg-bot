@@ -3,6 +3,7 @@ import config from "config";
 import { PrinterEndpoint, PrintersConfig } from "@config";
 import { fetchWithTimeout } from "@utils/network";
 
+// Types
 export type TemperatureStatus = {
     temperature: number;
     targer: number;
@@ -46,8 +47,10 @@ export type Thumbnail = {
 
 export type AvailablePrinter = keyof PrintersConfig;
 
+// Config
 const printersConfig = config.get<PrintersConfig>("printers");
 
+// Classes
 export class Printer3d {
     private config: PrinterEndpoint;
 

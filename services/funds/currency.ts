@@ -9,7 +9,7 @@ import { Convert } from "easy-currencies";
 
 import { CurrencyConfig } from "@config";
 
-import logger from "./logger";
+import logger from "../common/logger";
 
 export type CoinDefinition = {
     fullname: string;

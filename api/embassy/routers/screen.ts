@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { showPopupInSpace, closePopup } from "@services/hass";
+import { displays } from "@services/embassy/hass";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ router.post("/popup", async (req: RequestWithBody<{ html?: string }>, res, next)
     try {
         if (!req.body.html) return res.status(400).send({ message: "Html content is required" });
 
-        await showPopupInSpace(req.body.html);
+        await displays.showPopup(req.body.html);
 
         res.sendStatus(200);
     } catch (error) {
@@ -18,7 +18,7 @@ router.post("/popup", async (req: RequestWithBody<{ html?: string }>, res, next)
 
 router.post("/close_popup", async (_, res, next) => {
     try {
-        await closePopup();
+        await displays.closePopup();
 
         res.sendStatus(200);
     } catch (error) {

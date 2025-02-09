@@ -3,10 +3,9 @@ import { Message } from "node-telegram-bot-api";
 import config from "config";
 
 import { BotConfig } from "@config";
-import UsersRepository from "@repositories/users";
 import { User } from "@data/models";
+import UsersRepository from "@repositories/users";
 import FundsRepository, { COSTS_PREFIX } from "@repositories/funds";
-import UserService from "@services/user";
 import {
     convertCurrency,
     DefaultCurrency,
@@ -15,9 +14,11 @@ import {
     prepareCurrency,
     sumDonations,
     toBasicMoneyString,
-} from "@services/currency";
-import * as ExportHelper from "@services/export";
-import logger from "@services/logger";
+} from "@services/funds/currency";
+import * as ExportHelper from "@services/funds/export";
+import logger from "@services/common/logger";
+import { userService } from "@services/domain/user";
+
 import { getToday } from "@utils/date";
 import { getImageFromPath } from "@utils/filesystem";
 import { replaceUnsafeSymbolsForAscii } from "@utils/text";
@@ -256,7 +257,7 @@ export default class FundsHandlers implements BotHandlers {
                 const oldSponsorship = user.sponsorship;
                 user.sponsorship = await ExportHelper.getSponsorshipLevel(donations);
                 if (oldSponsorship !== user.sponsorship) {
-                    UserService.saveUser(user);
+                    userService.saveUser(user);
                     logger.info(`Updated sponsorship for ${user.username} from ${oldSponsorship} to ${user.sponsorship}`);
                 }
             }
@@ -338,7 +339,7 @@ export default class FundsHandlers implements BotHandlers {
 
             if (hasUpdatedSponsorship) {
                 user.sponsorship = sponsorship;
-                UserService.saveUser(user);
+                userService.saveUser(user);
             }
 
             // Send message to the chat

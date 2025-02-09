@@ -1,13 +1,13 @@
 import { Router } from "express";
 
-import { getClimate, ConditionerMode, AvailableConditioners } from "@services/hass";
+import { ConditionerMode, AvailableConditioners, sensors } from "@services/embassy/hass";
 import { sleep } from "@utils/common";
 
 const router = Router();
 
 router.get("/", async (_, res, next) => {
     try {
-        res.json(await getClimate());
+        res.json(await sensors.getClimate());
     } catch (error) {
         next(error);
     }

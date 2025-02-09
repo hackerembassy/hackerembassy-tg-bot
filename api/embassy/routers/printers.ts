@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { AvailablePrinters } from "@services/printer3d";
+import { AvailablePrinters } from "@services/embassy/printer3d";
 const router = Router();
 
 router.get("/:name", async (req, res, next): Promise<any> => {

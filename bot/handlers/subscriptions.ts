@@ -2,8 +2,8 @@ import { Message } from "node-telegram-bot-api";
 
 import { Topic } from "@data/models";
 
-import logger from "@services/logger";
-import SubscriptionsService from "@services/subscriptions";
+import logger from "@services/common/logger";
+import SubscriptionsService from "@services/domain/subscriptions";
 import { splitArray } from "@utils/common";
 
 import { MAX_MENTIONS_WITH_NOTIFICATIONS } from "@hackembot/core/constants";

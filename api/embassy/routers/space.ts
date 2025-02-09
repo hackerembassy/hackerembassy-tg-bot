@@ -1,16 +1,11 @@
 import { Response, Router } from "express";
-import config from "config";
-import fetch from "node-fetch";
 
-import { alarm, ringDoorbell, displayTextOnMatrix } from "@services/hass";
-import logger from "@services/logger";
-import DoorLock, { UnlockMethod } from "@services/door";
-
-import { EmbassyApiConfig } from "@config";
+import { alarm, displays } from "@services/embassy/hass";
+import logger from "@services/common/logger";
+import DoorLock, { UnlockMethod } from "@services/embassy/door";
 
 import { createEncryptedAuthMiddleware } from "../middleware";
 
-const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const router = Router();
 
 const encryptedAuthRequired = createEncryptedAuthMiddleware();
@@ -41,34 +36,11 @@ router.post("/alarm", encryptedAuthRequired, async (req: RequestWithBody<{ state
     }
 });
 
-/**
- * Endpoint to ring a doorbell
- */
-router.get("/doorbell", async (req, res, next) => {
-    try {
-        const method = req.query.method;
-
-        switch (method) {
-            // Using doorbell esp32 Shelly api directly
-            case "shelly":
-                await fetch(`http://${embassyApiConfig.doorbell.host}/rpc/Switch.Set?id=0&on=true`);
-                break;
-            // Preferable method using hass
-            case "hass":
-            default:
-                await ringDoorbell();
-        }
-        res.sendStatus(200);
-    } catch (error) {
-        next(error);
-    }
-});
-
 router.post("/led-matrix", async (req: RequestWithBody<{ message?: string }>, res, next): Promise<any> => {
     try {
         if (!req.body.message) return res.sendStatus(400).send({ message: "Message is required" });
 
-        await displayTextOnMatrix(req.body.message);
+        await displays.showOnMatrix(req.body.message);
 
         res.sendStatus(200);
     } catch (error) {

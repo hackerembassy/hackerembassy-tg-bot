@@ -2,7 +2,7 @@ import { RequestHandler } from "express";
 import { Request } from "express-serve-static-core";
 
 import { decrypt } from "@utils/security";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 
 // Because we are too lazy to setup https on the embassy service
 export function createEncryptedAuthMiddleware(): RequestHandler {

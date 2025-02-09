@@ -1,6 +1,6 @@
 import winston from "winston";
 
-import defaultLogger from "@services/logger";
+import defaultLogger from "@services/common/logger";
 
 import drizzleClient from "../data/db";
 

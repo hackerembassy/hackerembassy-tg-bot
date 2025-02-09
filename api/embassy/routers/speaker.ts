@@ -5,7 +5,7 @@ import config from "config";
 import { Router } from "express";
 
 import { EmbassyApiConfig } from "@config";
-import { sayInSpace, playInSpace, stopMediaInSpace } from "@services/hass";
+import { speakers } from "@services/embassy/hass";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const staticPath = path.join(__dirname, "../../..", embassyApiConfig.service.static);
@@ -28,7 +28,7 @@ router.post("/tts", async (req: RequestWithBody<{ text?: string }>, res, next): 
     try {
         if (!req.body.text) return res.status(400).send({ message: "Text is required" });
 
-        await sayInSpace(req.body.text);
+        await speakers.say(req.body.text);
 
         res.sendStatus(200);
     } catch (error) {
@@ -40,7 +40,7 @@ router.post("/play", async (req: RequestWithBody<{ link?: string }>, res, next):
     try {
         if (!req.body.link) return res.status(400).send({ message: "Link is required" });
 
-        await playInSpace(req.body.link);
+        await speakers.play(req.body.link);
 
         res.sendStatus(200);
     } catch (error) {
@@ -50,7 +50,7 @@ router.post("/play", async (req: RequestWithBody<{ link?: string }>, res, next):
 
 router.post("/stop", async (_, res, next) => {
     try {
-        await stopMediaInSpace();
+        await speakers.stop();
 
         res.sendStatus(200);
     } catch (error) {

@@ -7,7 +7,7 @@ import memoize from "memoizee";
 import { getToday, MINUTE } from "@utils/date";
 import { CalendarConfig } from "@config";
 
-import logger from "./logger";
+import logger from "../common/logger";
 
 const calendarConfig = config.get<CalendarConfig>("calendar");
 

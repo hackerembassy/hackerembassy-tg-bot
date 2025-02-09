@@ -7,9 +7,9 @@ import { SEED_TEST_USERS } from "@data/seed";
 
 fetchMock.enableMocks();
 
-jest.mock("@services/currency", () => {
+jest.mock("@services/funds/currency", () => {
     return {
-        ...jest.requireActual("@services/currency"),
+        ...jest.requireActual("@services/funds/currency"),
         convert: jest.fn(),
         initConvert: jest.fn(),
         convertCurrency: jest.fn((amount: number) => amount),
@@ -17,9 +17,9 @@ jest.mock("@services/currency", () => {
     };
 });
 
-jest.mock("@services/export", () => {
+jest.mock("@services/funds/export", () => {
     return {
-        ...jest.requireActual("@services/export"),
+        ...jest.requireActual("@services/funds/export"),
         getSponsorshipLevel: jest.fn(() => null),
     };
 });
@@ -39,9 +39,9 @@ jest.mock("../data/db", () => {
     return testDb;
 });
 
-jest.mock("@services/logger", () => {
+jest.mock("@services/common/logger", () => {
     return {
-        ...jest.requireActual("@services/logger"),
+        ...jest.requireActual("@services/common/logger"),
         log: jest.fn(),
         error: jest.fn().mockImplementation((error: Error | string) => {
             if (error instanceof Error && !error.message.startsWith("Mocked")) {

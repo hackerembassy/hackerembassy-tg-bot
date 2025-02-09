@@ -4,15 +4,18 @@ import ChartJsImage from "chartjs-to-image";
 import config from "config";
 
 import { BotConfig, SponsorshipLevelsConfig } from "@config";
+import { Donation, DonationEx, Fund, User } from "@data/models";
 import FundsRepository from "@repositories/funds";
+
+import { UserVisit } from "@services/domain/user";
+
 import { compareMonthNames } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
-import { Donation, DonationEx, Fund, User } from "@data/models";
+
 import { effectiveName } from "@hackembot/core/helpers";
 
 import { DefaultCurrency, convertCurrency, formatValueForCurrency, sumDonations, toBasicMoneyString } from "./currency";
-import { UserVisit } from "./status";
 
 const fundsConfig = config.get<BotConfig>("bot").funds;
 

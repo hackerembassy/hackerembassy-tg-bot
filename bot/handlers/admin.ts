@@ -3,11 +3,12 @@ import fs from "fs";
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 import config from "config";
 
+import { BotConfig } from "@config";
+
 import { User } from "@data/models";
 import UsersRepository from "@repositories/users";
-import logger, { getLatestLogFilePath } from "@services/logger";
-import { hasRole } from "@services/user";
-import { BotConfig } from "@config";
+import logger, { getLatestLogFilePath } from "@services/common/logger";
+import { hasRole } from "@services/domain/user";
 
 import { StateFlags } from "../core/BotState";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";

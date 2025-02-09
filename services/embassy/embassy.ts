@@ -11,7 +11,7 @@ import { anyItemIsInList, filterFulfilled } from "@utils/filters";
 import { AvailableConditioner, ConditionerActions, ConditionerStatus, SpaceClimate } from "./hass";
 import { PrinterStatusResult } from "./printer3d";
 import { UnlockMethod } from "./door";
-import logger from "./logger";
+import logger from "../common/logger";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
@@ -101,6 +101,7 @@ class EmbassyService {
 
         return sounds;
     }
+
     playSound(linkOrName: string) {
         // TODO move to hass
         const defaultMediaBase = "http://le-fail.lan:8001";
@@ -108,16 +109,19 @@ class EmbassyService {
 
         return this.requestToEmbassy(`/speaker/play`, "POST", { link }).then(successOrThrow);
     }
+
     async getSpaceClimate() {
         const response = await this.requestToEmbassy(`/climate`, "GET", null, 4000);
 
         return response.json() as Promise<SpaceClimate>;
     }
+
     async getConditionerStatus(name: string) {
         const response = await this.requestToEmbassy(`/climate/conditioners/${name}/${ConditionerActions.STATE}`);
 
         return response.json() as Promise<ConditionerStatus>;
     }
+
     async pingDevice(deviceName: string) {
         const response = await this.requestToEmbassy(`/devices/${deviceName}/ping`, "POST");
 

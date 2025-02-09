@@ -3,7 +3,7 @@ import { Router } from "express";
 import config from "config";
 
 import { EmbassyApiConfig, CamConfig } from "@config";
-import { getWebcamImage } from "@services/hass";
+import { cams } from "@services/embassy/hass";
 
 const router = Router();
 
@@ -11,7 +11,7 @@ const camsConfig = config.get<EmbassyApiConfig>("embassy-api").cams;
 
 router.get("/:name", async (req, res, next) => {
     try {
-        res.send(await getWebcamImage(req.params.name as keyof CamConfig));
+        res.send(await cams.getImage(req.params.name as keyof CamConfig));
     } catch (error) {
         next(error);
     }

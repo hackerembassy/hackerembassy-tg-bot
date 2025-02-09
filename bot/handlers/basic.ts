@@ -6,11 +6,11 @@ import { UserRole } from "@data/types";
 
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
-import { getCoinDefinition, getCoinQR } from "@services/currency";
-import * as GitHub from "@services/github";
-import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/googleCalendar";
-import logger from "@services/logger";
-import { splitRoles } from "@services/user";
+import { getCoinDefinition, getCoinQR } from "@services/funds/currency";
+import { splitRoles } from "@services/domain/user";
+import * as GitHub from "@services/external/github";
+import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/external/googleCalendar";
+import logger from "@services/common/logger";
 import { cropStringAtSpace } from "@utils/text";
 
 import * as Commands from "../../resources/commands";

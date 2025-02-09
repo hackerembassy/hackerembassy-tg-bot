@@ -1,4 +1,4 @@
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 import { readFirstExistingFile } from "@utils/filesystem";
 
 function loadSpaceApiTemplate() {

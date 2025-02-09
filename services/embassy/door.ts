@@ -1,8 +1,8 @@
 import config from "config";
 import fetch from "node-fetch";
 
-import { alarm } from "@services/hass";
-import logger from "@services/logger";
+import { alarm } from "@services/embassy/hass";
+import logger from "@services/common/logger";
 import { mqttSendOnce } from "@utils/network";
 
 import { EmbassyApiConfig } from "@config";
@@ -15,7 +15,8 @@ export enum UnlockMethod {
 }
 
 class DoorLock {
-    async unlock(method: UnlockMethod) {
+    // Public methods
+    public async unlock(method: UnlockMethod) {
         alarm.disarm().catch(error => logger.error("Failed to disarm the alarm", error));
 
         try {
@@ -36,7 +37,8 @@ class DoorLock {
         return true;
     }
 
-    async unlockByHttp() {
+    // Private methods
+    private async unlockByHttp() {
         const response = await fetch(process.env["DOOR_ENDPOINT"] as string, {
             method: "POST",
             headers: {
@@ -47,7 +49,7 @@ class DoorLock {
         if (!response.ok) throw new Error("Failed to open the door", { cause: response.statusText });
     }
 
-    unlockByMqtt() {
+    private unlockByMqtt() {
         return mqttSendOnce(embassyApiConfig.mqtthost, "door", "1", process.env["MQTTUSER"], process.env["MQTTPASSWORD"]);
     }
 }

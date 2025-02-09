@@ -9,7 +9,7 @@
         "plugin:import/typescript",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended-type-checked"
-      ],
+    ],
     "settings": {
         "import/resolver": {
             "typescript": true,
@@ -39,28 +39,18 @@
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/unbound-method": "off",
         "@typescript-eslint/no-unsafe-return": "off",
-        "no-duplicate-imports":"error",
-        "require-await":"error",
-        "eqeqeq":"error",
-        "no-unneeded-ternary":"error",
-        "no-var":"error",
-        "prefer-const":"error",
-        "no-console":"warn",
+        "no-duplicate-imports": "error",
+        "require-await": "error",
+        "eqeqeq": "error",
+        "no-unneeded-ternary": "error",
+        "no-var": "error",
+        "prefer-const": "error",
+        "no-console": "warn",
         "no-unexpected-multiline": "warn",
         "import/order": [
             "error",
             {
-                "groups": [
-                    "builtin",
-                    "external", 
-                    "internal", 
-                    [
-                        "parent",
-                        "sibling", 
-                        "index", 
-                        "object" 
-                    ]
-                ],
+                "groups": ["builtin", "external", "internal", ["parent", "sibling", "index", "object"]],
                 "pathGroups": [
                     {
                         "pattern": "^@.+",
@@ -69,7 +59,7 @@
                     }
                 ],
                 "newlines-between": "always-and-inside-groups",
-                "alphabetize": {"order": "ignore", "caseInsensitive": true}
+                "alphabetize": { "order": "ignore", "caseInsensitive": true }
             }
         ]
     }

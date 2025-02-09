@@ -6,7 +6,9 @@ import fundsRepository from "@repositories/funds";
 
 const PseudoTopics = new Map([
     ["members", { id: -1, name: "members", description: "All current residents" }],
-    ["debtors", { id: -2, name: "debtors", description: "Residents with unpaid monthly costs" }],
+    ["trusted", { id: -2, name: "trusted", description: "Guests with trusted status" }],
+    ["accountants", { id: -3, name: "accountants", description: "Residents with accountant status" }],
+    ["debtors", { id: -4, name: "debtors", description: "Residents with unpaid monthly costs" }],
 ]);
 
 class SubscriptionsService {
@@ -34,6 +36,10 @@ class SubscriptionsService {
         switch (pseudoTopic.name) {
             case "members":
                 return usersRepository.getUsersByRole("member").map(this.userToSubscription);
+            case "trusted":
+                return usersRepository.getUsersByRole("trusted").map(this.userToSubscription);
+            case "accountants":
+                return usersRepository.getUsersByRole("accountant").map(this.userToSubscription);
             case "debtors":
                 return this.getDebtors().map(this.userToSubscription);
             default:

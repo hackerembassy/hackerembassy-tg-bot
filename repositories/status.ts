@@ -53,9 +53,6 @@ class StatusRepository extends BaseRepository {
         return this.db.insert(states).values(state).returning().get();
     }
 
-    /**
-     * @deprecated use UserStateService.pushPeopleState instead
-     */
     pushPeopleState(state: Omit<UserState, "id">) {
         return this.db.insert(userstates).values(state).returning().get();
     }

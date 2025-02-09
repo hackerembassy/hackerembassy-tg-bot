@@ -4,15 +4,15 @@ import config from "config";
 import * as TextGenerators from "@hackembot/textGenerators";
 import { stripCustomMarkup } from "@hackembot/core/helpers";
 
-import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 import FundsRepository from "@repositories/funds";
-import embassyService from "@services/embassy";
+import embassyService from "@services/embassy/embassy";
 
-import { getClosestEventsFromCalendar, getTodayEvents, getTodayEventsCached } from "@services/googleCalendar";
-import { filterPeopleGoing, filterPeopleInside, UserStateService } from "@services/status";
+import { getClosestEventsFromCalendar, getTodayEvents, getTodayEventsCached } from "@services/external/googleCalendar";
 
 import { BotApiConfig } from "@config";
+import { userService } from "@services/domain/user";
+import { spaceService } from "@services/domain/space";
 const apiConfig = config.get<BotApiConfig>("api");
 
 const router = Router();
@@ -120,12 +120,11 @@ router.get("/sponsors", (_, res) => {
 });
 
 router.get("/status", async (_, res) => {
-    const state = StatusRepository.getSpaceLastState();
+    const state = spaceService.getState();
     let content = `🔐 Статус спейса неопределен`;
 
-    const allUserStates = UserStateService.getRecentUserStates();
-    const inside = allUserStates.filter(filterPeopleInside);
-    const going = allUserStates.filter(filterPeopleGoing);
+    const inside = userService.getPeopleInside();
+    const going = userService.getPeopleGoing();
     const climateInfo = await embassyService.getSpaceClimate().catch(() => null);
     const todayEvents = apiConfig.features.calendar ? await getTodayEvents() : null;
 

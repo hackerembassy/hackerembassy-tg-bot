@@ -23,11 +23,11 @@ import { BotConfig } from "@config";
 import { User } from "@data/models";
 import { UserRole } from "@data/types";
 
-import logger from "@services/logger";
-import { chunkSubstr } from "@utils/text";
-import UserService, { hasRole, isBanned } from "@services/user";
-import { openAI } from "@services/neural";
+import logger from "@services/common/logger";
+import { openAI } from "@services/external/neural";
+import { hasRole, isBanned, userService } from "@services/domain/user";
 
+import { chunkSubstr } from "@utils/text";
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 
@@ -142,7 +142,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     context(msg: TelegramBot.Message): BotMessageContext {
         // TODO: remove this when the live messages will be fixed
-        return this.contextMap.get(msg) ?? this.startContext(msg, UserService.prepareUser(msg.from as TelegramBot.User));
+        return this.contextMap.get(msg) ?? this.startContext(msg, userService.prepareUser(msg.from as TelegramBot.User));
     }
 
     startContext(msg: TelegramBot.Message, user: User, command?: string) {
@@ -547,10 +547,10 @@ export default class HackerEmbassyBot extends TelegramBot {
             const route = this.routeMap.get(command);
 
             // Prepare context
-            const actualUser = UserService.prepareUser(message.from as TelegramBot.User);
+            const actualUser = userService.prepareUser(message.from as TelegramBot.User);
             const impersonatedUser =
                 hasRole(actualUser, "admin") && text.includes(IMPERSONATION_MARKER)
-                    ? UserService.getUser(this.extractImpersonatedUser(text))
+                    ? userService.getUser(this.extractImpersonatedUser(text))
                     : null;
             const user = impersonatedUser ?? actualUser;
 
@@ -633,7 +633,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (!data) throw Error("Missing calback query data");
 
         // Prepare context
-        const user = UserService.prepareUser(msg.from);
+        const user = userService.prepareUser(msg.from);
         const context = this.startContext(msg, user);
         context.messageThreadId = msg.message_thread_id;
         context.mode.secret = this.isSecretModeAllowed(msg, context);
@@ -674,7 +674,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     private async handleUserVerification(vId: number, language: string, msg: TelegramBot.Message) {
         try {
             const userChat = await this.getChat(vId);
-            const success = UserService.verifyUser({ id: userChat.id, username: userChat.username }, language);
+            const success = userService.verifyUser({ id: userChat.id, username: userChat.username }, language);
 
             if (!success) throw new Error("Failed to verify user");
 

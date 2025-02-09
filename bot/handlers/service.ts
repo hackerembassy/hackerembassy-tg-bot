@@ -5,7 +5,7 @@ import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import ApiKeysRepository from "@repositories/apikeys";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 import { generateRandomKey, sha256 } from "@utils/security";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";

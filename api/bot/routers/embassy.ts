@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import embassyService from "@services/embassy";
+import embassyService from "@services/embassy/embassy";
 
 import { allowTrustedMembers, allowMembers } from "../middleware";
 

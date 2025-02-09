@@ -6,12 +6,12 @@ import { User } from "@data/models";
 import { UserRole } from "@data/types";
 import { SERVICE_USERS } from "@data/seed";
 import ApiKeyRepository from "@repositories/apikeys";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 import { sha256 } from "@utils/security";
 import { extractToken, RequestWithOptionalTokenBody } from "@utils/express";
 import { MINUTE } from "@utils/date";
 import { safeJsonStringify } from "@utils/text";
-import { hasRole } from "@services/user";
+import { hasRole } from "@services/domain/user";
 
 export function createAuthentificationMiddlware(): RequestHandler {
     return function authn(req, res, next): void {

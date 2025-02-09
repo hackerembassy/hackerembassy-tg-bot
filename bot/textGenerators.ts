@@ -1,10 +1,24 @@
 import config from "config";
 
 import { PrintersConfig, CalendarConfig, BotConfig, CurrencyConfig } from "@config";
-import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/currency";
-import { HSEvent } from "@services/googleCalendar";
-import { SpaceClimate } from "@services/hass";
-import { PrinterStatus } from "@services/printer3d";
+
+import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/models";
+import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
+
+import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/funds/currency";
+import { HSEvent } from "@services/external/googleCalendar";
+import { SpaceClimate } from "@services/embassy/hass";
+import { PrinterStatus } from "@services/embassy/printer3d";
+import {
+    SponsorshipLevel,
+    SponsorshipLevelToEmoji,
+    SponsorshipLevelToName,
+    SponsorshipNameToLevel,
+} from "@services/funds/export";
+import { UserVisit } from "@services/domain/user";
+
+import { splitArray } from "@utils/common";
+import { REPLACE_MARKER } from "@utils/text";
 import {
     convertMinutesToHours,
     DateBoundary,
@@ -14,12 +28,6 @@ import {
     onlyTimeOptions,
     shortDateTimeOptions,
 } from "@utils/date";
-import { REPLACE_MARKER } from "@utils/text";
-import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/models";
-import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
-import { UserVisit } from "@services/status";
-import { SponsorshipLevel, SponsorshipLevelToEmoji, SponsorshipLevelToName, SponsorshipNameToLevel } from "@services/export";
-import { splitArray } from "@utils/common";
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";

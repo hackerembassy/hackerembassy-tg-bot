@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { ollama, stableDiffusion } from "@services/neural";
+import { ollama, stableDiffusion } from "@services/external/neural";
 
 type ollamaBody = { prompt?: string; model?: string };
 type txt2imgBody = { prompt?: string; negative_prompt?: string };

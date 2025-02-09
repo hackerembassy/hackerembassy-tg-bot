@@ -10,7 +10,7 @@ import prometheus from "express-prometheus-middleware";
 import bot from "@hackembot/instance";
 
 import { BotApiConfig } from "@config";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 import { catErrorPage } from "@utils/html";
 import { createErrorMiddleware } from "@utils/express";
 

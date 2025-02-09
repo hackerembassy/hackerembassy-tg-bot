@@ -3,9 +3,9 @@
 import config from "config";
 
 import { UserRole } from "@data/types";
-import broadcast, { BroadcastEvents } from "@services/broadcast";
-import { AvailableModels } from "@services/neural";
-import logger from "@services/logger";
+import broadcast, { BroadcastEvents } from "@services/common/broadcast";
+import { AvailableModels } from "@services/external/neural";
+import logger from "@services/common/logger";
 import { DURATION_STRING_REGEX } from "@utils/date";
 import { BotConfig } from "@config";
 
@@ -105,7 +105,9 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     bot.addRoute(["out", "iamleaving"], StatusHandlers.outHandler);
     bot.addRoute(["evict", "outforceall"], StatusHandlers.evictHandler, null, null, Members);
     bot.addRoute(["going", "coming", "cuming", "g"], StatusHandlers.goingHandler, OptionalParam(/(.*)/), match => [match[1]]);
-    bot.addRoute(["notgoing", "notcoming", "notcuming", "ng"], StatusHandlers.notGoingHandler, OptionalParam(/(.*)/), match => [match[1]]);
+    bot.addRoute(["notgoing", "notcoming", "notcuming", "ng"], StatusHandlers.notGoingHandler, OptionalParam(/(.*)/), match => [
+        match[1],
+    ]);
 
     if (botConfig.features.autoinside)
         bot.addRoute(["autoinside"], StatusHandlers.autoinsideHandler, OptionalParam(/(.*\S)/), match => [match[1]]);

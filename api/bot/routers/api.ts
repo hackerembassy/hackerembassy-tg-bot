@@ -1,20 +1,12 @@
 import { Router, Request } from "express";
 
 import { User } from "@data/models";
-import StatusHandlers from "@hackembot/handlers/status";
 import FundsRepository from "@repositories/funds";
-import StatusRepository from "@repositories/status";
 import UsersRepository from "@repositories/users";
 
-import { getDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/export";
-import {
-    filterAllPeopleInside,
-    filterPeopleGoing,
-    filterPeopleInside,
-    SpaceStateService,
-    UserStateService,
-} from "@services/status";
-import { hasRole } from "@services/user";
+import { getDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/funds/export";
+import { spaceService } from "@services/domain/space";
+import { hasRole, userService } from "@services/domain/user";
 
 import wikiRouter from "./wiki";
 import embassyRouter from "./embassy";
@@ -32,8 +24,8 @@ const isFromMemberOrHass = (req: Request): boolean => req.entity === "hass" || (
 
 // Routes
 apiRouter.get("/space", (_, res) => {
-    const status = StatusRepository.getSpaceLastState();
-    const inside = UserStateService.getRecentUserStates().filter(filterPeopleInside);
+    const status = spaceService.getState();
+    const inside = userService.getPeopleInside();
 
     if (!spaceApiTemplate)
         return res.status(500).json({
@@ -54,17 +46,15 @@ apiRouter.get("/space", (_, res) => {
 });
 
 apiRouter.get("/status", (req, res) => {
-    const status = StatusRepository.getSpaceLastState();
+    const status = spaceService.getState();
 
-    const recentUserStates = UserStateService.getRecentUserStates();
-
-    const inside = recentUserStates.filter(isFromMemberOrHass(req) ? filterAllPeopleInside : filterPeopleInside).map(p => {
+    const inside = userService.getPeopleInside(isFromMemberOrHass(req)).map(p => {
         return {
             username: p.user.username,
             dateChanged: p.date,
         };
     });
-    const planningToGo = recentUserStates.filter(filterPeopleGoing).map(p => {
+    const planningToGo = userService.getPeopleGoing().map(p => {
         return {
             username: p.user.username,
             dateChanged: p.date,
@@ -81,18 +71,14 @@ apiRouter.get("/status", (req, res) => {
 });
 
 apiRouter.get("/inside", (req, res) => {
-    const inside = UserStateService.getRecentUserStates().filter(
-        isFromMemberOrHass(req) ? filterAllPeopleInside : filterPeopleInside
-    );
+    const inside = userService.getPeopleInside(isFromMemberOrHass(req));
     res.json(inside);
 });
 
 // Legacy HASS api
 apiRouter.get("/insidecount", (req, res) => {
     try {
-        const inside = UserStateService.getRecentUserStates().filter(
-            isFromMemberOrHass(req) ? filterAllPeopleInside : filterPeopleInside
-        );
+        const inside = userService.getPeopleInside(isFromMemberOrHass(req));
         res.status(200).send(inside.length.toString());
     } catch {
         res.status(500).send("-1");
@@ -114,7 +100,7 @@ apiRouter.post("/setgoing", allowTrustedMembers, (req, res) => {
 
         if (typeof body.isgoing !== "boolean") return res.status(400).send({ error: "Missing or incorrect parameters" });
 
-        StatusHandlers.setGoingState(req.user as User, body.isgoing, body.message);
+        userService.setGoingState(req.user as User, body.isgoing, body.message);
 
         return res.json({ message: "Success" });
     } catch (error) {
@@ -123,26 +109,26 @@ apiRouter.post("/setgoing", allowTrustedMembers, (req, res) => {
 });
 
 apiRouter.post("/in", allowTrustedMembers, (req, res) => {
-    const success = UserStateService.LetIn(req.user as User);
+    const success = userService.letIn(req.user as User);
 
     return res.send({ message: success ? "Success" : "Failed" });
 });
 
 apiRouter.post("/out", allowTrustedMembers, (req, res) => {
-    const success = UserStateService.LetOut(req.user as User);
+    const success = userService.letOut(req.user as User);
 
     return res.send({ message: success ? "Success" : "Failed" });
 });
 
 apiRouter.post("/open", allowMembers, (req, res) => {
-    SpaceStateService.openSpace(req.user as User);
+    spaceService.openSpace(req.user as User);
 
     return res.send({ message: "Success" });
 });
 
 apiRouter.post("/close", allowMembers, (req, res) => {
-    SpaceStateService.closeSpace(req.user as User);
-    UserStateService.evictPeople();
+    spaceService.closeSpace(req.user as User);
+    userService.evictPeople();
 
     return res.send({ message: "Success" });
 });

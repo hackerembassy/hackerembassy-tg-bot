@@ -2,7 +2,7 @@ import config from "config";
 
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 

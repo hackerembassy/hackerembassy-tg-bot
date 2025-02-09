@@ -5,7 +5,7 @@ import cors from "cors";
 import express from "express";
 
 import { EmbassyApiConfig } from "@config";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 import { catErrorPage } from "@utils/html";
 import { createDebugMiddleware, createErrorMiddleware } from "@utils/express";
 

@@ -5,7 +5,7 @@ import { dirname, join } from "path";
 import config from "config";
 
 import { BotConfig } from "@config";
-import logger from "@services/logger";
+import logger from "@services/common/logger";
 import { debounce } from "@utils/common";
 
 import HackerEmbassyBot from "./HackerEmbassyBot";

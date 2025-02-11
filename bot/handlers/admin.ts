@@ -253,7 +253,7 @@ export default class AdminHandlers implements BotHandlers {
     }
 
     static async autoRemoveHandler(bot: HackerEmbassyBot, msg: Message, chat: string | undefined) {
-        if (!chat) return await bot.sendMessageExt(msg.chat.id, "Please provide a chat id, clear or list command", msg);
+        if (!chat) return await bot.sendMessageExt(msg.chat.id, "Please provide a chat id, clear, list or here command", msg);
 
         switch (chat) {
             case "clear":
@@ -270,8 +270,11 @@ export default class AdminHandlers implements BotHandlers {
             case "horny":
                 bot.autoRemoveChats.push(botConfig.chats.horny);
                 break;
+            case "here":
+                bot.autoRemoveChats.push(msg.chat.id);
+                break;
             default:
-                bot.autoRemoveChats.push(chat);
+                bot.autoRemoveChats.push(Number(chat));
         }
 
         return await bot.sendMessageExt(msg.chat.id, `Chat ${chat} is added to the silent list`, msg);

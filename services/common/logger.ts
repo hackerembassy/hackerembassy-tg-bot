@@ -36,9 +36,11 @@ const logger = createLogger({
 });
 
 export function getLatestLogFilePath(): string | undefined {
-    const logFolderPath = path.join(__dirname, "..", loggerConfig.logFolder);
+    const logFolderPath = path.join(__dirname, "../..", loggerConfig.logFolder);
     const lastModifiedFile = lastModifiedFilePath(logFolderPath);
-    const lastLogFilePath = lastModifiedFile ? path.join(__dirname, "..", loggerConfig.logFolder, lastModifiedFile) : undefined;
+    const lastLogFilePath = lastModifiedFile
+        ? path.join(__dirname, "../..", loggerConfig.logFolder, lastModifiedFile)
+        : undefined;
 
     return lastLogFilePath && fs.existsSync(lastLogFilePath) ? lastLogFilePath : undefined;
 }

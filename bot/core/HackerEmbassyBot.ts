@@ -95,7 +95,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public routeMap = new Map<string, BotRoute>();
     public restrictedImage: Nullable<Buffer> = null;
     public pollingError: Error | null = null;
-    public autoRemoveChats: ChatId[] = [];
+    public autoRemoveChats: number[] = [];
     public chatBridge = new ChatBridge();
 
     private contextMap = new Map();
@@ -515,6 +515,10 @@ export default class HackerEmbassyBot extends TelegramBot {
             // Skip old updates
             if (Math.abs(Date.now() / 1000 - message.date) > IGNORE_UPDATE_TIMEOUT) return;
 
+            // Autoremove messages from some chats
+            if (this.autoRemoveChats.includes(message.chat.id))
+                return this.deleteMessageQueued(message.chat.id, message.message_id);
+
             // Forward messages between chats
             if (botConfig.features.chatbridge) {
                 const adminId = this.chatBridge.getLinkedAdmin(message.chat.id);
@@ -531,9 +535,6 @@ export default class HackerEmbassyBot extends TelegramBot {
                 this.forwardTarget = message.chat_shared.chat_id;
                 return;
             }
-
-            if (this.autoRemoveChats.includes(message.chat.id))
-                return this.deleteMessageQueued(message.chat.id, message.message_id);
 
             // Get command from message text or a deeplink
             const deeplink = message.text?.match(/\/start (.*)/)?.[1].replaceAll("__", " ");

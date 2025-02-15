@@ -95,7 +95,7 @@ const CurrencySymbolToCode = {
 const MediatorCurrency = "USD";
 
 const currencyConfig = config.get<CurrencyConfig>("currency");
-const QRBaseFolder = "../resources/coins/qr";
+const QRBaseFolder = "../../resources/coins/qr";
 
 export const DefaultCurrency = currencyConfig.default;
 

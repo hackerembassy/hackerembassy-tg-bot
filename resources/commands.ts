@@ -167,6 +167,9 @@ export const AdminCommandsList: string = `
 #\`/restrictbyid telegram_user_id#\`
 #\`/unblock telegram_username#\`
 #\`/unblockbyid telegram_user_id#\`
+#\`/user telegram_username#\` - Получить информацию о юзере
+#\`/setuser user_json#\` - Установить информацию о юзере
+
 /forcebirthdaywishes
 /getlogs
 /getstate
@@ -180,6 +183,7 @@ export const AdminCommandsList: string = `
 /linkchat - Привязать чат к текущему
 /unlinkchat - Отвязать чат от текущего
 /getlinkedchat - Получить привязанный чат
+/detected - Получить список обнаруженных устройств в спейсе
 
 \\* Roles: admin, accountant, member, trusted, restricted, banned, default
 

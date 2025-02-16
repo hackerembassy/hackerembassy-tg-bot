@@ -100,7 +100,10 @@ class UserService {
 
     public letIn(user: User, changeType = UserStateChangeType.Manual, from: Date = new Date(), until?: Date, ghost = false) {
         const allowedToEnter =
-            spaceService.getState().open || user.roles?.includes("member") || changeType === UserStateChangeType.Force;
+            changeType === UserStateChangeType.Auto ||
+            changeType === UserStateChangeType.Force ||
+            spaceService.getState().open ||
+            user.roles?.includes("member");
 
         if (!allowedToEnter) return false;
 

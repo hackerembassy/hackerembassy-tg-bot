@@ -563,6 +563,17 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
+    static async detectedDevicesHandler(bot: HackerEmbassyBot, msg: Message) {
+        const devices = await embassyService.fetchDevicesInside();
+        const autousers = UsersRepository.getAutoinsideUsers();
+        const devicesWithOwners = devices.map(mac => {
+            const user = autousers.find(u => u.mac === mac);
+            return user ? `${mac} - @${user.username ?? user.first_name}` : mac;
+        });
+
+        bot.sendMessageExt(msg.chat.id, "#*Detected devices:#*\n" + devicesWithOwners.join("\n"), msg);
+    }
+
     static async autoinout(bot: HackerEmbassyBot, checkInside: boolean): Promise<void> {
         try {
             const autousers = UsersRepository.getAutoinsideUsers();

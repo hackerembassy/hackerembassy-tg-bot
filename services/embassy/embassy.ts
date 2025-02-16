@@ -207,13 +207,7 @@ class EmbassyService {
         return users.map(user => ({ ...user, hasDeviceInside: !!user.mac && this.isMacInside(user.mac, devices) }));
     }
 
-    // Private
-
-    private isMacInside(mac: string, devices: string[]): boolean {
-        return anyItemIsInList(mac.split(","), devices);
-    }
-
-    private async fetchDevicesInside() {
+    public async fetchDevicesInside() {
         const primaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.primary as DeviceCheckingMethod;
         const secondaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.secondary as DeviceCheckingMethod | undefined;
 
@@ -228,6 +222,12 @@ class EmbassyService {
         ];
 
         return devicesList.map((device: string) => device.toLowerCase());
+    }
+
+    // Private
+
+    private isMacInside(mac: string, devices: string[]): boolean {
+        return anyItemIsInList(mac.split(","), devices);
     }
 
     private async getDevicesFromPrometheus() {

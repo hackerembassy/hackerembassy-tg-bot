@@ -140,8 +140,8 @@
         "mqtthost": "hass.lan",
         "hassorigin": "http://hass.lan:8123",
         "cams": {
-            "downstairs": "/api/camera_proxy/camera.first_floor",
-            "downstairs2": "/api/camera_proxy/camera.downstairs_2",
+            "downstairs": "/api/camera_proxy/camera.downstairs_2",
+            "downstairs2": "/api/camera_proxy/camera.first_floor",
             "upstairs": "/api/camera_proxy/camera.upstairs",
             "printers": "/api/camera_proxy/camera.le_fail_lan",
             "outdoors": "/api/camera_proxy/camera.outdoor",

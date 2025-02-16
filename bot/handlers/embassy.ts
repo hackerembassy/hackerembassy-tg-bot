@@ -350,8 +350,8 @@ export default class EmbassyHandlers implements BotHandlers {
 
         try {
             if (!text) return bot.sendMessageExt(msg.chat.id, t("embassy.say.help"), msg);
-            const author = msg.from?.username || msg.from?.first_name;
-            await embassyService.tts(`${author}: ${text}`);
+            const author = bot.context(msg).user;
+            await embassyService.tts(`${author.username ?? author.first_name}: ${text}`);
 
             return bot.sendMessageExt(msg.chat.id, t("embassy.say.success"), msg);
         } catch (error) {

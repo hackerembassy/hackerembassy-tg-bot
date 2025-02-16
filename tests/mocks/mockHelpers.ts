@@ -22,6 +22,14 @@ export function mockTelegramApiRequests() {
             result: [],
         })
         .persist();
+
+    nock("https://api.telegram.org")
+        .post("/botTOKEN/sendLocation")
+        .reply(200, {
+            ok: true,
+            result: [],
+        })
+        .persist();
 }
 
 export function createMockBot() {

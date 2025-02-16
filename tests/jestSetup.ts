@@ -39,6 +39,13 @@ jest.mock("../data/db", () => {
     return testDb;
 });
 
+jest.mock("@services/external/googleCalendar", () => ({
+    getClosestEventsFromCalendar: jest.fn().mockReturnValue([]),
+    getTodayEvents: jest.fn().mockReturnValue([]),
+    getTodayEventsCached: jest.fn().mockReturnValue([]),
+    getEventsJSON: jest.fn().mockReturnValue([]),
+}));
+
 jest.mock("@services/common/logger", () => {
     return {
         ...jest.requireActual("@services/common/logger"),

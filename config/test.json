@@ -12,7 +12,7 @@
             "welcome": true,
             "antispam": true,
             "embassy": true,
-            "calendar": false
+            "calendar": true
         }
     },
     "embassy-api": {

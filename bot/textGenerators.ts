@@ -502,18 +502,18 @@ export function getInMessage(
 
 export function getAutoinsideMessageStatus(
     userautoinside: AutoInsideMode | undefined,
-    usermac: Nullable<string> | undefined,
+    usermacList: Nullable<string> | undefined,
     username: string | undefined
 ) {
     switch (userautoinside) {
         case AutoInsideMode.Enabled:
             return t("status.autoinside.isset", {
-                usermac,
+                usermac: usermacList,
                 username,
             });
         case AutoInsideMode.Ghost:
             return t("status.autoinside.isghost", {
-                usermac,
+                usermac: usermacList,
                 username,
             });
         default:

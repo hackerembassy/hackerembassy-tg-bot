@@ -112,7 +112,10 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     if (botConfig.features.autoinside)
         bot.addRoute(["autoinside"], StatusHandlers.autoinsideHandler, OptionalParam(/(.*\S)/), match => [match[1]]);
 
-    bot.addRoute(["setmac"], StatusHandlers.setmacHandler, OptionalParam(/(?:(.*\S))/), match => [match[1]]);
+    bot.addRoute(["mac", "setmac", "mymac"], StatusHandlers.macHandler, OptionalParam(/(\S*)(?: (.+))?/), match => [
+        match[1],
+        match[2],
+    ]);
     bot.addRoute(["detected"], StatusHandlers.detectedDevicesHandler, null, null, Admins);
     bot.addRoute(["superstatus", "ss"], ServiceHandlers.superstatusHandler, null, null, Members);
 

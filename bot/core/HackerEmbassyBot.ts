@@ -579,7 +579,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             // Parse global modifiers and set them to the context
             let textToMatch = text.replace(commandWithCase, command);
 
-            if (impersonatedUser) textToMatch = textToMatch.slice(0, textToMatch.indexOf(IMPERSONATION_MARKER));
+            if (impersonatedUser) textToMatch = textToMatch.slice(0, textToMatch.indexOf(IMPERSONATION_MARKER)).trimEnd();
 
             for (const key of Object.keys(messageContext.mode)) {
                 if (textToMatch.includes(`-${key}`)) messageContext.mode[key as keyof BotMessageContextMode] = true;

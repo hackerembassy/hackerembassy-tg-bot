@@ -3,7 +3,7 @@ import { RequestInit } from "node-fetch";
 import { PingResponse } from "ping";
 
 import { EmbassyApiConfig } from "@config";
-import { User } from "@data/models";
+import { Device, User } from "@data/models";
 import { fetchWithTimeout, successOrThrow } from "@utils/network";
 import { encrypt } from "@utils/security";
 import { anyItemIsInList, filterFulfilled } from "@utils/filters";
@@ -54,18 +54,11 @@ type PrometheusResponse = {
 class EmbassyService {
     // Public
 
-    async unlockDoor(user: User) {
-        const hasMacInside = await this.hasDeviceInside(user);
-
-        if (!hasMacInside)
-            throw Error(`User ${user.username} is not inside, but he/she tried to unlock the door`, {
-                cause: "mac",
-            });
-
+    async unlockDoorFor(opener: User) {
         const response = await this.requestToEmbassy(
             `/space/unlock`,
             "POST",
-            { from: user.username ?? user.userid, method: UnlockMethod.HTTP },
+            { from: opener.username ?? opener.userid, method: UnlockMethod.HTTP },
             20000,
             true
         );
@@ -75,7 +68,7 @@ class EmbassyService {
                 cause: response.statusText,
             });
 
-        logger.info(`${user.username}[${user.userid}] opened the door`);
+        logger.info(`${opener.username}[${opener.userid}] opened the door`);
     }
 
     async getAllCameras() {
@@ -197,17 +190,13 @@ class EmbassyService {
         return data.response;
     }
 
-    async hasDeviceInside(user: User) {
-        const devices = await this.fetchDevicesInside();
-        return user.mac ? this.isMacInside(user.mac, devices) : false;
+    async isAnyDeviceInside(requestedDevices: Device[]) {
+        const insideDevices = await this.fetchMacsInside();
+
+        return requestedDevices.some(device => insideDevices.includes(device.mac));
     }
 
-    async usersWithDevices(users: User[]) {
-        const devices = await this.fetchDevicesInside();
-        return users.map(user => ({ ...user, hasDeviceInside: !!user.mac && this.isMacInside(user.mac, devices) }));
-    }
-
-    public async fetchDevicesInside() {
+    public async fetchMacsInside() {
         const primaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.primary as DeviceCheckingMethod;
         const secondaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.secondary as DeviceCheckingMethod | undefined;
 

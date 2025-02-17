@@ -6,9 +6,11 @@ import { DefaultUser } from "@data/seed";
 
 import statusRepository from "@repositories/status";
 import usersRepository from "@repositories/users";
+import devicesRepository from "@repositories/devices";
 
 import logger from "@services/common/logger";
 import { convertToElapsedObject, ElapsedTimeObject, isToday, MONTH } from "@utils/date";
+import { isValidMAC } from "@utils/network";
 
 import { spaceService } from "./space";
 
@@ -190,6 +192,41 @@ class UserService {
         const userStates = statusRepository.getUserStates(user.userid);
 
         return this.getUserTotalTimeInternal(userStates);
+    }
+
+    public addUserMac(user: User, mac: string) {
+        try {
+            if (!isValidMAC(mac)) throw new Error("Provided MAC is not valid");
+
+            return devicesRepository.addDevice(user.userid, mac);
+        } catch (error) {
+            logger.error(error);
+            return false;
+        }
+    }
+
+    public removeUserMacs(user: User) {
+        return devicesRepository.removeUserDevices(user.userid).changes > 0;
+    }
+
+    public removeUserMac(user: User, mac: string) {
+        const existingDevice = devicesRepository.getDeviceByMac(mac);
+
+        if (!existingDevice || existingDevice.user_id !== user.userid) return false;
+
+        return devicesRepository.removeDeviceByMac(mac).changes > 0;
+    }
+
+    public getUserMacs(user: User) {
+        return devicesRepository.getDevicesByUserId(user.userid);
+    }
+
+    public getDevicesWithAutousers() {
+        return devicesRepository.getDevices(true).filter(ud => ud.user.autoinside && ud.user.autoinside > 0);
+    }
+
+    public getDevicesWithUsers() {
+        return devicesRepository.getDevices(true);
     }
 
     private getUserTotalTimeInternal(userStates: UserState[]): ElapsedTimeObject {

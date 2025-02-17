@@ -659,20 +659,20 @@ status:
             remove: 🗑 Remove MAC
         help: |
             📡 Using this command you can set MAC addresses for auto-login and lock control functions
+            🪪 User addresses: {{usermacs}}
 
-            #`/setmac mac_address#` - Set your MAC address (or several, separated by commas)
-            #`/setmac status#` - View your MAC address set in the bot
-            #`/setmac remove#` - Remove your MAC addresses from the bot
+            #`/mac add mac_address#` - Set your MAC address
+            #`/mac remove mac_address#` - Remove your MAC address
+            #`/mac clear#` - Clear your MAC addresses from the bot
         fail: |
-            ⚠️ It was not possible to add this MAC. Maybe it's invalid?
+            ⚠️ It was not possible to add this MAC. Maybe it's invalid or already occupied?
             Examples of correct address settings:
-            #`/setmac xx:xx:xx:xx:xx:xx#`
-            #`/setmac xx:xx:xx:xx:xx:xx, xx:xx:xx:xx:xx:xx#`
-        set: 📡 MAC addresses {{cmd}} were successfully set for user {{username}}.
-        removed: |
+            #`/mac add xx:xx:xx:xx:xx:xx#`
+            #`/mac remove xx:xx:xx:xx:xx:xx#`
+        set: 📡 MAC address {{mac}} was successfully set for user {{username}}.
+        removed: 🗑 MAC address {{mac}} was removed for user {{username}}
+        cleared: |
             🗑 MAC addresses have been removed for user {{username}}. Auto-login will no longer work.
-        isset: 📲 The MAC addresses {{usermac}} are specified for the user {{username}}
-        isnotset: 📲 MAC address is not set for user {{username}}
     autoinside:
         buttons:
             status: 👁‍🗨 Status
@@ -688,7 +688,7 @@ status:
         ghost: "#`/autoinside ghost#` - Check in for residents only"
         fail: ⚠️ Failed to enable auto-login, although MAC is set. Someone give my developer a hard time.
         nomac: |
-            ⚠️ Your MAC address is not set. Add it with the command /setmac
+            ⚠️ Your MAC address is not set. Add it with the command /mac
         set: 🕺 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}}
         removed: 🚷 Auto login and auto logout are disabled for user {{username}}
         isset: 🕺 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}}

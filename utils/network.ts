@@ -117,6 +117,10 @@ export function runSSHCommand(host: string, port: number, username: string, key:
         .then(() => ssh.exec(command, [""]).finally(() => ssh.dispose()));
 }
 
+export function isValidMAC(macAddresses: string): boolean {
+    return /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/.test(macAddresses);
+}
+
 export class NeworkDevicesLocator {
     static async getDevicesFromKeenetic(routerip: string, username: string, password: string) {
         const ssh = new NodeSSH();

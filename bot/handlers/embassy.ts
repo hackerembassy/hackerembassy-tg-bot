@@ -39,7 +39,15 @@ export default class EmbassyHandlers implements BotHandlers {
         const user = bot.context(msg).user;
 
         try {
-            await embassyService.unlockDoor(user);
+            const userMacs = userService.getUserMacs(user);
+            const hasMacInside = await embassyService.isAnyDeviceInside(userMacs);
+
+            if (!hasMacInside)
+                throw Error(`User ${user.username} is not inside, but he/she tried to unlock the door`, {
+                    cause: "mac",
+                });
+
+            await embassyService.unlockDoorFor(user);
 
             broadcast.emit(BroadcastEvents.SpaceUnlocked, user.username);
 

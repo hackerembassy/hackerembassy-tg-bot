@@ -35,7 +35,6 @@ export const users = sqliteTable(
         username: text("username"),
         first_name: text("first_name"),
         roles: text("roles").default("default"),
-        mac: text("mac").default(sql`(NULL)`),
         birthday: text("birthday").default(sql`(NULL)`),
         autoinside: integer("autoinside").default(0),
         emoji: text("emoji").default(sql`(NULL)`),
@@ -54,6 +53,18 @@ export const subscriptions = sqliteTable("subscriptions", {
         .notNull()
         .references(() => topics.id, { onDelete: "cascade" }),
 });
+
+export const devices = sqliteTable(
+    "devices",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+        mac: text("mac").notNull().unique(),
+        user_id: integer("user_id")
+            .notNull()
+            .references(() => users.userid, { onDelete: "cascade" }),
+    },
+    table => [index("mac_idx").on(table.mac)]
+);
 
 export const donations = sqliteTable(
     "donations",

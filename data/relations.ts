@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm/relations";
 
-import { topics, subscriptions, users, states, needs, userstates, funds, donations, apikeys } from "./schema";
+import { topics, subscriptions, users, states, needs, userstates, funds, donations, apikeys, devices } from "./schema";
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     topic: one(topics, {
@@ -15,6 +15,13 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
 
 export const topicsRelations = relations(topics, ({ many }) => ({
     subscriptions: many(subscriptions),
+}));
+
+export const devicesRelations = relations(devices, ({ one }) => ({
+    user: one(users, {
+        fields: [devices.user_id],
+        references: [users.userid],
+    }),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -33,6 +40,9 @@ export const usersRelations = relations(users, ({ many }) => ({
     }),
     needs_buyer_id: many(needs, {
         relationName: "needs_buyer_id_users_userid",
+    }),
+    devices_user_id: many(devices, {
+        relationName: "devices_user_id_users_userid",
     }),
 }));
 

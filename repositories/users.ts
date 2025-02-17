@@ -1,7 +1,5 @@
 import { ChatId } from "node-telegram-bot-api";
-import { eq, like, gt, isNotNull, and, sql, ne } from "drizzle-orm";
-
-import { anyItemIsInList } from "@utils/filters";
+import { eq, like, sql, ne } from "drizzle-orm";
 
 import { users } from "@data/schema";
 
@@ -43,14 +41,6 @@ class UserRepository extends BaseRepository {
             .all();
     }
 
-    getAutoinsideUsers() {
-        return this.db
-            .select()
-            .from(users)
-            .where(and(gt(users.autoinside, 0), isNotNull(users.username), isNotNull(users.mac)))
-            .all();
-    }
-
     addUser(userid: number, username: Optional<string>, roles: string[] = ["default"]) {
         try {
             return this.db
@@ -76,50 +66,6 @@ class UserRepository extends BaseRepository {
                 .where(eq(users.userid, userid as number))
                 .run().changes > 0
         );
-    }
-
-    testMACs(cmd: string): boolean {
-        const macRegex = /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/;
-        return cmd.split(",").every(mac => macRegex.test(mac.trim()));
-    }
-
-    getAllRegisteredMACs(): string[] {
-        const registeredMacEntries = this.db
-            .select({
-                mac: users.mac,
-            })
-            .from(users)
-            .where(isNotNull(users.mac))
-            .all();
-
-        return registeredMacEntries.flatMap(macEntry => macEntry.mac!.split("|"));
-    }
-
-    setMACs(userid: number | ChatId, macs: Nullable<string> = null) {
-        try {
-            const currentUser = this.getUserByUserId(userid);
-            if (!currentUser) return false;
-
-            const newMacs = macs ? macs.split(",").map(mac => mac.toLowerCase().replaceAll("-", ":").trim()) : [];
-            const existingRegisteredMacs = this.getAllRegisteredMACs();
-            const existingOtherUsersMacs = existingRegisteredMacs.filter(mac => !currentUser.mac?.split(",").includes(mac));
-
-            const newMacsString = newMacs.join(",");
-
-            if (anyItemIsInList(newMacs, existingOtherUsersMacs))
-                throw Error(`Mac's [${newMacsString}] already exist in database`);
-
-            return (
-                this.db
-                    .update(users)
-                    .set({ mac: newMacsString })
-                    .where(eq(users.userid, userid as number))
-                    .run().changes > 0
-            );
-        } catch (error) {
-            this.logger.error(error);
-            return false;
-        }
     }
 
     updateUser(userid: ChatId, user: Partial<User>) {

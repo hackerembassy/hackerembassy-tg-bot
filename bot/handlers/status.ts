@@ -4,7 +4,7 @@ import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-ap
 
 import { BotConfig } from "@config";
 
-import { State, StateEx } from "data/models";
+import { State, StateEx, User } from "data/models";
 import { UserStateChangeType, AutoInsideMode } from "data/types";
 
 import UsersRepository from "@repositories/users";
@@ -37,36 +37,42 @@ const botConfig = config.get<BotConfig>("bot");
 export default class StatusHandlers implements BotHandlers {
     static isStatusError = false;
 
-    static async setmacHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
+    static async macHandler(bot: HackerEmbassyBot, msg: Message, cmd: string, mac?: string) {
         const user = bot.context(msg).user;
         const userLink = helpers.userLink(user);
 
         let message = t("status.mac.fail");
         let inline_keyboard: InlineKeyboardButton[][] = [];
 
-        if (!cmd || cmd === "help") {
-            message = t("status.mac.help");
+        if (!cmd || cmd === "help" || cmd === "status") {
+            const usermacs = userService
+                .getUserMacs(user)
+                .map(ud => ud.mac)
+                .join(",");
+            message = t("status.mac.help", { usermacs: usermacs.length > 0 ? usermacs : "none" });
             inline_keyboard = [[InlineLinkButton(t("status.mac.buttons.detect"), EmbassyLinkMacUrl)]];
-        } else if (cmd && UsersRepository.testMACs(cmd) && UsersRepository.setMACs(user.userid, cmd)) {
-            message = t("status.mac.set", { cmd, username: userLink });
-            inline_keyboard = [
-                [
-                    AnnoyingInlineButton(bot, msg, t("status.mac.buttons.autoinside"), "autoinside", ButtonFlags.Simple, {
-                        params: "enable",
-                    }),
-                ],
-            ];
-        } else if (cmd === "remove") {
-            UsersRepository.setMACs(user.userid, null);
-            UsersRepository.updateUser(user.userid, { autoinside: AutoInsideMode.Disabled });
-            message = t("status.mac.removed", { username: userLink });
-        } else if (cmd === "status") {
-            if (user.mac)
-                message = t("status.mac.isset", {
-                    username: userLink,
-                    usermac: user.mac,
-                });
-            else message = t("status.mac.isnotset", { username: userLink });
+        } else if (cmd === "clear") {
+            userService.removeUserMacs(user);
+            message = t("status.mac.cleared", { username: userLink });
+        } else if (cmd === "add" && mac) {
+            const macToAdd = mac.trim().replaceAll("-", ":");
+            const success = userService.addUserMac(user, macToAdd);
+
+            if (success) {
+                message = t("status.mac.set", { mac: macToAdd, username: userLink });
+                inline_keyboard = [
+                    [
+                        AnnoyingInlineButton(bot, msg, t("status.mac.buttons.autoinside"), "autoinside", ButtonFlags.Simple, {
+                            params: "enable",
+                        }),
+                    ],
+                ];
+            }
+        } else if (cmd === "remove" && mac) {
+            const macToRemove = mac.trim().replaceAll("-", ":");
+            const success = userService.removeUserMac(user, macToRemove);
+
+            if (success) message = t("status.mac.removed", { mac: macToRemove, username: userLink });
         }
 
         await bot.sendMessageExt(msg.chat.id, message, msg, {
@@ -91,7 +97,7 @@ export default class StatusHandlers implements BotHandlers {
                     params: "disable",
                 }),
             ],
-            [AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.mac"), "setmac", ButtonFlags.Simple)],
+            [AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.mac"), "mac", ButtonFlags.Simple)],
         ];
 
         if (secret) {
@@ -109,8 +115,10 @@ export default class StatusHandlers implements BotHandlers {
         const mode = bot.context(msg).mode;
         const user = bot.context(msg).user;
         const userLink = helpers.userLink(user);
-
-        const usermac = user.mac;
+        const userMacsString = userService
+            .getUserMacs(user)
+            .map(ud => ud.mac)
+            .join(",");
 
         let message = t("status.autoinside.fail");
         let inline_keyboard: InlineKeyboardButton[][] = [];
@@ -119,12 +127,12 @@ export default class StatusHandlers implements BotHandlers {
             switch (cmd) {
                 case "enable":
                 case "ghost":
-                    if (!usermac) {
+                    if (userMacsString.length === 0) {
                         message = t("status.autoinside.nomac");
                     } else {
                         const mode = cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled;
                         UsersRepository.updateUser(user.userid, { autoinside: mode });
-                        message = TextGenerators.getAutoinsideMessageStatus(mode as AutoInsideMode, usermac, userLink);
+                        message = TextGenerators.getAutoinsideMessageStatus(mode as AutoInsideMode, userMacsString, userLink);
                     }
                     break;
                 case "disable":
@@ -132,7 +140,11 @@ export default class StatusHandlers implements BotHandlers {
                     message = t("status.autoinside.removed", { username: userLink });
                     break;
                 case "status":
-                    message = TextGenerators.getAutoinsideMessageStatus(user.autoinside as AutoInsideMode, usermac, userLink);
+                    message = TextGenerators.getAutoinsideMessageStatus(
+                        user.autoinside as AutoInsideMode,
+                        userMacsString,
+                        userLink
+                    );
                     break;
                 case "help":
                 default:
@@ -564,10 +576,11 @@ export default class StatusHandlers implements BotHandlers {
     }
 
     static async detectedDevicesHandler(bot: HackerEmbassyBot, msg: Message) {
-        const devices = await embassyService.fetchDevicesInside();
-        const autousers = UsersRepository.getAutoinsideUsers();
-        const devicesWithOwners = devices.map(mac => {
-            const user = autousers.find(u => u.mac === mac);
+        const detectedDevices = await embassyService.fetchMacsInside();
+        const userdevices = userService.getDevicesWithUsers();
+
+        const devicesWithOwners = detectedDevices.map(mac => {
+            const user = userdevices.find(ud => ud.mac === mac)?.user;
             return user ? `${mac} - @${user.username ?? user.first_name}` : mac;
         });
 
@@ -576,33 +589,55 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinout(bot: HackerEmbassyBot, checkInside: boolean): Promise<void> {
         try {
-            const autousers = UsersRepository.getAutoinsideUsers();
-            const insideUserStates = userService.getPeopleInside(true);
-            const insideUserStatesMap = new Map(insideUserStates.map(u => [u.user_id, u]));
-            const selectedautousers = checkInside
-                ? autousers.filter(u => !insideUserStatesMap.has(u.userid))
-                : autousers.filter(u => insideUserStatesMap.get(u.userid)?.type === UserStateChangeType.Auto);
-            const usersWithDevices = await embassyService.usersWithDevices(selectedautousers);
-
             StatusHandlers.isStatusError = false;
 
-            for (const user of usersWithDevices) {
-                if (checkInside ? user.hasDeviceInside : !user.hasDeviceInside) {
-                    if (checkInside)
-                        userService.letIn(
-                            user,
-                            UserStateChangeType.Auto,
-                            new Date(),
-                            undefined,
-                            user.autoinside === AutoInsideMode.Ghost
-                        );
-                    else userService.letOut(user, UserStateChangeType.Auto);
+            // Request devices and users
+            const macsInsideRequest = embassyService.fetchMacsInside();
+            const devicesWithAutousers = userService.getDevicesWithAutousers();
+            const insideUserStates = userService.getPeopleInside(true);
 
-                    bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+            // Select users to update
+            const insideUserStatesMap = new Map(insideUserStates.map(u => [u.user_id, u]));
+            const userStateFilteredDevices = checkInside
+                ? devicesWithAutousers.filter(ud => !insideUserStatesMap.has(ud.user.userid))
+                : devicesWithAutousers.filter(ud => insideUserStatesMap.get(ud.user.userid)?.type === UserStateChangeType.Auto);
 
+            // Get unique users and macs
+            const uniqueUsersMap = new Map<number, User>();
+            userStateFilteredDevices
+                .map(ud => ud.user)
+                .forEach(user => !uniqueUsersMap.has(user.userid) && uniqueUsersMap.set(user.userid, user));
+            const macUsersMap = new Map(userStateFilteredDevices.map(ud => [ud.mac, uniqueUsersMap.get(ud.user_id)]));
+
+            // Filter users to update
+            const usersToUpdateSet = new Set(checkInside ? [] : uniqueUsersMap.values());
+
+            for (const mac of await macsInsideRequest) {
+                const macUser = macUsersMap.get(mac);
+                if (macUser) checkInside ? usersToUpdateSet.add(macUser) : usersToUpdateSet.delete(macUser);
+            }
+
+            // Update user states
+            for (const user of usersToUpdateSet.values()) {
+                const success = checkInside
+                    ? userService.letIn(
+                          user,
+                          UserStateChangeType.Auto,
+                          new Date(),
+                          undefined,
+                          user.autoinside === AutoInsideMode.Ghost
+                      )
+                    : userService.letOut(user, UserStateChangeType.Auto);
+
+                if (success) {
                     logger.info(`User ${user.username} automatically ${checkInside ? "got in" : "got out"}`);
+                } else {
+                    logger.info(`User ${user.username} could not be ${checkInside ? "let in" : "let out"}`);
                 }
             }
+
+            // Notify live status messages
+            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
         } catch (error) {
             StatusHandlers.isStatusError = true;
             logger.error(error);

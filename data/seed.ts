@@ -6,7 +6,6 @@ export const DefaultUser: User = {
     username: null,
     first_name: null,
     roles: "default",
-    mac: null,
     birthday: null,
     autoinside: AutoInsideMode.Disabled,
     emoji: null,

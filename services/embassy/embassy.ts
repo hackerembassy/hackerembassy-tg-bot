@@ -106,6 +106,8 @@ class EmbassyService {
     async getSpaceClimate() {
         const response = await this.requestToEmbassy(`/climate`, "GET", null, 4000);
 
+        if (!response.ok) throw Error("Failed to get climate data, status: " + response.status);
+
         return response.json() as Promise<SpaceClimate>;
     }
 

@@ -187,9 +187,10 @@ export default class StatusHandlers implements BotHandlers {
         return statusMessage;
     }
 
-    private static queryClimate() {
+    private static async queryClimate() {
         try {
-            return embassyService.getSpaceClimate();
+            const clientResponse = await embassyService.getSpaceClimate();
+            return clientResponse;
         } catch (error) {
             logger.error(error);
             return null;
@@ -228,7 +229,7 @@ export default class StatusHandlers implements BotHandlers {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = spaceService.getState();
 
-        const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+        const climateInfo: Nullable<SpaceClimate> = botConfig.features.embassy ? await StatusHandlers.queryClimate() : null;
         const todayEvents = botConfig.features.calendar ? await getTodayEventsCached() : null;
 
         bot.context(resultMessage).language = language;
@@ -288,22 +289,24 @@ export default class StatusHandlers implements BotHandlers {
             msg.message_id
         )) as Message;
 
-        const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+        if (botConfig.features.embassy) {
+            const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
 
-        if (climateInfo) {
-            const statusWithClient = statusMessage.replace(
-                REPLACE_MARKER,
-                TextGenerators.getClimateMessage(climateInfo, {
-                    withSecrets: msg.chat.id === botConfig.chats.horny,
-                })
-            );
-            bot.editMessageTextExt(statusWithClient, resultMessage, {
-                chat_id: msg.chat.id,
-                message_id: resultMessage.message_id,
-                reply_markup: {
-                    inline_keyboard,
-                },
-            });
+            if (climateInfo) {
+                const statusWithClient = statusMessage.replace(
+                    REPLACE_MARKER,
+                    TextGenerators.getClimateMessage(climateInfo, {
+                        withSecrets: msg.chat.id === botConfig.chats.horny,
+                    })
+                );
+                bot.editMessageTextExt(statusWithClient, resultMessage, {
+                    chat_id: msg.chat.id,
+                    message_id: resultMessage.message_id,
+                    reply_markup: {
+                        inline_keyboard,
+                    },
+                });
+            }
         }
 
         if (mode.live) {

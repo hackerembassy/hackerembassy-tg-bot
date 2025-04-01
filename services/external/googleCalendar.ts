@@ -18,8 +18,8 @@ const calendarID: string = new URL(calendarUrl).searchParams.get("src")!;
 export type HSEvent = {
     summary: string;
     description?: string;
-    start: Date;
-    end: Date;
+    start?: Date;
+    end?: Date;
     allDay: boolean;
 };
 
@@ -151,21 +151,27 @@ export async function getClosestEventsFromCalendar(
 ): Promise<HSEvent[]> {
     const eventsJson = await getEventsJSON(calendarID, numberOfEvents, from);
 
-    return eventsJson.items.map((event: HSEventFromJSON) => ({
-        summary: event.summary,
-        description: event.description,
-        allDay: !event.start.dateTime,
-        start: new Date(event.start.dateTime ?? event.start.date ?? 0),
-        end: new Date(event.end.dateTime ?? event.end.date ?? 0),
-    }));
+    return eventsJson.items.map((event: HSEventFromJSON) => {
+        const startString = event.start.dateTime ?? event.start.date;
+        const endString = event.end.dateTime ?? event.end.date;
+
+        return {
+            summary: event.summary,
+            description: event.description,
+            allDay: !event.start.dateTime,
+            start: startString ? new Date(startString) : undefined,
+            end: endString ? new Date(endString) : undefined,
+        };
+    });
 }
 
 export async function getTodayEvents(): Promise<HSEvent[]> {
     const todayDate = getToday();
+    const nowDate = new Date();
     const tomorrowDate = new Date(getToday().setDate(todayDate.getDate() + 1));
     const events = await getClosestEventsFromCalendar(calendarConfig.defaultRequestAmount, todayDate);
 
-    return events.filter(e => e.start < tomorrowDate);
+    return events.filter(e => e.start && e.start < tomorrowDate && e.end && e.end > nowDate);
 }
 
 export const getTodayEventsCached = memoize(getTodayEvents, { maxAge: MINUTE, promise: true });

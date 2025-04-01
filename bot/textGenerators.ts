@@ -440,9 +440,9 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
 
 export function HSEventToString(event: HSEvent, short: boolean = false): string {
     const dateTimeOptions = event.allDay ? onlyDateOptions : short ? onlyTimeOptions : shortDateTimeOptions;
-    const eventStart = event.start.toLocaleString("RU-ru", dateTimeOptions);
-    const eventEnd = event.end.toLocaleString("RU-ru", dateTimeOptions);
-    const eventTime = event.allDay ? eventStart : `${eventStart} - ${eventEnd}`;
+    const eventStart = event.start?.toLocaleString("RU-ru", dateTimeOptions);
+    const eventEnd = event.end?.toLocaleString("RU-ru", dateTimeOptions);
+    const eventTime = event.allDay && eventStart === eventEnd ? eventStart : `${eventStart} - ${eventEnd}`;
 
     let result = `${event.summary}: ${eventTime}`;
 

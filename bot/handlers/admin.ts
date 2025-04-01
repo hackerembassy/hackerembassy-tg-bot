@@ -282,6 +282,7 @@ export default class AdminHandlers implements BotHandlers {
 
     static async banHandler(bot: HackerEmbassyBot, msg: Message, target?: number | string) {
         const removeBanMessageTimeout = 3000;
+        const isPrivate = bot.context(msg).isPrivate();
 
         try {
             const reply = msg.reply_to_message;
@@ -295,23 +296,30 @@ export default class AdminHandlers implements BotHandlers {
                     : (UsersRepository.getUserByUserId(Number(effectiveTarget)) ??
                       UsersRepository.getUserByName(effectiveTarget.replace("@", "")));
 
+            const canBeBanned = user && !hasRole(user, "admin", "accountant", "member");
+
+            if (!canBeBanned) return bot.sendMessageExt(msg.chat.id, "🙅 User cannot be banned", msg);
+
+            // Just ban from the bot if the chat is private
             const wasBanned =
-                user && !hasRole(user, "admin", "accountant", "member") && (await bot.banChatMember(msg.chat.id, user.userid));
+                (!isPrivate || (await bot.banChatMember(msg.chat.id, user.userid))) &&
+                UsersRepository.updateRoles(user.userid, ["banned"]);
 
             const banMessage = await bot.sendMessageExt(
                 msg.chat.id,
-                wasBanned ? `🔨 User is banned ${effectiveTarget}` : "🙅 User cannot be banned",
+                wasBanned ? `🔨 User is banned ${effectiveTarget}` : "⚠️ Failed to ban the user",
                 msg
             );
 
             if (!banMessage) throw new Error("Failed to send ban message");
 
+            if (isPrivate) return;
+
+            // Remove ban messages from public chats
             const messagesToDelete = [banMessage.message_id];
             const isButtonResponse = bot.context(msg).isButtonResponse;
 
             if (wasBanned) {
-                UsersRepository.updateRoles(user.userid, ["banned"]);
-
                 if (reply) messagesToDelete.push(reply.message_id);
                 if (isButtonResponse) messagesToDelete.push(msg.message_id);
             } else if (!isButtonResponse) {
@@ -326,6 +334,8 @@ export default class AdminHandlers implements BotHandlers {
             logger.error(error);
 
             const failedMessage = await bot.sendMessageExt(msg.chat.id, "🤡 /banFailed to ban user", msg);
+
+            if (isPrivate) return;
 
             return setTimeout(
                 () => failedMessage && bot.deleteMessage(failedMessage.chat.id, failedMessage.message_id).catch(logger.error),

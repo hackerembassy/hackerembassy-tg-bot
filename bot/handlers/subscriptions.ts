@@ -152,10 +152,11 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
-    static async topicsHandler(bot: HackerEmbassyBot, msg: Message) {
+    static async topicsHandler(bot: HackerEmbassyBot, msg: Message, param?: string) {
         try {
             const isMember = bot.context(msg).user.roles?.includes("member");
-            const topics = SubscriptionsService.getAllTopics();
+            const includePseudo = param === "all";
+            const topics = SubscriptionsService.getAllTopics(includePseudo);
             const topicsList = topics.length > 0 ? listTopics(topics) : t("topics.general.empty");
             const text = t("topics.topics.list", { topics: topicsList }) + (isMember ? `\n${t("topics.topics.member")}` : "");
 

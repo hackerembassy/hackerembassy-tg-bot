@@ -16,8 +16,16 @@ class SubscriptionsService {
         return PseudoTopics.get(topicname) ?? subscriptionsRepository.getTopicByName(topicname);
     }
 
-    public getAllTopics() {
-        return subscriptionsRepository.getTopics();
+    public getPseudoTopics() {
+        return Array.from(PseudoTopics.values());
+    }
+
+    public getAllTopics(includePseudo: boolean = false) {
+        const actualTopics = subscriptionsRepository.getTopics();
+
+        if (!includePseudo) return actualTopics;
+
+        return [...actualTopics, ...this.getPseudoTopics()];
     }
 
     public addTopic(topic: Topic | Omit<Topic, "id">) {

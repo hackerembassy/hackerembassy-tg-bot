@@ -136,7 +136,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
 
     // Subscriptions
     bot.addRoute(["mysubscriptions", "subscriptions", "subs"], TopicsHandlers.mySubscriptionsHandler);
-    bot.addRoute(["topics"], TopicsHandlers.topicsHandler);
+    bot.addRoute(["topics"], TopicsHandlers.topicsHandler, OptionalParam(/(all)/), match => [match[1]]);
     bot.addRoute(
         ["addtopic", "createtopic"],
         TopicsHandlers.addTopicHandler,

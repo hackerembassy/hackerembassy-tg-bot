@@ -90,6 +90,9 @@ class Speakers {
 
     async play(link: string): Promise<void> {
         if (link.endsWith(".oga")) {
+            // Prevent command injection
+            if (link.match(/[^a-zA-Z0-9:/.\-_]/)) throw new Error("Invalid link");
+
             // ignore errors, ffmpeg writes to stderr
             await runSSHCommand(
                 "hass.lan",

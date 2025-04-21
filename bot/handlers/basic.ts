@@ -176,7 +176,7 @@ export default class BasicHandlers implements BotHandlers {
 
     static async locationHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.address") });
-        await bot.sendLocationExt(msg.chat.id, 40.18258, 44.51338, msg);
+        await bot.sendLocationExt(msg.chat.id, 40.194336, 44.497607, msg);
     }
 
     static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname: string) {

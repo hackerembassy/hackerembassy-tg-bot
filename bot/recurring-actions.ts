@@ -29,7 +29,8 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
     }
 
     // Embassy outage mentions
-    if (botConfig.features.outage) setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), HOUR / 6);
+    if (botConfig.features.outage)
+        setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), botConfig.outage.electricity.interval);
 
     // Utility and Internet payments notifications
     if (botConfig.features.reminders) setupPaymentReminders(bot);

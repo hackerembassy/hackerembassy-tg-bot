@@ -667,14 +667,13 @@ export default class EmbassyHandlers implements BotHandlers {
     }
 
     static async checkOutageMentionsHandler(bot: HackerEmbassyBot, msg?: Message) {
-        const EMBASSY_STREET = t("embassy.ena.street");
-        const EMBASSY_STREET_HY = "Պուշկինի";
-        const ENA_OUTAGES_URL_HY = "https://www.ena.am/Info.aspx?id=5&lang=1";
         const destinationChat = msg?.chat.id ?? botConfig.chats.alerts;
+        const street = botConfig.outage.electricity.target;
+        const endpoint = botConfig.outage.electricity.endpoint;
 
         try {
-            const enaPageContent = await fetch(ENA_OUTAGES_URL_HY).then(res => res.text());
-            const isElectricityOutage = enaPageContent.toLowerCase().includes(EMBASSY_STREET_HY.toLowerCase());
+            const enaPageContent = await fetch(endpoint).then(res => res.text());
+            const isElectricityOutage = enaPageContent.toLowerCase().includes(street.toLowerCase());
             const needToRespond = msg || bot.botState.flags.electricityOutageMentioned !== isElectricityOutage;
 
             if (!needToRespond) return;
@@ -687,8 +686,9 @@ export default class EmbassyHandlers implements BotHandlers {
             await bot.sendMessageExt(
                 destinationChat,
                 t(isElectricityOutage ? "embassy.ena.mentioned" : "embassy.ena.notmentioned", {
-                    hystreet: EMBASSY_STREET_HY,
-                    street: EMBASSY_STREET,
+                    hystreet: street,
+                    street: t("embassy.ena.street"),
+                    link: endpoint,
                 }),
                 msg ?? null
             );

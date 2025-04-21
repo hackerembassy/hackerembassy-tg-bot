@@ -35,6 +35,7 @@ export interface BotConfig {
     moderatedChats: number[];
     guess: GuessConfig;
     features: BotFeaturesConfig;
+    outage: OutageConfig;
 }
 
 export interface BotApiConfig {
@@ -71,6 +72,14 @@ export interface LiveConfig {
 export interface RemindersConfig {
     utility: UtilityReminder;
     internet: UtilityReminder;
+}
+
+export interface OutageConfig {
+    electricity: {
+        endpoint: string;
+        interval: number;
+        target: string;
+    };
 }
 
 export interface FundsConfig {

@@ -65,7 +65,7 @@ basic:
         🧠 You can contact them for any Space question
     location:
         address: |
-            🏫 This house is one of a kind. Its address: Armenia, Yerevan, Pushkina 38/18 (entrance from the yard)
+            🏫 Our address: Armenia, Yerevan, Baghramyan Avenue 60 (entrance from the street)
     donate: |
         💸 Hackspace is not a commercial project and exists solely on donations from participants.
         We contribute to the development of the space: paying rent and utilities, taking care of the space, helping in purchasing equipment.
@@ -442,9 +442,9 @@ embassy:
                 Car control in the /gaming team
             fail: ⚠️ It was not possible to generate an image, but /gaming is definitely turned on and has not yet died from a ton of requests?
     ena:
-        street: Pushkina
+        street: Baghramyan
         mentioned: |
-            ⚡️ Oops, {{street}} Street ({{hystreet}}) was mentioned on the website of Armenian power grids https://www.ena.am/Info.aspx?id=5&lang=1
+            ⚡️ Oops, {{street}} ({{hystreet}}) was mentioned on the website of Armenian power grids {{link}}
             I hope this is not in Yerevan 😅
         notmentioned: |
             ⚡️ {{street}} ({{hystreet}}) is no longer mentioned on the Armenian Electricity Networks website. Everything is fine 👌
@@ -515,7 +515,7 @@ funds:
     sponsors:
         list: |
             🏅 Our beloved sponsors 🏅 
-            
+
             {{list}}
 
             🫶 Want to be part of this list? Just press How to Donate below

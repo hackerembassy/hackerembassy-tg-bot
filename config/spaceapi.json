@@ -5,9 +5,9 @@
     "logo": "https://gateway.hackem.cc/static/hackemlogo.jpg",
     "url": "https://hackem.cc/",
     "location": {
-        "address": "Pushkina str. 38/18, Yerevan, Armenia",
-        "lon": 44.51338,
-        "lat": 40.18258,
+        "address": "Baghramyan ave. 60, Yerevan, Armenia",
+        "lon": 40.194336,
+        "lat": 44.497607,
         "timezone": "Asia/Yerevan"
     },
     "contact": {

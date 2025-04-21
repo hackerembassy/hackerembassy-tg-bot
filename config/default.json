@@ -78,6 +78,13 @@
                 "period": 3
             }
         },
+        "outage": {
+            "electricity": {
+                "endpoint": "https://www.ena.am/Info.aspx?id=5&lang=1",
+                "interval": 600000,
+                "target": "Բաղրամյան"
+            }
+        },
         "debug": false
     },
     "api": {

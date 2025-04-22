@@ -1,2 +1,5 @@
 funds:
-  funds: funds.funds{{list}}
+  funds: {{list}}
+status:
+  in:
+    gotin: 🎉 Ого, {{username}} теперь в спейсе!

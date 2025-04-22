@@ -321,7 +321,9 @@ embassy:
             /preheat - Preheat the space in advance (midea only)
         success: ✅ It worked
         fail: ⚠️ It didn’t work out
-        unavailable: ⚠️ Air conditioning is not available
+        unavailable: |
+            ⚠️ Air conditioning is not available
+            ⚠️ Due to moving to new place, this command will be renamed soon
         buttons:
             turnon: 🌀 Enable
             turnoff: ⛔️ Turn off
@@ -448,7 +450,7 @@ embassy:
             I hope this is not in Yerevan 😅
         notmentioned: |
             ⚡️ {{street}} ({{hystreet}}) is no longer mentioned on the Armenian Electricity Networks website. Everything is fine 👌
-        fail: ⚠️ Failed to check street
+        fail: ⚠️ Failed to check AEN site. Maybe they're offline?
 funds:
     funds: |
         💰 Here are our current funds:
@@ -776,7 +778,7 @@ status:
             • For the entire existence of the bot - /allstats
             • Any period - #`/stats from 2023-05-01 to 2023-05-25#`
 meme:
-    its_wednesday: 🐸 Kwa-kwa, today is Wednesday! The chance of getting /zhabka from me today is higher than ever (even where they are not usually found)!
+    its_wednesday: 🐸 Quack-quack, today is Wednesday! The chance of getting /zhabka from me today is higher than ever (even where they are not usually found)!
     not_wednesday: 🐸 Oh, the toads are sleeping today. Come back on Wednesday!
     slap:
         user: |

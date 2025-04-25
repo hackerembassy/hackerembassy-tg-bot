@@ -138,9 +138,9 @@
                 "primary": "prometheus",
                 "secondary": "keenetic"
             },
-            "networkRange": "192.168.1.1-192.168.1.254",
-            "routerip": "192.168.1.1",
-            "wifiip": "192.168.1.2",
+            "networkRange": "10.13.37.1-10.13.37.254",
+            "routerip": "10.13.37.1",
+            "wifiip": "10.13.37.2",
             "unifiorigin": "https://unifi.lan:8443",
             "prometheusorigin": "http://100.64.0.8:9095/"
         },

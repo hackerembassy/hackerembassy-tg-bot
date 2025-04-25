@@ -27,12 +27,8 @@ export default class MemeHandlers implements BotHandlers {
     }
 
     static async remindItIsWednesdayHandler(bot: HackerEmbassyBot) {
-        const now = new Date();
-
-        if (now.getDay() === ITS_WEDNESDAY_YEAAAH && now.getHours() < 6) {
-            const msg = await bot.sendMessageExt(botConfig.chats.horny, t("meme.its_wednesday"), null);
-            msg && MemeHandlers.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
-        }
+        const msg = await bot.sendMessageExt(botConfig.chats.horny, t("meme.its_wednesday"), null);
+        msg && MemeHandlers.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
     }
 
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {

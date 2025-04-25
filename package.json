@@ -37,6 +37,7 @@
         "chartjs-to-image": "^1.2.2",
         "config": "^3.3.12",
         "cors": "^2.8.5",
+        "cron": "^4.3.0",
         "crypto-convert": "^2.1.7",
         "d": "^1.0.2",
         "dotenv": "^16.4.5",

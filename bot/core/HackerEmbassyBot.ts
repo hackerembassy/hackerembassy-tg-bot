@@ -822,15 +822,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return null;
     }
 
-    // TODO add READ state
-    async sendNotification(message: string, monthDay: number, chat: TelegramBot.ChatId): Promise<void> {
-        const currentDate = new Date().getDate();
-        if (monthDay !== currentDate) return;
-
-        await this.sendMessage(chat, message);
-        logger.info(`Sent a notification to ${chat}: ${message}`);
-    }
-
     async fetchFileAsBase64(fileId: string) {
         const { path, cleanup } = await dir({
             unsafeCleanup: true,

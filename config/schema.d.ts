@@ -77,8 +77,8 @@ export interface RemindersConfig {
 export interface OutageConfig {
     electricity: {
         endpoint: string;
-        interval: number;
         target: string;
+        cron: string;
     };
 }
 
@@ -98,10 +98,8 @@ export interface SponsorshipLevelsConfig {
 }
 
 export interface UtilityReminder {
-    firstDay: number;
-    lastDay: number;
+    cron: string;
     message: string;
-    warning: string;
 }
 
 export interface GuessConfig {

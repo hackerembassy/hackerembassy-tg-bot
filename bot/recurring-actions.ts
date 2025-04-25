@@ -1,7 +1,8 @@
 import config from "config";
+import { CronJob } from "cron";
 
 import { BotConfig } from "@config";
-import { DAY, HALFDAY, HOUR, MINUTE } from "@utils/date";
+import { MINUTE } from "@utils/date";
 
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import { BotCustomEvent } from "./core/types";
@@ -13,13 +14,19 @@ import FundsHandlers from "./handlers/funds";
 
 const botConfig = config.get<BotConfig>("bot");
 
-export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
+// Why am I storing this if I don't have plans to stop these jobs?
+const runningJobs: CronJob[] = [];
+
+export function setAutomaticFeatures(bot: HackerEmbassyBot) {
+    setupShortIntervals(bot);
+    setupCronJobs(bot);
+}
+
+// This are so short intervals that we can just use setInterval
+function setupShortIntervals(bot: HackerEmbassyBot) {
     // Live cam and status updates
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
     setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);
-
-    // Recalculate sponsorships
-    setInterval(() => FundsHandlers.refreshSponsorshipsHandler(bot), DAY);
 
     // Autoinside polling
     if (botConfig.features.autoinside) {
@@ -27,41 +34,38 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot): void {
         setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
         setInterval(() => StatusHandlers.timedOutHandler(bot), MINUTE);
     }
+}
+
+// This is a bit more complex, so we use cron jobs
+function setupCronJobs(bot: HackerEmbassyBot): void {
+    // Recalculate sponsorships
+    runningJobs.push(new CronJob("0 0 * * *", () => FundsHandlers.refreshSponsorshipsHandler(bot)));
 
     // Embassy outage mentions
     if (botConfig.features.outage)
-        setInterval(() => EmbassyHandlers.checkOutageMentionsHandler(bot), botConfig.outage.electricity.interval);
+        runningJobs.push(new CronJob(botConfig.outage.electricity.cron, () => EmbassyHandlers.checkOutageMentionsHandler(bot)));
 
     // Utility and Internet payments notifications
-    if (botConfig.features.reminders) setupPaymentReminders(bot);
+    if (botConfig.features.reminders) {
+        runningJobs.push(
+            new CronJob(botConfig.reminders.utility.cron, () => {
+                bot.sendMessageExt(botConfig.chats.key, botConfig.reminders.utility.message, null);
+            })
+        );
+        runningJobs.push(
+            new CronJob(botConfig.reminders.internet.cron, () => {
+                bot.sendMessageExt(botConfig.chats.key, botConfig.reminders.internet.message, null);
+            })
+        );
+    }
 
     // Meme reminders
-    if (botConfig.features.birthday) setInterval(() => BirthdayHandlers.sendBirthdayWishes(bot, null, false), 6 * HOUR);
-    if (botConfig.features.wednesday) setInterval(() => MemeHandlers.remindItIsWednesdayHandler(bot), 6 * HOUR);
-}
+    if (botConfig.features.birthday)
+        runningJobs.push(new CronJob("0 0 * * *", () => BirthdayHandlers.sendBirthdayWishes(bot, null)));
 
-function setupPaymentReminders(bot: HackerEmbassyBot) {
-    setInterval(
-        () =>
-            bot.sendNotification(botConfig.reminders.utility.message, botConfig.reminders.utility.firstDay, botConfig.chats.key),
-        HALFDAY
-    );
-    setInterval(
-        () =>
-            bot.sendNotification(
-                botConfig.reminders.internet.message,
-                botConfig.reminders.internet.firstDay,
-                botConfig.chats.key
-            ),
-        HALFDAY
-    );
-    setInterval(
-        () => bot.sendNotification(botConfig.reminders.utility.warning, botConfig.reminders.utility.lastDay, botConfig.chats.key),
-        HALFDAY
-    );
-    setInterval(
-        () =>
-            bot.sendNotification(botConfig.reminders.internet.warning, botConfig.reminders.internet.lastDay, botConfig.chats.key),
-        HALFDAY
-    );
+    if (botConfig.features.wednesday)
+        runningJobs.push(new CronJob("0 0 * * 3", () => MemeHandlers.remindItIsWednesdayHandler(bot)));
+
+    // START THESE JOBS!!!
+    runningJobs.forEach(job => job.start());
 }

@@ -37,7 +37,6 @@ export default class BotState {
 
                 this.history = persistedState.history;
                 this.liveChats = persistedState.liveChats;
-                this.lastBirthdayWishTimestamp = persistedState.lastBirthdayWishTimestamp;
                 this.initLiveChats();
                 this.flags = persistedState.flags;
                 this.fileIdCache = persistedState.fileIdCache;
@@ -51,7 +50,6 @@ export default class BotState {
 
         this.history = {};
         this.liveChats = [];
-        this.lastBirthdayWishTimestamp = 0;
         this.flags = { ...DEFAULT_STATE_FLAGS };
 
         mkdirSync(dirname(this.statepath), { recursive: true });
@@ -83,7 +81,6 @@ export default class BotState {
 
     public liveChats: LiveChatHandler[] = [];
     public history: { [chatId: string]: Optional<MessageHistoryEntry[]> };
-    public lastBirthdayWishTimestamp: number = 0;
     public flags: StateFlags;
     public fileIdCache: { [key: string]: string } = {};
 
@@ -105,7 +102,6 @@ export default class BotState {
         }
         this.liveChats = [];
         this.history = {};
-        this.lastBirthdayWishTimestamp = 0;
         this.flags = { ...DEFAULT_STATE_FLAGS };
         this.fileIdCache = {};
         this.persistChanges();

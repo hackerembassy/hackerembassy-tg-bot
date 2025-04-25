@@ -6,7 +6,7 @@ import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
-import { hasBirthdayToday, isIsoDateString, isToday, MINUTE } from "@utils/date";
+import { hasBirthdayToday, isIsoDateString, MINUTE } from "@utils/date";
 
 import { userLink } from "@hackembot/core/helpers";
 
@@ -22,10 +22,6 @@ const botConfig = config.get<BotConfig>("bot");
 const baseWishesDir = "./resources/wishes";
 
 export default class BirthdayHandlers implements BotHandlers {
-    static forceBirthdayWishHandler(bot: HackerEmbassyBot, msg: Message) {
-        BirthdayHandlers.sendBirthdayWishes(bot, msg, true);
-    }
-
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
@@ -59,10 +55,8 @@ export default class BirthdayHandlers implements BotHandlers {
         return bot.sendMessageExt(msg.chat.id, t("birthday.fail"), msg);
     }
 
-    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, force: boolean = false) {
+    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>) {
         const birthdayUsers = UsersRepository.getUsers().filter(u => u.username && hasBirthdayToday(u.birthday));
-
-        if (!force && isToday(new Date(bot.botState.lastBirthdayWishTimestamp), true)) return;
 
         if (birthdayUsers.length === 0) return;
 
@@ -73,9 +67,6 @@ export default class BirthdayHandlers implements BotHandlers {
             ),
             MINUTE
         );
-
-        bot.botState.lastBirthdayWishTimestamp = Date.now();
-        bot.botState.persistChanges();
     }
 }
 

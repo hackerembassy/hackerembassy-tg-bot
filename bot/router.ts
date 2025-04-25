@@ -280,7 +280,7 @@ export function addRoutes(bot: HackerEmbassyBot): void {
     // Birthdays
     if (botConfig.features.birthday) {
         bot.addRoute(["birthdays", "birthday"], BirthdayHandlers.birthdayHandler);
-        bot.addRoute(["forcebirthdaywishes", "fbw"], BirthdayHandlers.forceBirthdayWishHandler, null, null, Admins);
+        bot.addRoute(["sendwishes"], BirthdayHandlers.sendBirthdayWishes, null, null, Admins);
         bot.addRoute(["mybirthday", "mybday", "bday"], BirthdayHandlers.myBirthdayHandler, OptionalParam(/(.*\S)/), match => [
             match[1],
         ]);

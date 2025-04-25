@@ -88,7 +88,7 @@ describe("Bot behavior shared for all commands:", () => {
             "/getuser",
             "/removeuser telegram_username",
             "/updateroles of telegram_username to user_role1|user_role2|user_role3",
-            "/forcebirthdaywishes",
+            "/sendwishes",
             "/forward some_text",
             "/getlogs",
             "/addfund Fund_Name with target 500 USD",

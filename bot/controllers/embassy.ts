@@ -15,8 +15,7 @@ import { userService, hasRole } from "@services/domain/user";
 
 import { sleep } from "@utils/common";
 import { fullScreenImagePage } from "@utils/html";
-import { CaptureInteger, Members, TrustedMembers } from "@hackembot/core/constants";
-import { FeatureFlag, Route } from "@hackembot/core/decorators";
+import { CaptureInteger, FeatureFlag, Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
@@ -37,8 +36,9 @@ enum DeviceOperation {
 }
 
 export default class EmbassyController implements BotController {
-    @Route(["unlock", "u"], null, null, Members)
+    @Route(["unlock", "u"])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         const user = bot.context(msg).user;
 
@@ -79,8 +79,9 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["allcams", "cams", "allcums", "cums", "allc"], null, null, Members)
+    @Route(["allcams", "cams", "allcums", "cums", "allc"])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
@@ -116,19 +117,15 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(
-        ["downstairs", "webcam", "webcum", "cam", "cum", "firstfloor", "ff", "cam1a", "cum1a"],
-        null,
-        () => ["downstairs"],
-        Members
-    )
-    @Route(["downstairs2", "firstfloor2", "ff2", "cam1b", "cum1b"], null, () => ["downstairs2"], Members)
-    @Route(["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"], null, () => ["upstairs"], Members)
-    @Route(["outdoors", "doorcam", "doorcum", "precam", "precum", "dc"], null, () => ["outdoors"], Members)
-    @Route(["face", "facecam", "facecum", "facecontrol"], null, () => ["facecontrol"], Members)
-    @Route(["kitchen", "kitchencam", "kitchencum"], null, () => ["kitchen"], Members)
-    @Route(["printerscam", "funroom", "funcam", "funcum"], null, () => ["printers"], Members)
+    @Route(["downstairs", "webcam", "webcum", "cam", "cum", "firstfloor", "ff", "cam1a", "cum1a"], null, () => ["downstairs"])
+    @Route(["downstairs2", "firstfloor2", "ff2", "cam1b", "cum1b"], null, () => ["downstairs2"])
+    @Route(["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"], null, () => ["upstairs"])
+    @Route(["outdoors", "doorcam", "doorcum", "precam", "precum", "dc"], null, () => ["outdoors"])
+    @Route(["face", "facecam", "facecum", "facecontrol"], null, () => ["facecontrol"])
+    @Route(["kitchen", "kitchencam", "kitchencum"], null, () => ["kitchen"])
+    @Route(["printerscam", "funroom", "funcam", "funcum"], null, () => ["printers"])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
@@ -259,8 +256,9 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["doorbell", "db"], null, null, Members)
+    @Route(["doorbell", "db"])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async doorbellHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
             await embassyService.doorbell();
@@ -286,8 +284,9 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["gayming", "gaming"], OptionalParam(/(status|help|up|down)/), match => ["gaming", match[1]], Members)
+    @Route(["gayming", "gaming"], OptionalParam(/(status|help|up|down)/), match => ["gaming", match[1]])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async deviceHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -332,9 +331,10 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["isalive", "alive", "probe"], /(\S+)/, match => [match[1]], Members)
-    @Route(["ping"], /(\S+)/, match => [match[1], true], Members)
+    @Route(["isalive", "alive", "probe"], /(\S+)/, match => [match[1]])
+    @Route(["ping"], /(\S+)/, match => [match[1], true])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async pingHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string, raw: boolean = false) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -478,8 +478,9 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["stopmedia", "stop"], null, null, TrustedMembers)
+    @Route(["stopmedia", "stop"])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async stopMediaHandler(bot: HackerEmbassyBot, msg: Message, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
@@ -493,8 +494,9 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["availablesounds", "sounds"], null, null, TrustedMembers)
+    @Route(["availablesounds", "sounds"])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async availableSoundsHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -521,20 +523,21 @@ export default class EmbassyController implements BotController {
         return EmbassyController.playinspaceHandler(bot, msg, link);
     }
 
-    @Route(["playinspace", "play"], /(.*)/ims, match => [match[1]], TrustedMembers)
-    @Route(["fartinspace", "fart"], null, () => ["fart"], TrustedMembers)
-    @Route(["moaninspace", "moan"], null, () => ["moan"], TrustedMembers)
-    @Route(["rickroll", "nevergonnagiveyouup"], null, () => ["rickroll"], TrustedMembers)
-    @Route(["rzd"], null, () => ["rzd"], TrustedMembers)
-    @Route(["adler"], null, () => ["adler"], TrustedMembers)
-    @Route(["rfoxed", "rf0x1d"], null, () => ["rfoxed"], TrustedMembers)
-    @Route(["nani", "omaewamoushindeiru"], null, () => ["nani"], TrustedMembers)
-    @Route(["zhuchok", "zhenya", "anya", "zhanya"], null, () => ["zhuchok"], TrustedMembers)
-    @Route(["badum", "badumtss"], null, () => ["badumtss"], TrustedMembers)
-    @Route(["sad", "sadtrombone"], null, () => ["sad"], TrustedMembers)
-    @Route(["dushno", "openwindow"], null, () => ["dushno"], TrustedMembers)
-    @Route(["anthem", "uk", "british"], null, () => ["anthem"], TrustedMembers)
+    @Route(["playinspace", "play"], /(.*)/ims, match => [match[1]])
+    @Route(["fartinspace", "fart"], null, () => ["fart"])
+    @Route(["moaninspace", "moan"], null, () => ["moan"])
+    @Route(["rickroll", "nevergonnagiveyouup"], null, () => ["rickroll"])
+    @Route(["rzd"], null, () => ["rzd"])
+    @Route(["adler"], null, () => ["adler"])
+    @Route(["rfoxed", "rf0x1d"], null, () => ["rfoxed"])
+    @Route(["nani", "omaewamoushindeiru"], null, () => ["nani"])
+    @Route(["zhuchok", "zhenya", "anya", "zhanya"], null, () => ["zhuchok"])
+    @Route(["badum", "badumtss"], null, () => ["badumtss"])
+    @Route(["sad", "sadtrombone"], null, () => ["sad"])
+    @Route(["dushno", "openwindow"], null, () => ["dushno"])
+    @Route(["anthem", "uk", "british"], null, () => ["anthem"])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, linkOrName: string, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
@@ -550,9 +553,10 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["conditioner", "conditioner1", "midea", "ac", "ac1"], null, () => ["downstairs"], TrustedMembers)
-    @Route(["conditioner2", "ac2", "lg"], null, () => ["upstairs"], TrustedMembers)
+    @Route(["conditioner", "conditioner1", "midea", "ac", "ac1"], null, () => ["downstairs"])
+    @Route(["conditioner2", "ac2", "lg"], null, () => ["upstairs"])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async conditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -620,27 +624,30 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["mideaon", "acon", "ac1on"], null, () => ["downstairs"], TrustedMembers)
-    @Route(["lgon", "ac2on"], null, () => ["upstairs"], TrustedMembers)
+    @Route(["mideaon", "acon", "ac1on"], null, () => ["downstairs"])
+    @Route(["lgon", "ac2on"], null, () => ["upstairs"])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async turnOnConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.POWER_ON, null);
 
         if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
-    @Route(["mideaoff", "acoff", "ac1off"], null, () => ["downstairs"], TrustedMembers)
+    @Route(["mideaoff", "acoff", "ac1off"], null, () => ["downstairs"])
     @Route(["lgoff", "ac2off"], null, () => ["upstairs"])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async turnOffConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.POWER_OFF, null);
 
         if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
-    @Route(["mideaaddtemp", "acaddtemp", "ac1addtemp"], CaptureInteger, match => ["downstairs", Number(match[1])], TrustedMembers)
-    @Route(["lgaddtemp", "ac2addtemp"], CaptureInteger, match => ["upstairs", Number(match[1])], TrustedMembers)
+    @Route(["mideaaddtemp", "acaddtemp", "ac1addtemp"], CaptureInteger, match => ["downstairs", Number(match[1])])
+    @Route(["lgaddtemp", "ac2addtemp"], CaptureInteger, match => ["upstairs", Number(match[1])])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, diff: number) {
         if (isNaN(diff)) throw Error();
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { diff });
@@ -651,17 +658,19 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["mideatemp", "actemp", "ac1temp"], /(\d*)/, match => ["downstairs", Number(match[1])], TrustedMembers)
-    @Route(["lgtemp", "ac2temp"], /(\d*)/, match => ["upstairs", Number(match[1])], TrustedMembers)
+    @Route(["mideatemp", "actemp", "ac1temp"], /(\d*)/, match => ["downstairs", Number(match[1])])
+    @Route(["lgtemp", "ac2temp"], /(\d*)/, match => ["upstairs", Number(match[1])])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, temperature: number) {
         if (isNaN(temperature)) throw Error();
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
     }
 
-    @Route(["mideamode", "acmode", "ac1mode"], /(\S+)/, match => ["downstairs", Number(match[1])], TrustedMembers)
-    @Route(["lgmode", "ac2mode"], /(\S+)/, match => ["upstairs", Number(match[1])], TrustedMembers)
+    @Route(["mideamode", "acmode", "ac1mode"], /(\S+)/, match => ["downstairs", Number(match[1])])
+    @Route(["lgmode", "ac2mode"], /(\S+)/, match => ["upstairs", Number(match[1])])
     @FeatureFlag("embassy")
+    @UserRoles(TrustedMembers)
     static async setConditionerModeHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -673,8 +682,9 @@ export default class EmbassyController implements BotController {
         if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
-    @Route(["preheat"], null, null, Members)
+    @Route(["preheat"])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async preheatHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.PREHEAT, {});
 

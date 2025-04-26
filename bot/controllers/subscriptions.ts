@@ -6,8 +6,8 @@ import logger from "@services/common/logger";
 import SubscriptionsService from "@services/domain/subscriptions";
 import { splitArray } from "@utils/common";
 
-import { MAX_MENTIONS_WITH_NOTIFICATIONS, Members } from "@hackembot/core/constants";
-import { Route } from "@hackembot/core/decorators";
+import { MAX_MENTIONS_WITH_NOTIFICATIONS } from "@hackembot/core/constants";
+import { Members, Route, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
@@ -95,7 +95,8 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["notify", "notifysubs", "notifysubscribers"], OptionalParam(/(\S+) (.*)/s), match => [match[1], match[2]], Members)
+    @Route(["notify", "notifysubs", "notifysubscribers"], OptionalParam(/(\S+) (.*)/s), match => [match[1], match[2]])
+    @UserRoles(Members)
     static async notifySubscribersHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, text: string) {
         try {
             if (!topicname || !text) {
@@ -189,7 +190,8 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["addtopic", "createtopic"], /(\S+)(?: (.*))?/, match => [match[1], match[2]], Members)
+    @Route(["addtopic", "createtopic"], /(\S+)(?: (.*))?/, match => [match[1], match[2]])
+    @UserRoles(Members)
     static async addTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, topicdescription: string) {
         try {
             if (SubscriptionsService.getTopic(topicname)) {
@@ -208,7 +210,8 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["deletetopic", "removetopic"], /(\S+)/, match => [match[1]], Members)
+    @Route(["deletetopic", "removetopic"], /(\S+)/, match => [match[1]])
+    @UserRoles(Members)
     static async deleteTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const topic = SubscriptionsService.getTopic(topicname);

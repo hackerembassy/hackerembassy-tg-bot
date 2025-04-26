@@ -19,7 +19,7 @@ import {
 } from "node-telegram-bot-api";
 import { dir, file } from "tmp-promise";
 
-import { BotConfig } from "@config";
+import { BotConfig, BotFeatureFlag } from "@config";
 
 import { User } from "@data/models";
 import { UserRole } from "@data/types";
@@ -791,21 +791,18 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         for (const methodName of decoratedMethods) {
             const featureFlag = Reflect.getMetadata(MetadataKeys.FeatureFlag, controller, methodName) as
-                | keyof typeof botConfig.features
+                | BotFeatureFlag
                 | undefined;
 
             if (featureFlag && !botConfig.features[featureFlag]) continue;
 
+            const roles = Reflect.getMetadata(MetadataKeys.Roles, controller, methodName) as UserRole[];
+            const routes = Reflect.getMetadata(MetadataKeys.Route, controller, methodName) as RouteMetadata[];
             const method = controller[methodName as keyof BotController] as BotHandler;
-            const attributeRoles = Reflect.getMetadata(MetadataKeys.Roles, controller, methodName) as UserRole[] | undefined;
             const handler = method.bind(controller);
 
-            const routes = Reflect.getMetadata(MetadataKeys.Route, controller, methodName) as RouteMetadata[];
-
             for (const route of routes) {
-                const { aliases, paramRegex, paramMapper, roles } = route;
-
-                this.addRoute(aliases, handler, paramRegex, paramMapper, [...(attributeRoles ?? []), ...(roles ?? [])]);
+                this.addRoute(route.aliases, handler, route.paramRegex, route.paramMapper, roles);
             }
         }
     }

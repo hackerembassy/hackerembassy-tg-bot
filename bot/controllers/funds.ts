@@ -22,8 +22,7 @@ import { userService } from "@services/domain/user";
 import { getToday } from "@utils/date";
 import { getImageFromPath } from "@utils/filesystem";
 import { replaceUnsafeSymbolsForAscii } from "@utils/text";
-import { Route } from "@hackembot/core/decorators";
-import { Accountants, CaptureListOfIds, Members } from "@hackembot/core/constants";
+import { Accountants, CaptureListOfIds, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/inlineButtons";
@@ -106,12 +105,8 @@ export default class FundsController implements BotController {
         await bot.sendLongMessage(msg.chat.id, t("funds.fundsall", { list }), msg);
     }
 
-    @Route(
-        ["addfund"],
-        /(.*\S) with target (\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*)/,
-        match => [match[1], match[2], match[3]],
-        Accountants
-    )
+    @Route(["addfund"], /(.*\S) with target (\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*)/, match => [match[1], match[2], match[3]])
+    @UserRoles(Accountants)
     static async addFundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string, target: string, currency: string) {
         const targetValue = parseMoneyValue(target);
         const preparedCurrency = await prepareCurrency(currency);
@@ -139,12 +134,13 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(
-        ["updatefund"],
-        /(.*\S) with target (\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/,
-        match => [match[1], match[2], match[3], match[4]],
-        Accountants
-    )
+    @Route(["updatefund"], /(.*\S) with target (\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?)(?: as (.*\S))?/, match => [
+        match[1],
+        match[2],
+        match[3],
+        match[4],
+    ])
+    @UserRoles(Accountants)
     static async updateFundHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -184,7 +180,8 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(["removefund"], /(.*\S)/, match => [match[1]], Accountants)
+    @Route(["removefund"], /(.*\S)/, match => [match[1]])
+    @UserRoles(Accountants)
     static async removeFundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         const success = FundsRepository.removeFundByName(fundName);
 
@@ -195,7 +192,8 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(["closefund"], /(.*\S)/, match => [match[1]], Accountants)
+    @Route(["closefund"], /(.*\S)/, match => [match[1]])
+    @UserRoles(Accountants)
     static async closeFundHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
         const success = FundsRepository.closeFund(fundName);
 
@@ -206,7 +204,8 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(["changefundstatus"], /of (.*\S) to (.*\S)/, match => [match[1], match[2]], Accountants)
+    @Route(["changefundstatus"], /of (.*\S) to (.*\S)/, match => [match[1], match[2]])
+    @UserRoles(Accountants)
     static async changeFundStatusHandler(bot: HackerEmbassyBot, msg: Message, fundName: string, fundStatus: string) {
         fundStatus = fundStatus.toLowerCase();
 
@@ -219,11 +218,12 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(["transferdonation", "td"], /(\d[\d\s,]*?) to (.*\S)/, match => [match[1], match[2]], Accountants)
-    @Route(["tosafe"], CaptureListOfIds, match => [match[1], "safe"], Accountants)
-    @Route(["topaid", "paid", "tp"], CaptureListOfIds, match => [match[1], "paid"], Accountants)
-    @Route(["tocab", "givecab", "tc"], CaptureListOfIds, match => [match[1], "CabiaRangris"], Accountants)
-    @Route(["tonick", "givenick", "tn"], CaptureListOfIds, match => [match[1], "korn9509"], Accountants)
+    @Route(["transferdonation", "td"], /(\d[\d\s,]*?) to (.*\S)/, match => [match[1], match[2]])
+    @Route(["tosafe"], CaptureListOfIds, match => [match[1], "safe"])
+    @Route(["topaid", "paid", "tp"], CaptureListOfIds, match => [match[1], "paid"])
+    @Route(["tocab", "givecab", "tc"], CaptureListOfIds, match => [match[1], "CabiaRangris"])
+    @Route(["tonick", "givenick", "tn"], CaptureListOfIds, match => [match[1], "korn9509"])
+    @UserRoles(Accountants)
     static transferDonationHandler(bot: HackerEmbassyBot, msg: Message, donations: string, accountantName: string) {
         const accountant = UsersRepository.getUserByName(accountantName.replace("@", ""));
 
@@ -275,7 +275,8 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(["refreshsponsors", "recalculatesponsors"], null, null, Accountants)
+    @Route(["refreshsponsors", "recalculatesponsors"])
+    @UserRoles(Accountants)
     static async refreshSponsorshipsHandler(bot: HackerEmbassyBot, msg?: Message) {
         try {
             const donations = FundsRepository.getAllDonations(false, true, ExportHelper.getSponsorshipStartPeriodDate());
@@ -317,12 +318,13 @@ export default class FundsController implements BotController {
         }
     }
 
-    @Route(
-        ["adddonation", "ad"],
-        /(\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/,
-        match => [match[1], match[2], match[3], match[4]],
-        Accountants
-    )
+    @Route(["adddonation", "ad"], /(\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/, match => [
+        match[1],
+        match[2],
+        match[3],
+        match[4],
+    ])
+    @UserRoles(Accountants)
     static async addDonationHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -447,12 +449,10 @@ export default class FundsController implements BotController {
         return await FundsController.exportDonutHandler(bot, msg, latestCostsFund.name);
     }
 
-    @Route(
-        ["residentscosts", "residentsdonated", "residentcosts", "rcosts"],
-        OptionalParam(/(all|paid|left)/),
-        match => [match[1]],
-        Members
-    )
+    @Route(["residentscosts", "residentsdonated", "residentcosts", "rcosts"], OptionalParam(/(all|paid|left)/), match => [
+        match[1],
+    ])
+    @UserRoles(Members)
     static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message, option: "all" | "paid" | "left" = "all") {
         const fundName = FundsRepository.getLatestCosts()?.name;
 
@@ -483,12 +483,8 @@ export default class FundsController implements BotController {
         await bot.sendMessageExt(msg.chat.id, resdientsDonatedList, msg);
     }
 
-    @Route(
-        ["residentscostshistory", "historycosts", "rhcosts", "rhcs"],
-        OptionalParam(/(\d\d\d\d)/),
-        match => [match[1]],
-        Members
-    )
+    @Route(["residentscostshistory", "historycosts", "rhcosts", "rhcs"], OptionalParam(/(\d\d\d\d)/), match => [match[1]])
+    @UserRoles(Members)
     static async resdientsHistoryHandler(bot: HackerEmbassyBot, msg: Message, year: number = getToday().getFullYear()) {
         const donations = FundsRepository.getCostsFundDonations(year);
         const residentIds = UsersRepository.getUsersByRole("member").map(u => u.userid);
@@ -507,7 +503,8 @@ export default class FundsController implements BotController {
         return await bot.sendMessageExt(msg.chat.id, t("funds.residentshistory.empty"), msg);
     }
 
-    @Route(["removedonation"], /(\d+)/, match => [match[1]], Accountants)
+    @Route(["removedonation"], /(\d+)/, match => [match[1]])
+    @UserRoles(Accountants)
     static async removeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId: number) {
         const success = FundsRepository.removeDonationById(donationId);
 
@@ -518,7 +515,8 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(["changedonation"], /(\d+) to (\S+)\s?(\D*?)/, match => [match[1], match[2], match[3]], Accountants)
+    @Route(["changedonation"], /(\d+) to (\S+)\s?(\D*?)/, match => [match[1], match[2], match[3]])
+    @UserRoles(Accountants)
     static async changeDonationHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -547,7 +545,8 @@ export default class FundsController implements BotController {
         );
     }
 
-    @Route(["debt", "mymoney"], OptionalParam(/(\S+)/), match => [match[1]], Accountants)
+    @Route(["debt", "mymoney"], OptionalParam(/(\S+)/), match => [match[1]])
+    @UserRoles(Accountants)
     static async debtHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -573,14 +572,10 @@ export default class FundsController implements BotController {
         return bot.sendLongMessage(msg.chat.id, message, msg);
     }
 
-    @Route(["tosafeall"], helpers.OptionalParam(/(.*)/), match => ["safe", match[1]], Accountants)
-    @Route(["topaidall", "paidall"], helpers.OptionalParam(/(.*)/), match => ["paid", match[1]], Accountants)
-    @Route(
-        ["tocaball", "givecaball", "givecaballmymoney", "tca"],
-        OptionalParam(/(.*)/),
-        match => ["CabiaRangris", match[1]],
-        Accountants
-    )
+    @Route(["tosafeall"], helpers.OptionalParam(/(.*)/), match => ["safe", match[1]])
+    @Route(["topaidall", "paidall"], helpers.OptionalParam(/(.*)/), match => ["paid", match[1]])
+    @Route(["tocaball", "givecaball", "givecaballmymoney", "tca"], OptionalParam(/(.*)/), match => ["CabiaRangris", match[1]])
+    @UserRoles(Accountants)
     static transferAllToHandler(bot: HackerEmbassyBot, msg: Message, username: string, fundName?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 

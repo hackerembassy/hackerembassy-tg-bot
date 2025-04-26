@@ -7,9 +7,9 @@ import UsersRepository from "@repositories/users";
 import ApiKeysRepository from "@repositories/apikeys";
 import logger from "@services/common/logger";
 import { generateRandomKey, sha256 } from "@utils/security";
-import { Route } from "@hackembot/core/decorators";
+import { Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decorators";
 
-import { MAX_MESSAGE_LENGTH_WITH_TAGS, Members, TrustedMembers } from "../core/constants";
+import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
@@ -23,7 +23,8 @@ const botConfig = config.get<BotConfig>("bot");
 const DeprecatedReplacementMap = new Map<string, string>([["knock", "hey"]]);
 
 export default class ServiceController implements BotController {
-    @Route(["clear"], OptionalParam(/(\d*)/), match => [match[1]], Members)
+    @Route(["clear"], OptionalParam(/(\d*)/), match => [match[1]])
+    @UserRoles(Members)
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
@@ -43,7 +44,8 @@ export default class ServiceController implements BotController {
         }
     }
 
-    @Route(["combine", "squash", "sq"], OptionalParam(/(\d*)/), match => [match[1]], Members)
+    @Route(["combine", "squash", "sq"], OptionalParam(/(\d*)/), match => [match[1]])
+    @UserRoles(Members)
     static async combineHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToCombine = inputCount > 2 ? inputCount : 2;
@@ -142,13 +144,15 @@ export default class ServiceController implements BotController {
         bot.sendTemporaryMessage(msg.chat.id, text, msg);
     }
 
-    @Route(["superstatus", "ss"], null, null, Members)
+    @Route(["superstatus", "ss"])
+    @UserRoles(Members)
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {
         await StatusController.statusHandler(bot, msg);
         await EmbassyController.allCamsHandler(bot, msg);
     }
 
-    @Route(["removebuttons", "rb", "static"], null, null, Members)
+    @Route(["removebuttons", "rb", "static"])
+    @UserRoles(Members)
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
         try {
             // I hate topics in tg 🤬
@@ -277,7 +281,8 @@ export default class ServiceController implements BotController {
         return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
     }
 
-    @Route(["token"], OptionalParam(/(\S+?)/), match => [match[1]], TrustedMembers)
+    @Route(["token"], OptionalParam(/(\S+?)/), match => [match[1]])
+    @UserRoles(TrustedMembers)
     static tokenHandler(bot: HackerEmbassyBot, msg: Message, command: string) {
         const context = bot.context(msg);
 

@@ -1,6 +1,7 @@
 import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import NeedsRepository from "@repositories/needs";
+import { Route } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
@@ -10,6 +11,7 @@ import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 
 export default class NeedsHandlers implements BotHandlers {
+    @Route(["needs"])
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs);
@@ -31,6 +33,7 @@ export default class NeedsHandlers implements BotHandlers {
         );
     }
 
+    @Route(["buy", "need"], /(.*)/, match => [match[1]])
     static async buyHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const requester = bot.context(msg).user;
         const success = NeedsRepository.addBuy(item, requester.userid, new Date());
@@ -46,6 +49,7 @@ export default class NeedsHandlers implements BotHandlers {
         await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.item ?? "");
     }
 
+    @Route(["boughtundo"], /(\d+)/, match => [match[1]])
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
         const sender = bot.context(msg).user;
@@ -55,6 +59,7 @@ export default class NeedsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["bought"], /(.*)/, match => [match[1]])
     static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const buyer = bot.context(msg).user;
         const need = NeedsRepository.getOpenNeedByItem(item);
@@ -77,6 +82,7 @@ export default class NeedsHandlers implements BotHandlers {
         });
     }
 
+    @Route(["boughtbutton"], null, match => [match[1]])
     static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string): Promise<void> {
         await NeedsHandlers.boughtByIdHandler(bot, message, id);
 

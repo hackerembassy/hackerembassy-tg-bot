@@ -7,8 +7,9 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import { hasBirthdayToday, isIsoDateString, MINUTE } from "@utils/date";
-
-import { userLink } from "@hackembot/core/helpers";
+import { OptionalParam, userLink } from "@hackembot/core/helpers";
+import { FeatureFlag, Route } from "@hackembot/core/decorators";
+import { Admins } from "@hackembot/core/constants";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
@@ -22,6 +23,8 @@ const botConfig = config.get<BotConfig>("bot");
 const baseWishesDir = "./resources/wishes";
 
 export default class BirthdayHandlers implements BotHandlers {
+    @Route(["birthdays", "birthday"])
+    @FeatureFlag("birthday")
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
         const usersWithBirthday = UsersRepository.getUsers().filter(u => u.birthday);
         const text = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
@@ -41,6 +44,8 @@ export default class BirthdayHandlers implements BotHandlers {
         );
     }
 
+    @Route(["mybirthday", "mybday", "bday"], OptionalParam(/(.*\S)/), match => [match[1]])
+    @FeatureFlag("birthday")
     static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, input?: string) {
         const sender = bot.context(msg).user;
 
@@ -55,6 +60,8 @@ export default class BirthdayHandlers implements BotHandlers {
         return bot.sendMessageExt(msg.chat.id, t("birthday.fail"), msg);
     }
 
+    @Route(["sendwishes"], null, null, Admins)
+    @FeatureFlag("birthday")
     static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>) {
         const birthdayUsers = UsersRepository.getUsers().filter(u => u.username && hasBirthdayToday(u.birthday));
 

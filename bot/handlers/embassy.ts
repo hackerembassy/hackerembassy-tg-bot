@@ -15,6 +15,8 @@ import { userService, hasRole } from "@services/domain/user";
 
 import { sleep } from "@utils/common";
 import { fullScreenImagePage } from "@utils/html";
+import { CaptureInteger, Members, TrustedMembers } from "@hackembot/core/constants";
+import { FeatureFlag, Route } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
@@ -22,7 +24,7 @@ import t from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
-import { effectiveName } from "../core/helpers";
+import { effectiveName, OptionalParam } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -35,6 +37,8 @@ enum DeviceOperation {
 }
 
 export default class EmbassyHandlers implements BotHandlers {
+    @Route(["unlock", "u"], null, null, Members)
+    @FeatureFlag("embassy")
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         const user = bot.context(msg).user;
 
@@ -75,6 +79,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["allcams", "cams", "allcums", "cums", "allc"], null, null, Members)
+    @FeatureFlag("embassy")
     static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
@@ -110,6 +116,19 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(
+        ["downstairs", "webcam", "webcum", "cam", "cum", "firstfloor", "ff", "cam1a", "cum1a"],
+        null,
+        () => ["downstairs"],
+        Members
+    )
+    @Route(["downstairs2", "firstfloor2", "ff2", "cam1b", "cum1b"], null, () => ["downstairs2"], Members)
+    @Route(["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"], null, () => ["upstairs"], Members)
+    @Route(["outdoors", "doorcam", "doorcum", "precam", "precum", "dc"], null, () => ["outdoors"], Members)
+    @Route(["face", "facecam", "facecum", "facecontrol"], null, () => ["facecontrol"], Members)
+    @Route(["kitchen", "kitchencam", "kitchencum"], null, () => ["kitchen"], Members)
+    @Route(["printerscam", "funroom", "funcam", "funcum"], null, () => ["printers"], Members)
+    @FeatureFlag("embassy")
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string) {
         bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
@@ -164,6 +183,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["printers"])
+    @FeatureFlag("embassy")
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
         const inline_keyboard = [
@@ -187,6 +208,8 @@ export default class EmbassyHandlers implements BotHandlers {
         );
     }
 
+    @Route(["climate", "temp"])
+    @FeatureFlag("embassy")
     static async climateHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -203,6 +226,10 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["anette", "anettestatus"], null, () => ["anette"])
+    @Route(["plumbus", "plumbusstatus"], null, () => ["plumbus"])
+    @Route(["printerstatus"], /(.*\S)/, match => [match[1]])
+    @FeatureFlag("embassy")
     static async printerStatusHandler(bot: HackerEmbassyBot, msg: Message, printername: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -232,6 +259,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["doorbell", "db"], null, null, Members)
+    @FeatureFlag("embassy")
     static async doorbellHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
             await embassyService.doorbell();
@@ -257,6 +286,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["gayming", "gaming"], OptionalParam(/(status|help|up|down)/), match => ["gaming", match[1]], Members)
+    @FeatureFlag("embassy")
     static async deviceHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -301,6 +332,9 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["isalive", "alive", "probe"], /(\S+)/, match => [match[1]], Members)
+    @Route(["ping"], /(\S+)/, match => [match[1], true], Members)
+    @FeatureFlag("embassy")
     static async pingHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string, raw: boolean = false) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -323,6 +357,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["hey"])
+    @FeatureFlag("embassy")
     static async heyHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!PUBLIC_CHATS.includes(msg.chat.id)) {
             await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
@@ -353,6 +389,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["sayinspace", "say", "announce"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @FeatureFlag("embassy")
     static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
         bot.sendChatAction(msg.chat.id, "upload_voice", msg);
 
@@ -368,6 +406,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["textinspace", "text"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @FeatureFlag("embassy")
     static async textinspaceHandler(bot: HackerEmbassyBot, msg: Message, text?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -383,6 +423,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["gifinspace", "gif"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @FeatureFlag("embassy")
     static gifinspaceHandler(bot: HackerEmbassyBot, msg: Message, gifUrl?: string) {
         if (!gifUrl || gifUrl.length === 0) return bot.sendMessageExt(msg.chat.id, t("embassy.gif.help"), msg);
 
@@ -391,6 +433,8 @@ export default class EmbassyHandlers implements BotHandlers {
         return EmbassyHandlers.htmlinspaceHandler(bot, msg, gifHtml);
     }
 
+    @Route(["htmlinspace", "html"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @FeatureFlag("embassy")
     static async htmlinspaceHandler(bot: HackerEmbassyBot, msg: Message, html?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -413,6 +457,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["donationsummary", "textdonations"], OptionalParam(/(.*)/), match => [match[1]])
+    @FeatureFlag("embassy")
     static async sendDonationsSummaryHandler(bot: HackerEmbassyBot, msg: Message, fund?: string) {
         try {
             const selectedFund = fund ? fundsRepository.getFundByName(fund) : fundsRepository.getLatestCosts();
@@ -432,6 +478,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["stopmedia", "stop"], null, null, TrustedMembers)
+    @FeatureFlag("embassy")
     static async stopMediaHandler(bot: HackerEmbassyBot, msg: Message, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
@@ -445,6 +493,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["availablesounds", "sounds"], null, null, TrustedMembers)
+    @FeatureFlag("embassy")
     static async availableSoundsHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -471,6 +521,20 @@ export default class EmbassyHandlers implements BotHandlers {
         return EmbassyHandlers.playinspaceHandler(bot, msg, link);
     }
 
+    @Route(["playinspace", "play"], /(.*)/ims, match => [match[1]], TrustedMembers)
+    @Route(["fartinspace", "fart"], null, () => ["fart"], TrustedMembers)
+    @Route(["moaninspace", "moan"], null, () => ["moan"], TrustedMembers)
+    @Route(["rickroll", "nevergonnagiveyouup"], null, () => ["rickroll"], TrustedMembers)
+    @Route(["rzd"], null, () => ["rzd"], TrustedMembers)
+    @Route(["adler"], null, () => ["adler"], TrustedMembers)
+    @Route(["rfoxed", "rf0x1d"], null, () => ["rfoxed"], TrustedMembers)
+    @Route(["nani", "omaewamoushindeiru"], null, () => ["nani"], TrustedMembers)
+    @Route(["zhuchok", "zhenya", "anya", "zhanya"], null, () => ["zhuchok"], TrustedMembers)
+    @Route(["badum", "badumtss"], null, () => ["badumtss"], TrustedMembers)
+    @Route(["sad", "sadtrombone"], null, () => ["sad"], TrustedMembers)
+    @Route(["dushno", "openwindow"], null, () => ["dushno"], TrustedMembers)
+    @Route(["anthem", "uk", "british"], null, () => ["anthem"], TrustedMembers)
+    @FeatureFlag("embassy")
     static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, linkOrName: string, silentMessage: boolean = false) {
         bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
@@ -486,6 +550,9 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["conditioner", "conditioner1", "midea", "ac", "ac1"], null, () => ["downstairs"], TrustedMembers)
+    @Route(["conditioner2", "ac2", "lg"], null, () => ["upstairs"], TrustedMembers)
+    @FeatureFlag("embassy")
     static async conditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -553,18 +620,27 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["mideaon", "acon", "ac1on"], null, () => ["downstairs"], TrustedMembers)
+    @Route(["lgon", "ac2on"], null, () => ["upstairs"], TrustedMembers)
+    @FeatureFlag("embassy")
     static async turnOnConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.POWER_ON, null);
 
         if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
+    @Route(["mideaoff", "acoff", "ac1off"], null, () => ["downstairs"], TrustedMembers)
+    @Route(["lgoff", "ac2off"], null, () => ["upstairs"])
+    @FeatureFlag("embassy")
     static async turnOffConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.POWER_OFF, null);
 
         if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
+    @Route(["mideaaddtemp", "acaddtemp", "ac1addtemp"], CaptureInteger, match => ["downstairs", Number(match[1])], TrustedMembers)
+    @Route(["lgaddtemp", "ac2addtemp"], CaptureInteger, match => ["upstairs", Number(match[1])], TrustedMembers)
+    @FeatureFlag("embassy")
     static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, diff: number) {
         if (isNaN(diff)) throw Error();
         await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { diff });
@@ -575,11 +651,17 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["mideatemp", "actemp", "ac1temp"], /(\d*)/, match => ["downstairs", Number(match[1])], TrustedMembers)
+    @Route(["lgtemp", "ac2temp"], /(\d*)/, match => ["upstairs", Number(match[1])], TrustedMembers)
+    @FeatureFlag("embassy")
     static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, temperature: number) {
         if (isNaN(temperature)) throw Error();
         await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
     }
 
+    @Route(["mideamode", "acmode", "ac1mode"], /(\S+)/, match => ["downstairs", Number(match[1])], TrustedMembers)
+    @Route(["lgmode", "ac2mode"], /(\S+)/, match => ["upstairs", Number(match[1])], TrustedMembers)
+    @FeatureFlag("embassy")
     static async setConditionerModeHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -591,6 +673,8 @@ export default class EmbassyHandlers implements BotHandlers {
         if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
     }
 
+    @Route(["preheat"], null, null, Members)
+    @FeatureFlag("embassy")
     static async preheatHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
         await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.PREHEAT, {});
 
@@ -617,6 +701,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["txt2img", "img2img", "toimg", "sd", "generateimage"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @FeatureFlag("ai")
     static async stableDiffusiondHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
         const photoId = msg.photo?.[0]?.file_id;
 
@@ -640,6 +726,9 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["ask", "gpt"], OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.GPT])
+    @Route(["ollama", "llama", "lama"], OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.OLLAMA])
+    @FeatureFlag("ai")
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model: AvailableModels = AvailableModels.GPT) {
         const user = bot.context(msg).user;
 
@@ -666,6 +755,8 @@ export default class EmbassyHandlers implements BotHandlers {
         }
     }
 
+    @Route(["ena", "checkena", "checkoutages", "outages"])
+    @FeatureFlag("outage")
     static async checkOutageMentionsHandler(bot: HackerEmbassyBot, msg?: Message) {
         const destinationChat = msg?.chat.id ?? botConfig.chats.alerts;
         const street = botConfig.outage.electricity.target;

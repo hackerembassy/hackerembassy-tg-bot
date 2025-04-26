@@ -3,7 +3,7 @@ import logger from "@services/common/logger";
 import HackerEmbassyBot from "./core/HackerEmbassyBot";
 import { setMenu } from "./menu";
 import { setAutomaticFeatures } from "./recurring-actions";
-import { addEventHandlers, addRoutes, addSpecialRoutes } from "./router";
+import { addEventHandlers, addControllers, addSpecialRoutes } from "./router";
 
 // Configure the bot singleton instance
 if (!process.env["HACKERBOTTOKEN"]) {
@@ -16,7 +16,7 @@ if (!process.env["HACKERBOTTOKEN"]) {
 const bot = new HackerEmbassyBot(process.env["HACKERBOTTOKEN"]);
 
 export function StartTelegramBot() {
-    addRoutes(bot);
+    addControllers(bot);
     addSpecialRoutes(bot);
     addEventHandlers(bot);
     setAutomaticFeatures(bot);

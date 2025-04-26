@@ -12,9 +12,10 @@ import * as GitHub from "@services/external/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/external/googleCalendar";
 import logger from "@services/common/logger";
 import { cropStringAtSpace } from "@utils/text";
+import { FeatureFlag, Route, UserRoles } from "@hackembot/core/decorators";
 
 import * as Commands from "../../resources/commands";
-import { MAX_MESSAGE_LENGTH } from "../core/constants";
+import { MAX_MESSAGE_LENGTH, Members, TrustedMembers } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/InlineButtons";
 import t from "../core/localization";
@@ -23,10 +24,13 @@ import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
 import { getEventsList } from "../textGenerators";
 import { CommandsMap } from "../../resources/commands";
+import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicHandlers implements BotHandlers {
+    @Route(["help"], OptionalParam(/(\S+)/), match => [match[1]])
+    @UserRoles(["admin"])
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
         const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
         const userRoles = splitRoles(bot.context(msg).user);
@@ -48,6 +52,7 @@ export default class BasicHandlers implements BotHandlers {
         return await bot.sendLongMessage(msg.chat.id, text, msg);
     }
 
+    @Route(["about"])
     static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
@@ -66,6 +71,7 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["join"])
     static async joinHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
@@ -85,6 +91,7 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["events"])
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
         const message = TextGenerators.getEventsText(botConfig.features.calendar, `${bot.url}/calendar`);
 
@@ -126,6 +133,8 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["issue", "report"], OptionalParam(/(.*)/ims), match => ["space", match[1]])
+    @Route(["bug", "bugreport"], OptionalParam(/(.*)/ims), match => ["bot", match[1]])
     static async issueHandler(bot: HackerEmbassyBot, msg: Message, target: "bot" | "space", issueText: string) {
         if (issueText) {
             const sentMessage = t(`basic.issue.${target}.sent`);
@@ -151,6 +160,7 @@ export default class BasicHandlers implements BotHandlers {
         }
     }
 
+    @Route(["donate"])
     static async donateHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
@@ -174,11 +184,19 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["location", "where"])
     static async locationHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.address") });
         await bot.sendLocationExt(msg.chat.id, 40.194336, 44.497607, msg);
     }
 
+    @Route(["donatecrypto", "crypto"], /(btc|eth|usdc|usdt|trx|ton)/, match => [match[1]])
+    @Route(["btc"], null, () => ["btc"])
+    @Route(["eth"], null, () => ["eth"])
+    @Route(["usdc"], null, () => ["usdc"])
+    @Route(["usdt"], null, () => ["usdt"])
+    @Route(["trx"], null, () => ["trx"])
+    @Route(["ton"], null, () => ["ton"])
     static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname: string) {
         const coinDefinition = getCoinDefinition(coinname.toLowerCase());
 
@@ -194,6 +212,7 @@ export default class BasicHandlers implements BotHandlers {
         });
     }
 
+    @Route(["donatecash", "cash", "donatecard", "card"])
     static async donateCardHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountantsList = TextGenerators.getAccountsList(
             UsersRepository.getUsersByRole("accountant"),
@@ -203,6 +222,7 @@ export default class BasicHandlers implements BotHandlers {
         await bot.sendOrEditMessage(msg.chat.id, t("basic.donateCard", { accountantsList }), msg, {}, msg.message_id);
     }
 
+    @Route(["donateequipment", "equipment"])
     static async donateEquipmentHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [[AnnoyingInlineButton(bot, msg, t("basic.info.buttons.residents"), "getresidents")]];
         await bot.sendOrEditMessage(
@@ -214,6 +234,7 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["getresidents", "gr", "residents", "members"])
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
@@ -224,6 +245,7 @@ export default class BasicHandlers implements BotHandlers {
         await bot.sendOrEditMessage(msg.chat.id, message, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
     }
 
+    @Route(["start", "startpanel", "sp"])
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [InlineButton(t("basic.start.buttons.status"), "status", ButtonFlags.Editing)],
@@ -261,6 +283,8 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["controlpanel", "cp"], null, null, Members)
+    @FeatureFlag("embassy")
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [InlineButton(t("basic.control.buttons.superstatus"), "superstatus")],
@@ -298,6 +322,7 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["infopanel", "info", "ip", "faq"])
     static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
@@ -328,6 +353,7 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["memepanel", "meme", "memes", "mp"], null, null, TrustedMembers)
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
@@ -377,6 +403,8 @@ export default class BasicHandlers implements BotHandlers {
         );
     }
 
+    @Route(["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"], OptionalParam(/(\d)/), match => [match[1]])
+    @FeatureFlag("calendar")
     static async upcomingEventsHandler(bot: HackerEmbassyBot, msg: Message, numberOfEvents?: number) {
         let messageText: string = t("basic.events.upcoming") + "\n";
 
@@ -408,6 +436,8 @@ export default class BasicHandlers implements BotHandlers {
         }
     }
 
+    @Route(["todayevents", "today", "te"])
+    @FeatureFlag("calendar")
     static async todayEventsHandler(bot: HackerEmbassyBot, msg: Message) {
         let messageText: string = "";
 

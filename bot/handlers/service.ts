@@ -7,13 +7,14 @@ import UsersRepository from "@repositories/users";
 import ApiKeysRepository from "@repositories/apikeys";
 import logger from "@services/common/logger";
 import { generateRandomKey, sha256 } from "@utils/security";
+import { Route } from "@hackembot/core/decorators";
 
-import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
+import { MAX_MESSAGE_LENGTH_WITH_TAGS, Members, TrustedMembers } from "../core/constants";
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
 import { BotHandlers, MessageHistoryEntry } from "../core/types";
-import { tgUserLink } from "../core/helpers";
+import { OptionalParam, tgUserLink } from "../core/helpers";
 import EmbassyHandlers from "./embassy";
 import StatusHandlers from "./status";
 
@@ -22,6 +23,7 @@ const botConfig = config.get<BotConfig>("bot");
 const DeprecatedReplacementMap = new Map<string, string>([["knock", "hey"]]);
 
 export default class ServiceHandlers implements BotHandlers {
+    @Route(["clear"], OptionalParam(/(\d*)/), match => [match[1]], Members)
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
@@ -41,6 +43,7 @@ export default class ServiceHandlers implements BotHandlers {
         }
     }
 
+    @Route(["combine", "squash", "sq"], OptionalParam(/(\d*)/), match => [match[1]], Members)
     static async combineHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
         const countToCombine = inputCount > 2 ? inputCount : 2;
@@ -116,6 +119,7 @@ export default class ServiceHandlers implements BotHandlers {
         }
     }
 
+    @Route(["chatid"])
     static async chatidHandler(bot: HackerEmbassyBot, msg: Message) {
         if (msg.chat.type === "private") {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}`, msg);
@@ -126,6 +130,7 @@ export default class ServiceHandlers implements BotHandlers {
         }
     }
 
+    @Route(["knock"])
     static deprecatedHandler(bot: HackerEmbassyBot, msg: Message) {
         const command = bot.context(msg).command;
         const replacement = command ? DeprecatedReplacementMap.get(command) : undefined;
@@ -137,11 +142,13 @@ export default class ServiceHandlers implements BotHandlers {
         bot.sendTemporaryMessage(msg.chat.id, text, msg);
     }
 
+    @Route(["superstatus", "ss"], null, null, Members)
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {
         await StatusHandlers.statusHandler(bot, msg);
         await EmbassyHandlers.allCamsHandler(bot, msg);
     }
 
+    @Route(["removebuttons", "rb", "static"], null, null, Members)
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
         try {
             // I hate topics in tg 🤬
@@ -209,6 +216,9 @@ export default class ServiceHandlers implements BotHandlers {
         );
     }
 
+    @Route(["setlanguage", "setlang", "lang", "language"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["ru", "russian"], null, () => ["ru"])
+    @Route(["en", "english"], null, () => ["en"])
     static async setLanguageHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -267,6 +277,7 @@ export default class ServiceHandlers implements BotHandlers {
         return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
     }
 
+    @Route(["token"], OptionalParam(/(\S+?)/), match => [match[1]], TrustedMembers)
     static tokenHandler(bot: HackerEmbassyBot, msg: Message, command: string) {
         const context = bot.context(msg);
 

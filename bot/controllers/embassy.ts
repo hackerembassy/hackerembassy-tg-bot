@@ -15,9 +15,18 @@ import { userService, hasRole } from "@services/domain/user";
 
 import { sleep } from "@utils/common";
 import { fullScreenImagePage } from "@utils/html";
-import { CaptureInteger, FeatureFlag, Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decorators";
+import {
+    AllowedChats,
+    CaptureInteger,
+    FeatureFlag,
+    Members,
+    PublicChats,
+    Route,
+    TrustedMembers,
+    UserRoles,
+} from "@hackembot/core/decorators";
 
-import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/classes/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
 import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
@@ -359,12 +368,8 @@ export default class EmbassyController implements BotController {
 
     @Route(["hey"])
     @FeatureFlag("embassy")
+    @AllowedChats(PublicChats)
     static async heyHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (!PUBLIC_CHATS.includes(msg.chat.id)) {
-            await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
-            return;
-        }
-
         const residents = usersRepository.getUsersByRole("member");
         const residentsInside = userService
             .getPeopleInside()
@@ -713,12 +718,12 @@ export default class EmbassyController implements BotController {
 
     @Route(["txt2img", "img2img", "toimg", "sd", "generateimage"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("ai")
+    @AllowedChats(PublicChats)
     static async stableDiffusiondHandler(bot: HackerEmbassyBot, msg: Message, prompt: string) {
         const photoId = msg.photo?.[0]?.file_id;
 
         if (msg.chat.id !== botConfig.chats.horny && !hasRole(bot.context(msg).user, "trusted", "member"))
             return bot.sendRestrictedMessage(msg);
-        if (!PUBLIC_CHATS.includes(msg.chat.id)) return bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
         if (!prompt && !photoId) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.help"), msg);
 
         try {
@@ -739,12 +744,11 @@ export default class EmbassyController implements BotController {
     @Route(["ask", "gpt"], OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.GPT])
     @Route(["ollama", "llama", "lama"], OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.OLLAMA])
     @FeatureFlag("ai")
+    @AllowedChats(PublicChats)
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model: AvailableModels = AvailableModels.GPT) {
         const user = bot.context(msg).user;
 
         if (msg.chat.id !== botConfig.chats.horny && !hasRole(user, "trusted", "member")) return bot.sendRestrictedMessage(msg);
-        if (!PUBLIC_CHATS.includes(msg.chat.id) && !hasRole(user, "admin"))
-            return bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
         if (!prompt) return bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
 
         const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);

@@ -69,11 +69,9 @@ import {
 } from "../types";
 import { ButtonFlags, InlineDeepLinkButton } from "../inlineButtons";
 import ChatBridge from "./ChatBridge";
-import { MetadataKeys, RouteMetadata } from "../decorators";
+import { MetadataKeys, PublicChats, RouteMetadata } from "../decorators";
 
 const botConfig = config.get<BotConfig>("bot");
-
-export const PUBLIC_CHATS = Object.values(botConfig.chats) as number[];
 
 const WelcomeMessageMap: {
     [x: number]: string | undefined;
@@ -92,6 +90,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     public assets: BotAssets = {
         images: {
             restricted: null,
+            chatnotallowed: null,
         },
     };
     public pollingError: Error | null = null;
@@ -146,20 +145,28 @@ export default class HackerEmbassyBot extends TelegramBot {
         super.processUpdate(update);
     }
 
-    canUserCall(user: Nullable<User>, command: string): boolean {
-        const savedRestrictions = this.routeMap.get(command)?.restrictions;
+    isUserAllowed(user: Nullable<User>, command: string): boolean {
+        const savedRestrictions = this.routeMap.get(command)?.userRoles;
 
         if (!savedRestrictions || savedRestrictions.length === 0) return true;
-
         if (user) return hasRole(user, "admin", ...savedRestrictions);
 
         return savedRestrictions.includes("default");
     }
 
+    isChatAllowed(chatId: number, command: string): boolean {
+        const savedRestrictions = this.routeMap.get(command)?.allowedChats;
+
+        if (!savedRestrictions || savedRestrictions.length === 0) return true;
+        if (savedRestrictions.includes(chatId)) return true;
+
+        return false;
+    }
+
     canUserGuess(user: Nullable<User>, chat: TelegramBot.Chat): boolean {
         if (!botConfig.features.ai || !user) return false;
 
-        return (hasRole(user, "member", "trusted", "admin") && PUBLIC_CHATS.includes(chat.id)) || hasRole(user, "admin");
+        return (hasRole(user, "member", "trusted", "admin") && PublicChats.includes(chat.id)) || hasRole(user, "admin");
     }
 
     context(msg: TelegramBot.Message): BotMessageContext {
@@ -595,8 +602,10 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Check restritions
             if (isBanned(user)) return;
-            if (route.restrictions.length > 0 && !this.canUserCall(user, command))
-                return this.sendRestrictedMessage(message, route);
+            if (route.userRoles.length > 0 && !this.isUserAllowed(user, command))
+                return this.sendRestrictedMessage(message, route, "restricted");
+            if (route.allowedChats.length > 0 && !this.isChatAllowed(message.chat.id, command))
+                return this.sendRestrictedMessage(message, route, "chatnotallowed");
 
             // Parse global modifiers and set them to the context
             let textToMatch = text.replace(commandWithCase, command);
@@ -672,7 +681,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (!data.cmd) throw Error("Missing calback command");
 
         // Check restritions
-        if (isBanned(user) || !this.canUserCall(user, data.cmd)) return;
+        if (isBanned(user) || !this.isUserAllowed(user, data.cmd)) return;
 
         // Get route handler
         const handler = this.routeMap.get(data.cmd)?.handler;
@@ -759,16 +768,20 @@ export default class HackerEmbassyBot extends TelegramBot {
         return false;
     }
 
-    public async sendRestrictedMessage(message: TelegramBot.Message, route?: BotRoute) {
-        this.assets.images.restricted = await fs.readFile("./resources/images/restricted.jpg").catch(() => null);
+    public async sendRestrictedMessage(
+        message: TelegramBot.Message,
+        route?: BotRoute,
+        type: keyof typeof this.assets.images = "restricted"
+    ) {
+        this.assets.images[type] = await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
 
-        this.assets.images.restricted
-            ? this.sendPhotoExt(message.chat.id, this.assets.images.restricted, message, {
-                  caption: t("admin.messages.restricted", { required: route ? route.restrictions.join(", ") : "someone else" }),
+        this.assets.images[type]
+            ? this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
+                  caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
               })
             : this.sendMessageExt(
                   message.chat.id,
-                  t("admin.messages.restricted", { required: route ? route.restrictions.join(", ") : "someone else" }),
+                  t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
                   message
               );
     }
@@ -798,11 +811,12 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             const roles = Reflect.getMetadata(MetadataKeys.Roles, controller, methodName) as UserRole[];
             const routes = Reflect.getMetadata(MetadataKeys.Route, controller, methodName) as RouteMetadata[];
+            const allowedChats = Reflect.getMetadata(MetadataKeys.AllowedChats, controller, methodName) as ChatId[];
             const method = controller[methodName as keyof BotController] as BotHandler;
             const handler = method.bind(controller);
 
             for (const route of routes) {
-                this.addRoute(route.aliases, handler, route.paramRegex, route.paramMapper, roles);
+                this.addRoute(route.aliases, handler, route.paramRegex, route.paramMapper, roles, allowedChats);
             }
         }
     }
@@ -812,16 +826,18 @@ export default class HackerEmbassyBot extends TelegramBot {
         handler: BotHandler,
         paramRegex: Nullable<RegExp> = null,
         paramMapper: Nullable<MatchMapperFunction> = null,
-        restrictions: UserRole[] = []
+        userRoles: UserRole[] = [],
+        allowedChats: ChatId[] = []
     ): void {
         const optional = paramRegex instanceof OptionalRegExp;
-
+        const regex = this.createRegex(aliases, paramRegex, optional);
         const botRoute = {
-            regex: this.createRegex(aliases, paramRegex, optional),
+            regex,
             handler,
-            restrictions,
             paramMapper,
             optional,
+            userRoles,
+            allowedChats,
         };
 
         for (const alias of aliases) {

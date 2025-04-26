@@ -343,7 +343,7 @@ export default class FundsController implements BotController {
                 UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
                 UsersRepository.getUserByUserId(helpers.getMentions(msg)[0]?.id);
             const accountant = bot.context(msg).user;
-            if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+            if (!user) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
             const fund = FundsRepository.getFundByName(fundName);
             if (!fund) return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.nofund"), msg);
@@ -552,7 +552,7 @@ export default class FundsController implements BotController {
 
         const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : bot.context(msg).user;
 
-        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
         const donations = FundsRepository.getFundDonationsHeldBy(target.userid);
         const donationList = donations.length ? TextGenerators.generateFundDonationsList(donations, true) : "";

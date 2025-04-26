@@ -58,7 +58,7 @@ export default class SubscriptionsController implements BotController {
                 msg.message_id
             );
         } catch (error) {
-            await bot.sendMessageExt(msg.chat.id, t("topics.general.error"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("topics.general.errors.generic"), msg);
             logger.error(error);
         }
     }
@@ -91,7 +91,7 @@ export default class SubscriptionsController implements BotController {
             );
         } catch (error) {
             logger.error(error);
-            return bot.sendMessageExt(msg.chat.id, t("topics.general.error"), msg);
+            return bot.sendMessageExt(msg.chat.id, t("topics.general.errors.generic"), msg);
         }
     }
 
@@ -152,7 +152,7 @@ export default class SubscriptionsController implements BotController {
 
             await bot.sendMessageExt(msg.chat.id, t("topics.notify.finished", { topic: topicname, count, received }), msg);
         } catch (error) {
-            await bot.sendMessageExt(msg.chat.id, t("topics.general.error"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("topics.general.errors.generic"), msg);
             logger.error(error);
         }
     }
@@ -185,7 +185,7 @@ export default class SubscriptionsController implements BotController {
                 msg.message_id
             );
         } catch (error) {
-            await bot.sendMessageExt(msg.chat.id, t("topics.general.error"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("topics.general.errors.generic"), msg);
             logger.error(error);
         }
     }

@@ -1,14 +1,19 @@
 import "reflect-metadata";
+import config from "config";
+
+import { BotConfig, BotFeatureFlag } from "@config";
 import { UserRole } from "@data/types";
-import { BotFeatureFlag } from "@config";
 
 import { OptionalRegExp } from "./helpers";
 import { BotController, MatchMapperFunction } from "./types";
+
+const botConfig = config.get<BotConfig>("bot");
 
 export enum MetadataKeys {
     Route = "route",
     FeatureFlag = "feature-flag",
     Roles = "roles",
+    AllowedChats = "allowed-chats",
 }
 
 // Common user roles
@@ -21,6 +26,9 @@ export const Admins = ["admin"] as UserRole[];
 export const CaptureListOfIds = /(\d[\d\s,]*)/;
 export const CaptureInteger = /(-?\d+)/;
 
+// Common chat IDs
+export const PublicChats = Object.values(botConfig.chats) as number[];
+
 export interface RouteMetadata {
     aliases: string[];
     paramRegex: Optional<OptionalRegExp>;
@@ -30,6 +38,12 @@ export interface RouteMetadata {
 export function UserRoles(roles: UserRole[]) {
     return function (target: BotController, propertyKey: string | symbol) {
         Reflect.defineMetadata(MetadataKeys.Roles, roles, target, propertyKey);
+    };
+}
+
+export function AllowedChats(chatIds: number[]) {
+    return function (target: BotController, propertyKey: string | symbol) {
+        Reflect.defineMetadata(MetadataKeys.AllowedChats, chatIds, target, propertyKey);
     };
 }
 

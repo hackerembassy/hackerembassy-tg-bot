@@ -24,9 +24,19 @@ import { userService } from "@services/domain/user";
 import { sleep } from "@utils/common";
 import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
-import { Accountants, Admins, FeatureFlag, Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decorators";
+import {
+    Accountants,
+    Admins,
+    AllowedChats,
+    FeatureFlag,
+    Members,
+    PublicChats,
+    Route,
+    TrustedMembers,
+    UserRoles,
+} from "@hackembot/core/decorators";
 
-import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/classes/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/inlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
@@ -334,12 +344,8 @@ export default class StatusController implements BotController {
 
     @Route(["shouldigo", "shouldvisit", "shouldgo", "should"])
     @FeatureFlag("ai")
+    @AllowedChats(PublicChats)
     static async shouldIGoHandler(bot: HackerEmbassyBot, msg: Message) {
-        if (!PUBLIC_CHATS.includes(msg.chat.id)) {
-            await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
-            return;
-        }
-
         try {
             bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -469,7 +475,7 @@ export default class StatusController implements BotController {
               ? UsersRepository.getUserByName(username.replace("@", ""))
               : sender;
 
-        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
         const inviterName = force ? helpers.effectiveName(sender) : undefined;
         const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
@@ -521,7 +527,7 @@ export default class StatusController implements BotController {
               ? UsersRepository.getUserByName(username.replace("@", ""))
               : sender;
 
-        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+        if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
         const gotOut = userService.letOut(target, force ? UserStateChangeType.Force : UserStateChangeType.Manual, eventDate);
         let message: string;

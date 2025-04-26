@@ -3,7 +3,7 @@ import { Stream } from "stream";
 
 import TelegramBot, { ChatId, Message, SendMessageOptions, SendPhotoOptions } from "node-telegram-bot-api";
 
-import { addRoutes } from "@hackembot/router";
+import { addControllers } from "@hackembot/router";
 import { TEST_USERS } from "@data/seed";
 import HackerEmbassyBot from "@hackembot/core/HackerEmbassyBot";
 import { sleep } from "@utils/common";
@@ -49,7 +49,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
 
 export function createMockBot() {
     const botMock = new HackerEmbassyBotMock("TOKEN");
-    addRoutes(botMock);
+    addControllers(botMock);
     botMock.start();
 
     return botMock;

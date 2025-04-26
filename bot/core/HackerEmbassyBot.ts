@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import { EventEmitter, Stream } from "stream";
+import "reflect-metadata";
 
 import config from "config";
 
@@ -64,9 +65,11 @@ import {
     SendMediaGroupOptionsExt,
     SerializedFunction,
     BotAssets,
+    BotHandlers,
 } from "./types";
 import { ButtonFlags, InlineDeepLinkButton } from "./InlineButtons";
 import ChatBridge from "./ChatBridge";
+import { MetadataKeys, RouteMetadata } from "./decorators";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -773,6 +776,38 @@ export default class HackerEmbassyBot extends TelegramBot {
     addEventRoutes(voiceHandler: BotHandler, chatMemberHandler: ChatMemberHandler) {
         this.voiceHandler = voiceHandler;
         this.chatMemberHandler = chatMemberHandler;
+    }
+
+    addController(controller: BotHandlers) {
+        const decoratedMethods = Object.getOwnPropertyNames(controller)
+            .filter(
+                name =>
+                    typeof controller[name as keyof BotHandlers] === "function" &&
+                    name !== "prototype" &&
+                    name !== "length" &&
+                    name !== "name"
+            )
+            .filter(name => Reflect.getMetadata(MetadataKeys.Route, controller, name));
+
+        for (const methodName of decoratedMethods) {
+            const featureFlag = Reflect.getMetadata(MetadataKeys.FeatureFlag, controller, methodName) as
+                | keyof typeof botConfig.features
+                | undefined;
+
+            if (featureFlag && !botConfig.features[featureFlag]) continue;
+
+            const method = controller[methodName as keyof BotHandlers] as BotHandler;
+            const attributeRoles = Reflect.getMetadata(MetadataKeys.Roles, controller, methodName) as UserRole[] | undefined;
+            const handler = method.bind(controller);
+
+            const routes = Reflect.getMetadata(MetadataKeys.Route, controller, methodName) as RouteMetadata[];
+
+            for (const route of routes) {
+                const { aliases, paramRegex, paramMapper, roles } = route;
+
+                this.addRoute(aliases, handler, paramRegex, paramMapper, [...(attributeRoles ?? []), ...(roles ?? [])]);
+            }
+        }
     }
 
     addRoute(

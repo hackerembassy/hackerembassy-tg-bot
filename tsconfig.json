@@ -1,32 +1,34 @@
 {
     "compilerOptions": {
-      "outDir": "./dist",
-      "allowJs": true,
-      "target": "ES2022",
-      "lib": ["ES2023"],
-      "module": "None",
-      "moduleResolution": "Node",
-      "noImplicitReturns": true,
-      "strict": true,
-      "esModuleInterop": true,
-      "typeRoots" : ["./node_modules/@types", "./typings"],
-      "baseUrl": ".",
-      "paths": {
+        "outDir": "./dist",
+        "allowJs": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "target": "ES2022",
+        "lib": ["ES2023"],
+        "module": "None",
+        "moduleResolution": "Node",
+        "noImplicitReturns": true,
+        "strict": true,
+        "esModuleInterop": true,
+        "typeRoots": ["./node_modules/@types", "./typings"],
+        "baseUrl": ".",
+        "paths": {
             "@utils/*": ["utils/*"],
             "@services/*": ["services/*"],
             "@data/*": ["data/*"],
             "@repositories/*": ["repositories/*"],
             "@config": ["config/schema"],
             "@hackembot/*": ["bot/*"],
-            "@hackemapi/*": ["api/*"],
-      }   
+            "@hackemapi/*": ["api/*"]
+        }
     },
     "tsc-alias": {
-      "replacers": {
-        "base-url": {
-          "enabled": false
+        "replacers": {
+            "base-url": {
+                "enabled": false
+            }
         }
-      }
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "coverage", "dist"]

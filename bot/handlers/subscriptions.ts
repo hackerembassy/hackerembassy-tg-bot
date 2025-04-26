@@ -6,17 +6,19 @@ import logger from "@services/common/logger";
 import SubscriptionsService from "@services/domain/subscriptions";
 import { splitArray } from "@utils/common";
 
-import { MAX_MENTIONS_WITH_NOTIFICATIONS } from "@hackembot/core/constants";
+import { MAX_MENTIONS_WITH_NOTIFICATIONS, Members } from "@hackembot/core/constants";
+import { Route } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/InlineButtons";
 import t from "../core/localization";
 import { DEFAULT_API_RATE_LIMIT, DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/RateLimit";
 import { BotHandlers } from "../core/types";
-import { userLink } from "../core/helpers";
+import { OptionalParam, userLink } from "../core/helpers";
 import { listTopics } from "../textGenerators";
 
 export default class TopicsHandlers implements BotHandlers {
+    @Route(["mysubscriptions", "subscriptions", "subs"])
     static async mySubscriptionsHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
             const subscriptions = SubscriptionsService.getSubscriptionsByUser(bot.context(msg).user);
@@ -61,6 +63,7 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["tagsubscribers", "tagsubs", "tag"], /(\S+)/, match => [match[1]])
     static tagSubscribersHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const topic = SubscriptionsService.getTopic(topicname);
@@ -92,6 +95,7 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["notify", "notifysubs", "notifysubscribers"], OptionalParam(/(\S+) (.*)/s), match => [match[1], match[2]], Members)
     static async notifySubscribersHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, text: string) {
         try {
             if (!topicname || !text) {
@@ -152,6 +156,7 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["topics"], OptionalParam(/(all)/), match => [match[1]])
     static async topicsHandler(bot: HackerEmbassyBot, msg: Message, param?: string) {
         try {
             const isMember = bot.context(msg).user.roles?.includes("member");
@@ -184,6 +189,7 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["addtopic", "createtopic"], /(\S+)(?: (.*))?/, match => [match[1], match[2]], Members)
     static async addTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, topicdescription: string) {
         try {
             if (SubscriptionsService.getTopic(topicname)) {
@@ -202,6 +208,7 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["deletetopic", "removetopic"], /(\S+)/, match => [match[1]], Members)
     static async deleteTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const topic = SubscriptionsService.getTopic(topicname);
@@ -222,6 +229,7 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["subscribe", "sub"], /(\S+)/, match => [match[1]])
     static subscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const sender = bot.context(msg).user;
@@ -241,6 +249,7 @@ export default class TopicsHandlers implements BotHandlers {
         }
     }
 
+    @Route(["unsubscribe", "unsub"], /(\S+)/, match => [match[1]])
     static unsubscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const sender = bot.context(msg).user;

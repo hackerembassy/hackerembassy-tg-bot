@@ -61,6 +61,7 @@
         "node-telegram-bot-api": "^0.66.0",
         "nodemon": "^3.1.7",
         "ping": "^0.4.4",
+        "reflect-metadata": "^0.2.2",
         "rm": "^0.1.8",
         "rrule": "^2.8.1",
         "swagger-ui-express": "^5.0.1",

@@ -22,8 +22,10 @@ import { spaceService } from "@services/domain/space";
 import { userService } from "@services/domain/user";
 
 import { sleep } from "@utils/common";
-import { getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
+import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
+import { FeatureFlag, Route } from "@hackembot/core/decorators";
+import { Accountants, Admins, Members, TrustedMembers } from "@hackembot/core/constants";
 
 import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/InlineButtons";
@@ -31,12 +33,14 @@ import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../textGenerators";
+import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
 export default class StatusHandlers implements BotHandlers {
     static isStatusError = false;
 
+    @Route(["mac", "setmac", "mymac"], OptionalParam(/(\S*)(?: (.+))?/), match => [match[1], match[2]])
     static async macHandler(bot: HackerEmbassyBot, msg: Message, cmd: string, mac?: string) {
         const user = bot.context(msg).user;
         const userLink = helpers.userLink(user);
@@ -111,6 +115,8 @@ export default class StatusHandlers implements BotHandlers {
         return inline_keyboard;
     }
 
+    @Route(["autoinside"], OptionalParam(/(.*\S)/), match => [match[1]])
+    @FeatureFlag("autoinside")
     static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
         const mode = bot.context(msg).mode;
         const user = bot.context(msg).user;
@@ -257,6 +263,7 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
+    @Route(["livestatus", "live"], null, null, Members)
     static async liveStatusShortcutHandler(bot: HackerEmbassyBot, msg: Message) {
         const mode = bot.context(msg).mode;
         mode.live = true;
@@ -265,6 +272,8 @@ export default class StatusHandlers implements BotHandlers {
         await StatusHandlers.statusHandler(bot, msg, true);
     }
 
+    @Route(["status", "s"], OptionalParam(/(short)/), match => [match[1] === "short"])
+    @Route(["shortstatus", "statusshort", "shs"], null, () => [true])
     static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
         const context = bot.context(msg);
         if (!context.isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
@@ -323,6 +332,8 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
+    @Route(["shouldigo", "shouldvisit", "shouldgo", "should"])
+    @FeatureFlag("ai")
     static async shouldIGoHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!PUBLIC_CHATS.includes(msg.chat.id)) {
             await bot.sendMessageExt(msg.chat.id, t("general.chatnotallowed"), msg);
@@ -353,6 +364,7 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
+    @Route(["open", "o"], null, null, Members)
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
         const opener = bot.context(msg).user;
 
@@ -395,6 +407,7 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
+    @Route(["close", "c"], null, null, Members)
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
         const closer = bot.context(msg).user;
 
@@ -412,6 +425,7 @@ export default class StatusHandlers implements BotHandlers {
         });
     }
 
+    @Route(["evict", "outforceall"], null, null, Members)
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
         userService.evictPeople();
         bot.customEmitter.emit(BotCustomEvent.statusLive);
@@ -419,6 +433,19 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
+    @Route(["in", "iaminside"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [false, match[1]])
+    @Route(
+        ["inghost", "ghost"],
+        OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)),
+        match => [true, match[1]],
+        TrustedMembers
+    )
+    @Route(
+        ["inforce", "inf", "goin"],
+        RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`),
+        match => [false, match[2], match[1]],
+        TrustedMembers
+    )
     static inHandler(bot: HackerEmbassyBot, msg: Message, ghost: boolean = false, durationString?: string, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
@@ -468,6 +495,8 @@ export default class StatusHandlers implements BotHandlers {
         });
     }
 
+    @Route(["outforce", "outf", "gohome"], /(\S+)/, match => [match[1]], TrustedMembers)
+    @Route(["out", "iamleaving"])
     static outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
@@ -514,6 +543,7 @@ export default class StatusHandlers implements BotHandlers {
         });
     }
 
+    @Route(["going", "coming", "cuming", "g"], OptionalParam(/(.*)/), match => [match[1]])
     static async goingHandler(bot: HackerEmbassyBot, msg: Message, note?: string) {
         const sender = bot.context(msg).user;
 
@@ -539,6 +569,7 @@ export default class StatusHandlers implements BotHandlers {
         });
     }
 
+    @Route(["notgoing", "notcoming", "notcuming", "ng"], OptionalParam(/(.*)/), match => [match[1]])
     static async notGoingHandler(bot: HackerEmbassyBot, msg: Message, note?: string) {
         const sender = bot.context(msg).user;
 
@@ -553,6 +584,7 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
+    @Route(["setemoji", "emoji", "myemoji"], OptionalParam(/(.*)/), match => [match[1]], TrustedMembers)
     static async setemojiHandler(bot: HackerEmbassyBot, msg: Message, emoji: string) {
         const sender = bot.context(msg).user;
         const userLink = helpers.userLink(sender);
@@ -578,6 +610,7 @@ export default class StatusHandlers implements BotHandlers {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
+    @Route(["detected"], null, null, Admins)
     static async detectedDevicesHandler(bot: HackerEmbassyBot, msg: Message) {
         const detectedDevices = await embassyService.fetchMacsInside();
         const userdevices = userService.getDevicesWithUsers();
@@ -661,6 +694,8 @@ export default class StatusHandlers implements BotHandlers {
         if (timedOutUsers.length > 0) bot.customEmitter.emit(BotCustomEvent.statusLive);
     }
 
+    @Route(["profile"], /(\S+)/, match => [match[1]], Accountants)
+    @Route(["me"])
     static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string): Promise<any> {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -693,6 +728,8 @@ export default class StatusHandlers implements BotHandlers {
         }
     }
 
+    @Route(["statsof"], /(\S+)/, match => [match[1]])
+    @Route(["mystats"])
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -709,6 +746,8 @@ export default class StatusHandlers implements BotHandlers {
         );
     }
 
+    @Route(["month", "statsmonth", "monthstats"])
+    @Route(["lastmonth", "statslastmonth", "lastmonthstats"], null, () => [new Date().getMonth() - 1])
     static async statsMonthHandler(bot: HackerEmbassyBot, msg: Message, month?: number) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -727,6 +766,8 @@ export default class StatusHandlers implements BotHandlers {
         await StatusHandlers.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
+    @Route(["stats"], OptionalParam(/(?:from (\S+) ?)?(?:to (\S+))?/), match => [match[1], match[2]])
+    @Route(["statsall", "allstats"], null, () => [botConfig.launchDate])
     static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string): Promise<any> {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 

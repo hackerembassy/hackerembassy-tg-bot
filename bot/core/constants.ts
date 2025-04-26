@@ -1,3 +1,5 @@
+import { UserRole } from "@data/types";
+
 export const MAX_MESSAGE_LENGTH = 3500;
 export const MAX_MESSAGE_LENGTH_WITH_TAGS = 3200;
 export const MAX_MENTIONS_WITH_NOTIFICATIONS = 5;
@@ -48,3 +50,12 @@ export const POLLING_OPTIONS = {
 };
 
 export const FULL_PERMISSIONS = Object.fromEntries(Object.keys(RESTRICTED_PERMISSIONS).map(key => [key, true]));
+
+export const TrustedMembers = ["member", "trusted"] as UserRole[];
+export const Members = ["member"] as UserRole[];
+export const Accountants = ["accountant"] as UserRole[];
+export const Admins = ["admin"] as UserRole[];
+
+// Common regexes
+export const CaptureListOfIds = /(\d[\d\s,]*)/;
+export const CaptureInteger = /(-?\d+)/;

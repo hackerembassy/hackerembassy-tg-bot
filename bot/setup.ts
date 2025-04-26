@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import config from "config";
 
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";

@@ -669,7 +669,10 @@ export default class StatusController implements BotController {
 
             for (const mac of await macsInsideRequest) {
                 const macUser = macUsersMap.get(mac);
-                if (macUser) checkInside ? usersToUpdateSet.add(macUser) : usersToUpdateSet.delete(macUser);
+                if (!macUser) continue;
+
+                if (checkInside) usersToUpdateSet.add(macUser);
+                else usersToUpdateSet.delete(macUser);
             }
 
             // Update user states

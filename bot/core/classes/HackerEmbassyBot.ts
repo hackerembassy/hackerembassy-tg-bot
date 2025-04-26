@@ -121,8 +121,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         // Let's start listening for events
         this.on("message", this.routeMessage);
         this.on("callback_query", this.routeCallback);
-        this.voiceHandler && this.on("voice", this.voiceHandler.bind(this, this));
-        this.chatMemberHandler && this.onExt("chat_member", this.chatMemberHandler);
+        if (this.voiceHandler) this.on("voice", this.voiceHandler.bind(this, this));
+        if (this.chatMemberHandler) this.onExt("chat_member", this.chatMemberHandler);
         if (botConfig.features.reactions) this.on("message", message => this.reactToMessage(message));
 
         this.on("error", error => logger.error(error));
@@ -274,7 +274,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: ChatId,
         animation: string | Stream | Buffer,
         msg: TelegramBot.Message,
-        options?: TelegramBot.SendAnimationOptions | undefined
+        options?: TelegramBot.SendAnimationOptions
     ): Promise<TelegramBot.Message> {
         const context = this.context(msg);
         const mode = context.mode;
@@ -654,7 +654,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         } catch (error) {
             logger.error(error);
         } finally {
-            msg && this.clearContext(msg);
+            if (msg) this.clearContext(msg);
         }
     }
 
@@ -697,7 +697,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [this, msg];
 
         if (data.params !== undefined) {
-            Array.isArray(data.params) ? params.push(...(data.params as unknown[])) : params.push(data.params);
+            if (Array.isArray(data.params)) params.push(...(data.params as unknown[]));
+            else params.push(data.params);
         }
 
         await context.run(() => handler.apply(this, params));
@@ -775,15 +776,17 @@ export default class HackerEmbassyBot extends TelegramBot {
     ) {
         this.assets.images[type] = await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
 
-        this.assets.images[type]
-            ? this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
-                  caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
-              })
-            : this.sendMessageExt(
-                  message.chat.id,
-                  t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
-                  message
-              );
+        if (this.assets.images[type]) {
+            this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
+                caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
+            });
+        } else {
+            this.sendMessageExt(
+                message.chat.id,
+                t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
+                message
+            );
+        }
     }
 
     addEventRoutes(voiceHandler: BotHandler, chatMemberHandler: ChatMemberHandler) {
@@ -1001,10 +1004,7 @@ export default class HackerEmbassyBot extends TelegramBot {
      * @deprecated Do not use directly
      * @see editMessageTextExt
      */
-    editMessageText(
-        text: string,
-        options?: TelegramBot.EditMessageTextOptions | undefined
-    ): Promise<boolean | TelegramBot.Message> {
+    editMessageText(text: string, options?: TelegramBot.EditMessageTextOptions): Promise<boolean | TelegramBot.Message> {
         return super.editMessageText(text, options);
     }
 
@@ -1015,8 +1015,8 @@ export default class HackerEmbassyBot extends TelegramBot {
     sendPhoto(
         chatId: ChatId,
         photo: string | Stream | Buffer,
-        options?: TelegramBot.SendPhotoOptions | undefined,
-        fileOptions?: TelegramBot.FileOptions | undefined
+        options?: TelegramBot.SendPhotoOptions,
+        fileOptions?: TelegramBot.FileOptions
     ): Promise<TelegramBot.Message> {
         return super.sendPhoto(chatId, photo, options, fileOptions);
     }
@@ -1028,7 +1028,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     sendAnimation(
         chatId: ChatId,
         animation: string | Stream | Buffer,
-        options?: TelegramBot.SendAnimationOptions | undefined
+        options?: TelegramBot.SendAnimationOptions
     ): Promise<TelegramBot.Message> {
         return super.sendAnimation(chatId, animation, options);
     }
@@ -1037,11 +1037,7 @@ export default class HackerEmbassyBot extends TelegramBot {
      * @deprecated Do not use directly
      * @see sendMessageExt
      */
-    sendMessage(
-        chatId: ChatId,
-        text: string,
-        options?: TelegramBot.SendMessageOptions | undefined
-    ): Promise<TelegramBot.Message> {
+    sendMessage(chatId: ChatId, text: string, options?: TelegramBot.SendMessageOptions): Promise<TelegramBot.Message> {
         return super.sendMessage(chatId, text, options);
     }
 
@@ -1053,7 +1049,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: ChatId,
         latitude: number,
         longitude: number,
-        options?: TelegramBot.SendLocationOptions | undefined
+        options?: TelegramBot.SendLocationOptions
     ): Promise<TelegramBot.Message> {
         return super.sendLocation(chatId, latitude, longitude, options);
     }

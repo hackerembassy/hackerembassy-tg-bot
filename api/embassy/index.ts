@@ -46,7 +46,7 @@ app.get("/healthcheck", (_, res, next) => {
     }
 });
 
-app.get("*", (_, res) => {
+app.get("/{*splat}", (_, res) => {
     res.status(404).send(catErrorPage(404));
 });
 

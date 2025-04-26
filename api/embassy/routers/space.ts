@@ -15,24 +15,24 @@ router.post("/unlock", encryptedAuthRequired, async (req: RequestWithBody<{ meth
         const method = req.body.method === "HTTP" ? UnlockMethod.HTTP : UnlockMethod.MQTT;
         const success = await DoorLock.unlock(method);
 
-        if (!success) return res.status(500).send({ message: `Failed to unlock the door using ${method}` });
+        if (!success) return void res.status(500).send({ message: `Failed to unlock the door using ${method}` });
 
-        return res.status(200).send({ message: `Door is unlocked using ${method}` });
-    } catch (error) {
-        return res.status(500).send({ error: "Failed to unlock the door" });
+        res.status(200).send({ message: `Door is unlocked using ${method}` });
+    } catch {
+        res.status(500).send({ error: "Failed to unlock the door" });
     }
 });
 
 router.post("/alarm", encryptedAuthRequired, async (req: RequestWithBody<{ state?: "disarm" }>, res: Response) => {
     try {
-        if (req.body.state !== "disarm") return res.status(400).send("Unsupported alarm state");
+        if (req.body.state !== "disarm") return void res.status(400).send("Unsupported alarm state");
 
         await alarm.disarm();
         logger.info(`Alarm is ${req.body.state}`);
 
-        return res.sendStatus(200);
-    } catch (error) {
-        return res.status(500).send({ error: "Failed to change the alarm state" });
+        res.sendStatus(200);
+    } catch {
+        res.status(500).send({ error: "Failed to change the alarm state" });
     }
 });
 

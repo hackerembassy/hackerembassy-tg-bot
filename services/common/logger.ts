@@ -30,6 +30,7 @@ const logger = createLogger({
             format: fullPattern,
         }),
         format.errors({ stack: true }),
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         format.printf(info => `${info.timestamp}: [${info.level}]\t${info.stack ?? info.message}\n`)
     ),
     transports: [rotatedFile, new transports.Console()],

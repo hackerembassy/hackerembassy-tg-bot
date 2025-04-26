@@ -492,10 +492,10 @@ export default class EmbassyController implements BotController {
         try {
             await embassyService.stopMedia();
 
-            !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.stop.success"), msg));
+            if (!silentMessage) await bot.sendMessageExt(msg.chat.id, t("embassy.stop.success"), msg);
         } catch (error) {
             logger.error(error);
-            !silentMessage && (await bot.sendMessageExt(msg.chat.id, t("embassy.stop.fail"), msg));
+            if (!silentMessage) await bot.sendMessageExt(msg.chat.id, t("embassy.stop.fail"), msg);
         }
     }
 

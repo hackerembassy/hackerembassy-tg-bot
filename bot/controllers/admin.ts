@@ -73,12 +73,14 @@ export default class AdminController implements BotController {
 
             const messageText = textLines.join("\n");
 
-            photoId
-                ? await bot.sendPhotoExt(targetChatId, photoId, msg, {
-                      reply_markup: { inline_keyboard },
-                      caption: messageText,
-                  })
-                : await bot.sendMessageExt(targetChatId, messageText, msg, { reply_markup: { inline_keyboard } });
+            if (photoId) {
+                await bot.sendPhotoExt(targetChatId, photoId, msg, {
+                    reply_markup: { inline_keyboard },
+                    caption: messageText,
+                });
+            } else {
+                await bot.sendMessageExt(targetChatId, messageText, msg, { reply_markup: { inline_keyboard } });
+            }
 
             bot.context(msg).mode.pin = false;
 
@@ -411,9 +413,11 @@ export default class AdminController implements BotController {
 
         const linkedChats = bot.chatBridge.getLinkedChat(msg.chat.id);
 
-        linkedChats
-            ? bot.sendMessageExt(msg.chat.id, `Linked chat: ${linkedChats}`, msg)
-            : bot.sendMessageExt(msg.chat.id, "No linked chats", msg);
+        if (linkedChats) {
+            bot.sendMessageExt(msg.chat.id, `Linked chat: ${linkedChats}`, msg);
+        } else {
+            bot.sendMessageExt(msg.chat.id, "No linked chats", msg);
+        }
     }
 
     @Route(["copy"], /(\S+?)/, match => [match[1]])

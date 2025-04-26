@@ -81,7 +81,7 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
             password,
         });
         client.on("connect", function () {
-            client.subscribe(topic, function (err?: Error) {
+            client.subscribe(topic, function (err) {
                 if (err) reject(err);
 
                 client.publish(topic, message);

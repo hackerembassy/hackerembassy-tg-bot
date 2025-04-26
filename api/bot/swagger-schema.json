@@ -29,6 +29,26 @@
         }
       }
     },
+    "/{*splat}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "*splat",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/text/": {
       "get": {
         "description": "",

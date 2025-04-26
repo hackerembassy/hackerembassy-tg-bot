@@ -5,7 +5,7 @@ import config from "config";
 import cors from "cors";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
-import prometheus from "express-prometheus-middleware";
+import promBundle from "express-prom-bundle";
 
 import bot from "@hackembot/instance";
 
@@ -35,16 +35,8 @@ try {
     logger.error(error);
 }
 
-// Expose Prometheus metrics
-app.use(
-    (prometheus as AnyFunction)({
-        metricsPath: "/metrics",
-        collectDefaultMetrics: true,
-        requestDurationBuckets: [0.1, 0.5, 1, 1.5],
-        requestLengthBuckets: [512, 1024, 5120, 10240, 51200, 102400],
-        responseLengthBuckets: [512, 1024, 5120, 10240, 51200, 102400],
-    })
-);
+// Prometheus metrics
+app.use(promBundle({ includeMethod: true, includePath: true, includeStatusCode: true }));
 
 // Routes
 app.use("/text", textRouter);
@@ -60,7 +52,7 @@ app.get("/healthcheck", (_, res, next) => {
     }
 });
 
-app.get("*", (_, res) => {
+app.get("/{*splat}", (_, res) => {
     res.status(404).send(catErrorPage(404));
 });
 

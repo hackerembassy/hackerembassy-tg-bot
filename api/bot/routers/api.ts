@@ -28,11 +28,11 @@ apiRouter.get("/space", (_, res) => {
     const inside = userService.getPeopleInside();
 
     if (!spaceApiTemplate)
-        return res.status(500).json({
+        return void res.status(500).json({
             error: "SpaceApi template is not defined",
         });
 
-    return res.json({
+    res.json({
         ...spaceApiTemplate,
         state: {
             open: !!status.open,
@@ -61,7 +61,7 @@ apiRouter.get("/status", (req, res) => {
         };
     });
 
-    return res.json({
+    res.json({
         open: status.open,
         dateChanged: status.date,
         changedBy: status.changer.username,
@@ -98,39 +98,39 @@ apiRouter.post("/setgoing", allowTrustedMembers, (req, res) => {
     try {
         const body = req.body as { isgoing: boolean; message?: string };
 
-        if (typeof body.isgoing !== "boolean") return res.status(400).send({ error: "Missing or incorrect parameters" });
+        if (typeof body.isgoing !== "boolean") return void res.status(400).send({ error: "Missing or incorrect parameters" });
 
         userService.setGoingState(req.user as User, body.isgoing, body.message);
 
-        return res.json({ message: "Success" });
+        res.json({ message: "Success" });
     } catch (error) {
-        return res.status(500).send({ error });
+        res.status(500).send({ error });
     }
 });
 
 apiRouter.post("/in", allowTrustedMembers, (req, res) => {
     const success = userService.letIn(req.user as User);
 
-    return res.send({ message: success ? "Success" : "Failed" });
+    res.send({ message: success ? "Success" : "Failed" });
 });
 
 apiRouter.post("/out", allowTrustedMembers, (req, res) => {
     const success = userService.letOut(req.user as User);
 
-    return res.send({ message: success ? "Success" : "Failed" });
+    res.send({ message: success ? "Success" : "Failed" });
 });
 
 apiRouter.post("/open", allowMembers, (req, res) => {
     spaceService.openSpace(req.user as User);
 
-    return res.send({ message: "Success" });
+    res.send({ message: "Success" });
 });
 
 apiRouter.post("/close", allowMembers, (req, res) => {
     spaceService.closeSpace(req.user as User);
     userService.evictPeople();
 
-    return res.send({ message: "Success" });
+    res.send({ message: "Success" });
 });
 
 apiRouter.get("/donations", async (req, res) => {
@@ -148,12 +148,12 @@ apiRouter.get("/donations", async (req, res) => {
         } */
 
     const limit = req.query.limit ? Number(req.query.limit) : undefined;
-    if (limit !== undefined && (isNaN(limit) || limit < 0)) return res.status(400).send({ error: "Invalid limit" });
+    if (limit !== undefined && (isNaN(limit) || limit < 0)) return void res.status(400).send({ error: "Invalid limit" });
 
     const fund = req.query.fund ? FundsRepository.getFundByName(req.query.fund as string) : FundsRepository.getLatestCosts();
-    if (!fund) return res.status(500).send({ error: "Costs fund is not found" });
+    if (!fund) return void res.status(500).send({ error: "Costs fund is not found" });
 
-    return res.json(await getDonationsSummary(fund, limit));
+    res.json(await getDonationsSummary(fund, limit));
 });
 
 apiRouter.get("/sponsors", (req, res) => {

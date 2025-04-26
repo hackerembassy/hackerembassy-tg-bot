@@ -30,7 +30,8 @@ export default class MemeController implements BotController {
 
     static async remindItIsWednesdayHandler(bot: HackerEmbassyBot) {
         const msg = await bot.sendMessageExt(botConfig.chats.horny, t("meme.its_wednesday"), null);
-        msg && MemeController.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
+
+        if (msg) await MemeController.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
     }
 
     @Route(["randomdog", "dog"], null, () => ["./resources/images/dogs"])

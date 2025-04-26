@@ -416,11 +416,6 @@ export default class FundsController implements BotController {
     static async costsHandler(bot: HackerEmbassyBot, msg: Message, valueString: string, currency: string, userName: string) {
         const isAccountant = bot.context(msg).user.roles?.includes("accountant");
 
-        console.log("isAccountant", isAccountant);
-        console.log("valueString", valueString);
-        console.log("currency", currency);
-        console.log("userName", userName);
-
         if (!isAccountant || !valueString || !userName) return FundsController.showCostsHandler(bot, msg);
 
         const selectedCurrency = currency.length ? currency : DefaultCurrency;

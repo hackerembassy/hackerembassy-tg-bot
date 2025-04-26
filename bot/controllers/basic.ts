@@ -12,10 +12,10 @@ import * as GitHub from "@services/external/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/external/googleCalendar";
 import logger from "@services/common/logger";
 import { cropStringAtSpace } from "@utils/text";
-import { FeatureFlag, Route, UserRoles } from "@hackembot/core/decorators";
+import { FeatureFlag, Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decorators";
 
 import * as Commands from "../../resources/commands";
-import { MAX_MESSAGE_LENGTH, Members, TrustedMembers } from "../core/constants";
+import { MAX_MESSAGE_LENGTH } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/inlineButtons";
 import t from "../core/localization";
@@ -30,7 +30,6 @@ const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicController implements BotController {
     @Route(["help"], OptionalParam(/(\S+)/), match => [match[1]])
-    @UserRoles(["admin"])
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
         const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
         const userRoles = splitRoles(bot.context(msg).user);
@@ -283,8 +282,9 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["controlpanel", "cp"], null, null, Members)
+    @Route(["controlpanel", "cp"])
     @FeatureFlag("embassy")
+    @UserRoles(Members)
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [InlineButton(t("basic.control.buttons.superstatus"), "superstatus")],
@@ -353,7 +353,8 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["memepanel", "meme", "memes", "mp"], null, null, TrustedMembers)
+    @Route(["memepanel", "meme", "memes", "mp"])
+    @UserRoles(TrustedMembers)
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [

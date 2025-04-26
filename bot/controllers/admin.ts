@@ -9,8 +9,7 @@ import { User } from "@data/models";
 import UsersRepository from "@repositories/users";
 import logger, { getLatestLogFilePath } from "@services/common/logger";
 import { hasRole } from "@services/domain/user";
-import { Admins, CaptureInteger, Members } from "@hackembot/core/constants";
-import { Route } from "@hackembot/core/decorators";
+import { Admins, CaptureInteger, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
 import { StateFlags } from "../core/classes/BotState";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
@@ -28,8 +27,9 @@ export default class AdminController implements BotController {
      * ```
      * [ {text:text, callback_data:callback_data, url:url, cmd:cmd}, ... ]
      */
-    @Route(["custom", "forward"], helpers.OptionalParam(/(.*)/ims), match => [match[1]], Admins)
-    @Route(["customtest", "customt", "forwardtest", "forwardt"], OptionalParam(/(.*)/ims), match => [match[1], true], Members)
+    @Route(["custom", "forward"], helpers.OptionalParam(/(.*)/ims), match => [match[1]])
+    @Route(["customtest", "customt", "forwardtest", "forwardt"], OptionalParam(/(.*)/ims), match => [match[1], true])
+    @UserRoles(Members)
     static async customHandler(bot: HackerEmbassyBot, msg: Message, text?: string, isTest: boolean = false) {
         const targetChatId = isTest ? msg.chat.id : bot.forwardTarget;
         const selfChatId = msg.chat.id;
@@ -91,7 +91,8 @@ export default class AdminController implements BotController {
         }
     }
 
-    @Route(["selecttarget", "target"], null, null, Admins)
+    @Route(["selecttarget", "target"])
+    @UserRoles(Admins)
     static async selectForwardTargetHandler(bot: HackerEmbassyBot, msg: Message) {
         const keyboardButton: KeyboardButton = {
             text: "Select target chat",
@@ -107,7 +108,8 @@ export default class AdminController implements BotController {
         });
     }
 
-    @Route(["getlogs", "logs", "log"], null, null, Admins)
+    @Route(["getlogs", "logs", "log"])
+    @UserRoles(Admins)
     static async getLogHandler(bot: HackerEmbassyBot, msg: Message) {
         const lastLogFilePath = getLatestLogFilePath();
 
@@ -115,14 +117,16 @@ export default class AdminController implements BotController {
         else await bot.sendDocument(msg.chat.id, lastLogFilePath);
     }
 
-    @Route(["getstate", "state"], null, null, Admins)
+    @Route(["getstate", "state"])
+    @UserRoles(Admins)
     static async getStateHandler(bot: HackerEmbassyBot, msg: Message) {
         const statepath = bot.messageHistory.botState.statepath;
 
         if (statepath && fs.existsSync(statepath)) await bot.sendDocument(msg.chat.id, statepath);
     }
 
-    @Route(["cleanstate", "clearstate"], null, null, Admins)
+    @Route(["cleanstate", "clearstate"])
+    @UserRoles(Admins)
     static async cleanStateHandler(bot: HackerEmbassyBot, msg: Message) {
         bot.botState.clearState();
         await bot.sendMessageExt(
@@ -160,14 +164,16 @@ export default class AdminController implements BotController {
         dc: BotCustomEvent.camLive,
     };
 
-    @Route(["stoplive", "cleanlive"], OptionalParam(/(\S+)/), match => [match[1]], Admins)
+    @Route(["stoplive", "cleanlive"], OptionalParam(/(\S+)/), match => [match[1]])
+    @UserRoles(Admins)
     static async stopLiveHandler(bot: HackerEmbassyBot, msg: Message, event?: string) {
         const customEvent = AdminController.eventCommandMap[event as keyof typeof this.eventCommandMap];
         bot.botState.clearLiveHandlers(msg.chat.id, customEvent);
         await bot.sendMessageExt(msg.chat.id, "Live handlers are removed from this chat", msg);
     }
 
-    @Route(["getrestrictedusers", "restricted"], null, null, Admins)
+    @Route(["getrestrictedusers", "restricted"], null, null)
+    @UserRoles(Admins)
     static async getRestrictedUsersHandler(bot: HackerEmbassyBot, msg: Message) {
         const users = UsersRepository.getUsers().filter(u => u.roles?.includes("restricted"));
         let userList = "";
@@ -179,7 +185,8 @@ export default class AdminController implements BotController {
         await bot.sendLongMessage(msg.chat.id, t("admin.getRestrictedUsers.text") + userList, msg);
     }
 
-    @Route(["getuser", "user"], OptionalParam(/(\S+?)/), match => [match[1]], Admins)
+    @Route(["getuser", "user"], OptionalParam(/(\S+?)/), match => [match[1]])
+    @UserRoles(Admins)
     static getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
         if (!query) return bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
 
@@ -190,7 +197,8 @@ export default class AdminController implements BotController {
         return bot.sendMessageExt(msg.chat.id, JSON.stringify(user), msg);
     }
 
-    @Route(["setuser"], OptionalParam(/(.*)/ims), match => [match[1]], Admins)
+    @Route(["setuser"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @UserRoles(Admins)
     static setUserHandler(bot: HackerEmbassyBot, msg: Message, json: string) {
         if (!json) return bot.sendMessageExt(msg.chat.id, "Please provide a serialized user", msg);
 
@@ -205,9 +213,10 @@ export default class AdminController implements BotController {
         }
     }
 
-    @Route(["updateroles"], /of (\S+?) to (\S+)/, match => [match[1], match[2]], Admins)
-    @Route(["restrict"], /(\S+?)/, match => [match[1], "restricted"], Admins)
-    @Route(["unblock"], /(\S+?)/, match => [match[1], "default"], Admins)
+    @Route(["updateroles"], /of (\S+?) to (\S+)/, match => [match[1], match[2]])
+    @Route(["restrict"], /(\S+?)/, match => [match[1], "restricted"])
+    @Route(["unblock"], /(\S+?)/, match => [match[1], "default"])
+    @UserRoles(Admins)
     static updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
         const roles = rolesString.split("|");
         const user = UsersRepository.getUserByName(username.replace("@", ""));
@@ -222,8 +231,9 @@ export default class AdminController implements BotController {
         return bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    @Route(["restrictbyid"], /(\d+?)/, match => [match[1], "restricted"], Admins)
-    @Route(["unblockbyid"], /(\d+?)/, match => [match[1], "default"], Admins)
+    @Route(["restrictbyid"], /(\d+?)/, match => [match[1], "restricted"])
+    @Route(["unblockbyid"], /(\d+?)/, match => [match[1], "default"])
+    @UserRoles(Admins)
     static async updateRolesByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number, rolesString: string) {
         const roles = rolesString.split("|");
 
@@ -233,7 +243,8 @@ export default class AdminController implements BotController {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    @Route(["removeuser"], /(\S+)/, match => [match[1]], Admins)
+    @Route(["removeuser"], /(\S+)/, match => [match[1]])
+    @UserRoles(Admins)
     static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
         username = username.replace("@", "");
 
@@ -245,7 +256,8 @@ export default class AdminController implements BotController {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    @Route(["removeuserbyid"], /(\d+)/, match => [match[1]], Admins)
+    @Route(["removeuserbyid"], /(\d+)/, match => [match[1]])
+    @UserRoles(Admins)
     static async removeUserByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number) {
         const success = UsersRepository.removeUserById(userid);
         const text = success ? t("admin.removeUser.success", { username: `[${userid}]` }) : t("admin.removeUser.fail");
@@ -253,7 +265,8 @@ export default class AdminController implements BotController {
         await bot.sendMessageExt(msg.chat.id, text, msg);
     }
 
-    @Route(["setflag", "setf", "set"], /(\S+?) (true|false|1|0)/, match => [match[1], match[2]], Admins)
+    @Route(["setflag", "setf", "set"], /(\S+?) (true|false|1|0)/, match => [match[1], match[2]])
+    @UserRoles(Admins)
     static async setFlagHandler(bot: HackerEmbassyBot, msg: Message, flag: string, value: "true" | "false" | "1" | "0") {
         const flags = bot.botState.flags;
         if (!Object.keys(flags).includes(flag)) {
@@ -269,12 +282,14 @@ export default class AdminController implements BotController {
         await bot.sendMessageExt(msg.chat.id, `Flag ${flag} is set to ${value}`, msg);
     }
 
-    @Route(["getflags", "getf"], null, null, Admins)
+    @Route(["getflags", "getf"])
+    @UserRoles(Admins)
     static async getFlagsHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, JSON.stringify(bot.botState.flags), msg);
     }
 
-    @Route(["autoremove", "silent", "stopsrach", "стопсрач"], OptionalParam(/(\S+)/), match => [match[1]], Admins)
+    @Route(["autoremove", "silent", "stopsrach", "стопсрач"], OptionalParam(/(\S+)/), match => [match[1]])
+    @UserRoles(Admins)
     static async autoRemoveHandler(bot: HackerEmbassyBot, msg: Message, chat: string | undefined) {
         if (!chat) return await bot.sendMessageExt(msg.chat.id, "Please provide a chat id, clear, list or here command", msg);
 
@@ -303,7 +318,8 @@ export default class AdminController implements BotController {
         return await bot.sendMessageExt(msg.chat.id, `Chat ${chat} is added to the silent list`, msg);
     }
 
-    @Route(["ban", "block"], OptionalParam(/(\S+)/), match => [match[1]], Members)
+    @Route(["ban", "block"], OptionalParam(/(\S+)/), match => [match[1]])
+    @UserRoles(Members)
     static async banHandler(bot: HackerEmbassyBot, msg: Message, target?: number | string) {
         const removeBanMessageTimeout = 3000;
         const isPrivate = bot.context(msg).isPrivate();
@@ -368,7 +384,8 @@ export default class AdminController implements BotController {
         }
     }
 
-    @Route(["linkchat"], CaptureInteger, match => [match[1]], Admins)
+    @Route(["linkchat"], CaptureInteger, match => [match[1]])
+    @UserRoles(Admins)
     static linkChatHandler(bot: HackerEmbassyBot, msg: Message, target: string) {
         if (!bot.context(msg).isPrivate()) return;
 
@@ -377,7 +394,8 @@ export default class AdminController implements BotController {
         bot.sendMessageExt(msg.chat.id, `Chat ${target} is linked to admin ${msg.from?.username}`, msg);
     }
 
-    @Route(["unlinkchat"], null, null, Admins)
+    @Route(["unlinkchat"])
+    @UserRoles(Admins)
     static unlinkChatHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!bot.context(msg).isPrivate()) return;
 
@@ -386,7 +404,8 @@ export default class AdminController implements BotController {
         bot.sendMessageExt(msg.chat.id, `Chats are unlinked from admin ${msg.from?.username}`, msg);
     }
 
-    @Route(["getlinkedchat"], null, null, Admins)
+    @Route(["getlinkedchat"])
+    @UserRoles(Admins)
     static getLinkedChatHandler(bot: HackerEmbassyBot, msg: Message) {
         if (!bot.context(msg).isPrivate()) return;
 
@@ -397,7 +416,8 @@ export default class AdminController implements BotController {
             : bot.sendMessageExt(msg.chat.id, "No linked chats", msg);
     }
 
-    @Route(["copy"], /(\S+?)/, match => [match[1]], Admins)
+    @Route(["copy"], /(\S+?)/, match => [match[1]])
+    @UserRoles(Admins)
     static async copyMessageHandler(bot: HackerEmbassyBot, msg: Message, target: string) {
         if (!msg.reply_to_message) return;
 

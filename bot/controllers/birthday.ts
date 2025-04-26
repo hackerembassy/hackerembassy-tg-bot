@@ -8,8 +8,7 @@ import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import { hasBirthdayToday, isIsoDateString, MINUTE } from "@utils/date";
 import { OptionalParam, userLink } from "@hackembot/core/helpers";
-import { FeatureFlag, Route } from "@hackembot/core/decorators";
-import { Admins } from "@hackembot/core/constants";
+import { Admins, FeatureFlag, Route, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
@@ -60,8 +59,9 @@ export default class BirthdayController implements BotController {
         return bot.sendMessageExt(msg.chat.id, t("birthday.fail"), msg);
     }
 
-    @Route(["sendwishes"], null, null, Admins)
+    @Route(["sendwishes"])
     @FeatureFlag("birthday")
+    @UserRoles(Admins)
     static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>) {
         const birthdayUsers = UsersRepository.getUsers().filter(u => u.username && hasBirthdayToday(u.birthday));
 

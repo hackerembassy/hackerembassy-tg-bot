@@ -24,8 +24,7 @@ import { userService } from "@services/domain/user";
 import { sleep } from "@utils/common";
 import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
-import { FeatureFlag, Route } from "@hackembot/core/decorators";
-import { Accountants, Admins, Members, TrustedMembers } from "@hackembot/core/constants";
+import { Accountants, Admins, FeatureFlag, Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/classes/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/inlineButtons";
@@ -263,7 +262,8 @@ export default class StatusController implements BotController {
         }
     }
 
-    @Route(["livestatus", "live"], null, null, Members)
+    @Route(["livestatus", "live"])
+    @UserRoles(Members)
     static async liveStatusShortcutHandler(bot: HackerEmbassyBot, msg: Message) {
         const mode = bot.context(msg).mode;
         mode.live = true;
@@ -364,7 +364,8 @@ export default class StatusController implements BotController {
         }
     }
 
-    @Route(["open", "o"], null, null, Members)
+    @Route(["open", "o"])
+    @UserRoles(Members)
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
         const opener = bot.context(msg).user;
 
@@ -407,7 +408,8 @@ export default class StatusController implements BotController {
         }
     }
 
-    @Route(["close", "c"], null, null, Members)
+    @Route(["close", "c"])
+    @UserRoles(Members)
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
         const closer = bot.context(msg).user;
 
@@ -425,7 +427,8 @@ export default class StatusController implements BotController {
         });
     }
 
-    @Route(["evict", "outforceall"], null, null, Members)
+    @Route(["evict", "outforceall"])
+    @UserRoles(Members)
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
         userService.evictPeople();
         bot.customEmitter.emit(BotCustomEvent.statusLive);
@@ -433,19 +436,22 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
+    @Route(["inforce", "inf", "goin"], RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`), match => [
+        match[2],
+        match[1],
+    ])
+    @UserRoles(TrustedMembers)
+    static inForceHandler(bot: HackerEmbassyBot, msg: Message, durationString?: string, username?: string) {
+        this.inHandler(bot, msg, false, durationString, username);
+    }
+
+    @Route(["inghost", "ghost"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [match[1]])
+    @UserRoles(TrustedMembers)
+    static inGhostHandler(bot: HackerEmbassyBot, msg: Message, durationString?: string, username?: string) {
+        this.inHandler(bot, msg, true, durationString, username);
+    }
+
     @Route(["in", "iaminside"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [false, match[1]])
-    @Route(
-        ["inghost", "ghost"],
-        OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)),
-        match => [true, match[1]],
-        TrustedMembers
-    )
-    @Route(
-        ["inforce", "inf", "goin"],
-        RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`),
-        match => [false, match[2], match[1]],
-        TrustedMembers
-    )
     static inHandler(bot: HackerEmbassyBot, msg: Message, ghost: boolean = false, durationString?: string, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
@@ -495,7 +501,12 @@ export default class StatusController implements BotController {
         });
     }
 
-    @Route(["outforce", "outf", "gohome"], /(\S+)/, match => [match[1]], TrustedMembers)
+    @Route(["outforce", "outf", "gohome"], /(\S+)/, match => [match[1]])
+    @UserRoles(TrustedMembers)
+    static outForceHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
+        this.outHandler(bot, msg, username);
+    }
+
     @Route(["out", "iamleaving"])
     static outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const context = bot.context(msg);
@@ -584,7 +595,8 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    @Route(["setemoji", "emoji", "myemoji"], OptionalParam(/(.*)/), match => [match[1]], TrustedMembers)
+    @Route(["setemoji", "emoji", "myemoji"], OptionalParam(/(.*)/), match => [match[1]])
+    @UserRoles(TrustedMembers)
     static async setemojiHandler(bot: HackerEmbassyBot, msg: Message, emoji: string) {
         const sender = bot.context(msg).user;
         const userLink = helpers.userLink(sender);
@@ -610,7 +622,8 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    @Route(["detected"], null, null, Admins)
+    @Route(["detected"])
+    @UserRoles(Admins)
     static async detectedDevicesHandler(bot: HackerEmbassyBot, msg: Message) {
         const detectedDevices = await embassyService.fetchMacsInside();
         const userdevices = userService.getDevicesWithUsers();
@@ -694,8 +707,13 @@ export default class StatusController implements BotController {
         if (timedOutUsers.length > 0) bot.customEmitter.emit(BotCustomEvent.statusLive);
     }
 
-    @Route(["profile"], /(\S+)/, match => [match[1]], Accountants)
     @Route(["me"])
+    static meHandler(bot: HackerEmbassyBot, msg: Message) {
+        this.profileHandler(bot, msg);
+    }
+
+    @Route(["profile"], /(\S+)/, match => [match[1]])
+    @UserRoles(Accountants)
     static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string): Promise<any> {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 

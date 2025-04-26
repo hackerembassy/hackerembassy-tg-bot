@@ -124,6 +124,8 @@ export interface BotFeaturesConfig {
     chatbridge: boolean;
 }
 
+export type BotFeatureFlag = keyof BotFeaturesConfig;
+
 export interface ApiFeaturesConfig {
     calendar: boolean;
 }

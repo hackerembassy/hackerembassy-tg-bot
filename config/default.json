@@ -198,14 +198,14 @@
     },
     "neural": {
         "stableDiffusion": {
-            "base": "http://gayming.lan:7860",
+            "base": "http://ollama.lan:7860",
             "steps": 18,
             "denoising": 0.57,
             "sampler": "Euler a"
         },
         "ollama": {
-            "base": "http://gayming.lan:11434",
-            "model": "aura"
+            "base": "http://ollama.lan:11434",
+            "model": "llama3.2:latest"
         },
         "openai": {
             "model": "gpt-4o-mini",

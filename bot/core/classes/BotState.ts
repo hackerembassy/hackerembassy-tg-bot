@@ -9,7 +9,7 @@ import logger from "@services/common/logger";
 import { debounce } from "@utils/common";
 
 import HackerEmbassyBot from "./HackerEmbassyBot";
-import { BotCustomEvent, BotHandlers, LiveChatHandler, MessageHistoryEntry } from "./types";
+import { BotCustomEvent, BotController, LiveChatHandler, MessageHistoryEntry } from "../types";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -64,7 +64,7 @@ export default class BotState {
                 | typeof Module
                 | { default: Module };
             const module = typeof importedModule === "function" ? importedModule : importedModule.default;
-            const restoredHandler = module[liveChat.serializationData.functionName as keyof BotHandlers] as
+            const restoredHandler = module[liveChat.serializationData.functionName as keyof BotController] as
                 | AnyFunction
                 | undefined;
 

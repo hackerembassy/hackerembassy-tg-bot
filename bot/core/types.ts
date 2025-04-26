@@ -2,8 +2,8 @@ import TelegramBot, { ChatId, EditMessageMediaOptions, SendMediaGroupOptions } f
 
 import { UserRole } from "@data/types";
 
-import HackerEmbassyBot from "./HackerEmbassyBot";
-import { ButtonFlags } from "./InlineButtons";
+import HackerEmbassyBot from "./classes/HackerEmbassyBot";
+import { ButtonFlags } from "./inlineButtons";
 
 // Enums
 export enum BotCustomEvent {
@@ -140,7 +140,7 @@ export type CallbackData = {
 };
 
 // Intefraces
-export interface BotHandlers {}
+export interface BotController {}
 
 export interface ITelegramUser {
     username?: Nullable<string>;

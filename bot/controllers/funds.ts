@@ -25,14 +25,14 @@ import { replaceUnsafeSymbolsForAscii } from "@utils/text";
 import { Route } from "@hackembot/core/decorators";
 import { Accountants, CaptureListOfIds, Members } from "@hackembot/core/constants";
 
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/InlineButtons";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { RateLimiter } from "../core/RateLimit";
-import { BotHandlers } from "../core/types";
+import { RateLimiter } from "../core/classes/RateLimit";
+import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
-import * as TextGenerators from "../textGenerators";
-import EmbassyHandlers from "./embassy";
+import * as TextGenerators from "../text";
+import EmbassyController from "./embassy";
 import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -42,7 +42,7 @@ const CALLBACK_DATA_RESTRICTION = 21;
 // Converter library needs time to initialize all currencies, so we need to init it in advance
 initConvert();
 
-export default class FundsHandlers implements BotHandlers {
+export default class FundsController implements BotController {
     @Route(["funds", "fs"])
     static async fundsHandler(bot: HackerEmbassyBot, msg: Message) {
         const context = bot.context(msg);
@@ -387,7 +387,7 @@ export default class FundsHandlers implements BotHandlers {
             );
             const sponsorshipText = hasUpdatedSponsorship ? "\n" + TextGenerators.getNewSponsorshipText(user, sponsorship) : "";
             const caption = `${newDonationText}${sponsorshipText}`;
-            const animeImage = await FundsHandlers.getAnimeImageForDonation(value, preparedCurrency, user);
+            const animeImage = await FundsController.getAnimeImageForDonation(value, preparedCurrency, user);
 
             animeImage
                 ? await bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption })
@@ -398,8 +398,8 @@ export default class FundsHandlers implements BotHandlers {
             const textInSpace = replaceUnsafeSymbolsForAscii(newDonationText);
 
             return Promise.allSettled([
-                EmbassyHandlers.textinspaceHandler(bot, msg, textInSpace),
-                EmbassyHandlers.playinspaceHandler(bot, msg, "money", true),
+                EmbassyController.textinspaceHandler(bot, msg, textInSpace),
+                EmbassyController.playinspaceHandler(bot, msg, "money", true),
             ]);
         } catch (error) {
             logger.error(error);
@@ -421,14 +421,14 @@ export default class FundsHandlers implements BotHandlers {
         console.log("currency", currency);
         console.log("userName", userName);
 
-        if (!isAccountant || !valueString || !userName) return FundsHandlers.showCostsHandler(bot, msg);
+        if (!isAccountant || !valueString || !userName) return FundsController.showCostsHandler(bot, msg);
 
         const selectedCurrency = currency.length ? currency : DefaultCurrency;
         const latestCostsFund = FundsRepository.getLatestCosts();
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
 
-        return await FundsHandlers.addDonationHandler(bot, msg, valueString, selectedCurrency, userName, latestCostsFund.name);
+        return await FundsController.addDonationHandler(bot, msg, valueString, selectedCurrency, userName, latestCostsFund.name);
     }
 
     @Route(["showcosts", "scosts", "scs"])
@@ -440,7 +440,7 @@ export default class FundsHandlers implements BotHandlers {
             return;
         }
 
-        return await FundsHandlers.fundHandler(bot, msg, fundName);
+        return await FundsController.fundHandler(bot, msg, fundName);
     }
 
     @Route(["showcostsdonut", "costsdonut", "cdonut"])
@@ -449,7 +449,7 @@ export default class FundsHandlers implements BotHandlers {
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
 
-        return await FundsHandlers.exportDonutHandler(bot, msg, latestCostsFund.name);
+        return await FundsController.exportDonutHandler(bot, msg, latestCostsFund.name);
     }
 
     @Route(
@@ -595,7 +595,7 @@ export default class FundsHandlers implements BotHandlers {
 
         if (donations.length === 0) return bot.sendMessageExt(msg.chat.id, t("funds.transferdonation.nothing"), msg);
 
-        return FundsHandlers.transferDonationHandler(bot, msg, donations.map(d => d.id).join(","), username);
+        return FundsController.transferDonationHandler(bot, msg, donations.map(d => d.id).join(","), username);
     }
 
     @Route(["exportfund", "csv", "ef"], /(.*\S)/, match => [match[1]])

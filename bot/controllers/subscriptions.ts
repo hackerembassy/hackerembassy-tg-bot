@@ -9,15 +9,15 @@ import { splitArray } from "@utils/common";
 import { MAX_MENTIONS_WITH_NOTIFICATIONS, Members } from "@hackembot/core/constants";
 import { Route } from "@hackembot/core/decorators";
 
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { DEFAULT_API_RATE_LIMIT, DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/RateLimit";
-import { BotHandlers } from "../core/types";
+import { DEFAULT_API_RATE_LIMIT, DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/classes/RateLimit";
+import { BotController } from "../core/types";
 import { OptionalParam, userLink } from "../core/helpers";
-import { listTopics } from "../textGenerators";
+import { listTopics } from "../text";
 
-export default class TopicsHandlers implements BotHandlers {
+export default class SubscriptionsController implements BotController {
     @Route(["mysubscriptions", "subscriptions", "subs"])
     static async mySubscriptionsHandler(bot: HackerEmbassyBot, msg: Message) {
         try {

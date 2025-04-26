@@ -16,19 +16,19 @@ import { FeatureFlag, Route, UserRoles } from "@hackembot/core/decorators";
 
 import * as Commands from "../../resources/commands";
 import { MAX_MESSAGE_LENGTH, Members, TrustedMembers } from "../core/constants";
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/InlineButtons";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { BotHandlers, ITelegramUser } from "../core/types";
+import { BotController, ITelegramUser } from "../core/types";
 import * as helpers from "../core/helpers";
-import * as TextGenerators from "../textGenerators";
-import { getEventsList } from "../textGenerators";
+import * as TextGenerators from "../text";
+import { getEventsList } from "../text";
 import { CommandsMap } from "../../resources/commands";
 import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
-export default class BasicHandlers implements BotHandlers {
+export default class BasicController implements BotController {
     @Route(["help"], OptionalParam(/(\S+)/), match => [match[1]])
     @UserRoles(["admin"])
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {

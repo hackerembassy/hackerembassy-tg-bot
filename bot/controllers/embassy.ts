@@ -18,12 +18,12 @@ import { fullScreenImagePage } from "@utils/html";
 import { CaptureInteger, Members, TrustedMembers } from "@hackembot/core/constants";
 import { FeatureFlag, Route } from "@hackembot/core/decorators";
 
-import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/classes/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
+import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
-import * as TextGenerators from "../textGenerators";
+import * as TextGenerators from "../text";
 import { effectiveName, OptionalParam } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -36,7 +36,7 @@ enum DeviceOperation {
     Down = "down",
 }
 
-export default class EmbassyHandlers implements BotHandlers {
+export default class EmbassyController implements BotController {
     @Route(["unlock", "u"], null, null, Members)
     @FeatureFlag("embassy")
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -167,9 +167,9 @@ export default class EmbassyHandlers implements BotHandlers {
                 bot.addLiveMessage(
                     resultMessage,
                     BotCustomEvent.camLive,
-                    () => EmbassyHandlers.liveWebcamHandler(bot, resultMessage, camName, mode),
+                    () => EmbassyController.liveWebcamHandler(bot, resultMessage, camName, mode),
                     {
-                        functionName: EmbassyHandlers.liveWebcamHandler.name,
+                        functionName: EmbassyController.liveWebcamHandler.name,
                         module: __filename,
                         params: [resultMessage, camName, mode],
                     }
@@ -301,11 +301,11 @@ export default class EmbassyHandlers implements BotHandlers {
 
             switch (operation) {
                 case DeviceOperation.Up:
-                    return EmbassyHandlers.wakeHandler(bot, msg, deviceName);
+                    return EmbassyController.wakeHandler(bot, msg, deviceName);
                 case DeviceOperation.Down:
-                    return EmbassyHandlers.shutdownHandler(bot, msg, deviceName);
+                    return EmbassyController.shutdownHandler(bot, msg, deviceName);
                 case DeviceOperation.Status:
-                    return EmbassyHandlers.pingHandler(bot, msg, deviceName, false);
+                    return EmbassyController.pingHandler(bot, msg, deviceName, false);
                 default:
                     break;
             }
@@ -381,7 +381,7 @@ export default class EmbassyHandlers implements BotHandlers {
         if (residentsInside.length > 0) {
             bot.context(msg).mode.silent = true;
 
-            await EmbassyHandlers.sayinspaceHandler(
+            await EmbassyController.sayinspaceHandler(
                 bot,
                 msg,
                 `Эй, резиденты, вас зовет ${effectiveName(bot.context(msg).user)}. Ответьте пожожда в чатике.`
@@ -430,7 +430,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
         const gifHtml = gifUrl === "clear" || gifUrl === "remove" ? gifUrl : fullScreenImagePage(gifUrl);
 
-        return EmbassyHandlers.htmlinspaceHandler(bot, msg, gifHtml);
+        return EmbassyController.htmlinspaceHandler(bot, msg, gifHtml);
     }
 
     @Route(["htmlinspace", "html"], OptionalParam(/(.*)/ims), match => [match[1]])
@@ -467,7 +467,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
             const donationsSummary = await getDonationsSummary(selectedFund);
 
-            await EmbassyHandlers.textinspaceHandler(
+            await EmbassyController.textinspaceHandler(
                 bot,
                 msg,
                 `${donationsSummary.strings.fund_stats}    ${donationsSummary.strings.ranked_donations}`
@@ -518,7 +518,7 @@ export default class EmbassyHandlers implements BotHandlers {
 
         const link = await bot.getFileLink(voiceFileId);
 
-        return EmbassyHandlers.playinspaceHandler(bot, msg, link);
+        return EmbassyController.playinspaceHandler(bot, msg, link);
     }
 
     @Route(["playinspace", "play"], /(.*)/ims, match => [match[1]], TrustedMembers)
@@ -624,18 +624,18 @@ export default class EmbassyHandlers implements BotHandlers {
     @Route(["lgon", "ac2on"], null, () => ["upstairs"], TrustedMembers)
     @FeatureFlag("embassy")
     static async turnOnConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
-        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.POWER_ON, null);
+        await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.POWER_ON, null);
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
+        if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
     @Route(["mideaoff", "acoff", "ac1off"], null, () => ["downstairs"], TrustedMembers)
     @Route(["lgoff", "ac2off"], null, () => ["upstairs"])
     @FeatureFlag("embassy")
     static async turnOffConditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
-        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.POWER_OFF, null);
+        await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.POWER_OFF, null);
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
+        if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
     @Route(["mideaaddtemp", "acaddtemp", "ac1addtemp"], CaptureInteger, match => ["downstairs", Number(match[1])], TrustedMembers)
@@ -643,11 +643,11 @@ export default class EmbassyHandlers implements BotHandlers {
     @FeatureFlag("embassy")
     static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, diff: number) {
         if (isNaN(diff)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { diff });
+        await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { diff });
 
         if (bot.context(msg).isButtonResponse) {
             await sleep(5000); // Updating the temperature is slow on Midea
-            await EmbassyHandlers.conditionerHandler(bot, msg, name);
+            await EmbassyController.conditionerHandler(bot, msg, name);
         }
     }
 
@@ -656,7 +656,7 @@ export default class EmbassyHandlers implements BotHandlers {
     @FeatureFlag("embassy")
     static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, temperature: number) {
         if (isNaN(temperature)) throw Error();
-        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
+        await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
     }
 
     @Route(["mideamode", "acmode", "ac1mode"], /(\S+)/, match => ["downstairs", Number(match[1])], TrustedMembers)
@@ -668,17 +668,17 @@ export default class EmbassyHandlers implements BotHandlers {
         name: AvailableConditioner,
         mode: ConditionerMode
     ) {
-        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.MODE, { mode });
+        await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.MODE, { mode });
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
+        if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
     @Route(["preheat"], null, null, Members)
     @FeatureFlag("embassy")
     static async preheatHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
-        await EmbassyHandlers.controlConditioner(bot, msg, name, ConditionerActions.PREHEAT, {});
+        await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.PREHEAT, {});
 
-        if (bot.context(msg).isButtonResponse) await EmbassyHandlers.conditionerHandler(bot, msg, name);
+        if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
     static async controlConditioner(

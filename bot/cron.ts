@@ -4,13 +4,13 @@ import { CronJob } from "cron";
 import { BotConfig } from "@config";
 import { MINUTE } from "@utils/date";
 
-import HackerEmbassyBot from "./core/HackerEmbassyBot";
+import HackerEmbassyBot from "./core/classes/HackerEmbassyBot";
 import { BotCustomEvent } from "./core/types";
-import BirthdayHandlers from "./handlers/birthday";
-import EmbassyHandlers from "./handlers/embassy";
-import MemeHandlers from "./handlers/meme";
-import StatusHandlers from "./handlers/status";
-import FundsHandlers from "./handlers/funds";
+import BirthdayController from "./controllers/birthday";
+import EmbassyController from "./controllers/embassy";
+import MemeController from "./controllers/meme";
+import StatusController from "./controllers/status";
+import FundsController from "./controllers/funds";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -30,20 +30,20 @@ function setupShortIntervals(bot: HackerEmbassyBot) {
 
     // Autoinside polling
     if (botConfig.features.autoinside) {
-        setInterval(() => StatusHandlers.autoinout(bot, true), botConfig.timeouts.in);
-        setInterval(() => StatusHandlers.autoinout(bot, false), botConfig.timeouts.out);
-        setInterval(() => StatusHandlers.timedOutHandler(bot), MINUTE);
+        setInterval(() => StatusController.autoinout(bot, true), botConfig.timeouts.in);
+        setInterval(() => StatusController.autoinout(bot, false), botConfig.timeouts.out);
+        setInterval(() => StatusController.timedOutHandler(bot), MINUTE);
     }
 }
 
 // This is a bit more complex, so we use cron jobs
 function setupCronJobs(bot: HackerEmbassyBot): void {
     // Recalculate sponsorships
-    runningJobs.push(new CronJob("0 0 * * *", () => FundsHandlers.refreshSponsorshipsHandler(bot)));
+    runningJobs.push(new CronJob("0 0 * * *", () => FundsController.refreshSponsorshipsHandler(bot)));
 
     // Embassy outage mentions
     if (botConfig.features.outage)
-        runningJobs.push(new CronJob(botConfig.outage.electricity.cron, () => EmbassyHandlers.checkOutageMentionsHandler(bot)));
+        runningJobs.push(new CronJob(botConfig.outage.electricity.cron, () => EmbassyController.checkOutageMentionsHandler(bot)));
 
     // Utility and Internet payments notifications
     if (botConfig.features.reminders) {
@@ -61,10 +61,10 @@ function setupCronJobs(bot: HackerEmbassyBot): void {
 
     // Meme reminders
     if (botConfig.features.birthday)
-        runningJobs.push(new CronJob("0 0 * * *", () => BirthdayHandlers.sendBirthdayWishes(bot, null)));
+        runningJobs.push(new CronJob("0 0 * * *", () => BirthdayController.sendBirthdayWishes(bot, null)));
 
     if (botConfig.features.wednesday)
-        runningJobs.push(new CronJob("0 0 * * 3", () => MemeHandlers.remindItIsWednesdayHandler(bot)));
+        runningJobs.push(new CronJob("0 0 * * 3", () => MemeController.remindItIsWednesdayHandler(bot)));
 
     // START THESE JOBS!!!
     runningJobs.forEach(job => job.start());

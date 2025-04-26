@@ -12,16 +12,16 @@ import { hasRole } from "@services/domain/user";
 import { Admins, CaptureInteger, Members } from "@hackembot/core/constants";
 import { Route } from "@hackembot/core/decorators";
 
-import { StateFlags } from "../core/BotState";
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import { StateFlags } from "../core/classes/BotState";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
-import { BotCustomEvent, BotHandlers } from "../core/types";
+import { BotCustomEvent, BotController } from "../core/types";
 import * as helpers from "../core/helpers";
 import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
-export default class AdminHandlers implements BotHandlers {
+export default class AdminController implements BotController {
     /**
      * Sends a custom message. It can contain text, one image and buttons.
      * Button rows should be in the following format:
@@ -162,7 +162,7 @@ export default class AdminHandlers implements BotHandlers {
 
     @Route(["stoplive", "cleanlive"], OptionalParam(/(\S+)/), match => [match[1]], Admins)
     static async stopLiveHandler(bot: HackerEmbassyBot, msg: Message, event?: string) {
-        const customEvent = AdminHandlers.eventCommandMap[event as keyof typeof this.eventCommandMap];
+        const customEvent = AdminController.eventCommandMap[event as keyof typeof this.eventCommandMap];
         bot.botState.clearLiveHandlers(msg.chat.id, customEvent);
         await bot.sendMessageExt(msg.chat.id, "Live handlers are removed from this chat", msg);
     }

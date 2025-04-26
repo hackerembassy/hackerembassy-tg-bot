@@ -3,7 +3,7 @@ import { Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
 
-import HackerEmbassyBot from "./HackerEmbassyBot";
+import HackerEmbassyBot from "./classes/HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");
 const AnnoyingChats = [botConfig.chats.main, botConfig.chats.offtopic];

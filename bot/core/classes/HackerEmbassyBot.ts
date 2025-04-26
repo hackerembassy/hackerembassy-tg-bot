@@ -32,8 +32,8 @@ import { chunkSubstr } from "@utils/text";
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 
-import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "./localization";
-import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "./helpers";
+import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../localization";
+import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "../helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {
@@ -47,7 +47,7 @@ import {
     MAX_MESSAGE_LENGTH,
     POLLING_OPTIONS,
     RESTRICTED_PERMISSIONS,
-} from "./constants";
+} from "../constants";
 import MessageHistory from "./MessageHistory";
 import { RateLimiter, UserRateLimiter } from "./RateLimit";
 import {
@@ -65,11 +65,11 @@ import {
     SendMediaGroupOptionsExt,
     SerializedFunction,
     BotAssets,
-    BotHandlers,
-} from "./types";
-import { ButtonFlags, InlineDeepLinkButton } from "./InlineButtons";
+    BotController,
+} from "../types";
+import { ButtonFlags, InlineDeepLinkButton } from "../inlineButtons";
 import ChatBridge from "./ChatBridge";
-import { MetadataKeys, RouteMetadata } from "./decorators";
+import { MetadataKeys, RouteMetadata } from "../decorators";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -778,11 +778,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.chatMemberHandler = chatMemberHandler;
     }
 
-    addController(controller: BotHandlers) {
+    addController(controller: BotController) {
         const decoratedMethods = Object.getOwnPropertyNames(controller)
             .filter(
                 name =>
-                    typeof controller[name as keyof BotHandlers] === "function" &&
+                    typeof controller[name as keyof BotController] === "function" &&
                     name !== "prototype" &&
                     name !== "length" &&
                     name !== "name"
@@ -796,7 +796,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             if (featureFlag && !botConfig.features[featureFlag]) continue;
 
-            const method = controller[methodName as keyof BotHandlers] as BotHandler;
+            const method = controller[methodName as keyof BotController] as BotHandler;
             const attributeRoles = Reflect.getMetadata(MetadataKeys.Roles, controller, methodName) as UserRole[] | undefined;
             const handler = method.bind(controller);
 

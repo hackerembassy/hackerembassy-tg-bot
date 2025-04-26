@@ -10,19 +10,19 @@ import { generateRandomKey, sha256 } from "@utils/security";
 import { Route } from "@hackembot/core/decorators";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS, Members, TrustedMembers } from "../core/constants";
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
-import { BotHandlers, MessageHistoryEntry } from "../core/types";
+import { BotController, MessageHistoryEntry } from "../core/types";
 import { OptionalParam, tgUserLink } from "../core/helpers";
-import EmbassyHandlers from "./embassy";
-import StatusHandlers from "./status";
+import EmbassyController from "./embassy";
+import StatusController from "./status";
 
 const botConfig = config.get<BotConfig>("bot");
 
 const DeprecatedReplacementMap = new Map<string, string>([["knock", "hey"]]);
 
-export default class ServiceHandlers implements BotHandlers {
+export default class ServiceController implements BotController {
     @Route(["clear"], OptionalParam(/(\d*)/), match => [match[1]], Members)
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
@@ -144,8 +144,8 @@ export default class ServiceHandlers implements BotHandlers {
 
     @Route(["superstatus", "ss"], null, null, Members)
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {
-        await StatusHandlers.statusHandler(bot, msg);
-        await EmbassyHandlers.allCamsHandler(bot, msg);
+        await StatusController.statusHandler(bot, msg);
+        await EmbassyController.allCamsHandler(bot, msg);
     }
 
     @Route(["removebuttons", "rb", "static"], null, null, Members)
@@ -205,7 +205,7 @@ export default class ServiceHandlers implements BotHandlers {
             logger.info(`Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 
-        await ServiceHandlers.setLanguageHandler(
+        await ServiceController.setLanguageHandler(
             bot,
             { chat, from: tgUser, message_id: 0, date: memberUpdated.date },
             undefined,

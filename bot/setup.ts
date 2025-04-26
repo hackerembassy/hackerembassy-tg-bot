@@ -1,10 +1,26 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import config from "config";
 
+import broadcast, { BroadcastEvents } from "@services/common/broadcast";
+
 import { BotConfig } from "@config";
+
 import UsersRepository from "@repositories/users";
+
 import logger from "@services/common/logger";
 
-import HackerEmbassyBot from "./core/HackerEmbassyBot";
+import HackerEmbassyBot from "./core/classes/HackerEmbassyBot";
+import AdminController from "./controllers/admin";
+import BasicController from "./controllers/basic";
+import BirthdayController from "./controllers/birthday";
+import EmbassyController from "./controllers/embassy";
+import FundsController from "./controllers/funds";
+import MemeController from "./controllers/meme";
+import NeedsController from "./controllers/needs";
+import ServiceController from "./controllers/service";
+import StatusController from "./controllers/status";
+import SubscriptionsController from "./controllers/subscriptions";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -94,4 +110,33 @@ export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
     } catch (error) {
         logger.error(error);
     }
+}
+
+export function addControllers(bot: HackerEmbassyBot): void {
+    bot.addController(AdminController);
+    bot.addController(BasicController);
+    bot.addController(BirthdayController);
+    bot.addController(EmbassyController);
+    bot.addController(FundsController);
+    bot.addController(MemeController);
+    bot.addController(NeedsController);
+    bot.addController(ServiceController);
+    bot.addController(StatusController);
+    bot.addController(SubscriptionsController);
+}
+
+export function addSpecialRoutes(bot: HackerEmbassyBot): void {
+    bot.addEventRoutes(EmbassyController.voiceInSpaceHandler, ServiceController.newMemberHandler);
+}
+
+export function addEventHandlers(bot: HackerEmbassyBot) {
+    broadcast.addListener(BroadcastEvents.SpaceOpened, state => {
+        StatusController.openedNotificationHandler(bot, state);
+    });
+    broadcast.addListener(BroadcastEvents.SpaceClosed, state => {
+        StatusController.closedNotificationHandler(bot, state);
+    });
+    broadcast.addListener(BroadcastEvents.SpaceUnlocked, username => {
+        EmbassyController.unlockedNotificationHandler(bot, username);
+    });
 }

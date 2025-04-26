@@ -2,7 +2,7 @@ import "reflect-metadata";
 import { UserRole } from "@data/types";
 
 import { OptionalRegExp } from "./helpers";
-import { BotHandlers, MatchMapperFunction } from "./types";
+import { BotController, MatchMapperFunction } from "./types";
 
 export enum MetadataKeys {
     Route = "route",
@@ -18,13 +18,13 @@ export interface RouteMetadata {
 }
 
 export function UserRoles(roles: UserRole[]) {
-    return function (target: BotHandlers, propertyKey: string | symbol) {
+    return function (target: BotController, propertyKey: string | symbol) {
         Reflect.defineMetadata(MetadataKeys.Roles, roles, target, propertyKey);
     };
 }
 
 export function FeatureFlag(flag: string) {
-    return function (target: BotHandlers, propertyKey: string | symbol) {
+    return function (target: BotController, propertyKey: string | symbol) {
         Reflect.defineMetadata(MetadataKeys.FeatureFlag, flag, target, propertyKey);
     };
 }
@@ -35,7 +35,7 @@ export function Route(
     paramMapper?: MatchMapperFunction | null,
     roles?: UserRole[]
 ) {
-    return function (target: BotHandlers, propertyKey: string | symbol) {
+    return function (target: BotController, propertyKey: string | symbol) {
         const currentMetadata = (Reflect.getMetadata(MetadataKeys.Route, target, propertyKey) || []) as RouteMetadata[];
         currentMetadata.push({
             aliases,

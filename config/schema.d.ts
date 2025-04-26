@@ -141,7 +141,6 @@ export interface ChatsConfig {
     test: number;
     key: number;
     alerts: number;
-    status: number;
 }
 export interface AutoinsideTimeouts {
     in: number;

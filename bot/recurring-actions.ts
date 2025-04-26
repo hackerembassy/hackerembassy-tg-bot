@@ -25,8 +25,8 @@ export function setAutomaticFeatures(bot: HackerEmbassyBot) {
 // This are so short intervals that we can just use setInterval
 function setupShortIntervals(bot: HackerEmbassyBot) {
     // Live cam and status updates
-    setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
-    setInterval(() => bot.CustomEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);
+    setInterval(() => bot.customEmitter.emit(BotCustomEvent.camLive), botConfig.live.camRefreshInterval);
+    setInterval(() => bot.customEmitter.emit(BotCustomEvent.statusLive), botConfig.live.statusRefreshInterval);
 
     // Autoinside polling
     if (botConfig.features.autoinside) {

@@ -69,7 +69,7 @@ export default class MemeHandlers implements BotHandlers {
         let source: string;
 
         switch (target.slice(1)) {
-            case bot.Name:
+            case bot.name:
                 source = "./resources/images/animations/slap-bot.gif";
                 break;
             case "korn9509":
@@ -106,7 +106,7 @@ export default class MemeHandlers implements BotHandlers {
         let source: string;
 
         switch (target.slice(1)) {
-            case bot.Name:
+            case bot.name:
                 source = "./resources/images/animations/hug-bot.gif";
                 break;
             case "CabiaRangris":

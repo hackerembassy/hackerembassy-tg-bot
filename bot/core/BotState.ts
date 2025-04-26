@@ -75,7 +75,7 @@ export default class BotState {
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             liveChat.handler = () => restoredHandler(this.bot, ...liveChat.serializationData.params);
-            this.bot.CustomEmitter.on(liveChat.event, liveChat.handler);
+            this.bot.customEmitter.on(liveChat.event, liveChat.handler);
         }
     }
 
@@ -88,7 +88,7 @@ export default class BotState {
         const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);
 
         for (const lc of toRemove) {
-            this.bot.CustomEmitter.removeListener(lc.event, lc.handler);
+            this.bot.customEmitter.removeListener(lc.event, lc.handler);
         }
 
         this.liveChats = this.liveChats.filter(lc => toRemove.indexOf(lc) === -1);
@@ -98,7 +98,7 @@ export default class BotState {
 
     clearState() {
         for (const lc of this.liveChats) {
-            this.bot.CustomEmitter.removeListener(lc.event, lc.handler);
+            this.bot.customEmitter.removeListener(lc.event, lc.handler);
         }
         this.liveChats = [];
         this.history = {};

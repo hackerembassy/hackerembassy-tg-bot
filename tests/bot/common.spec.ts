@@ -1,14 +1,12 @@
 import { IGNORE_UPDATE_TIMEOUT } from "@hackembot/core/constants";
 
 import fundsRepository from "@repositories/funds";
-
 import { TEST_USERS } from "@data/seed";
 
-import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { createMockBot, createMockMessage } from "../mocks/mockHelpers";
+import { createMockBot, createMockMessage } from "../mocks/bot";
 
 describe("Bot behavior shared for all commands:", () => {
-    const mockBot: HackerEmbassyBotMock = createMockBot();
+    const mockBot = createMockBot();
     const mockDate = new Date("2023-01-01");
 
     afterEach(() => fundsRepository.clearFunds());
@@ -22,8 +20,8 @@ describe("Bot behavior shared for all commands:", () => {
     });
 
     test("bot should respond to messages when it is mentioned", async () => {
-        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.Name}`));
-        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.Name} short`));
+        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.name}`));
+        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.name} short`));
 
         expect(mockBot.popResults()).toHaveLength(2);
     });
@@ -44,8 +42,8 @@ describe("Bot behavior shared for all commands:", () => {
     });
 
     test("bot should not respond to messages when another bot is mentioned", async () => {
-        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.Name}1`));
-        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.Name}1 short`));
+        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.name}1`));
+        await mockBot.processUpdate(createMockMessage(`/status@${mockBot.name}1 short`));
 
         expect(mockBot.popResults()).toHaveLength(0);
     });

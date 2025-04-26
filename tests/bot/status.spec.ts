@@ -1,10 +1,9 @@
 import { TEST_USERS } from "@data/seed";
 
-import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { createMockBot, createMockMessage } from "../mocks/mockHelpers";
+import { createMockBot, createMockMessage } from "../mocks/bot";
 
 describe("Bot Status commands:", () => {
-    const mockBot: HackerEmbassyBotMock = createMockBot();
+    const mockBot = createMockBot();
 
     beforeAll(() => {
         fetchMock.mockReject(new Error("Mocked rejected embassyApi response"));

@@ -82,6 +82,8 @@ export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
         await bot.setMyCommands(defaultCommands);
         await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: botConfig.chats.key } });
 
+        if (process.env["NODE_ENV"] !== "production") return;
+
         const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
 
         if (membersWithUserid.length === 0) return;

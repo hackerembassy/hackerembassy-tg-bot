@@ -62,7 +62,7 @@ export default class AdminHandlers implements BotHandlers {
             inline_keyboard.forEach(row => {
                 row.forEach(button => {
                     if (!button.callback_data && button.cmd) button.callback_data = JSON.stringify({ cmd: button.cmd });
-                    if (!button.url && button.bot) button.url = `t.me/${bot.Name}?start=${button.bot}`;
+                    if (!button.url && button.bot) button.url = `t.me/${bot.name}?start=${button.bot}`;
                 });
             });
 
@@ -243,7 +243,7 @@ export default class AdminHandlers implements BotHandlers {
         flags[flag as keyof StateFlags] = value === "true" || value === "1";
         await bot.botState.persistChanges();
 
-        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         await bot.sendMessageExt(msg.chat.id, `Flag ${flag} is set to ${value}`, msg);
     }

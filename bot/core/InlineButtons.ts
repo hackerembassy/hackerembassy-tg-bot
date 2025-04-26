@@ -44,6 +44,6 @@ export function AnnoyingInlineButton(
     options?: any
 ) {
     return bot.context(msg).mode.forward || AnnoyingChats.includes(msg.chat.id)
-        ? InlineDeepLinkButton(text, bot.Name!, command)
+        ? InlineDeepLinkButton(text, bot.name, command)
         : InlineButton(text, command, flags, options);
 }

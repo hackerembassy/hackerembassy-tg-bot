@@ -1,12 +1,10 @@
 import fundsRepository from "@repositories/funds";
-
 import { TEST_USERS } from "@data/seed";
 
-import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { createMockBot, createMockMessage } from "../mocks/mockHelpers";
+import { createMockBot, createMockMessage } from "../mocks/bot";
 
 describe("Bot Funds commands:", () => {
-    const mockBot: HackerEmbassyBotMock = createMockBot();
+    const mockBot = createMockBot();
     const mockRentFund = {
         name: "Аренда Январь 2023",
         target_value: 1000,

@@ -4,8 +4,8 @@ import TelegramBot from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 
-import { DEFAULT_LANGUAGE, SupportedLanguage } from "./localization";
-import { BotMessageContextMode } from "./types";
+import { DEFAULT_LANGUAGE, SupportedLanguage } from "../localization";
+import { BotMessageContextMode } from "../types";
 
 export const DefaultModes: BotMessageContextMode = {
     silent: false,

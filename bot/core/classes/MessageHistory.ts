@@ -3,7 +3,7 @@ import config from "config";
 import { BotConfig } from "@config";
 
 import BotState from "./BotState";
-import { MessageHistoryEntry } from "./types";
+import { MessageHistoryEntry } from "../types";
 
 const botConfig = config.get<BotConfig>("bot");
 

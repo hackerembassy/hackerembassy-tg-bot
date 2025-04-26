@@ -1,7 +1,7 @@
 import { Router } from "express";
 import config from "config";
 
-import * as TextGenerators from "@hackembot/textGenerators";
+import * as TextGenerators from "@hackembot/text";
 import { stripCustomMarkup } from "@hackembot/core/helpers";
 
 import UsersRepository from "@repositories/users";

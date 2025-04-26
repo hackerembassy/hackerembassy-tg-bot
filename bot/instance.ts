@@ -1,9 +1,8 @@
 import logger from "@services/common/logger";
 
-import HackerEmbassyBot from "./core/HackerEmbassyBot";
-import { setMenu } from "./menu";
-import { setAutomaticFeatures } from "./recurring-actions";
-import { addEventHandlers, addControllers, addSpecialRoutes } from "./router";
+import HackerEmbassyBot from "./core/classes/HackerEmbassyBot";
+import { setAutomaticFeatures } from "./cron";
+import { addEventHandlers, addControllers, addSpecialRoutes, setMenu } from "./setup";
 
 // Configure the bot singleton instance
 if (!process.env["HACKERBOTTOKEN"]) {

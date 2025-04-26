@@ -8,9 +8,9 @@ import { getImageFromPath, getRandomImageFromFolder } from "@utils/filesystem";
 import { randomInteger } from "@utils/common";
 import { Route } from "@hackembot/core/decorators";
 
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
-import { BotHandlers } from "../core/types";
+import { BotController } from "../core/types";
 import { effectiveName, formatUsername, OptionalParam, userLink } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -20,17 +20,17 @@ const ZHABKAS_PATH = "./resources/images/toads";
 const ITS_WEDNESDAY_YEAAAH = ["𓆏", "𓆏", "𓆏"].length;
 const NOT_WEDNESDAY_SAD_IMAGE = "./resources/images/memes/notwednesday.jpg";
 
-export default class MemeHandlers implements BotHandlers {
+export default class MemeController implements BotController {
     static readonly 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺() === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓉡(𓈝, 𓎶, 𓃾));
 
     @Route(["randomzhabka", "randomtoad", "zhabka", "zhaba", "toad", "wednesday"])
     static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
-        await MemeHandlers.𓆏(bot, msg);
+        await MemeController.𓆏(bot, msg);
     }
 
     static async remindItIsWednesdayHandler(bot: HackerEmbassyBot) {
         const msg = await bot.sendMessageExt(botConfig.chats.horny, t("meme.its_wednesday"), null);
-        msg && MemeHandlers.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
+        msg && MemeController.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
     }
 
     @Route(["randomdog", "dog"], null, () => ["./resources/images/dogs"])
@@ -138,8 +138,8 @@ export default class MemeHandlers implements BotHandlers {
 }
 
 // Legend
-const 𓉢 = MemeHandlers.randomImagePathHandler;
-const 𓉡 = MemeHandlers.imageHandler;
+const 𓉢 = MemeController.randomImagePathHandler;
+const 𓉡 = MemeController.imageHandler;
 const 𓁺 = () => getToday().getDay();
 const 𓀥 = ITS_WEDNESDAY_YEAAAH;
 const 𓇠 = ZHABKAS_PATH;

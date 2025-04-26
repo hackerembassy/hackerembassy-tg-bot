@@ -6,7 +6,7 @@ import Backend from "i18next-fs-backend";
 
 import { BotConfig } from "@config";
 
-import BotMessageContext from "./BotMessageContext";
+import BotMessageContext from "./classes/BotMessageContext";
 
 const botConfig = config.get<BotConfig>("bot");
 

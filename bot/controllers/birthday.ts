@@ -11,18 +11,18 @@ import { OptionalParam, userLink } from "@hackembot/core/helpers";
 import { FeatureFlag, Route } from "@hackembot/core/decorators";
 import { Admins } from "@hackembot/core/constants";
 
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { RateLimiter } from "../core/RateLimit";
-import { BotHandlers } from "../core/types";
-import * as TextGenerators from "../textGenerators";
+import { RateLimiter } from "../core/classes/RateLimit";
+import { BotController } from "../core/types";
+import * as TextGenerators from "../text";
 
 const botConfig = config.get<BotConfig>("bot");
 
 const baseWishesDir = "./resources/wishes";
 
-export default class BirthdayHandlers implements BotHandlers {
+export default class BirthdayController implements BotController {
     @Route(["birthdays", "birthday"])
     @FeatureFlag("birthday")
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {

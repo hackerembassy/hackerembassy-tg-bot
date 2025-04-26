@@ -27,17 +27,17 @@ import { isEmoji, REPLACE_MARKER } from "@utils/text";
 import { FeatureFlag, Route } from "@hackembot/core/decorators";
 import { Accountants, Admins, Members, TrustedMembers } from "@hackembot/core/constants";
 
-import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/InlineButtons";
+import HackerEmbassyBot, { PUBLIC_CHATS } from "../core/classes/HackerEmbassyBot";
+import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/inlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
-import { BotCustomEvent, BotHandlers, BotMessageContextMode } from "../core/types";
+import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
-import * as TextGenerators from "../textGenerators";
+import * as TextGenerators from "../text";
 import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
-export default class StatusHandlers implements BotHandlers {
+export default class StatusController implements BotController {
     static isStatusError = false;
 
     @Route(["mac", "setmac", "mymac"], OptionalParam(/(\S*)(?: (.+))?/), match => [match[1], match[2]])
@@ -154,7 +154,7 @@ export default class StatusHandlers implements BotHandlers {
                     break;
                 case "help":
                 default:
-                    inline_keyboard = StatusHandlers.getAutoInsideKeyboard(bot, msg, mode.secret);
+                    inline_keyboard = StatusController.getAutoInsideKeyboard(bot, msg, mode.secret);
 
                     message = t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 });
                     break;
@@ -187,7 +187,7 @@ export default class StatusHandlers implements BotHandlers {
             isApi: false,
         });
 
-        if (StatusHandlers.isStatusError)
+        if (StatusController.isStatusError)
             statusMessage = short ? `📵 ${statusMessage}` : t("status.status.noconnection", { statusMessage });
 
         return statusMessage;
@@ -235,12 +235,12 @@ export default class StatusHandlers implements BotHandlers {
         sleep(1000); // Delay to prevent sending too many requests at once
         const state = spaceService.getState();
 
-        const climateInfo: Nullable<SpaceClimate> = botConfig.features.embassy ? await StatusHandlers.queryClimate() : null;
+        const climateInfo: Nullable<SpaceClimate> = botConfig.features.embassy ? await StatusController.queryClimate() : null;
         const todayEvents = botConfig.features.calendar ? await getTodayEventsCached() : null;
 
         bot.context(resultMessage).language = language;
 
-        const statusMessage = StatusHandlers.getStatusMessage(
+        const statusMessage = StatusController.getStatusMessage(
             state,
             mode,
             short,
@@ -248,7 +248,7 @@ export default class StatusHandlers implements BotHandlers {
             climateInfo,
             resultMessage.chat.id === botConfig.chats.horny
         );
-        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(bot, resultMessage, state, short);
+        const inline_keyboard = StatusController.getStatusInlineKeyboard(bot, resultMessage, state, short);
 
         try {
             await bot.editMessageTextExt(statusMessage, resultMessage, {
@@ -269,7 +269,7 @@ export default class StatusHandlers implements BotHandlers {
         mode.live = true;
         mode.pin = true;
 
-        await StatusHandlers.statusHandler(bot, msg, true);
+        await StatusController.statusHandler(bot, msg, true);
     }
 
     @Route(["status", "s"], OptionalParam(/(short)/), match => [match[1] === "short"])
@@ -283,8 +283,8 @@ export default class StatusHandlers implements BotHandlers {
         const state = spaceService.getState();
         const todayEvents = botConfig.features.calendar ? await getTodayEventsCached() : null;
 
-        const statusMessage = StatusHandlers.getStatusMessage(state, mode, short, todayEvents);
-        const inline_keyboard = StatusHandlers.getStatusInlineKeyboard(bot, msg, state, short);
+        const statusMessage = StatusController.getStatusMessage(state, mode, short, todayEvents);
+        const inline_keyboard = StatusController.getStatusInlineKeyboard(bot, msg, state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
             msg.chat.id,
@@ -299,7 +299,7 @@ export default class StatusHandlers implements BotHandlers {
         )) as Message;
 
         if (botConfig.features.embassy) {
-            const climateInfo: Nullable<SpaceClimate> = await StatusHandlers.queryClimate();
+            const climateInfo: Nullable<SpaceClimate> = await StatusController.queryClimate();
 
             if (climateInfo) {
                 const statusWithClient = statusMessage.replace(
@@ -322,9 +322,9 @@ export default class StatusHandlers implements BotHandlers {
             bot.addLiveMessage(
                 resultMessage,
                 BotCustomEvent.statusLive,
-                () => StatusHandlers.liveStatusHandler(bot, resultMessage, short, mode, language),
+                () => StatusController.liveStatusHandler(bot, resultMessage, short, mode, language),
                 {
-                    functionName: StatusHandlers.liveStatusHandler.name,
+                    functionName: StatusController.liveStatusHandler.name,
                     module: __filename,
                     params: [resultMessage, short, mode, language],
                 }
@@ -625,7 +625,7 @@ export default class StatusHandlers implements BotHandlers {
 
     static async autoinout(bot: HackerEmbassyBot, checkInside: boolean): Promise<void> {
         try {
-            StatusHandlers.isStatusError = false;
+            StatusController.isStatusError = false;
 
             // Request devices and users
             const macsInsideRequest = embassyService.fetchMacsInside();
@@ -675,7 +675,7 @@ export default class StatusHandlers implements BotHandlers {
             // Notify live status messages
             bot.customEmitter.emit(BotCustomEvent.statusLive);
         } catch (error) {
-            StatusHandlers.isStatusError = true;
+            StatusController.isStatusError = true;
             logger.error(error);
         }
     }
@@ -763,7 +763,7 @@ export default class StatusHandlers implements BotHandlers {
 
         const { startMonthDate, endMonthDate } = getMonthBoundaries(resultDate);
 
-        await StatusHandlers.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
+        await StatusController.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
     @Route(["stats"], OptionalParam(/(?:from (\S+) ?)?(?:to (\S+))?/), match => [match[1], match[2]])

@@ -3,14 +3,14 @@ import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 import NeedsRepository from "@repositories/needs";
 import { Route } from "@hackembot/core/decorators";
 
-import HackerEmbassyBot from "../core/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/InlineButtons";
+import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
+import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { BotHandlers } from "../core/types";
+import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
-import * as TextGenerators from "../textGenerators";
+import * as TextGenerators from "../text";
 
-export default class NeedsHandlers implements BotHandlers {
+export default class NeedsController implements BotController {
     @Route(["needs"])
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
@@ -46,7 +46,7 @@ export default class NeedsHandlers implements BotHandlers {
     }
 
     static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
-        await NeedsHandlers.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.item ?? "");
+        await NeedsController.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.item ?? "");
     }
 
     @Route(["boughtundo"], /(\d+)/, match => [match[1]])
@@ -84,7 +84,7 @@ export default class NeedsHandlers implements BotHandlers {
 
     @Route(["boughtbutton"], null, match => [match[1]])
     static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string): Promise<void> {
-        await NeedsHandlers.boughtByIdHandler(bot, message, id);
+        await NeedsController.boughtByIdHandler(bot, message, id);
 
         if (!message.reply_markup) return;
 

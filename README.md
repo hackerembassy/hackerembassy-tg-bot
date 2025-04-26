@@ -54,12 +54,12 @@ The bot is hosted on a VPS located at gateway.hackem.cc. The service, embassy-ap
 
 ## Dependencies
 
-Node v20.10.0
+Node v22.15.0
 All main dependencies in the cloud and internal service are installed using npm i
 
 ## Local deployment
 
-1. Install nodejs version 20+
+1. Install nodejs version 22+
 2. Go to the cloned repository folder
 3. Install dependencies with the command
    npm install
@@ -83,11 +83,11 @@ All main dependencies in the cloud and internal service are installed using npm 
 
 ## Main files
 
-bot/core/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality  
+bot/core/classes/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality  
 bot/instance.ts - initialization of a singleton for working with a bot  
-bot/routes.ts - mapping text commands to their handlers  
-bot/recurring-actions.ts - setting up actions that the bot performs automatically according to a timer  
-bot/handlers/\*.ts - user command handlers
+bot/setup.ts - adding controllers, events and menus to the bot  
+bot/cron.ts - setting up actions that the bot performs automatically according to a timer  
+bot/controllers/\*.ts - user command handlers
 
 data/db.ts - instance of the database
 data/scripts.ts - scripts for database operations

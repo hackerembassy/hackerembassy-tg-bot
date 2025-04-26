@@ -24,7 +24,7 @@ router.get("/tree", async (_, res, next) => {
 
 router.get("/page/:id", async (req, res, next): Promise<any> => {
     try {
-        if (!req.params.id) return res.status(400).send({ error: "Missing page id" });
+        if (!req.params.id) return void res.status(400).send({ error: "Missing page id" });
 
         const content = await wiki.getPageContent(req.params.id);
 
@@ -42,7 +42,7 @@ const WEBHOOK_DEBOUNCE = MINUTE;
 router.post("/hooks/documents.update", outlineSignedMiddleware, (req, res, next): any => {
     try {
         const body = req.body as Optional<OutlineWebhookPayload>;
-        if (!body || body.event !== "documents.update") return res.sendStatus(400);
+        if (!body || body.event !== "documents.update") return void res.sendStatus(400);
 
         const { title, url, updatedBy } = body.payload.model;
 

@@ -163,7 +163,7 @@ class Sensors {
             hass.get(climateConfig.bedroom.humidity).then(response => response.json()),
         ];
 
-        const climateValues = await Promise.allSettled(queries);
+        const climateValues = (await Promise.allSettled(queries)) as PromiseSettledResult<{ state?: string }>[];
 
         return {
             firstFloor: {
@@ -196,9 +196,9 @@ class Alarm {
 class Conditioner {
     constructor(private entityId: string) {}
 
-    async getState(): Promise<ConditionerStatus> {
+    async getState() {
         const response = await hass.get(`${climateConfig.conditioner.statePath}/${this.entityId}`);
-        return response.json();
+        return response.json() as Promise<ConditionerStatus>;
     }
 
     turnOn() {

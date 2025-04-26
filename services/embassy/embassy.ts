@@ -202,14 +202,16 @@ class EmbassyService {
         const primaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.primary as DeviceCheckingMethod;
         const secondaryMethod = embassyApiConfig.spacenetwork.deviceCheckingMethod.secondary as DeviceCheckingMethod | undefined;
 
-        const [primaryResponse, secondaryResponse] = await Promise.allSettled([
+        const [primaryResponse, secondaryResponse] = (await Promise.allSettled([
             this.deviceRequest(primaryMethod),
             secondaryMethod ? this.deviceRequest(secondaryMethod) : Promise.resolve(undefined),
-        ]);
+        ])) as PromiseSettledResult<string[]>[];
 
         const devicesList = [
-            ...(primaryResponse.status === "fulfilled" && primaryResponse.value ? await primaryResponse.value : []),
-            ...(secondaryResponse.status === "fulfilled" && secondaryResponse.value ? await secondaryResponse.value : []),
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            ...(primaryResponse.status === "fulfilled" && primaryResponse.value ? primaryResponse.value : []),
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            ...(secondaryResponse.status === "fulfilled" && secondaryResponse.value ? secondaryResponse.value : []),
         ];
 
         return devicesList.map((device: string) => device.toLowerCase());

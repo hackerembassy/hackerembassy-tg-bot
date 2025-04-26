@@ -391,9 +391,11 @@ export default class FundsController implements BotController {
             const caption = `${newDonationText}${sponsorshipText}`;
             const animeImage = await FundsController.getAnimeImageForDonation(value, preparedCurrency, user);
 
-            animeImage
-                ? await bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption })
-                : await bot.sendMessageExt(msg.chat.id, caption, msg);
+            if (animeImage) {
+                await bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption });
+            } else {
+                await bot.sendMessageExt(msg.chat.id, caption, msg);
+            }
 
             // Send notification to Space
             bot.context(msg).mode.silent = true;

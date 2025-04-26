@@ -141,7 +141,7 @@ export type CallbackData = {
 };
 
 // Intefraces
-export interface BotController {}
+export type BotController = object;
 
 export interface ITelegramUser {
     username?: Nullable<string>;

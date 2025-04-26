@@ -156,3 +156,9 @@ export interface EditMessageMediaOptionsExt extends EditMessageMediaOptions {
 export interface SendMediaGroupOptionsExt extends SendMediaGroupOptions {
     message_thread_id?: number;
 }
+
+export type BotAssets = {
+    images: {
+        restricted: Buffer | null;
+    };
+};

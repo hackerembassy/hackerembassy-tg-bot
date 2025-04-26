@@ -1,8 +1,7 @@
-import { HackerEmbassyBotMock } from "../mocks/HackerEmbassyBotMock";
-import { createMockBot, createMockMessage } from "../mocks/mockHelpers";
+import { createMockBot, createMockMessage } from "../mocks/bot";
 
 describe("Basic commands:", () => {
-    const mockBot: HackerEmbassyBotMock = createMockBot();
+    const mockBot = createMockBot();
 
     test("should return correct info responses", async () => {
         await mockBot.processUpdate(createMockMessage(`/start`));

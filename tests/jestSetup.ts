@@ -1,11 +1,20 @@
 /* eslint-disable no-console */
 import fetchMock from "jest-fetch-mock";
+import nock from "nock";
 
 import { sleep } from "@utils/common";
 import { getOrCreateDb, seedUsers } from "@data/scripts";
 import { SEED_TEST_USERS } from "@data/seed";
 
 fetchMock.enableMocks();
+
+nock("https://api.telegram.org")
+    .post(() => true)
+    .reply(200, {
+        ok: true,
+        result: [],
+    })
+    .persist();
 
 jest.mock("@services/funds/currency", () => {
     return {

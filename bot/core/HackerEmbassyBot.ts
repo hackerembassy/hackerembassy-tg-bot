@@ -36,6 +36,7 @@ import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "./helpers
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {
+    DEFAULT_BOT_NAME,
     DEFAULT_CLEAR_QUEUE_LENGTH,
     DEFAULT_CLEAR_QUEUE_TIMEOUT,
     DEFAULT_TEMPORARY_MESSAGE_TIMEOUT,
@@ -43,6 +44,7 @@ import {
     IGNORE_UPDATE_TIMEOUT,
     IMPERSONATION_MARKER,
     MAX_MESSAGE_LENGTH,
+    POLLING_OPTIONS,
     RESTRICTED_PERMISSIONS,
 } from "./constants";
 import MessageHistory from "./MessageHistory";
@@ -61,20 +63,14 @@ import {
     MatchMapperFunction,
     SendMediaGroupOptionsExt,
     SerializedFunction,
+    BotAssets,
 } from "./types";
 import { ButtonFlags, InlineDeepLinkButton } from "./InlineButtons";
 import ChatBridge from "./ChatBridge";
 
 const botConfig = config.get<BotConfig>("bot");
 
-export const PUBLIC_CHATS = [
-    botConfig.chats.main,
-    botConfig.chats.horny,
-    botConfig.chats.offtopic,
-    botConfig.chats.alerts,
-    botConfig.chats.key,
-    botConfig.chats.test,
-];
+export const PUBLIC_CHATS = Object.values(botConfig.chats) as number[];
 
 const WelcomeMessageMap: {
     [x: number]: string | undefined;
@@ -85,38 +81,61 @@ const WelcomeMessageMap: {
     [botConfig.chats.horny]: "service.welcome.horny",
 };
 
-const GuessIgnoreList = new Set(botConfig.guess.ignoreList);
-
 export default class HackerEmbassyBot extends TelegramBot {
-    public messageHistory: MessageHistory;
-    public Name: Optional<string>;
-    public CustomEmitter: EventEmitter;
-    public botState: BotState;
-    public routeMap = new Map<string, BotRoute>();
-    public restrictedImage: Nullable<Buffer> = null;
+    public name: string = DEFAULT_BOT_NAME;
+    public customEmitter: EventEmitter = new EventEmitter();
+    public botState: BotState = new BotState(this);
+    public messageHistory: MessageHistory = new MessageHistory(this.botState);
+    public assets: BotAssets = {
+        images: {
+            restricted: null,
+        },
+    };
     public pollingError: Error | null = null;
     public autoRemoveChats: number[] = [];
     public chatBridge = new ChatBridge();
-
-    private contextMap = new Map();
     public forwardTarget = botConfig.chats.main;
 
-    constructor(token: string, options: TelegramBot.ConstructorOptions) {
-        super(token, options);
-        this.botState = new BotState(this);
-        this.messageHistory = new MessageHistory(this.botState);
-        this.Name = undefined;
-        this.CustomEmitter = new EventEmitter();
+    // Routes
+    private routeMap = new Map<string, BotRoute>();
+    private voiceHandler: BotHandler | null = null;
+    private chatMemberHandler: ChatMemberHandler | null = null;
+
+    // Context storage for user messages
+    private contextMap = new Map();
+    private guessIgnoreList = new Set(botConfig.guess.ignoreList);
+
+    constructor(token: string) {
+        // @ts-ignore polling options type in the lib is a lie
+        super(token, { polling: POLLING_OPTIONS });
+    }
+
+    public start() {
+        // Who am I?
+        this.getMe()
+            .then(user => user.username && (this.name = user.username))
+            .catch(() => logger.error("Failed to get bot username"));
+
+        // Let's start listening for events
+        this.on("message", this.routeMessage);
+        this.on("callback_query", this.routeCallback);
+        this.voiceHandler && this.on("voice", this.voiceHandler.bind(this, this));
+        this.chatMemberHandler && this.onExt("chat_member", this.chatMemberHandler);
+        if (botConfig.features.reactions) this.on("message", message => this.reactToMessage(message));
 
         this.on("error", error => logger.error(error));
         this.on("polling_error", error => {
             this.pollingError = error;
             logger.error(error);
         });
+
+        this.startPolling();
+
+        logger.info(`--- Bot ${this.name} started polling ---`);
     }
 
     public get url(): string {
-        return `https://t.me/${this.Name}`;
+        return `https://t.me/${this.name}`;
     }
 
     processUpdate(update: TelegramBot.Update): void {
@@ -499,8 +518,8 @@ export default class HackerEmbassyBot extends TelegramBot {
     private shouldIgnore(text?: string): boolean {
         if (!text) return true;
 
-        const botNameRequested = this.Name ? /^\/\S+?@(\S+)/.exec(text)?.[1] : null;
-        const forAnotherBot = !!botNameRequested && botNameRequested !== this.Name;
+        const botNameRequested = this.name ? /^\/\S+?@(\S+)/.exec(text)?.[1] : null;
+        const forAnotherBot = !!botNameRequested && botNameRequested !== this.name;
 
         return !text.startsWith("/") || forAnotherBot;
     }
@@ -561,7 +580,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Try to guess the answer if no route is found for members, especially for @CabiaRangris
             if (!route) {
-                return !GuessIgnoreList.has(command) && this.canUserGuess(user, message.chat)
+                return !this.guessIgnoreList.has(command) && this.canUserGuess(user, message.chat)
                     ? await messageContext.run(() =>
                           openAI
                               .askChat(text, t("embassy.neural.contexts.guess"))
@@ -691,13 +710,13 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     public async sendWelcomeMessage(chat: TelegramBot.Chat, tgUser: ITelegramUser, language?: string) {
-        const inline_keyboard = [[InlineDeepLinkButton(t("service.welcome.buttons.about"), this.Name!, "about")]];
+        const inline_keyboard = [[InlineDeepLinkButton(t("service.welcome.buttons.about"), this.name, "about")]];
 
         await this.sendMessageExt(
             chat.id,
             t(
                 WelcomeMessageMap[chat.id] ?? "service.welcome.main",
-                { botName: this.Name!, newMember: tgUserLink(tgUser) },
+                { botName: this.name, newMember: tgUserLink(tgUser) },
                 language
             ),
             null,
@@ -737,9 +756,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         return false;
     }
 
-    public sendRestrictedMessage(message: TelegramBot.Message, route?: BotRoute) {
-        this.restrictedImage
-            ? this.sendPhotoExt(message.chat.id, this.restrictedImage, message, {
+    public async sendRestrictedMessage(message: TelegramBot.Message, route?: BotRoute) {
+        this.assets.images.restricted = await fs.readFile("./resources/images/restricted.jpg").catch(() => null);
+
+        this.assets.images.restricted
+            ? this.sendPhotoExt(message.chat.id, this.assets.images.restricted, message, {
                   caption: t("admin.messages.restricted", { required: route ? route.restrictions.join(", ") : "someone else" }),
               })
             : this.sendMessageExt(
@@ -747,6 +768,11 @@ export default class HackerEmbassyBot extends TelegramBot {
                   t("admin.messages.restricted", { required: route ? route.restrictions.join(", ") : "someone else" }),
                   message
               );
+    }
+
+    addEventRoutes(voiceHandler: BotHandler, chatMemberHandler: ChatMemberHandler) {
+        this.voiceHandler = voiceHandler;
+        this.chatMemberHandler = chatMemberHandler;
     }
 
     addRoute(
@@ -840,9 +866,9 @@ export default class HackerEmbassyBot extends TelegramBot {
         serializationData: SerializedFunction
     ) {
         const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id && cr.event === event);
-        if (chatRecordIndex !== -1) this.CustomEmitter.removeListener(event, this.botState.liveChats[chatRecordIndex].handler);
+        if (chatRecordIndex !== -1) this.customEmitter.removeListener(event, this.botState.liveChats[chatRecordIndex].handler);
 
-        this.CustomEmitter.on(event, handler);
+        this.customEmitter.on(event, handler);
         const newChatRecord = {
             chatId: liveMessage.chat.id,
             handler,
@@ -867,7 +893,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return this.restrictChatMember(chatId, userId, FULL_PERMISSIONS);
     }
 
-    //@ts-ignore
     restrictChatMember(
         chatId: ChatId,
         userId: number,
@@ -876,13 +901,12 @@ export default class HackerEmbassyBot extends TelegramBot {
             use_independent_chat_permissions?: boolean;
         }
     ) {
-        //@ts-ignore
         return super.restrictChatMember(chatId, userId, options);
     }
 
     private createRegex(aliases: string[], paramRegex: Nullable<RegExp>, optional: boolean = false) {
         const commandPart = `/(?:${aliases.join("|")})`;
-        const botnamePart = this.Name ? `(?:@${this.Name})?` : "";
+        const botnamePart = this.name ? `(?:@${this.name})?` : "";
 
         let paramsPart = "";
         if (paramRegex) paramsPart = optional ? paramRegex.source : ` ${paramRegex.source}`;
@@ -918,10 +942,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         return super.deleteMessages(chatId, messageIds);
     }
 
+    //#region Base methods
     /*
-     * Deprecated base TelegramBot methods.
+     * Base TelegramBot methods, which should be used directly only in rare cases.
      * They don't know how to properly handle message context, message modes,
-     * message threads, custom events etc, so use their extended versions outside of this class.
+     * message threads, custom events etc, so use their extended versions outside of this class when possible.
      */
 
     /**
@@ -992,4 +1017,5 @@ export default class HackerEmbassyBot extends TelegramBot {
     onText(regexp: RegExp, callback: (msg: TelegramBot.Message, match: RegExpExecArray | null) => void): void {
         return super.onText(regexp, callback);
     }
+    //#endregion
 }

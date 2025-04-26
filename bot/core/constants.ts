@@ -6,6 +6,7 @@ export const DEFAULT_TEMPORARY_MESSAGE_TIMEOUT = 8000; // Milliseconds
 export const DEFAULT_CLEAR_QUEUE_TIMEOUT = 5000;
 export const DEFAULT_CLEAR_QUEUE_LENGTH = 10;
 export const IMPERSONATION_MARKER = "~~";
+export const DEFAULT_BOT_NAME = "Bot";
 
 export const RESTRICTED_PERMISSIONS = {
     can_send_messages: false,
@@ -22,6 +23,28 @@ export const RESTRICTED_PERMISSIONS = {
     can_invite_users: false,
     can_pin_messages: false,
     can_manage_topics: false,
+};
+
+export const POLLING_OPTIONS = {
+    params: {
+        allowed_updates: JSON.stringify([
+            "update_id",
+            "message",
+            "edited_message",
+            "channel_post",
+            "edited_channel_post",
+            "inline_query",
+            "chosen_inline_result",
+            "callback_query",
+            "shipping_query",
+            "pre_checkout_query",
+            "poll",
+            "poll_answer",
+            "my_chat_member",
+            "chat_member",
+        ]),
+    },
+    autoStart: false,
 };
 
 export const FULL_PERMISSIONS = Object.fromEntries(Object.keys(RESTRICTED_PERMISSIONS).map(key => [key, true]));

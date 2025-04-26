@@ -357,7 +357,7 @@ export default class StatusHandlers implements BotHandlers {
         const opener = bot.context(msg).user;
 
         spaceService.openSpace(opener, { checkOpener: false });
-        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [
             [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.reclose"), "close")],
@@ -401,7 +401,7 @@ export default class StatusHandlers implements BotHandlers {
         spaceService.closeSpace(closer);
         userService.evictPeople();
 
-        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "open")]];
 
@@ -414,7 +414,7 @@ export default class StatusHandlers implements BotHandlers {
 
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
         userService.evictPeople();
-        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
@@ -449,7 +449,7 @@ export default class StatusHandlers implements BotHandlers {
             ghost
         );
 
-        if (gotIn) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        if (gotIn) bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         // TODO ADD FIRST_NAME
         const message = TextGenerators.getInMessage(target.username ?? "", gotIn, context.mode, inviterName, until);
@@ -491,7 +491,7 @@ export default class StatusHandlers implements BotHandlers {
                 username: helpers.userLink(target),
                 memberusername: force ? helpers.userLink(sender) : undefined,
             });
-            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+            bot.customEmitter.emit(BotCustomEvent.statusLive);
         } else {
             message = t(force ? "status.outforce.shouldnot" : "status.out.shouldnot");
         }
@@ -501,7 +501,7 @@ export default class StatusHandlers implements BotHandlers {
                   [InlineButton(t("status.buttons.outandout"), "out"), InlineButton(t("status.buttons.outandin"), "in")],
                   [
                       msg.chat.id === botConfig.chats.main
-                          ? InlineDeepLinkButton(t("status.buttons.whoinside"), bot.Name!, "status")
+                          ? InlineDeepLinkButton(t("status.buttons.whoinside"), bot.name, "status")
                           : InlineButton(t("status.buttons.whoinside"), "status"),
                   ],
               ]
@@ -518,7 +518,7 @@ export default class StatusHandlers implements BotHandlers {
         const sender = bot.context(msg).user;
 
         userService.setGoingState(sender, true, note);
-        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.going", {
             username: helpers.userLink(sender),
@@ -543,7 +543,7 @@ export default class StatusHandlers implements BotHandlers {
         const sender = bot.context(msg).user;
 
         userService.setGoingState(sender, false, note);
-        bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const message = t("status.notgoing", {
             username: helpers.userLink(sender),
@@ -640,7 +640,7 @@ export default class StatusHandlers implements BotHandlers {
             }
 
             // Notify live status messages
-            bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+            bot.customEmitter.emit(BotCustomEvent.statusLive);
         } catch (error) {
             StatusHandlers.isStatusError = true;
             logger.error(error);
@@ -658,7 +658,7 @@ export default class StatusHandlers implements BotHandlers {
             userService.letOut(user, UserStateChangeType.TimedOut, currentDate);
         }
 
-        if (timedOutUsers.length > 0) bot.CustomEmitter.emit(BotCustomEvent.statusLive);
+        if (timedOutUsers.length > 0) bot.customEmitter.emit(BotCustomEvent.statusLive);
     }
 
     static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string): Promise<any> {

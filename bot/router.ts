@@ -5,7 +5,6 @@ import config from "config";
 import { UserRole } from "@data/types";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import { AvailableModels } from "@services/external/neural";
-import logger from "@services/common/logger";
 import { DURATION_STRING_REGEX } from "@utils/date";
 import { BotConfig } from "@config";
 
@@ -33,6 +32,10 @@ const Admins = ["admin"] as UserRole[];
 // Common regexes
 const CaptureListOfIds = /(\d[\d\s,]*)/;
 const CaptureInteger = /(-?\d+)/;
+
+export function addSpecialRoutes(bot: HackerEmbassyBot): void {
+    bot.addEventRoutes(EmbassyHandlers.voiceInSpaceHandler, ServiceHandlers.newMemberHandler);
+}
 
 export function addRoutes(bot: HackerEmbassyBot): void {
     // Info
@@ -382,29 +385,6 @@ export function addEventHandlers(bot: HackerEmbassyBot) {
     broadcast.addListener(BroadcastEvents.SpaceUnlocked, username => {
         EmbassyHandlers.unlockedNotificationHandler(bot, username);
     });
-}
-
-export function startRouting(bot: HackerEmbassyBot, debug: boolean = false) {
-    // Routing messages
-    bot.on("message", message => bot.routeMessage(message));
-    bot.on("voice", message => EmbassyHandlers.voiceInSpaceHandler(bot, message));
-    bot.on("callback_query", bot.routeCallback);
-    bot.onExt("chat_member", ServiceHandlers.newMemberHandler);
-
-    if (botConfig.features.reactions) bot.on("message", message => bot.reactToMessage(message));
-
-    // Debug logging
-    if (debug) {
-        logger.debug("[debug] routes are added");
-
-        bot.on("chat_member", member => {
-            logger.debug(`chat_member: ${JSON.stringify(member)}`);
-        });
-
-        bot.on("message", (message, metadata) => {
-            logger.debug(`message: ${JSON.stringify(message)};\nmetadata: ${JSON.stringify(metadata)}`);
-        });
-    }
 }
 
 function addEmbassySpecificRoutes(bot: HackerEmbassyBot) {

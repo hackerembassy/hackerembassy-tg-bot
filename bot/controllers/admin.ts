@@ -221,7 +221,7 @@ export default class AdminController implements BotController {
         const roles = rolesString.split("|");
         const user = UsersRepository.getUserByName(username.replace("@", ""));
 
-        if (!user) return bot.sendMessageExt(msg.chat.id, t("general.nouser"), msg);
+        if (!user) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
         const success = UsersRepository.updateRoles(user.userid, roles);
         const text = success

@@ -121,7 +121,8 @@ export type MatchMapperFunction = (match: RegExpExecArray) => any[];
 export type BotRoute = {
     regex: RegExp;
     handler: BotHandler;
-    restrictions: UserRole[];
+    userRoles: UserRole[];
+    allowedChats: ChatId[];
     paramMapper: Nullable<MatchMapperFunction>;
     optional: boolean;
 };
@@ -160,5 +161,6 @@ export interface SendMediaGroupOptionsExt extends SendMediaGroupOptions {
 export type BotAssets = {
     images: {
         restricted: Buffer | null;
+        chatnotallowed: Buffer | null;
     };
 };

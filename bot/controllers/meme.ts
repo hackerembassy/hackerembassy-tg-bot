@@ -42,7 +42,7 @@ export default class MemeController implements BotController {
         const buffer = isTimeForZhabka ? await getRandomImageFromFolder(ZHABKAS_PATH) : await getRandomImageFromFolder(path);
 
         if (!buffer) {
-            await bot.sendMessageExt(msg.chat.id, t("status.general.error"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("status.general.errors.generic"), msg);
             return;
         }
 
@@ -54,7 +54,7 @@ export default class MemeController implements BotController {
         const buffer = await getImageFromPath(path);
 
         if (!buffer) {
-            await bot.sendMessageExt(msg.chat.id, t("status.general.error"), msg);
+            await bot.sendMessageExt(msg.chat.id, t("status.general.errors.generic"), msg);
             return;
         }
 

@@ -107,7 +107,7 @@ describe("Bot behavior shared for all commands:", () => {
         }
 
         await jest.runAllTimersAsync();
-        const expectedForbiddenResponses = Array(protectedCommands.length).fill("admin\\.messages\\.restricted");
+        const expectedForbiddenResponses = Array(protectedCommands.length).fill("general\\.errors\\.restricted");
 
         expect(mockBot.popResults()).toEqual(expectedForbiddenResponses);
     });

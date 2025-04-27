@@ -205,7 +205,7 @@
         },
         "ollama": {
             "base": "http://ollama.lan:11434",
-            "model": "llama3.2:latest"
+            "model": "gemma3:27b"
         },
         "openai": {
             "model": "gpt-4o-mini",

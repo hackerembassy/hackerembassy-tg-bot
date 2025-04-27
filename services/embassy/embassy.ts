@@ -97,8 +97,7 @@ class EmbassyService {
 
     playSound(linkOrName: string) {
         // TODO move to hass
-        const defaultMediaBase = "http://le-fail.lan:8001";
-        const link = linkOrName.startsWith("http") ? linkOrName : `${defaultMediaBase}/${linkOrName}.mp3`;
+        const link = linkOrName.startsWith("http") ? linkOrName : `${EmbassyBaseLocalDns}/${linkOrName}.mp3`;
 
         return this.requestToEmbassy(`/speaker/play`, "POST", { link }).then(successOrThrow);
     }

@@ -816,7 +816,14 @@ export default class StatusController implements BotController {
         const statsTitle = t("status.stats.hoursinspace", dateBoundaries);
         const statsTexts = TextGenerators.getStatsTexts(userTimes, dateBoundaries, shouldMentionPeriod);
 
-        await bot.sendPhotoExt(msg.chat.id, await createUserStatsDonut(userTimes, statsTitle), msg);
+        try {
+            const MAX_USERS_PER_DONUT = 110;
+            if (userTimes.length < MAX_USERS_PER_DONUT) {
+                await bot.sendPhotoExt(msg.chat.id, await createUserStatsDonut(userTimes, statsTitle), msg);
+            }
+        } catch (error) {
+            logger.error(error);
+        }
 
         for (const statsText of statsTexts) {
             await bot.sendMessageExt(msg.chat.id, statsText, msg);

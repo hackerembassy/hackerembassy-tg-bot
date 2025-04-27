@@ -398,7 +398,7 @@ export function getPrinterStatusText(status: PrinterStatus): string {
 }
 
 export function getStatsTexts(userTimes: UserVisit[], dateBoundaries: DateBoundary, shouldMentionPeriod = false) {
-    const MAX_USERS_PER_MESSAGE = 75;
+    const MAX_USERS_PER_MESSAGE = 70;
     const header = `${shouldMentionPeriod ? t("status.stats.period", dateBoundaries) : t("status.stats.start")}:\n\n`;
     const footer = `\n${t("status.stats.tryautoinside")}\n${t("status.stats.help")}`;
 

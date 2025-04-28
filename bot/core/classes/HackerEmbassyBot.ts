@@ -1,5 +1,7 @@
 import { promises as fs } from "fs";
 import { EventEmitter, Stream } from "stream";
+
+import split2 from "split2";
 import "reflect-metadata";
 
 import config from "config";
@@ -403,45 +405,45 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     // TODO: add support for sending plain text and make it less bad
+
     async sendStreamedMessage(
         chatId: TelegramBot.ChatId,
         stream: NodeJS.ReadableStream,
         msg: Nullable<TelegramBot.Message>
     ): Promise<boolean> {
-        let messageToEdit = null;
+        let messageToEdit: Nullable<TelegramBot.Message> = null;
         let buffer = "";
         let window = 0;
 
         try {
-            for await (const chunk of stream) {
-                const lines = chunk.toString("utf-8").trim().split("\n");
+            for await (const line of stream.pipe(split2())) {
+                if (!line.trim()) continue;
 
-                for (const line of lines) {
-                    const parsedResponse = JSON.parse(line) as {
-                        response: string;
-                        done: boolean;
-                    };
+                const parsedResponse = JSON.parse(line) as {
+                    response: string;
+                    done: boolean;
+                };
 
-                    buffer += parsedResponse.response;
-                    window += parsedResponse.response.length;
+                buffer += parsedResponse.response;
+                window += parsedResponse.response.length;
 
-                    if (!messageToEdit) {
-                        messageToEdit = await this.sendMessageExt(chatId, buffer, msg);
-                    } else if (parsedResponse.done || window >= MAX_STREAMING_WINDOW) {
-                        await this.editMessageTextExt(buffer, messageToEdit, {
-                            chat_id: chatId,
-                            message_id: messageToEdit.message_id,
-                        });
+                if (!messageToEdit) {
+                    messageToEdit = await this.sendMessageExt(chatId, buffer, msg);
+                } else if (parsedResponse.done || window >= MAX_STREAMING_WINDOW) {
+                    await this.editMessageTextExt(buffer, messageToEdit, {
+                        chat_id: chatId,
+                        message_id: messageToEdit.message_id,
+                    });
 
-                        if (buffer.length > MAX_MESSAGE_LENGTH) {
-                            messageToEdit = null;
-                            buffer = "";
-                        }
-
-                        window = 0;
+                    if (buffer.length > MAX_MESSAGE_LENGTH) {
+                        messageToEdit = null;
+                        buffer = "";
                     }
+
+                    window = 0;
                 }
             }
+
             return true;
         } catch (error) {
             logger.error(error);

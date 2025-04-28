@@ -422,23 +422,23 @@ export default class HackerEmbassyBot extends TelegramBot {
                         done: boolean;
                     };
 
-                    if (buffer.length > MAX_MESSAGE_LENGTH) {
-                        messageToEdit = await this.sendMessageExt(chatId, buffer, msg);
-                        buffer = "";
-                        window = 0;
-                    } else {
-                        buffer += parsedResponse.response;
-                        window += parsedResponse.response.length;
+                    buffer += parsedResponse.response;
+                    window += parsedResponse.response.length;
 
-                        if (!messageToEdit) {
-                            messageToEdit = await this.sendMessageExt(chatId, buffer, msg);
-                        } else if (parsedResponse.done || window >= MAX_STREAMING_WINDOW) {
-                            await this.editMessageTextExt(buffer, messageToEdit, {
-                                chat_id: chatId,
-                                message_id: messageToEdit.message_id,
-                            });
-                            window = 0;
+                    if (!messageToEdit) {
+                        messageToEdit = await this.sendMessageExt(chatId, buffer, msg);
+                    } else if (parsedResponse.done || window >= MAX_STREAMING_WINDOW) {
+                        await this.editMessageTextExt(buffer, messageToEdit, {
+                            chat_id: chatId,
+                            message_id: messageToEdit.message_id,
+                        });
+
+                        if (buffer.length > MAX_MESSAGE_LENGTH) {
+                            messageToEdit = null;
+                            buffer = "";
                         }
+
+                        window = 0;
                     }
                 }
             }

@@ -1,4 +1,5 @@
 export const MAX_MESSAGE_LENGTH = 3500;
+export const MAX_STREAMING_WINDOW = 700;
 export const MAX_MESSAGE_LENGTH_WITH_TAGS = 3200;
 export const MAX_MENTIONS_WITH_NOTIFICATIONS = 5;
 export const IGNORE_UPDATE_TIMEOUT = 8; // Seconds from bot api

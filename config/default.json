@@ -204,7 +204,7 @@
             "sampler": "Euler a"
         },
         "ollama": {
-            "base": "http://ollama.lan:11434",
+            "base": "https://owo.hackem.cc/ollama",
             "model": "gemma3:12b"
         },
         "openai": {

@@ -128,6 +128,7 @@ GAMINGPASSWORD - Gaming server user password
 HASSTOKEN - Home Assistant API token  
 HACKERGOOGLEAPIKEY - Google Calendar API token  
 OPENAIAPIKEY - OpenAI API token  
+OLLAMAAPIKEY - Ollama API token
 SONAR_TOKEN - Sonar Cloud analysis token  
 WIKIAPIKEY - Outline Wiki API token  
 OUTLINE_SIGNING_SECRET - Outline API signing secret for webhooks

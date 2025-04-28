@@ -10,7 +10,7 @@ import embassyService from "@services/embassy/embassy";
 import { getDonationsSummary } from "@services/funds/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
 import logger from "@services/common/logger";
-import { AvailableModels, openAI } from "@services/external/neural";
+import { AvailableModels, ollama, openAI } from "@services/external/neural";
 import { userService, hasRole } from "@services/domain/user";
 
 import { sleep } from "@utils/common";
@@ -756,11 +756,20 @@ export default class EmbassyController implements BotController {
         try {
             bot.sendChatAction(msg.chat.id, "typing", msg);
 
-            const response = await (model === AvailableModels.GPT
-                ? openAI.askChat(prompt, t("embassy.neural.contexts.default"))
-                : embassyService.ollama(prompt));
-
-            await bot.sendMessageExt(msg.chat.id, response, msg);
+            switch (model) {
+                case AvailableModels.GPT:
+                    await bot.sendMessageExt(
+                        msg.chat.id,
+                        await openAI.askChat(prompt, t("embassy.neural.contexts.default")),
+                        msg
+                    );
+                    break;
+                case AvailableModels.OLLAMA:
+                    await bot.sendStreamedMessage(msg.chat.id, await ollama.generateStream(prompt), msg);
+                    break;
+                default:
+                    throw new Error("Unknown model");
+            }
         } catch (error) {
             await bot.sendMessageExt(msg.chat.id, t("service.openai.error"), msg);
             logger.error(error);

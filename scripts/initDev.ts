@@ -49,6 +49,7 @@ import { getOrCreateDb } from "@data/scripts";
     HASSTOKEN="_"
     HACKERGOOGLEAPIKEY="_"
     OPENAIAPIKEY="_"
+    OLLAMAAPIKEY="_"
     WIKIAPIKEY="_"
     OUTLINE_SIGNING_SECRET="_"
     UNIFIUSER="_"

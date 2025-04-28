@@ -179,35 +179,51 @@ export const stableDiffusion = new StableDiffusion();
 export class Ollama {
     public base: string;
 
-    constructor() {
+    constructor(private apiKey: string) {
         this.base = neuralConfig.ollama.base;
     }
 
     static readonly defaultModel = neuralConfig.ollama.model;
 
-    async generate(prompt: string, model: string = Ollama.defaultModel) {
+    private async generateBase(prompt: string, model: string = Ollama.defaultModel, stream: boolean = false) {
         const raw = JSON.stringify({
             prompt,
             model: model,
-            stream: false,
+            stream,
         });
-
         const requestOptions = {
             method: "POST",
             headers: {
                 ["Content-Type"]: "application/json",
                 ["accept"]: "application/json",
+                ["Authorization"]: this.apiKey.length > 0 ? `Bearer ${this.apiKey}` : "",
             },
             body: raw,
         };
 
         const response = await fetch(`${this.base}/api/generate`, requestOptions);
+
+        if (!response.ok) throw new Error(`Ollama is not available: ${response.statusText}`);
+
+        return response;
+    }
+    async generate(prompt: string, model: string = Ollama.defaultModel) {
+        const response = await this.generateBase(prompt, model);
+
         const body = (await response.json()) as ollamaGenerateResponse;
 
         if (body.error) throw new Error(`${body.error}`);
 
         return body.response;
     }
+
+    async generateStream(prompt: string, model: string = Ollama.defaultModel) {
+        const response = await this.generateBase(prompt, model, true);
+
+        if (!response.body) throw new Error("Ollama: No stream body");
+
+        return response.body;
+    }
 }
 
-export const ollama = new Ollama();
+export const ollama = new Ollama(process.env["OLLAMAAPIKEY"] ?? "");

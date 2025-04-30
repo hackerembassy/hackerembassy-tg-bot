@@ -778,7 +778,7 @@ export default class EmbassyController implements BotController {
                 msg
             );
         } catch (error) {
-            bot.sendMessageExt(msg.chat.id, t("embassy.neural.error"), msg);
+            bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
             logger.error(error);
         } finally {
             clearInterval(loading);

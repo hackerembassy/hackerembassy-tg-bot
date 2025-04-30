@@ -451,7 +451,7 @@ embassy:
                 💬 Ask default Ollama model:
                 #`/ollama What is Hackerspace?#`
             notset: ⚠️ Bot is not yet configured for this functionality
-            error: ⚠️ Something went wrong, probably took too long to respond
+            error: ⚠️ Something went wrong, does the model exist and is it running?
         models: |
             🧠 Available models:
             {{modelsList}}

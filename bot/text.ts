@@ -561,3 +561,9 @@ export function getSponsorsList(sponsors: User[], isApi = false): string {
         )
         .join("\n");
 }
+
+export function getModelsList(models: string[], defaultModel: string): string {
+    return models.length > 0
+        ? models.map(model => `- #\`${model}#\`${model === defaultModel ? " (default)" : ""}`).join("\n")
+        : "";
+}

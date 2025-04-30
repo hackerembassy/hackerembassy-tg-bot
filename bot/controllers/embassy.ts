@@ -2,7 +2,7 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 import fetch from "node-fetch";
 
-import { BotConfig, EmbassyApiConfig } from "@config";
+import { BotConfig, EmbassyApiConfig, NeuralConfig } from "@config";
 import usersRepository from "@repositories/users";
 import fundsRepository from "@repositories/funds";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
@@ -10,7 +10,7 @@ import embassyService from "@services/embassy/embassy";
 import { getDonationsSummary } from "@services/funds/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
 import logger from "@services/common/logger";
-import { AvailableModels, ollama, openAI } from "@services/external/neural";
+import { ollama, openAI } from "@services/external/neural";
 import { userService, hasRole } from "@services/domain/user";
 
 import { sleep } from "@utils/common";
@@ -36,6 +36,7 @@ import { effectiveName, OptionalParam } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
+const neuralConfig = config.get<NeuralConfig>("neural");
 
 enum DeviceOperation {
     Help = "help",
@@ -741,37 +742,43 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["ask", "gpt"], OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.GPT])
-    @Route(["ollama", "llama", "lama"], OptionalParam(/(.*)/ims), match => [match[1], AvailableModels.OLLAMA])
+    @Route(["models"])
     @FeatureFlag("ai")
     @AllowedChats(PublicChats)
-    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model: AvailableModels = AvailableModels.GPT) {
+    static async availableModelsHandler(bot: HackerEmbassyBot, msg: Message) {
+        const ollamaModles = await ollama.getModels();
+        const models = [neuralConfig.openai.model, ...ollamaModles];
+        const modelsList = TextGenerators.getModelsList(models, neuralConfig.ollama.model);
+
+        return bot.sendMessageExt(msg.chat.id, t("embassy.neural.models", { modelsList }), msg);
+    }
+
+    @Route(["ask"], OptionalParam(/(\S*?) (.*)/ims), match => [match[2], match[1]])
+    @Route(["gpt"], OptionalParam(/(.*)/ims), match => [match[1], "gpt"])
+    @Route(["ollama", "llama", "lama"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @FeatureFlag("ai")
+    @AllowedChats(PublicChats)
+    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model?: string) {
         const user = bot.context(msg).user;
 
         if (msg.chat.id !== botConfig.chats.horny && !hasRole(user, "trusted", "member")) return bot.sendRestrictedMessage(msg);
-        if (!prompt) return bot.sendMessageExt(msg.chat.id, t("service.openai.help"), msg);
+        if (!prompt) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);
 
         const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
         try {
             bot.sendChatAction(msg.chat.id, "typing", msg);
 
-            switch (model) {
-                case AvailableModels.GPT:
-                    await bot.sendMessageExt(
-                        msg.chat.id,
-                        await openAI.askChat(prompt, t("embassy.neural.contexts.default")),
-                        msg
-                    );
-                    break;
-                case AvailableModels.OLLAMA:
-                    await bot.sendStreamedMessage(msg.chat.id, await ollama.generateStream(prompt), msg);
-                    break;
-                default:
-                    throw new Error("Unknown model");
-            }
+            if (model === "gpt" || model === neuralConfig.openai.model)
+                return bot.sendMessageExt(msg.chat.id, await openAI.askChat(prompt, t("embassy.neural.contexts.default")), msg);
+
+            await bot.sendStreamedMessage(
+                msg.chat.id,
+                await ollama.generateStream(prompt, model, t("embassy.neural.contexts.ollama")),
+                msg
+            );
         } catch (error) {
-            await bot.sendMessageExt(msg.chat.id, t("service.openai.error"), msg);
+            bot.sendMessageExt(msg.chat.id, t("embassy.neural.error"), msg);
             logger.error(error);
         } finally {
             clearInterval(loading);

@@ -6,11 +6,6 @@ import { fetchWithTimeout } from "@utils/network";
 
 const neuralConfig = config.get<NeuralConfig>("neural");
 
-export enum AvailableModels {
-    GPT,
-    OLLAMA,
-}
-
 type txt2imgResponse = {
     images: string[];
     error?: string;
@@ -26,6 +21,18 @@ type ollamaGenerateResponse = {
     done: boolean;
     done_reason: string;
     error?: string;
+};
+
+type ollamaModelsResponse = {
+    data: ollamaModel[];
+};
+
+type ollamaModel = {
+    id: string;
+    name: string;
+    object: string;
+    created: number;
+    owned_by: string;
 };
 
 type ResponseChoice = {
@@ -185,10 +192,16 @@ export class Ollama {
 
     static readonly defaultModel = neuralConfig.ollama.model;
 
-    private async generateBase(prompt: string, model: string = Ollama.defaultModel, stream: boolean = false) {
+    private async generateBase(
+        prompt: string,
+        model: string = Ollama.defaultModel,
+        systemPrompt?: string,
+        stream: boolean = false
+    ) {
         const raw = JSON.stringify({
             prompt,
             model: model,
+            system: systemPrompt,
             stream,
         });
         const requestOptions = {
@@ -207,8 +220,8 @@ export class Ollama {
 
         return response;
     }
-    async generate(prompt: string, model: string = Ollama.defaultModel) {
-        const response = await this.generateBase(prompt, model);
+    async generate(prompt: string, model: string = Ollama.defaultModel, systemPrompt?: string) {
+        const response = await this.generateBase(prompt, model, systemPrompt);
 
         const body = (await response.json()) as ollamaGenerateResponse;
 
@@ -217,12 +230,30 @@ export class Ollama {
         return body.response;
     }
 
-    async generateStream(prompt: string, model: string = Ollama.defaultModel) {
-        const response = await this.generateBase(prompt, model, true);
+    async generateStream(prompt: string, model: string = Ollama.defaultModel, systemPrompt?: string) {
+        const response = await this.generateBase(prompt, model, systemPrompt, true);
 
         if (!response.body) throw new Error("Ollama: No stream body");
 
         return response.body;
+    }
+
+    async getModels() {
+        const origin = new URL(this.base).origin;
+        const response = await fetch(`${origin}/api/models`, {
+            method: "GET",
+            headers: {
+                ["Content-Type"]: "application/json",
+                ["accept"]: "application/json",
+                ["Authorization"]: this.apiKey.length > 0 ? `Bearer ${this.apiKey}` : "",
+            },
+        });
+
+        if (!response.ok) throw new Error(`Ollama is not available: ${response.statusText}`);
+
+        const body = (await response.json()) as ollamaModelsResponse;
+
+        return body.data.map(model => model.name);
     }
 }
 

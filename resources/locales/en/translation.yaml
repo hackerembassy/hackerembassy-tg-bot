@@ -424,10 +424,9 @@ embassy:
         noresidents: 🛏 And the residents didn’t check in inside
     neural:
         contexts:
-            default: |
-                🤖 You are a Telegram bot of the hackerspace, you always answer briefly, funnily and like a robot. Don't forget to add robot sounds
-            guess: |
-                🤖 You are a Telegram bot of the hackerspace, you receive commands that have not yet been implemented. Try to guess what the result would be if they were implemented and display only the result. Don't ask questions
+            default: You are a Telegram bot of the hackerspace, you always answer briefly, funnily and like a robot. Don't forget to add robot sounds
+            ollama: Be concise unless otherwise specified
+            guess: You are a Telegram bot of the hackerspace, you receive commands that have not yet been implemented. Try to guess what the result would be if they were implemented and display only the result. Don't ask questions
         sd:
             help: |
                 🏞 This command allows you to generate an image using StableDiffusion.
@@ -441,6 +440,21 @@ embassy:
                 use and turn it off after if no one is using it.
                 Car control in the /gaming team
             fail: ⚠️ It was not possible to generate an image, but /gaming is definitely turned on and has not yet died from a ton of requests?
+        ask:
+            help: |
+                🔮 Ask a question to the neural network. Available only in group space chats. Available models can be checked here /models
+
+                💬 Ask specific model:
+                #`/ask llama3.2:latest How to patch KDE under FreeBSD#`
+                💬 Ask GPT:
+                #`/gpt Write code in Python that inverts the input string#`
+                💬 Ask default Ollama model:
+                #`/ollama What is Hackerspace?#`
+            notset: ⚠️ Bot is not yet configured for this functionality
+            error: ⚠️ Something went wrong, probably took too long to respond
+        models: |
+            🧠 Available models:
+            {{modelsList}}
     ena:
         street: Baghramyan
         mentioned: |
@@ -591,14 +605,6 @@ service:
         error: ⚠️ Failed to set language
         notsupported: |
             ⚠️ Language {{language}} is not supported, only #`ru#` and #`en#` are available
-    openai:
-        help: |
-            🔮 Ask a question to the neural network. Available only in group space chats.
-
-            #`/ask How to patch KDE under FreeBSD#`
-            #`/ask Write code in Python that inverts the input string#`
-        notset: ⚠️ Bot is not yet configured for this functionality
-        error: ⚠️ Something went wrong, probably took too long to respond
     removebuttons:
         error: ⚠️ Failed to remove buttons
     deprecated:

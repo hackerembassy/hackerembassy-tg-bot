@@ -12,7 +12,8 @@ const botConfig = config.get<BotConfig>("bot");
 
 // Supported languages
 export const DEFAULT_LANGUAGE = botConfig.defaultLocale as SupportedLanguage;
-export const SUPPORTED_LANGUAGES = ["en", "ru", "test"] as const;
+export const TEST_LANGUAGE = "test";
+export const SUPPORTED_LANGUAGES = ["en", "ru", TEST_LANGUAGE] as const;
 
 // Type for supported languages
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];

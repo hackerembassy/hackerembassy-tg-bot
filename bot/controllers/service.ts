@@ -12,7 +12,7 @@ import { Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decor
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
-import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../core/localization";
+import t, { DEFAULT_LANGUAGE, isSupportedLanguage, TEST_LANGUAGE } from "../core/localization";
 import { BotController, MessageHistoryEntry } from "../core/types";
 import { OptionalParam, tgUserLink } from "../core/helpers";
 import EmbassyController from "./embassy";
@@ -266,9 +266,8 @@ export default class ServiceController implements BotController {
             );
         }
 
-        if (!isSupportedLanguage(lang)) {
-            return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.notsupported", { language: lang }), msg);
-        }
+        if (!isSupportedLanguage(lang) || lang === TEST_LANGUAGE)
+            return bot.sendMessageExt(msg.chat.id, t("service.setlanguage.notsupported", { language: lang }), msg);
 
         const userId = msg.from?.id;
         const user = userId ? UsersRepository.getUserByUserId(userId) : null;

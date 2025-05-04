@@ -251,6 +251,30 @@ admin:
     removeUser:
         success: 🗑 User {{username}} deleted
         fail: ⚠️ Failed to delete the user (maybe he didn’t exist?)
+    copy:
+        help: |
+            📷 Copy the message you are replying to to a target chat
+
+            #`/copy main#`
+            #`/copy chat_id#`
+
+            Notes:
+            - Chat aliases: {{chatsList}}
+            - Get the current chat id: /chatid
+        nochat: Specified chat not found
+        success: Message was copied to {{target}}
+    custom:
+        help: |
+            ✉️ Creates a custom message with images and buttons in the current chat. Example: 
+
+            #`/custom Some text
+
+            [{"text":"link","url":"https://hackem.cc"}]
+            [{"text":"public cmd","cmd":"join"},{"text":"private cmd","bot":"join"}]#`
+
+            Notes:
+            - For sending an image, add this command to the image caption during attachment
+            - This message can be copied to another chat using the #`/copy chatname_or_id#` command as a reply to the message
 birthday:
     nextbirthdays: |
         🎂 This month they celebrate their birthdays:

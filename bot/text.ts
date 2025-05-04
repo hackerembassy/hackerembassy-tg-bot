@@ -567,3 +567,7 @@ export function getModelsList(models: string[], defaultModel: string): string {
         ? models.map(model => `- #\`${model}#\`${model === defaultModel ? " (default)" : ""}`).join("\n")
         : "";
 }
+
+export function getCopyableList(items: string[], separator: string = "\n"): string {
+    return items.map(chat => `#\`${chat}#\``).join(separator);
+}

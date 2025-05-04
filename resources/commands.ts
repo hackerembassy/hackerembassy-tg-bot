@@ -108,19 +108,7 @@ export const MemberCommandsList: string = `
 /setemoji - Поставить себе эмодзи в боте
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
 /removebuttons (rb) - Убрать кнопки из сообщения бота (команду нужно отправлять как ответ)
-
-Кастомные сообщения в главный чат:
-- C веб-ссылками в два ряда:
-#\`/custom Some text
-[{"text":"site","url":"https://hackem.cc"}]
-[{"text":"wiki","url":"https://lore.hackem.cc"}]#\`
-- C командами в один ряд:
-#\`/custom Some text
-[{"text":"public","cmd":"status"},{"text":"private","bot":"status"}]#\`
-- В свой чат для теста:
-#\`/customtest Some text#\`
-#\`/customt Some text#\`
-- Можно добавить одно изображение к сообщению
+/custom text - Создать кастомное сообщение с изображением и кнопками
 
 Инфа:
 /residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце
@@ -177,8 +165,7 @@ export const AdminCommandsList: string = `
 /stoplive
 /setflag flag_name flag_value
 /getflags
-/target - Сменить чат для пересылки сообщений в forward или custom
-/forward text - Переслать сообщение в выбранный в target чат
+/target - Сменить чат для пересылки сообщений при -forward
 /copy target_id_or_alias - Скопировать сообщение в выбранный чат (в reply на сообщение)
 /linkchat - Привязать чат к текущему
 /unlinkchat - Отвязать чат от текущего

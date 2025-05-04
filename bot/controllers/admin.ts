@@ -11,6 +11,7 @@ import logger, { getLatestLogFilePath } from "@services/common/logger";
 import { hasRole } from "@services/domain/user";
 import { Admins, CaptureInteger, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
+import * as TextGenerators from "../text";
 import { StateFlags } from "../core/classes/BotState";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
@@ -27,28 +28,18 @@ export default class AdminController implements BotController {
      * ```
      * [ {text:text, callback_data:callback_data, url:url, cmd:cmd}, ... ]
      */
-    @Route(["custom", "forward"], helpers.OptionalParam(/(.*)/ims), match => [match[1]])
-    @Route(["customtest", "customt", "forwardtest", "forwardt"], OptionalParam(/(.*)/ims), match => [match[1], true])
+    @Route(["custom"], helpers.OptionalParam(/(.*)/ims), match => [match[1]])
     @UserRoles(Members)
-    static async customHandler(bot: HackerEmbassyBot, msg: Message, text?: string, isTest: boolean = false) {
-        const targetChatId = isTest ? msg.chat.id : bot.forwardTarget;
-        const selfChatId = msg.chat.id;
+    static async customHandler(bot: HackerEmbassyBot, msg: Message, text?: string) {
+        const currentChatId = msg.chat.id;
 
         try {
             const photoId = msg.photo?.[0]?.file_id;
-            const example = `#\`/${
-                isTest ? "customt" : "custom"
-            } Some text\n\n[{"text":"link","url":"https://hackem.cc"}]\n\n[{"text":"public cmd","cmd":"join"},{"text":"private cmd","bot":"join"}]#\``;
 
-            if (!text) {
-                if (photoId) {
-                    await bot.sendPhotoExt(targetChatId, photoId, msg);
-                    if (!isTest) await bot.sendMessageExt(selfChatId, `Photo is forwarded to ${targetChatId}`, msg);
-                } else {
-                    await bot.sendMessageExt(selfChatId, `Example:\n${example}`, msg);
-                }
-                return;
-            }
+            if (!text)
+                return photoId
+                    ? bot.sendPhotoExt(currentChatId, photoId, msg)
+                    : bot.sendMessageExt(currentChatId, t("admin.custom.help"), msg);
 
             const lines = text.split("\n").map(l => l.trim());
             const textLines = lines.filter(l => !l.startsWith("[") && !l.endsWith("]"));
@@ -63,6 +54,7 @@ export default class AdminController implements BotController {
                         return value;
                     }) as (InlineKeyboardButton & { cmd?: string; bot?: string })[]
             );
+
             // Allow simplified button definition
             inline_keyboard.forEach(row => {
                 row.forEach(button => {
@@ -73,23 +65,16 @@ export default class AdminController implements BotController {
 
             const messageText = textLines.join("\n");
 
-            if (photoId) {
-                await bot.sendPhotoExt(targetChatId, photoId, msg, {
-                    reply_markup: { inline_keyboard },
-                    caption: messageText,
-                });
-            } else {
-                await bot.sendMessageExt(targetChatId, messageText, msg, { reply_markup: { inline_keyboard } });
-            }
-
-            bot.context(msg).mode.pin = false;
-
-            if (!isTest) await bot.sendMessageExt(selfChatId, `Message is forwarded to ${targetChatId}`, msg);
+            return photoId
+                ? await bot.sendPhotoExt(currentChatId, photoId, msg, {
+                      reply_markup: { inline_keyboard },
+                      caption: messageText,
+                  })
+                : bot.sendMessageExt(currentChatId, messageText, msg, { reply_markup: { inline_keyboard } });
         } catch (error) {
             const errorMessage = (error as { message?: string }).message;
 
-            bot.context(msg).mode.pin = false;
-            await bot.sendMessageExt(selfChatId, `Failed to forward the message: ${errorMessage}`, msg);
+            return bot.sendMessageExt(currentChatId, `Failed to create a custom message: ${errorMessage}`, msg);
         }
     }
 
@@ -420,15 +405,19 @@ export default class AdminController implements BotController {
         }
     }
 
-    @Route(["copy"], /(\S+?)/, match => [match[1]])
-    @UserRoles(Admins)
+    @Route(["copy"], OptionalParam(/(\S+?)/), match => [match[1]])
+    @UserRoles(Members)
     static async copyMessageHandler(bot: HackerEmbassyBot, msg: Message, target: string) {
-        if (!msg.reply_to_message) return;
+        const chatsList = TextGenerators.getCopyableList(Object.keys(botConfig.chats), ", ");
+        if (!msg.reply_to_message || !target) return bot.sendMessageExt(msg.chat.id, t("admin.copy.help", { chatsList }), msg);
 
         const chatId = botConfig.chats[target as keyof typeof botConfig.chats] || Number(target);
-        if (isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, "Invalid chat id", msg);
+        if (isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, t("admin.copy.nochat"), msg);
 
-        await bot.copyMessage(chatId, msg.chat.id, msg.reply_to_message.message_id);
-        return bot.sendMessageExt(msg.chat.id, `Message is copied to chat ${target}`, msg);
+        await bot.copyMessage(chatId, msg.chat.id, msg.reply_to_message.message_id, {
+            reply_markup: msg.reply_to_message.reply_markup,
+            caption: msg.reply_to_message.caption,
+        });
+        return bot.sendMessageExt(msg.chat.id, t("admin.copy.success", { target }), msg);
     }
 }

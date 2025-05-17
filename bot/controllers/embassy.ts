@@ -234,7 +234,7 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["anette", "anettestatus"], null, () => ["anette"])
+    @Route(["anette", "anettestatus", "anetta", "anettastatus"], null, () => ["anette"])
     @Route(["plumbus", "plumbusstatus"], null, () => ["plumbus"])
     @Route(["printerstatus"], /(.*\S)/, match => [match[1]])
     @FeatureFlag("embassy")

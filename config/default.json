@@ -59,7 +59,7 @@
         },
         "moderatedChats": [-1001605898533],
         "guess": {
-            "ignoreList": ["q", "qs", "qrand", "qtop", "patternify", "piska", "leaders"]
+            "ignoreList": ["q", "qs", "qrand", "qdrand", "qd", "qtop", "patternify", "piska", "leaders"]
         },
         "funds": {
             "alternativeUsernames": ["dipierro", "keimoger", "MrPhoenix"],

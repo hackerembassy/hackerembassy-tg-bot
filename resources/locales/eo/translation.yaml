@@ -1,0 +1,898 @@
+general:
+    errors:
+        generic: Io malsukcesis
+        chatnotallowed: ⚠️ La komando estas nur havebla en grupaj spacaj babiloj
+        restricted: 📵 Pardonu, vi bezonas esti {{required}} por ruli ĉi tiun komandon
+        nouser: ⚠️ Uzanto ne trovita, petu lin skribi ion al la roboto
+    buttons:
+        menu: 🏠 Menuo
+        back: ↩️ Reen
+        cancel: ❌ Nuligi
+        ok: 🆗 Bone
+        yes: ✅ Jes
+        no: ❌ Ne
+        more: 📖 Legi plu
+        readmore: 📚 Legi plu
+basic:
+    help: "{{availableCommands}}{{globalModifiers}}"
+    about: |
+        🏫 Hacker Embassy (Jerevana Hakerspaco) estas spaco kie samideanoj pasiaj pri teknologio kaj kreemo kunvenas. Ni laboras pri projektoj kune, dividas ideojn kaj scion, kaj simple komunikas.
+
+        💻 Vi povas legi pli pri ni sur nia retejo https://hackem.cc/
+
+        📓 Ni konservas informojn pri niaj projektoj, ekipaĵoj kaj reguloj en nia vikio https://lore.hackem.cc/
+
+        🤖 Mia kodo estas malferma kaj senpaga, la disvolviĝo okazas sur GitHub: https://github.com/hackerembassy/hackerembassy-tg-bot
+
+        🍕 Ni ĉiam bonvenigas novajn loĝantojn. Ĉu vi volas scii kiel fariĝi membro? Premu la komandon /join
+    issue:
+        space:
+            help: |
+                📮 Uzante ĉi tiun komandon, vi povas #*anonime#* raporti iun ajn problemon en la spaco (io mankas, io ne funkcias, iu faras ion tre malĝustan en la spaco).
+                Loĝantoj certe konsideros ĝin kaj provos solvi ĝin.
+
+                Vi povas sendi problemon al la roboto, ekzemple, tiel:
+                #`/issue La klimatizilo ne funkcias bone kaj estas tre varme en la unua etaĝo#`
+                #`/issue Ne plu estas neceseja papero#`
+                #`/issue Estus bone havi mapon de la interna reto en la vikio#`
+
+                Se la problemo rilatas al nia roboto, tiam estas pli bone uzi la komandon /bug
+            sent: 💌 La problemo estis sendita al loĝantoj, ili certe konsideros ĝin. Dankon pro helpi nian komunumon.
+            report: |
+                📩 Vi havas novan problemon!
+
+                "{{issue}}"
+        bot:
+            help: |
+                📮 Uzante ĉi tiun komandon, vi povas raporti cimon en la roboto.
+
+                Vi povas krei novan problemon sur GitHub se ĝi ne jam ekzistas. Aŭ vi povas sendi cimraporton rekte en Telegram, ekzemple, tiel:
+                #`/bug La aŭtomata enregistriĝo ne funkcias kiam mi venas al la spaco#`
+
+                Via #*uzantnomo estos aŭtomate aldonita#* al la mesaĝo por ke loĝantoj povu kontakti vin se ili bezonas plian informon.
+
+                Se la problemo rilatas al la spaco mem, tiam estas pli bone uzi la komandon /issue
+            sent: 💌 La cimraporto estis sendita al la prizorgantoj, ili certe revizios ĝin. Dankon pro helpi nian komunumon.
+            report: |
+                📩 {{reporter}} renkontis problemon kun la roboto! Ĉu eble estas cimo?
+
+                "{{issue}}"
+        buttons:
+            new: Krei sur GitHub
+            current: GitHub problemoj
+    residents: |
+        👥 Jen ili, niaj majestaj loĝantoj:
+
+        {{userList}}
+        🧠 Vi povas kontakti ilin pri iu ajn Spaca demando
+    location:
+        address: |
+            🏫 Nia adreso: Armenio, Jerevano, Baghramyan Avenuo 60 (enirejo de la strato)
+    donate: |
+        💸 Hakerspaco ne estas komerca projekto kaj ekzistas nur per donacoj de partoprenantoj.
+        Ni kontribuas al la disvolviĝo de la spaco: pagante luon kaj utilservojn, prizorgante la spacon, helpante en aĉeto de ekipaĵoj.
+        Ni estos feliĉaj ricevi iun ajn subtenon.
+
+        🫶 Ekde certa kvanto de donacoj dum la lastaj {{period}} monatoj, vi ricevas la statuson de nia sponsoro:
+        {{sponsorshipTierList}}
+
+        Vi povas donaci al ni per la sekvaj manieroj:
+        💵 Kontanta mono dum renkontiĝo (la plej bona opcio).
+          {{donateCashCommand}}
+        💰 Kriptomonoj
+          {{cryptoCommands}}
+        💳 Banka karto Visa/Mastercard de Armenio
+          {{donateCardCommand}}
+        🛠 Utila ekipaĵo aŭ konsumeblaĵoj
+          {{donateEquipmentCommand}}
+
+        📊 Vi povas vidi niajn nunajn donacojn kaj vian kontribuon per komando {{fundsCommand}}
+
+        💌 Por donacaj demandoj, bonvolu kontakti niajn kontistojn, ili helpos:
+        {{accountantsList}}
+    donateCoin: |
+        🪙 Uzu ĉi tiun QR-kodon aŭ adreson sube por donaci al ni per {{coin.fullname}}.
+          
+        ⚠️ Bonvolu noti ke la reto estas {{coin.network}} kaj vi uzas la ĝustan adreson:
+        #`{{coin.address}}#`
+
+        💌 Ne forgesu skribi al la kontisto antaŭ ol vi donacas kaj sendu la transakcian kodon aŭ ligilon
+        en {{coin.explorer}} aŭ simila servo post la donaco
+
+        🛍 Se vi volas donaci nature (ho mia) aŭ alimaniere - klaku /donate
+    donateCard: |
+        💌 Por donaci tiamaniere, skribu al niaj kontistoj. Ili diros al vi la nunajn detalojn aŭ vi povas interkonsenti pri la tempo kaj loko de la transdono.
+
+        Jen ili: {{accountantsList}}
+
+        🛍 Se vi volas donaci nature aŭ alimaniere, klaku /donate
+    donateEquipment: |
+        🛠 Se vi havas ekstran 3D-presilon, lutilon aŭ alian utilan(!) ekipaĵon kuŝantan hejme, kaj vi pretas donaci ĝin al la Spaco (aŭ dividi ĝin por publika uzo kun ni), ni estos tre dankemaj akcepti ĝin.
+
+        🗑 Grave ke la ekipaĵo aŭ konsumeblaĵoj estas en bona stato aŭ postulas minimumajn riparojn kaj ne apartenas al la "rubo" kategorio.
+
+        🧙‍♀️ Kontaktu niajn loĝantojn, ili helpos pri akcepto de ekipaĵo kaj solvo de ĉiuj demandoj.
+    join: |
+        🧑🏻‍🏫 Se vi estas en Jerevano, pasia pri teknologio kaj serĉas samideanojn, venu viziti nin.
+        - Ni okazigas regulan malferman tagon ĉiun vendredon je 20.00.
+        - Dimanĉe je 20.00 ni havas Anglian Klubon, kie vi povas praktiki vian anglan.
+        - Ni ofte okazigas muzikajn kunvenojn lunde je 20.00: ni alportas gitarojn, ludas Rocksmith kaj improvizas.
+        - En iu ajn alia tago, la spaco ankaŭ povas ricevi gastojn, enigu la komandon {{statusCommand}} por scii ĉu la spaco estas malferma kaj ĉu iu estas tie.
+
+        💸 Vizitoj estas senpagaj (gratis), sed iuj ajn donacoj por helpi niajn projektojn kaj luon estas tre bonvenaj.
+        Pli da detaloj povas esti trovita uzante la komandon {{donateCommand}}
+
+        🗺 Por scii kiel trovi nin, premu {{locationCommand}}
+
+        🔑 Se vi volas fariĝi konstanta membro - plenvalora loĝanto de la komunumo, t.e. havi vian propran ŝlosilon, vian propran lokon por konservi aĵojn (ilojn, servilojn, ktp.), partopreni en decidoj pri la disvolviĝo de la spaco,\
+        tiam niaj postuloj estas simplaj:
+        - Amikeco kaj ne-konflikto.
+        - Pretemo partopreni en la vivo de la komunumo.
+        - Regulaj donacoj (kompreneble, laŭ viaj ebloj).
+
+        🧙🏻‍♂️ Kontaktu iun ajn Spacan loĝanton, li prezentos vian kandidatiĝon al la Spaca Konsilio.
+    events:
+        text: |
+            🎭 Kio okazas ĉi tie:
+            - Majstrokursoj kaj prezentoj pri diversaj temoj de 3D-presado, modelado kaj lutilado ĝis neŭraj retoj, teoremoj pruvantaj algoritmoj kaj ŝibario. Ni anoncos la daton antaŭe en la babilo.
+            - Ni ofte okazigas muzikajn kunvenojn lunde je 21.00: ni alportas gitarojn, ludas Rocksmith kaj improvizas.
+            - Ĉiun vendredon je 20.00 ni havas tradician malferman tagon, ni komunikas, konatiĝas kaj pasigas tempon.
+            - En iu ajn alia tago, la spaco ankaŭ povas ricevi gastojn, vidu la spacan statuson por scii pli.
+
+            💸 Vizitoj estas senpagaj (gratis), sed iuj ajn donacoj por helpi niajn projektojn kaj luon estas tre bonvenaj.
+        calendar: |
+            🗓Vi povas sekvi niajn eventojn en la kalendaro
+            {{calendarLink}}
+            Registriĝu kun pluso ➕ ĉe la malsupro de la paĝo aŭ prenu {{iCalLink}}
+            Aŭ eĉ malfermu la kalendaron rekte en la kartego {{openCalendarInTelegram}}
+            Venontajn eventojn oni povas trovi per la komando /upcoming, hodiaŭajn eventojn - per la komando /today
+        buttons:
+            today: 📣 Hodiaŭ
+            upcoming: 📆 Venontaj
+        opencalendar: Malfermi kalendaron
+        upcoming: |
+            🗓 Niaj venontaj eventoj:
+        today: |
+            📣 Hodiaŭ la sekvaj eventoj okazas en la spaco:
+        todaysimple: |
+            Eventoj hodiaŭ:
+        entrance: |
+            🎁 Enirejo estas senpaga kiel ĉiam, sed ni bonvenigos iujn ajn donacojn por subteni la spacon.
+        notoday: |
+            🏖 Ne estas planitaj eventoj en la Spaco hodiaŭ.
+
+            Sed, se la spaco estas malferma por gastoj, tiam vi povas simple veni por labori pri interesaj projektoj aŭ pasigi tempon. Kontrolu /status dum la tago.
+        error: 📂 Neniuj eventoj trovitaj
+    start:
+        text: |
+            🇬🇧 Saluton hakerulo. Mi estas roboto por administri diversajn procezojn en la spaco.
+            [Mi estas en disvolviĝo, vi povas partopreni en mia disvolviĝo en la deponejo sur la Spaca GitHub, kontaktu #[korn9509#]#(t.me/korn9509#)].
+
+            🔖 Por ricevi kompletan liston de komandoj haveblaj al vi, enigu /help. Iuj komandoj estas nur videblaj al loĝantoj.
+            📮 Ĉu io malĝustas en la spaco? Enigu /issue en la roboto. Ĝi estas anonima.
+            🐞 Ĉu vi trovis cimon en la roboto? Enigu /bug.
+            🗣 Ŝanĝi lingvon de la roboto / Сменить язык бота - /lang
+        buttons:
+            status: 📯 Statuso
+            events: 🗓 Eventoj
+            funds: 💸 Donacoj
+            control: 🕹 Kontrolo
+            info: 📚 Informo
+            birthdays: 🎉 Naskiĝtagoj
+            needs: 🛍 Bezonoj
+            printers: 🖨 3D Presiloj
+            topics: 📭 Temoj
+            me: 🧙‍♂️ Mia profilo
+            help: 📝 Komandoj
+    control:
+        text: 🕹 Hakerspaca kontrolpanelo por loĝantoj
+        buttons:
+            unlock: 🔑 Kastelo
+            doorbell: 🔔 Sonorilo
+            downstairs: 📹 Ia etaĝo
+            downstairs2: 📹 Ib etaĝo
+            kitchen: 📹 Kuirejo
+            upstairs: 📹 II etaĝo
+            outdoors: 📹 Enirejo
+            facecontrol: 📹 Vizaĝo
+            printers: 📹 Presiloj
+            superstatus: 🩻 Superstatuso
+            conditioner1: ❄️ Midea I
+            conditioner2: ❄️ LG II
+            meme: 🔫 Memo
+            back: ↩️ Reen
+    info:
+        text: |
+            📚 Ĉi tie vi povas legi pri ni.
+            Se vi volas scii pli, bonvolu viziti nian retejon kaj vikion https://hackem.cc/
+        buttons:
+            about: 🏠 Pri spaco kaj roboto
+            join: 🙋‍♀️ Kiel aliĝi
+            location: 🗺 Kiel trovi
+            donate: 🎁 Kiel donaci
+            residents: 👩‍💻 Niaj loĝantoj
+            sponsors: 🫶 Niaj sponsoroj
+            back: ↩️ Reen
+    meme:
+        text: |
+            🔫 Memo panelo
+        buttons:
+            moan: 😮 Ĝemo
+            fart: 💩 Furzo
+            adler: 🤤 Adler
+            rickroll: 🕺 Rickroll
+            rzd: 🚇 Rzd
+            zhuchok: 🤰 Ĵuĉok
+            rfoxed: 🦊 Rfoxed
+            nani: 💥 Nani
+            cat: 🐱 Kato
+            dog: 🐶 Hundo
+            cab: 🥷 Kab
+            cock: 🐔 Kok'
+            sad: 🎺 Trista
+            badumtss: 🥁 Badumtss
+            dushno: 🪟 Sufoka
+            all: 🎶 Listo de ĉiuj sonoj
+            stop: 🔇 HALTUUU
+            back: ↩️ Reen
+admin:
+    addUser:
+        success: ✅ Uzanto {{username}} aldonita kiel {{roles}}
+        fail: ⚠️ Malsukcesis aldoni uzanton (eble jam ekzistas?)
+    getUsers:
+        text: |
+            👩‍💻 Nunaj uzantoj:
+    getRestrictedUsers:
+        text: |
+            👻 Nunaj uzantoj kun limigitaj rajtoj:
+    updateRoles:
+        success: ✅ {{username}} roloj estas agorditaj al {{roles}}
+        fail: ⚠️ Malsukcesis ĝisdatigi rolojn
+    removeUser:
+        success: 🗑 Uzanto {{username}} forigita
+        fail: ⚠️ Malsukcesis forigi la uzanton (eble li ne ekzistis?)
+    copy:
+        help: |
+            📷 Kopiu la mesaĝon al kiu vi respondas al celbabilo
+
+            #`/copy main#`
+            #`/copy chat_id#`
+
+            Notoj:
+            - Babilaj aliasoj: {{chatsList}}
+            - Ricevi la nunan babilan identigilon: /chatid
+        nochat: Specifita babilo ne trovita
+        success: Mesaĝo estis kopiita al {{target}}
+    custom:
+        help: |
+            ✉️ Kreas kutiman mesaĝon kun bildoj kaj butonoj en la nuna babilo. Ekzemplo: 
+
+            #`/custom Iu teksto
+
+            [{"text":"ligilo","url":"https://hackem.cc"}]
+            [{"text":"publika komando","cmd":"join"},{"text":"privata komando","bot":"join"}]#`
+
+            Notoj:
+            - Por sendi bildon, aldonu ĉi tiun komandon al la bilda subskribo dum aldono
+            - Ĉi tiu mesaĝo povas esti kopiita al alia babilo uzante la komandon #`/copy chatname_or_id#` kiel respondo al la mesaĝo
+birthday:
+    nextbirthdays: |
+        🎂 Ĉi-monate ili festas siajn naskiĝtagojn:
+    noone: Neniu? Strange...
+    help: |
+        {{usersList}}
+        Ĉu vi ankaŭ volas esti gratulita? Aldonu vian naskiĝtagon per komando en la sekvaj formatoj:
+        #`/mybirthday YYYY-MM-DD#`
+        #`/mybirthday MM-DD#`
+        Ĉu vi laciĝis gratuli vin? Enigu la komandon:
+        #`/mybirthday remove#`
+    fail: |
+        🛂 Enigu la daton en la formato #`YYYY-MM-DD#`, #`MM-DD#` aŭ specifu #`remove#`
+    set: 🎂 Naskiĝtago de {{username}} estas agordita al {{date}}
+    remove: 🎂 Naskiĝtago de {{username}} estas nuligita
+    months:
+        january: Januaro
+        february: Februaro
+        march: Marto
+        april: Aprilo
+        may: Majo
+        june: Junio
+        july: Julio
+        august: Aŭgusto
+        september: Septembro
+        october: Oktobro
+        november: Novembro
+        december: Decembro
+embassy:
+    common:
+        fail: ⚠️ Servo ne havebla
+    unlock:
+        success: 🔑 La pordo estas malferma
+        success-alert: 🚪 La pordo estis malfermita de uzanto {{user}}
+        nomac: ❌ Via MAC-adreso ne estis detektita de la enkursigilo. Vi devas esti proksime al la spaco por malfermi ĝin
+    webcam:
+        location:
+            downstairs: Unua etaĝo
+            downstairs2: Unua etaĝo 2
+            kitchen: Kuirejo
+            upstairs: Dua etaĝo
+            outdoors: Enireja pordo
+            facecontrol: Vizaĝa kontrolo
+            printers: Presilo
+        fail: |
+            ⚠️ {{camLocationName}}: Kamero ankoraŭ ne havebla
+        failall: "⚠️ Ĉiuj kameroj ne haveblaj"
+    climate:
+        data: |
+            🌦 Klimato en la spaco:
+            Unua etaĝo 🌡️ {{climateInfo.firstFloor.temperature}}ºC 💦 {{climateInfo.firstFloor.humidity}}% 💨 {{climateInfo.firstFloor.co2}}ppm
+            Dua etaĝo 🌡️ {{climateInfo.secondFloor.temperature}}ºC 💦 {{climateInfo.secondFloor.humidity}}%
+        secretdata: |
+            Amuza ĉambro 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%
+        nodata: 🌚 Klimataj datumoj ne haveblaj
+    conditioner:
+        status: |
+            ❄️ Statuso de {{name}} klimatizilo:
+            Reĝimo: {{conditionerStatus.state}}
+            Celta temperaturo: {{conditionerStatus.attributes.temperature}}°C
+            Nuna temperaturo: {{conditionerStatus.attributes.current_temperature}}°C
+
+            ℹ️ Komandoj:
+            /{{firm}}on - Ŝalti
+            /{{firm}}off - Malŝalti
+            #`/{{firm}}mode cool#` - Reĝimo ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/{{firm}}temp 24#` - Cela temperaturo (16-28°C)
+            /preheat - Antaŭvarmigi la spacon (nur por Midea)
+        success: ✅ Sukcesis
+        fail: ⚠️ Ne sukcesis
+        unavailable: ⚠️ Klimatizilo ne havebla
+        buttons:
+            turnon: 🌀 Ŝalti
+            turnoff: ⛔️ Malŝalti
+            preheat: ☀️ Antaŭvarmigi
+            more: 🔼 +1°C
+            less: 🔽 -1°C
+            auto: ♻️ Aŭtomata
+            heat: 🔥 Varmigo
+            cool: 🥶 Malvarmigo
+            dry: ♨️ Sekigo
+    printers:
+        help: |
+            🖨 Ni havas du 3D-presilojn:
+
+            🚺 Anette de ubershy kaj cake64
+            Dokumentado por ĝi estas havebla ĉi tie:
+            https://lore.hackem.cc/s/main/doc/anette-xVZmu2XQSl
+            La reta interfaco estas havebla ene de la spaca reto ĉe {{anetteApi}}
+            La presila statuso povas esti trovita uzante la komandon /anette.
+
+            🚹 Plumbus de the_mihalich
+            Dokumentado por ĝi estas havebla ĉi tie:
+            https://lore.hackem.cc/s/main/doc/plumbus-7ZmS0dhPD6
+            La reta interfaco estas havebla ene de la spaca reto ĉe {{plumbusApi}}
+            La presila statuso povas esti trovita uzante la komandon /plumbus.
+        anettestatus: Statuso de Anette
+        plumbusstatus: Statuso de Plumbus
+    printerstatus:
+        statusheader: "💤 Presila statuso: {{state}}"
+        status: |
+            🖨 La dosiero {{print_stats.filename}} estas presata
+
+            🕔 Kompletiga procento {{progress}}%
+            🕔 Pasinta {{past}}
+            🕔 Proksimume {{estimate}} restas
+
+            📏 {{usedFilament}} metroj da filamento uzitaj
+
+            🔥 Temperaturo de la ekstrudilo {{extruder.temperature}}ºC, celo {{extruder.target}}ºC
+            🔥 Temperaturo de la tablo {{heater_bed.temperature}}ºC, celo {{heater_bed.target}}ºC
+        update: Ĝisdatigi la statuson de {{printername}}
+        fail: ⚠️ Presilo ankoraŭ ne havebla
+        undefinedtime: Xs
+    doorbell:
+        success: 🔔 Sonorigi la sonorilon
+        fail: 🔕 Malsukcesis voki
+    device:
+        help: |
+            🖥 Aparaton {{deviceName}} oni povas kontroli tra la reto uzante la sekvajn komandojn:
+            #`/{{deviceName}} up#` - Ŝalti
+            #`/{{deviceName}} down#` - Malŝalti
+            #`/{{deviceName}} status#` - Kontroli haveblecon
+            #`/{{deviceName}} help#` - Montri ĉi tiun mesaĝon
+        notfound: ⚠️ La aparato ne estas konata de la sistemo aŭ io tre malĝusta okazis
+        wake:
+            success: ⏰ Provita veki la aparaton, kontrolu ĝian statuson
+            fail: ⚠️ Malsukcesis veki la aparaton
+        shutdown:
+            success: 📴 Malŝaltkomando sendita
+            fail: ⚠️ Io misokazis, eble la aparato jam estas malŝaltita?
+        alive:
+            up: 🟢 Aparato havebla ({{time}} ms)
+            down: 🔴 Aparato ne havebla
+            fail: ⚠️ Ne eblis scii la statuson de la aparato
+    say:
+        help: |
+            🗣 Uzante ĉi tiun komandon vi povas diri ion sur la laŭtparolilo en la spaco, ekzemple #`/say Saluton, hakeruloj#`
+        success: 🗣 Mesaĝo sendita al laŭtparolilo
+        fail: ⚠️ Ne eblis diri
+    text:
+        help: |
+            🗣 Uzante ĉi tiun komandon vi povas montri tekstan mesaĝon sur la spaca LED-matrico, ekzemple #`/text Saluton, hakeruloj#`
+        success: 🗣 Mesaĝo sendita al la LED-matrico
+        fail: ⚠️ Ne eblis sendi mesaĝon
+    html:
+        help: |
+            🗣 Uzante ĉi tiun komandon vi povas montri HTML-paĝon sur la spaca interna monitoro, ekzemple #`/html <h1>Saluton, hakeruloj<h1>#`
+            Vi povas malplenigi la ekranon per #`/html clear#`
+        success: 🗣 Sendita al la interna monitoro
+        fail: ⚠️ Malsukcesis sendi
+    gif:
+        help: |
+            🗣 Uzante ĉi tiun komandon vi povas montri GIF-bildon sur la spaca interna monitoro, ekzemple #`/gif https://c.tenor.com/WsPxFXB9CkUAAAAC/tenor.gif#`
+            Vi povas malplenigi la ekranon per #`/gif clear#`
+    play:
+        help: 🗣 Uzante ĉi tiun komandon vi povas ludi iun ajn sonon de la ligilo
+        success: 🗣 Sono sendita al laŭtparolilo
+        fail: ⚠️ Malsukcesis ludi
+    stop:
+        success: 🔇 Ludado sur laŭtparolilo haltigita
+        fail: ⚠️ Malsukcesis haltigi ludadon
+    availablesounds:
+        success: |
+            🎶 Listo de haveblaj sonoj
+            {{sounds}}
+        fail: ⚠️ Ne eblis trovi haveblajn sonojn
+    hey:
+        text: |
+            📢 Hej, {{residentsInside}}
+        noresidents: 🛏 Kaj la loĝantoj ne enskribiĝis interne
+    neural:
+        contexts:
+            default: Vi estas Telegram-roboto de la hakerspaco, vi ĉiam respondas mallonge, amuze kaj kiel roboto. Ne forgesu aldoni robotajn sonojn
+            ollama: Estu konciza krom se alie specifite
+            guess: Vi estas Telegram-roboto de la hakerspaco, vi ricevas komandojn kiuj ankoraŭ ne estas implementitaj. Provu diveni kio estus la rezulto se ili estus implementitaj kaj montru nur la rezulton. Ne demandu
+        sd:
+            help: |
+                🏞 Ĉi tiu komando permesas al vi generi bildon uzante StableDiffusion.
+
+                #`/txt2img bela kato desegnaĵo#`
+                #`/img2img bela kato#` (kiel subskribo al alŝutita foto)
+                #`/sd veturilo != ruĝa#`
+
+                🖥 La modelo estas gastigita en nia spaco sur ludkomputilo
+                sur la dua etaĝo, do ne forgesu ŝalti ĝin antaŭ
+                uzo kaj malŝalti ĝin poste se neniu uzas ĝin.
+                Kontrolo de la komputilo en la komando /gaming
+            fail: ⚠️ Ne eblis generi bildon, sed ĉu /gaming certe estas ŝaltita kaj ankoraŭ ne mortis de amaso da petoj?
+        ask:
+            help: |
+                🔮 Demandu al la neŭra reto. Havebla nur en grupaj spacaj babiloj. Haveblaj modeloj povas esti kontrolitaj ĉi tie /models
+
+                💬 Demandu specifan modelon:
+                #`/ask llama3.2:latest Kiel fliki KDE sub FreeBSD#`
+                💬 Demandu GPT:
+                #`/gpt Skribu kodon en Python kiu inversigas la enigan ĉenon#`
+                💬 Demandu defaŭltan Ollama-modelon:
+                #`/ollama Kio estas Hakerspaco?#`
+            notset: ⚠️ Roboto ankoraŭ ne estas agordita por ĉi tiu funkcio
+            error: ⚠️ Io misokazis, ĉu la modelo ekzistas kaj ĉu ĝi funkcias?
+        models: |
+            🧠 Haveblaj modeloj:
+            {{modelsList}}
+    ena:
+        street: Baghramyan
+        mentioned: |
+            ⚡️ Ho, {{street}} ({{hystreet}}) estis menciita sur la retejo de Armenaj elektraj retoj {{link}}
+            Mi esperas ke tio ne estas en Jerevano 😅
+        notmentioned: |
+            ⚡️ {{street}} ({{hystreet}}) ne plu estas menciita sur la retejo de Armenaj Elektraj Retoj. Ĉio estas en ordo 👌
+        fail: ⚠️ Malsukcesis kontroli straton
+funds:
+    funds: |
+        💰 Jen niaj nunaj fondusoj:
+
+        {{list}}💸 Por scii kiel helpi nin, klaku /donate
+    fund:
+        nofund: Fondo ne trovita
+        text: |
+            {{fundlist}}💸 Por scii kiel helpi nin, klaku /donate
+        buttons:
+            csv: 🧾 Eksporti al CSV
+            donut: 📊 Vidi diagramon
+        collected: Kolektita
+        postponed: Prokrastita
+        closed: Fermita
+        open: Malferma
+        from: de
+    fundsall: |
+        💾 Jen arkivo de ĉiuj niaj fondusoj
+
+        {{list}}
+    addfund:
+        success: 💰 Aldonita kolekto {{fundName}} kun celo en {{targetValue}} {{currency}}
+        fail: ⚠️ Malsukcesis aldoni kolekton (eble ĝi jam ekzistas?)
+    updatefund:
+        success: 🔄 Ĝisdatigita {{fundName}} kolekto kun nova celo en {{targetValue}} {{currency}}
+        fail: ⚠️ Malsukcesis ĝisdatigi kolekton (eble malĝusta nomo?)
+    removefund:
+        success: 🗑 {{fundName}} kolekto forigita
+        fail: ⚠️ Malsukcesis forigi kolekton
+    closefund:
+        success: ☑️ {{fundName}} kolekto fermita
+        fail: ⚠️ Malsukcesis fermi kolekton
+    changestatus:
+        success: 🔄 Statuso de kolekto {{fundName}} ŝanĝita al {{fundStatus}}
+        fail: ⚠️ Malsukcesis ŝanĝi statuson de kolekto
+    transferdonation:
+        success: |
+            ↪️ Donaco [#`{{id}}#`] transdonita al {{accountant}}
+            {{username}} donacis al #`{{fund.name}}#` en la kvanto de {{donation.value}} {{donation.currency}}
+        fail: ⚠️ Malsukcesis transdoni donacon [#`{{id}}#`]
+        nothing: ⚠️ Nenio transdonita, fripono
+    adddonation:
+        success: |
+            💸 [#`{{donationId}}#`] {{username}} donacis {{value}} {{currency}} al #`{{fundName}}#`
+        increased: |
+            💸 [#`{{donationId}}#`] {{username}} pligrandigis sian donacon al #`{{fundName}}#` per aliaj {{value}} {{currency}}
+        fail: ⚠️ Malsukcesis aldoni donacon (eble io malĝusta kun la valuto aŭ kvanto?)
+        sponsorship: |
+            {{emoji}} {{username}} nun havas {{tiername}} nivelon
+    removedonation:
+        success: 🗑 Donaco forigita [id:{{donationId}}]
+        fail: ⚠️ Malsukcesis forigi la donacon (eble ĝi ne ekzistis?)
+    changedonation:
+        success: 🔄 Ĝisdatigita donaco [id:{{donationId}}]
+        fail: ⚠️ Malsukcesis ĝisdatigi la donacon (eble ĝi ne ekzistis?)
+    showcosts:
+        fail: Nuna lupago ne trovita
+    residentsdonated: |
+        💰 Donacoj de loĝantoj ĉi-monate:
+    residentshistory:
+        fail: ⚠️ Malsukcesis generi donacan horaron
+        empty: ⚠️ Neniuj donacoj trovitaj por ĉi tiu periodo
+    sponsors:
+        list: |
+            🏅 Niaj amataj sponsoroj 🏅 
+
+            {{list}}
+
+            🫶 Ĉu vi volas esti parto de ĉi tiu listo? Simple premu Kiel Donaci sube
+    refreshsponsorships:
+        success: 🔄 Sponsorecoj ĝisdatigitaj
+        fail: ⚠️ Malsukcesis ĝisdatigi sponsorecojn
+    export:
+        empty: ⚠️ Nenio por eksporti
+        fail: ⚠️ Io misokazis
+    debt:
+        text: |
+            🧾 Kontisto {{username}} havas la sekvajn donacojn:
+
+            {{donationList}}
+            💰 Totalo {{total}} {{currency}} tage
+
+            🛂 Vi povas transdoni donacon uzante la sekvajn komandojn:
+            #`/tosafe id#` - Apartigi donacon al sekurejo laŭ id (aŭ pluraj id-oj, apartigitaj per komoj)
+            #`/topaid id#` - Marki la donacon kiel pagitan laŭ id (iris al la fonda celo)
+            #`/tocab id#` - Apartigi donacon al Cab laŭ id
+            #`/tonick id#` - Apartigi donacon al Kole laŭ id
+            #`/tosafeall fund_name#` - Ĉiuj viaj donacoj al sekurejo de certa fondo
+            #`/tosafeall#` - Ĉiuj viaj donacoj al sekurejo (atente)
+            #`/transferdonation donation_id to username#` (td) - Transdoni donacon al alia kontisto
+        empty: 📂 Vi ne havas ion ajn ĉe vi
+needs:
+    buy:
+        nothing: 👌 Neniu ankoraŭ petis ion
+        pleasebuy: |
+            🙏 Iu aĉetu ĉi tion survoje al la spaco:
+        byrequest: laŭ peto
+        helpbuy: |
+            ℹ️ Vi povas peti aĉeti ion survoje al la spaco uzante la komandon #`/buy aĵa_nomo#`
+        helpbought: "✅ Vi povas marki vian aĉeton kiel kompletigitan klakante la butonon sube:"
+        success: |
+            🙏 {{username}} petis iun aĉeti #`{{item}}#` survoje al la spaco.
+        fail: Malsukcesis aldoni aĉetpeton
+    bought:
+        success: |
+            ✅ {{username}} aĉetis #`{{item}}#` en la spaco
+        notfound: 🙄 Ne estis malferma aĉetpeto kun ĉi tiu nomo, probable jam aĉetita
+        undo: ❌ Nuligi aĉeton
+service:
+    welcome:
+        confirm: |
+            🇬🇧 Hello {{newMember}}. Select your language if you are not a bot, otherwise you won't be able to write here :)
+            🇷🇺 Привет, {{newMember}}. Выбери свой язык, если ты не бот, иначе не сможешь тут писать :)
+        captcha: Click me
+        main: |
+            ★ Bonvenon al nia komforta angulo, {{newMember}}. Mi estas hakerspaca robota administranto. Vi povas PM min por babili por ke mi povu mallonge rakonti al vi pri ni
+        offtopic: |
+            🫖 Bonvenon al la babiltemoj de nia hakerspaco, {{newMember}}
+
+            Ĉi tie vi trovos diversajn temojn pri la ĉefaj spacaj projektoj, diskutojn pri estontaj eventoj, novaĵojn, memojn, kaj tiel plu.
+            Ĉio kio ne konvenas al la temo de la temo estas pli bone skribi en la ĝenerala babilo, ne kreu temojn senbezone kaj estu kuniklo.
+            Estas pli bone skribi organizajn demandojn kaj demandojn rilatajn al la spaco mem en la ĉefa babilo @hacker_embassy
+        horny: |
+            🍆 Ho, mia. Ni havas {{newMember}} venantan en nian varman kaj komfortan lokon.
+            Bonvenon al la klubo, amiko/amikino!
+
+            🍑 Membroj, bonvolu /slap nian novan gaston tiel suke kiel eble.
+        key: |
+            🌭 Bonvenon al la Loĝantoj, {{newMember}}. Nun vi ankaŭ estas la sankta gardanto de la ŝlosilo!
+
+            Rigardu miajn /help komandojn denove, multaj novaj aferoj nun estas haveblaj al vi. Atentu /control, kiu donas al vi senliman (aŭ ne tiel senliman) potencon super la spaco mem. Uzu ĝin saĝe.
+
+            🎉🎉🎉 Loĝantoj, levu viajn kolbasojn por {{newMember}}
+        buttons:
+            about: 📚 Legi plu
+    setlanguage:
+        select: 🗣 Elektu vian lingvon
+        success: ✅ Lingvo estas agordita kiel {{language}}
+        error: ⚠️ Malsukcesis agordi lingvon
+        notsupported: |
+            ⚠️ Lingvo {{language}} ne estas subtenata, nur #`ru#` kaj #`en#` estas haveblaj
+    removebuttons:
+        error: ⚠️ Malsukcesis forigi butonojn
+    deprecated:
+        notsupported: |
+            🚫 Komando #`{{command}}#` estas malaktualigita
+        replaced: |
+            🔄 Uzu #`{{replacement}}#` anstataŭe
+    token:
+        help: |
+            🤖 Ĉi tiu komando povas esti uzata por administri la tokenon por API-aliro (nuntempe nur unu)
+
+            #`/token set#` - Agordi novan tokenon
+            #`/token remove#` - Forigi la tokenon
+            #`/token help#` - Vidi ĉi tiun mesaĝon
+        found: 🛂 Vi havas agorditan tokenon
+        notfound: 📴 Neniu tokeno estas agordita por vi
+        set: |
+            ✅ La tokeno estis aldonita, konservu ĝin ĉar ĝi ne estos montrita denove:
+            #`{{token}}#`
+        removed: |
+            🗑 La tokeno estis forigita, vi povas agordi novan per la komando
+            #`/token set#`
+        exists: |
+            ⚠️ Vi jam havas tokenon, forigu ĝin antaŭ ol agordi novan uzante
+            #`/token remove#`
+        missing: ⚠️ Neniu instalita tokeno trovita
+        private: ⚠️ Ĉi tiu komando estas havebla nur en privataj babiloj
+status:
+    buttons:
+        in: 🤝 Mi estas ene
+        out: 👋 Mi estas ekstere
+        inandin: 🤝 Kaj mi estas ene
+        inandout: 👋 Sed mi estas ekstere
+        outandin: 🤝 Sed mi estas ene
+        outandout: 👋 Mi ankaŭ estas ekstere
+        going: 🚕 Planas veni
+        notgoing: 🛌 Ne planas
+        andgoing: 🚕 Kaj mi planas
+        refresh: 🔃 Ĝisdatigi
+        repeat: 🔃 Ripeti
+        open: 🚪 Malfermi spacon
+        close: 🔒 Fermi spacon
+        reopen: 🚪 Malfermi denove
+        reclose: 🔒 Fermi denove
+        whoinside: 📹 Kiu estas ene
+        whoelse: ❓ Kiu alia?
+        save: 📷 Konservi
+    profile:
+        donated: |
+            💵 La sekvaj donacoj estis faritaj:
+            {{donationList}}
+        total: 💰 Totalo aldonita al la spaco {{total}} {{currency}}
+        notfound: ⚠️ Uzanto ne trovita
+    mac:
+        buttons:
+            detect: 🔍 Detekti aŭtomate
+            autoinside: 📲 Ebligi aŭtomatan enskribon
+            remove: 🗑 Forigi MAC
+        help: |
+            📡 Uzante ĉi tiun komandon vi povas agordi MAC-adresojn por aŭtomata enskribo kaj ŝlosilkontrolaj funkcioj
+            🪪 Uzantaj adresoj: {{usermacs}}
+
+            #`/mac add mac_adreso#` - Agordi vian MAC-adreson
+            #`/mac remove mac_adreso#` - Forigi vian MAC-adreson
+            #`/mac clear#` - Forigi viajn MAC-adresojn de la roboto
+        fail: |
+            ⚠️ Ne eblis aldoni ĉi tiun MAC. Eble ĝi estas nevalida aŭ jam okupita?
+            Ekzemploj de korektaj adresaj agordoj:
+            #`/mac add xx:xx:xx:xx:xx:xx#`
+            #`/mac remove xx:xx:xx:xx:xx:xx#`
+        set: 📡 MAC-adreso {{mac}} estis sukcese agordita por uzanto {{username}}.
+        removed: 🗑 MAC-adreso {{mac}} estis forigita por uzanto {{username}}
+        cleared: |
+            🗑 MAC-adresoj estis forigitaj por uzanto {{username}}. Aŭtomata enskribo ne plu funkcios.
+    autoinside:
+        buttons:
+            status: 👁‍🗨 Statuso
+            enable: 📲 Ebligi
+            disable: 📵 Malebligi
+            mac: 📡 Kontroli MAC-ojn
+            ghost: 👻 Fantomo
+        help: |
+            ⏲ Uzante ĉi tiun komandon, vi povas aŭtomate enskribiĝi en la spacon tuj kiam la MAC-adreso de via aparato estas detektita en la reto.
+            📌 Se la aparato estas neaktiva en la spaca reto dum {{timeout}} minutoj, la uzanto estos aŭtomate elsalutita.
+            📌 Kiam la funkcio estas ebligita, la nuna statuso de la aparato en la reto havas prioritaton super manaj ensalutaj/elsalutaj komandoj.
+            ⚠️ Por funkcii, nepre agordu la MAC-adreson de via aparato kaj malebligu ĝian hazardigon por la spaca reto.
+        ghost: "#`/autoinside ghost#` - Enskribo nur por loĝantoj"
+        fail: ⚠️ Malsukcesis ebligi aŭtomatan enskribon, kvankam MAC estas agordita. Iu donu al mia programisto malfacilan tempon.
+        nomac: |
+            ⚠️ Via MAC-adreso ne estas agordita. Aldonu ĝin per la komando /mac
+        set: 🕺 Aŭtomata enskribo kaj aŭtomata elsaluto ebligitaj por uzanto {{username}} al MAC-adreso {{usermac}}
+        removed: 🚷 Aŭtomata enskribo kaj aŭtomata elsaluto estas malebligitaj por uzanto {{username}}
+        isset: 🕺 Aŭtomata enskribo kaj aŭtomata elsaluto ebligitaj por uzanto {{username}} al MAC-adreso {{usermac}}
+        isghost: 👻 Aŭtomata enskribo kaj aŭtomata elsaluto ebligitaj por uzanto {{username}} al MAC-adreso {{usermac}} nur por loĝantoj
+        isnotset: 🚷 Aŭtomata enskribo kaj aŭtomata elsaluto estas malebligitaj por uzanto {{username}}
+        nouser: ⚠️ Via uzanto ne estis trovita en la datumbazo (cimo?)
+        notsupported: ⚠️ Ĉi tiu komando ankoraŭ ne estas subtenata por uzantoj sen uzantnomo
+    status:
+        undefined: 🔐 Spaca statuso estas nedifinita. Iu malfermu ĝin per /open
+        noconnection: |
+            📵 Malsukcesis kontakti la spacon. Vizitantaj datumoj eble ne estas aktualaj.
+
+            {{statusMessage}}
+        messageopened: Ĉi tio estas bona kialo por veni, do sonorigu aŭ skribu al tiuj ene - ili malfermos por vi
+        messageclosed: Ni atendas ke unu el la loĝantoj malfermos ĝin. Eble neniu estas ene, aŭ estas fermita kunveno de loĝantoj, aŭ ili forgesis fari /open denove? Kiu scias... Pli bone demandu ilin en babilo aŭ marku ilin per la komando /hey
+        updated: ⏱ Ĝisdatigita je {{updatedDate}}
+        opened: "#*malfermita#*"
+        closed: "#*fermita#*"
+        state: |
+            {{stateEmoji}} Spaco estas {{state}} por gastoj fare de {{changedBy}}
+
+            {{stateMessage}}
+
+        state_pin: "{{stateEmoji}} {{state}}"
+        insidechecked_pin: "👨‍💻 ene {{count}}"
+        insidechecked: |
+            👨‍💻 [{{count}}] estis kontrolitaj ene:
+        nooneinside: 🛌 Neniu enskribiĝis ene
+        nooneinside_pin: 🛌 neniu
+        going_pin: "🚕 planas {{count}}"
+        going: |
+            🚕 Planas viziti hodiaŭ [{{count}}]:
+    open: |
+        🔑 Spaco #*malfermita#* por gastoj fare de {{username}}. Bona kialo por veni!
+    open-alert: 🔑 Spaco estis malfermita de uzanto {{user}}
+    close: |
+        🔒 Spaco #*fermita#* fare de {{username}}. Ĉiuj enskribitaj estis senditaj hejmen.
+    close-alert: 🔒 Spaco estis fermita de uzanto {{user}}
+    evict: 🔒 La enskriba listo estis malplenigita.
+    in:
+        notready: 🔐 Nun la spaco ne estas preta akcepti gastojn... aŭ la loĝantoj forgesis fari /open denove
+        gotin: 🤝 {{username}} nun estas en la spaco
+        until: " ĝis {{until}}"
+        tryautoinside: 📲 Provu la komandon /autoinside por enskribiĝi en la spacon aŭtomate.
+    out:
+        shouldnot: 🔐 Kaj vi ne estas en la listo de markitaj personoj ĉiuokaze (kiam la spaco estas fermita, ĝi estas malplenigita)
+        gotout: 👋 {{username}} ne plu estas en la spaco. Ni esperas ke li revenos denove...
+    inforce:
+        notready: 🔐 Pardonu, vi ne povas enkonduki ĉi tiun personon nun.
+        gotin: 🟢 {{memberusername}} enkondukis {{username}} en la spacon
+    outforce:
+        shouldnot: 🔐 Uh ne, vi ne povas sendi lin hejmen.
+        gotout: 🔴 {{memberusername}} sendis {{username}} hejmen.
+    going: 🚕 {{username}} planas iri al la spaco hodiaŭ {{note}}
+    notgoing: 🛌 {{username}} ne plu planas iri al la spaco hodiaŭ {{note}}
+    shouldigo:
+        context: "Vi estas Telegram-roboto por la hakerspaco, ĉiam respondante humure kaj strange. Mi plej verŝajne ne estos permesita en la fermitan spacon, sed mi estos ĝoje akceptita en la malfermitan spacon."
+        prompt: "Ĉu mi devus iri al la hakerspaco hodiaŭ se la spaco estas {{state}} por mi, {{going}} planas viziti, kaj {{inside}} estas ene?"
+        fail: Mi ne povas decidi ĉu mi devus iri al la spaco hodiaŭ. Provu denove
+    emoji:
+        help: |
+            🐥 Uzante ĉi tiun komandon vi povas agordi emojion
+
+            #`/setemoji 🍗#` - Agordi vian emojion
+            #`/setemoji status#` - Vidi vian instalitan emojion en la roboto
+            #`/setemoji remove#` - Forigi vian emojion de la roboto
+        fail: ⚠️ Bonvolu enigi validan emojion.
+        set: 🐥 Emojio {{emoji}} estis sukcese instalita por uzanto {{username}}.
+        removed: 🗑 Emojio forigita por uzanto {{username}}.
+        isset: 🐥 La emojio {{emoji}} estas agordita por la uzanto {{username}}.
+        isnotset: 🐥 Emojio ne agordita por uzanto {{username}}.
+    statsof: "🕔 {{username}} pasigis en la spaco dum la ekzisto de la roboto (ekde januaro 2023) (bazita sur markoj)"
+    stats:
+        start: "🕔 Dum la ekzisto de la roboto (ekde januaro 2023), ĉi tiuj uzantoj pasigis tempon en la spaco (bazita sur markoj)"
+        invaliddates: "🕔 Mi ne povas kompreni la datojn, provu en formato YYYY-MM-DD"
+        nousertimes: "📭 Neniuj markoj trovitaj por ĉi tiu periodo"
+        hoursinspace: "Horoj pasigitaj en la spaco de {{from.day}}/{{from.month}}/{{from.year}} ĝis {{to.day}}/{{to.month}}/{{to.year}}"
+        period: "🕔 De {{from.day}}/{{from.month}}/{{from.year}} ĝis {{to.day}}/{{to.month}}/{{to.year}} ĉi tiuj uzantoj pasigis en la spaco (bazita sur markoj)"
+        tryautoinside: |
+            📲 Ĉu vi volas scii precizajn statistikojn pri vi mem? Ne forgesu enskribiĝi per /in kaj /out, aŭ prefere uzu /autoinside por fari ĝin aŭtomate
+        help: |
+            ℹ️ Statistikaj komandoj:
+            • Ĉi-monate - /month
+            • Antaŭa monato - /lastmonth
+            • Por la tuta ekzisto de la roboto - /allstats
+            • Iu ajn periodo - #`/stats from 2023-05-01 to 2023-05-25#`
+meme:
+    its_wednesday: 🐸 Kva-kva, hodiaŭ estas merkredo! La ŝanco ricevi /zhabka de mi hodiaŭ estas pli alta ol iam ajn (eĉ kie ili kutime ne troviĝas)!
+    not_wednesday: 🐸 Ho, la bufoj dormas hodiaŭ. Revenu merkrede!
+    slap:
+        user: |
+            🖐 {{from}} frapas {{target}}
+        help: |
+            🖐 Uzante ĉi tiun komandon vi povas frapi iun
+            #`/slap uzantnomo#`
+    hug:
+        user: |
+            🫂 {{from}} brakumas {{target}} kun varmeco kaj tenereco
+        help: |
+            🫂 Uzante ĉi tiun komandon vi povas brakumi iun
+            #`/hug uzantnomo#`
+topics:
+    general:
+        error: ⚠️ Io misokazis
+        notfound: ⚠️ Temo ne trovita
+        empty: Nenio ankoraŭ
+        nosubscribers: 🌚 Ne estas abonantoj al la temo {{topic}}
+    buttons:
+        topics: 🗃 Ĉiuj temoj
+        subscriptions: 💌 Abonoj
+    topics:
+        list: |
+            📭 Uzante ĉi tiun funkcion, vi povas aboni la novaĵleteron pri temoj kiuj interesas vin.
+            Temaj aŭtoroj povos facile mencii vin en grupaj babiloj kaj sendi al vi personajn sciigojn.
+
+            🗃 Listo de haveblaj temoj:
+            {{topics}}
+
+            📟 Komandoj:
+            Vidi la liston de haveblaj temoj - /topics
+            Vidi nunajn abonojn - /subscriptions
+            Aboni la novaĵleteron - #`/subscribe temnomo#`
+            Malaboni de la novaĵletero - #`/unsubscribe temnomo#`
+            Marki ĉiujn abonantojn de la temo - #`/tag temnomo#`
+        member: |
+            📯 Loĝantaj teamoj:
+            Aldoni temon - #`/addtopic temnomo tempriskribo#`
+            Forigi temon - #`/removetopic temnomo#`
+            Personaj mesaĝoj al abonantoj - #`/notify temnomo mesaĝo#`
+    subscriptions:
+        list: |
+            📭 Vi estas abonita al la sekvaj temoj:
+            {{topics}}
+
+            📟 Komandoj:
+            Vidi la liston de haveblaj temoj - /topics
+            Malaboni de la novaĵletero - #`/unsubscribe temnomo#`
+        empty: 🗿 Vi ne estas abonita al iu ajn temo
+    subscribe:
+        success: |
+            📭 Abono al temo {{topic}} estas kompletigita
+
+            📟 Miaj abonoj - /subscriptions
+        already: |
+            👌 Vi jam estas abonita al {{topic}}
+
+            📟 Miaj abonoj - /subscriptions
+        fail: ⚠️ Malsukcesis aboni al temo {{topic}}
+    unsubscribe:
+        success: |
+            🗑 Abono al temo {{topic}} estis forigita
+
+            📟 Miaj abonoj - /subscriptions
+        notsubscribed: |
+            🙅‍♀️ Vi ne estas abonita al {{topic}}
+
+            📟 Miaj abonoj - /subscriptions
+        fail: ⚠️ Malsukcesis malaboni de temo {{topic}}. Ĉu vi certas ke vi estas abonita?
+    add:
+        success: 📭 Temo {{topic}} aldonita
+        exists: 👌 Temo {{topic}} jam ekzistas
+        fail: ⚠️ Malsukcesis aldoni temon {{topic}}
+    delete:
+        success: 🗑 Temo {{topic}} forigita
+        fail: ⚠️ Malsukcesis forigi temon {{topic}}
+    notify:
+        help: |
+            📭 Uzante ĉi tiun komandon vi povas sendi personajn mesaĝojn al ĉiuj abonantoj de la temo
+            #`/notify temnomo mesaĝo#`
+        message: |
+            📭 Mesaĝo por vi de la temo {{topic}}:
+
+            {{text}}
+
+            📟 Miaj abonoj - /subscriptions
+        started: 📯 Novaĵletero al {{topic}} abonantoj komenciĝis. Privataj mesaĝoj ricevos {{count}} sekvantojn ene de {{eta}} sekundoj
+        finished: ✅ Distribuado al {{topic}} abonantoj estis kompletigita. Privataj mesaĝoj sukcese ricevis {{received}}/{{count}} abonantojn

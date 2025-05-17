@@ -1,7 +1,6 @@
 import { promises as fs } from "fs";
 import { EventEmitter, Stream } from "stream";
 
-import split2 from "split2";
 import "reflect-metadata";
 
 import config from "config";
@@ -27,12 +26,13 @@ import { User } from "@data/models";
 import { UserRole } from "@data/types";
 
 import logger from "@services/common/logger";
-import { openAI } from "@services/external/neural";
 import { hasRole, isBanned, userService } from "@services/domain/user";
 
 import { chunkSubstr } from "@utils/text";
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
+import { DeltaStream } from "@services/neural/openwebui";
+import { openAI } from "@services/neural/openai";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../localization";
 import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "../helpers";
@@ -408,7 +408,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     async sendStreamedMessage(
         chatId: TelegramBot.ChatId,
-        stream: NodeJS.ReadableStream,
+        stream: DeltaStream,
         msg: Nullable<TelegramBot.Message>
     ): Promise<boolean> {
         let messageToEdit: Nullable<TelegramBot.Message> = null;
@@ -416,20 +416,15 @@ export default class HackerEmbassyBot extends TelegramBot {
         let window = 0;
 
         try {
-            for await (const line of stream.pipe(split2())) {
-                if (!line.trim()) continue;
-
-                const parsedResponse = JSON.parse(line) as {
-                    response: string;
-                    done: boolean;
-                };
-
-                buffer += parsedResponse.response;
-                window += parsedResponse.response.length;
+            for await (const chunk of stream) {
+                if (chunk.response) {
+                    buffer += chunk.response;
+                    window += chunk.response.length;
+                }
 
                 if (!messageToEdit) {
                     messageToEdit = await this.sendMessageExt(chatId, buffer, msg);
-                } else if (parsedResponse.done || window >= MAX_STREAMING_WINDOW) {
+                } else if (chunk.done || window >= MAX_STREAMING_WINDOW) {
                     await this.editMessageTextExt(buffer, messageToEdit, {
                         chat_id: chatId,
                         message_id: messageToEdit.message_id,

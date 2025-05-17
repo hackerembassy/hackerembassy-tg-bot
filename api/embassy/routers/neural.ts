@@ -1,6 +1,7 @@
 import { Router } from "express";
 
-import { ollama, stableDiffusion } from "@services/external/neural";
+import { openwebui } from "@services/neural/openwebui";
+import { stableDiffusion } from "@services/neural/stablediffusion";
 
 type ollamaBody = { prompt?: string; model?: string };
 type txt2imgBody = { prompt?: string; negative_prompt?: string };
@@ -15,7 +16,7 @@ router.post("/ollama/generate", async (req: RequestWithBody<ollamaBody>, res, ne
     try {
         if (!req.body.prompt) return res.sendStatus(400).send({ message: "Prompt is required" });
 
-        const response = await ollama.generate(req.body.prompt, req.body.model);
+        const response = await openwebui.generateOllama(req.body.prompt, req.body.model);
 
         if (!response) throw Error("Ollama generation process failed");
 

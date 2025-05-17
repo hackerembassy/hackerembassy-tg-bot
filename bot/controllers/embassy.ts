@@ -10,8 +10,9 @@ import embassyService from "@services/embassy/embassy";
 import { getDonationsSummary } from "@services/funds/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
 import logger from "@services/common/logger";
-import { ollama, openAI } from "@services/external/neural";
 import { userService, hasRole } from "@services/domain/user";
+import { openwebui } from "@services/neural/openwebui";
+import { openAI } from "@services/neural/openai";
 
 import { sleep } from "@utils/common";
 import { fullScreenImagePage } from "@utils/html";
@@ -746,16 +747,16 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("ai")
     @AllowedChats(PublicChats)
     static async availableModelsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const ollamaModles = await ollama.getModels();
-        const models = [neuralConfig.openai.model, ...ollamaModles];
-        const modelsList = TextGenerators.getModelsList(models, neuralConfig.ollama.model);
+        const openwebuiModels = await openwebui.getModels();
+        const models = [neuralConfig.openai.model, ...openwebuiModels];
+        const modelsList = TextGenerators.getModelsList(models, neuralConfig.openwebui.model);
 
         return bot.sendMessageExt(msg.chat.id, t("embassy.neural.models", { modelsList }), msg);
     }
 
     @Route(["ask"], OptionalParam(/(\S*?) (.*)/ims), match => [match[2], match[1]])
     @Route(["gpt"], OptionalParam(/(.*)/ims), match => [match[1], "gpt"])
-    @Route(["ollama", "llama", "lama"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @Route(["ollama", "llama", "lama", "openwebui"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("ai")
     @AllowedChats(PublicChats)
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model?: string) {
@@ -772,11 +773,7 @@ export default class EmbassyController implements BotController {
             if (model === "gpt" || model === neuralConfig.openai.model)
                 return bot.sendMessageExt(msg.chat.id, await openAI.askChat(prompt, t("embassy.neural.contexts.default")), msg);
 
-            await bot.sendStreamedMessage(
-                msg.chat.id,
-                await ollama.generateStream(prompt, model, t("embassy.neural.contexts.ollama")),
-                msg
-            );
+            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(prompt, model), msg);
         } catch (error) {
             bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
             logger.error(error);

@@ -240,6 +240,11 @@ export default class ServiceController implements BotController {
                         params: "en",
                         vId: verificationDetails?.vId,
                     }),
+                    // Yeah, I know, that's Nigerian. There's no Esperanto flag in Unicode.
+                    InlineButton("🇳🇬 Eo", "setlanguage", ButtonFlags.Simple, {
+                        params: "eo",
+                        vId: verificationDetails?.vId,
+                    }),
                 ],
             ];
 

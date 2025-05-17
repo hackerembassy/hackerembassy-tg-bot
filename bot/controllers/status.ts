@@ -16,10 +16,10 @@ import { createUserStatsDonut } from "@services/funds/export";
 import * as ExportHelper from "@services/funds/export";
 import { SpaceClimate } from "@services/embassy/hass";
 import logger from "@services/common/logger";
-import { openAI } from "@services/external/neural";
 import { getTodayEventsCached, HSEvent } from "@services/external/googleCalendar";
 import { spaceService } from "@services/domain/space";
 import { userService } from "@services/domain/user";
+import { openAI } from "@services/neural/openai";
 
 import { sleep } from "@utils/common";
 import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";

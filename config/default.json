@@ -203,8 +203,8 @@
             "denoising": 0.57,
             "sampler": "Euler a"
         },
-        "ollama": {
-            "base": "https://owo.hackem.cc/ollama",
+        "openwebui": {
+            "base": "https://owo.hackem.cc",
             "model": "HammerAI/openhermes-2.5-mistral:latest"
         },
         "openai": {

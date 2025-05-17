@@ -221,8 +221,9 @@ export default class ServiceController implements BotController {
     }
 
     @Route(["setlanguage", "setlang", "lang", "language"], OptionalParam(/(\S+)/), match => [match[1]])
-    @Route(["ru", "russian"], null, () => ["ru"])
-    @Route(["en", "english"], null, () => ["en"])
+    @Route(["ru", "rus", "russian"], null, () => ["ru"])
+    @Route(["en", "eng", "english"], null, () => ["en"])
+    @Route(["eo", "epo", "esperanto"], null, () => ["eo"])
     static async setLanguageHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -230,29 +231,24 @@ export default class ServiceController implements BotController {
         verificationDetails?: { vId: number; name: string }
     ) {
         if (!lang) {
+            const publicLanguages = [
+                { flag: "🇷🇺", code: "ru", label: "Ru" },
+                { flag: "🇬🇧", code: "en", label: "En" },
+                { flag: "🇳🇬", code: "eo", label: "Eo" }, // Yeah, I know, that's Nigerian. There's no Esperanto flag in Unicode.
+            ];
+
             const inline_keyboard = [
-                [
-                    InlineButton("🇷🇺 Rus", "setlanguage", ButtonFlags.Simple, {
-                        params: "ru",
+                publicLanguages.map(lang =>
+                    InlineButton(`${lang.flag} ${lang.label}`, "setlanguage", ButtonFlags.Simple, {
+                        params: lang.code,
                         vId: verificationDetails?.vId,
-                    }),
-                    InlineButton("🇬🇧 Eng", "setlanguage", ButtonFlags.Simple, {
-                        params: "en",
-                        vId: verificationDetails?.vId,
-                    }),
-                    // Yeah, I know, that's Nigerian. There's no Esperanto flag in Unicode.
-                    InlineButton("🇳🇬 Eo", "setlanguage", ButtonFlags.Simple, {
-                        params: "eo",
-                        vId: verificationDetails?.vId,
-                    }),
-                ],
+                    })
+                ),
             ];
 
             // Ban this bot outta here
             if (verificationDetails?.vId) {
-                inline_keyboard[0].splice(
-                    1,
-                    0,
+                inline_keyboard[0].push(
                     InlineButton("🤖", "ban", ButtonFlags.Simple, {
                         params: verificationDetails.vId,
                     })

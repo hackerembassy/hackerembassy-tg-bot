@@ -754,7 +754,7 @@ export default class EmbassyController implements BotController {
         return bot.sendMessageExt(msg.chat.id, t("embassy.neural.models", { modelsList }), msg);
     }
 
-    @Route(["ask"], OptionalParam(/(\S*?) (.*)/ims), match => [match[2], match[1]])
+    @Route(["ask"], OptionalParam(/(\S+?)(?: (.*))?/ims), match => [match[2], match[1]])
     @Route(["gpt"], OptionalParam(/(.*)/ims), match => [match[1], "gpt"])
     @Route(["ollama", "llama", "lama", "openwebui"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("ai")

@@ -759,11 +759,14 @@ export default class EmbassyController implements BotController {
     @Route(["ollama", "llama", "lama", "openwebui"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("ai")
     @AllowedChats(PublicChats)
-    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt: string, model?: string) {
+    static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt?: string, model?: string) {
         const user = bot.context(msg).user;
 
         if (msg.chat.id !== botConfig.chats.horny && !hasRole(user, "trusted", "member")) return bot.sendRestrictedMessage(msg);
-        if (!prompt) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);
+
+        const extractedPrompt = prompt ?? msg.reply_to_message?.text ?? msg.reply_to_message?.caption;
+
+        if (!extractedPrompt) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);
 
         const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
@@ -771,9 +774,13 @@ export default class EmbassyController implements BotController {
             bot.sendChatAction(msg.chat.id, "typing", msg);
 
             if (model === "gpt" || model === neuralConfig.openai.model)
-                return bot.sendMessageExt(msg.chat.id, await openAI.askChat(prompt, t("embassy.neural.contexts.default")), msg);
+                return bot.sendMessageExt(
+                    msg.chat.id,
+                    await openAI.askChat(extractedPrompt, t("embassy.neural.contexts.default")),
+                    msg
+                );
 
-            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(prompt, model), msg);
+            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(extractedPrompt, model), msg);
         } catch (error) {
             bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
             logger.error(error);

@@ -19,7 +19,7 @@ import * as ExportHelper from "@services/funds/export";
 import logger from "@services/common/logger";
 import { userService } from "@services/domain/user";
 
-import { getToday } from "@utils/date";
+import { getMonthBoundaries, getToday } from "@utils/date";
 import { getImageFromPath } from "@utils/filesystem";
 import { replaceUnsafeSymbolsForAscii } from "@utils/text";
 import { Accountants, CaptureListOfIds, Members, Route, UserRoles } from "@hackembot/core/decorators";
@@ -451,11 +451,37 @@ export default class FundsController implements BotController {
         return await FundsController.exportDonutHandler(bot, msg, latestCostsFund.name);
     }
 
+    @Route(["rmonth"], OptionalParam(/(all|paid|left)/), match => [match[1]])
+    @UserRoles(Members)
+    static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message, option: "all" | "paid" | "left" = "all") {
+        let resdientsDonatedList = `${t("funds.residentsdonated")}\n`;
+
+        const startMonthDate = getMonthBoundaries(getToday()).startMonthDate;
+        const donations = FundsRepository.getAllDonations(true, true, startMonthDate);
+        const residents = UsersRepository.getUsersByRole("member");
+
+        if (residents.length > 0) {
+            for (const resident of residents) {
+                const hasDonated = donations.filter(d => d.user_id === resident.userid).length > 0;
+                const shouldInclude = option === "all" || (option === "paid" && hasDonated) || (option === "left" && !hasDonated);
+
+                if (!shouldInclude) continue;
+
+                resdientsDonatedList += `${hasDonated ? "✅" : "⛔"} ${helpers.formatUsername(
+                    resident.username,
+                    bot.context(msg).mode.mention
+                )}\n`;
+            }
+        }
+
+        await bot.sendMessageExt(msg.chat.id, resdientsDonatedList, msg);
+    }
+
     @Route(["residentscosts", "residentsdonated", "residentcosts", "rcosts"], OptionalParam(/(all|paid|left)/), match => [
         match[1],
     ])
     @UserRoles(Members)
-    static async residentsDonatedHandler(bot: HackerEmbassyBot, msg: Message, option: "all" | "paid" | "left" = "all") {
+    static async residentsCostsDonatedHandler(bot: HackerEmbassyBot, msg: Message, option: "all" | "paid" | "left" = "all") {
         const fundName = FundsRepository.getLatestCosts()?.name;
 
         if (!fundName) {

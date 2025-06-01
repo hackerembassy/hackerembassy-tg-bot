@@ -81,7 +81,8 @@ const residentCommands = [
     { command: "fundsall", description: "Все сборы" },
     { command: "debt", description: "Сколько числится на тебе донатов" },
     { command: "scosts", description: "Показать сбор на аренду в этом месяце" },
-    { command: "rcosts", description: "Кто из резидентов задонатил в этом месяце" },
+    { command: "rcosts", description: "Кто из резидентов задонатил в аренду этом месяце" },
+    { command: "rmonth", description: "Кто из резидентов задонатил в принципе в этом месяце" },
     {
         command: "needs",
         description: "Посмотреть, что просили купить в спейс по дороге",

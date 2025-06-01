@@ -75,7 +75,7 @@ export const donations = sqliteTable(
             .references(() => funds.id),
         value: integer("value").notNull(),
         currency: text("currency").notNull(),
-        date: integer("date", { mode: "timestamp" }).default(sql`0`),
+        date: integer("date", { mode: "timestamp_ms" }).default(sql`0`),
         user_id: integer("user_id")
             .notNull()
             .references(() => users.userid),

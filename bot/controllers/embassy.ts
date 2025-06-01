@@ -764,9 +764,10 @@ export default class EmbassyController implements BotController {
 
         if (msg.chat.id !== botConfig.chats.horny && !hasRole(user, "trusted", "member")) return bot.sendRestrictedMessage(msg);
 
-        const extractedPrompt = prompt ?? msg.reply_to_message?.text ?? msg.reply_to_message?.caption;
+        const replyPrompt = msg.reply_to_message?.text ?? msg.reply_to_message?.caption;
+        const combined = prompt && replyPrompt ? `${replyPrompt}\n ${prompt}`.trim() : (prompt ?? replyPrompt);
 
-        if (!extractedPrompt) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);
+        if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);
 
         const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
@@ -774,13 +775,9 @@ export default class EmbassyController implements BotController {
             bot.sendChatAction(msg.chat.id, "typing", msg);
 
             if (model === "gpt" || model === neuralConfig.openai.model)
-                return bot.sendMessageExt(
-                    msg.chat.id,
-                    await openAI.askChat(extractedPrompt, t("embassy.neural.contexts.default")),
-                    msg
-                );
+                return bot.sendMessageExt(msg.chat.id, await openAI.askChat(combined, t("embassy.neural.contexts.default")), msg);
 
-            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(extractedPrompt, model), msg);
+            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(combined, model), msg);
         } catch (error) {
             bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
             logger.error(error);

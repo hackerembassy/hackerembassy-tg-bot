@@ -636,6 +636,13 @@ service:
             🚫 Command #`{{command}}#` is deprecated
         replaced: |
             🔄 Use #`{{replacement}}#` instead
+    tldr:
+        prompt: |
+            These are messages from a chat in a messenger. Mention main topics discussed by people and who was talking about them, provide a summary if needed
+        help: |
+            📝 Using this command, you can get a summary of the main topics discussed in the chat. The bot will analyze the last n messages and try to summarize them.
+            #`/tldr n#` - where n is the number of messages to analyze (default 1000)
+        notready: This feature currently works in test mode for chats without topics
     token:
         help: |
             🤖 This command can be used to manage the token for API access (currently just one)

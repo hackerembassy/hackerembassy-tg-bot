@@ -7,7 +7,18 @@ import UsersRepository from "@repositories/users";
 import ApiKeysRepository from "@repositories/apikeys";
 import logger from "@services/common/logger";
 import { generateRandomKey, sha256 } from "@utils/security";
-import { Members, Route, TrustedMembers, UserRoles } from "@hackembot/core/decorators";
+import {
+    AllowedChats,
+    FeatureFlag,
+    Members,
+    NonTopicChats,
+    PublicChats,
+    Route,
+    TrustedMembers,
+    UserRoles,
+} from "@hackembot/core/decorators";
+
+import { openwebui } from "@services/neural/openwebui";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
@@ -29,19 +40,45 @@ export default class ServiceController implements BotController {
         const inputCount = Number(count);
         const countToClear = inputCount > 0 ? inputCount : 1;
         const orderOfLastMessage = msg.reply_to_message?.message_id
-            ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
+            ? bot.botMessageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
             : 0;
 
         if (orderOfLastMessage === undefined || orderOfLastMessage === null || orderOfLastMessage === -1) return;
 
         let messagesRemained = countToClear;
         while (messagesRemained > 0) {
-            const message = bot.messageHistory.pop(msg.chat.id, orderOfLastMessage);
+            const message = bot.botMessageHistory.pop(msg.chat.id, orderOfLastMessage);
             if (!message) return;
 
             const success = await bot.deleteMessage(msg.chat.id, message.messageId).catch(() => false);
             if (success) messagesRemained--;
         }
+    }
+
+    @Route(["tldr"], OptionalParam(/(\d*)/), match => [match[1]])
+    @UserRoles(TrustedMembers)
+    @AllowedChats(PublicChats)
+    @FeatureFlag("ai")
+    @FeatureFlag("history")
+    static async tldrHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
+        if (!NonTopicChats.includes(msg.chat.id)) {
+            return bot.sendMessageExt(msg.chat.id, t("service.tldr.notready"), msg);
+        }
+
+        const countToSummarize = Number(count);
+        const chatHistory = bot.messageHistory.getAll(msg.chat.id).toReversed();
+        const selectedMessages = countToSummarize > 0 ? chatHistory.slice(-countToSummarize) : chatHistory;
+
+        let prompt = t("service.tldr.prompt") + "\n\n";
+        for (const message of selectedMessages) {
+            if (message.text) prompt += `${message.from}: ${message.text}\n`;
+        }
+
+        return bot.sendStreamedMessage(
+            msg.chat.id,
+            await openwebui.generateOpenAiStream(prompt, botConfig.history.summaryModel),
+            msg
+        );
     }
 
     @Route(["combine", "squash", "sq"], OptionalParam(/(\d*)/), match => [match[1]])
@@ -51,7 +88,7 @@ export default class ServiceController implements BotController {
         const countToCombine = inputCount > 2 ? inputCount : 2;
 
         const orderOfLastMessageToEdit = msg.reply_to_message?.message_id
-            ? bot.messageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
+            ? bot.botMessageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
             : 0;
 
         if (orderOfLastMessageToEdit === undefined || orderOfLastMessageToEdit === null || orderOfLastMessageToEdit === -1)
@@ -62,7 +99,7 @@ export default class ServiceController implements BotController {
 
         // find a suitable message to edit (because images are not supported yet)
         do {
-            lastMessageToEdit = bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            lastMessageToEdit = bot.botMessageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
             if (!lastMessageToEdit) return;
             foundLast = await bot
                 .editMessageTextExt("combining...", msg, {
@@ -80,13 +117,13 @@ export default class ServiceController implements BotController {
 
         // TODO allow combining images into one message
         while (messagesRemained > 0) {
-            const message = bot.messageHistory.get(msg.chat.id, orderOfLastMessageToEdit);
+            const message = bot.botMessageHistory.get(msg.chat.id, orderOfLastMessageToEdit);
             const messageLength = message?.text?.length ?? 0;
 
             if (!message) break;
             if (combinedMessageLength + messageLength > MAX_MESSAGE_LENGTH_WITH_TAGS) break;
 
-            bot.messageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
+            bot.botMessageHistory.pop(msg.chat.id, orderOfLastMessageToEdit);
             combinedMessageLength += messageLength;
             preparedMessages.push(message);
             messagesRemained--;
@@ -111,7 +148,11 @@ export default class ServiceController implements BotController {
             })
             .join("\n");
 
-        bot.messageHistory.push(msg.chat.id, lastMessageToEdit.messageId, combinedMessageText, orderOfLastMessageToEdit);
+        bot.botMessageHistory.push(
+            msg.chat.id,
+            { messageId: lastMessageToEdit.messageId, text: combinedMessageText },
+            orderOfLastMessageToEdit
+        );
 
         if (combinedMessageText !== lastMessageToEdit.text) {
             await bot.editMessageTextExt(combinedMessageText, msg, {

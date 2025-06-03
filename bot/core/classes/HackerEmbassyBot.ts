@@ -35,7 +35,7 @@ import { DeltaStream } from "@services/neural/openwebui";
 import { openAI } from "@services/neural/openai";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../localization";
-import { OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "../helpers";
+import { effectiveName, OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "../helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {
@@ -72,7 +72,7 @@ import {
 } from "../types";
 import { ButtonFlags, InlineDeepLinkButton } from "../inlineButtons";
 import ChatBridge from "./ChatBridge";
-import { MetadataKeys, PublicChats, RouteMetadata } from "../decorators";
+import { MetadataKeys, NonTopicChats, PublicChats, RouteMetadata } from "../decorators";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -87,9 +87,10 @@ const WelcomeMessageMap: {
 
 export default class HackerEmbassyBot extends TelegramBot {
     public name: string = DEFAULT_BOT_NAME;
-    public customEmitter: EventEmitter = new EventEmitter();
-    public botState: BotState = new BotState(this);
-    public messageHistory: MessageHistory = new MessageHistory(this.botState);
+    public customEmitter = new EventEmitter();
+    public botState = new BotState(this);
+    public botMessageHistory = new MessageHistory(this.botState, this.botState.history, botConfig.history.commandsLimit);
+    public messageHistory = new MessageHistory(this.botState, this.botState.messages, botConfig.history.messagesLimit);
     public assets: BotAssets = {
         images: {
             restricted: null,
@@ -267,7 +268,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             this.tryPinChatMessage(message, context.user);
         }
 
-        this.messageHistory.push(chatId, message.message_id);
+        this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
 
         return Promise.resolve(message);
     }
@@ -307,7 +308,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             this.tryPinChatMessage(message, context.user);
         }
 
-        this.messageHistory.push(chatId, message.message_id);
+        this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
 
         return Promise.resolve(message);
     }
@@ -333,7 +334,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         });
 
         for (const message of messages) {
-            this.messageHistory.push(chatId, message.message_id);
+            this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
         }
 
         return Promise.resolve(messages);
@@ -476,7 +477,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 this.tryPinChatMessage(message, context.user);
             }
 
-            this.messageHistory.push(chatId, message.message_id, text);
+            this.botMessageHistory.push(chatId, { messageId: message.message_id, text });
 
             return Promise.resolve(message);
         }
@@ -570,13 +571,13 @@ export default class HackerEmbassyBot extends TelegramBot {
         }
     }
 
-    private shouldIgnore(text?: string): boolean {
-        if (!text) return true;
+    private isBotCommand(text?: string): boolean {
+        if (!text) return false;
 
         const botNameRequested = this.name ? /^\/\S+?@(\S+)/.exec(text)?.[1] : null;
         const forAnotherBot = !!botNameRequested && botNameRequested !== this.name;
 
-        return !text.startsWith("/") || forAnotherBot;
+        return text.startsWith("/") && !forAnotherBot;
     }
 
     private extractImpersonatedUser(text: string): string | number {
@@ -613,8 +614,28 @@ export default class HackerEmbassyBot extends TelegramBot {
             // Get command from message text or a deeplink
             const deeplink = message.text?.match(/\/start (.*)/)?.[1].replaceAll("__", " ");
             const text = deeplink ? `/${deeplink}` : ((message.text ?? message.caption) as string);
+            const isCommand = this.isBotCommand(text);
 
-            if (this.shouldIgnore(text)) return;
+            // If the message is not a command, we can skip or save it to history
+            if (!isCommand) {
+                const messageText = message.text ?? message.caption;
+                if (
+                    botConfig.features.history &&
+                    message.from &&
+                    !message.from.is_bot &&
+                    // TODO: Allow public chats after testing
+                    NonTopicChats.includes(message.chat.id) &&
+                    messageText
+                ) {
+                    this.messageHistory.push(message.chat.id, {
+                        messageId: message.message_id,
+                        text: messageText,
+                        from: effectiveName(message.from),
+                    });
+                }
+
+                return;
+            }
 
             const fullCommand = text.split(" ")[0];
             const commandWithCase = fullCommand.split("@")[0].slice(1);

@@ -28,6 +28,13 @@ export const CaptureInteger = /(-?\d+)/;
 
 // Common chat IDs
 export const PublicChats = Object.values(botConfig.chats) as number[];
+export const NonTopicChats = [
+    botConfig.chats.main,
+    botConfig.chats.horny,
+    botConfig.chats.key,
+    botConfig.chats.test,
+    botConfig.chats.alerts,
+];
 
 export interface RouteMetadata {
     aliases: string[];

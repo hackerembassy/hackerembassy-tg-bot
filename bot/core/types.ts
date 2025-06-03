@@ -113,6 +113,7 @@ export type SerializedFunction = {
 export type MessageHistoryEntry = {
     messageId: number;
     text?: string;
+    from?: string;
     datetime: number;
 };
 

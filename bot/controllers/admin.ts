@@ -107,7 +107,7 @@ export default class AdminController implements BotController {
     @Route(["getstate", "state"])
     @UserRoles(Admins)
     static async getStateHandler(bot: HackerEmbassyBot, msg: Message) {
-        const statepath = bot.messageHistory.botState.statepath;
+        const statepath = bot.botState.statepath;
 
         if (statepath && fs.existsSync(statepath)) await bot.sendDocument(msg.chat.id, statepath);
     }

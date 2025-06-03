@@ -28,7 +28,11 @@
         },
         "autoWish": true,
         "persistedfolderpath": "data/db",
-        "maxchathistory": 50,
+        "history": {
+            "commandsLimit": 50,
+            "messagesLimit": 1000,
+            "summaryModel": "gemma3:27b"
+        },
         "live": {
             "camRefreshInterval": 10000,
             "statusRefreshInterval": 600000
@@ -55,7 +59,8 @@
             "embassy": true,
             "ai": true,
             "calendar": true,
-            "chatbridge": true
+            "chatbridge": true,
+            "history": true
         },
         "moderatedChats": [-1001605898533],
         "guess": {

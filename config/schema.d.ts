@@ -27,7 +27,7 @@ export interface BotConfig {
     rateLimits: RateLimits;
     autoWish: boolean;
     persistedfolderpath: string;
-    maxchathistory: number;
+    history: BotHistoryConfig;
     live: LiveConfig;
     reminders: RemindersConfig;
     funds: FundsConfig;
@@ -36,6 +36,12 @@ export interface BotConfig {
     guess: GuessConfig;
     features: BotFeaturesConfig;
     outage: OutageConfig;
+}
+
+export interface BotHistoryConfig {
+    commandsLimit: number;
+    messagesLimit: number;
+    summaryModel: string;
 }
 
 export interface BotApiConfig {
@@ -122,6 +128,8 @@ export interface BotFeaturesConfig {
     embassy: boolean;
     /** Allows connecting chats to the admin-bot conversation */
     chatbridge: boolean;
+    /** Keep message history */
+    history: boolean;
 }
 
 export type BotFeatureFlag = keyof BotFeaturesConfig;

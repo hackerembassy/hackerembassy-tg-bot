@@ -1,37 +1,42 @@
-import config from "config";
-
-import { BotConfig } from "@config";
-
 import BotState from "./BotState";
 import { MessageHistoryEntry } from "../types";
 
-const botConfig = config.get<BotConfig>("bot");
+type ChatMessageLog = { [chatId: string]: Optional<MessageHistoryEntry[]> };
 
 export default class MessageHistory {
     botState: BotState;
+    messageLog: ChatMessageLog;
+    limit: number;
 
-    constructor(botState: BotState) {
+    constructor(botState: BotState, messageLog: ChatMessageLog, limit: number) {
         this.botState = botState;
+        this.messageLog = messageLog;
+        this.limit = limit;
     }
 
     orderOf(chatId: number, messageId: number): Optional<number> {
-        return this.botState.history[chatId]?.findIndex(x => x.messageId === messageId);
+        return this.messageLog[chatId]?.findIndex(x => x.messageId === messageId);
     }
 
-    async push(chatId: string | number, messageId: number, text: string | undefined = undefined, order = 0): Promise<void> {
-        if (!this.botState.history[chatId]) this.botState.history[chatId] = [];
+    async push(chatId: string | number, entry: Omit<MessageHistoryEntry, "datetime">, order = 0): Promise<void> {
+        if (!this.messageLog[chatId]) this.messageLog[chatId] = [];
 
-        const chatHistory = this.botState.history[chatId];
+        const chatHistory = this.messageLog[chatId];
 
-        if (chatHistory.length >= botConfig.maxchathistory) chatHistory.pop();
+        if (chatHistory.length >= this.limit) chatHistory.pop();
 
-        chatHistory.splice(order, 0, { messageId, text, datetime: Date.now() });
+        const fullEntry: MessageHistoryEntry = {
+            ...entry,
+            datetime: Date.now(),
+        };
+
+        chatHistory.splice(order, 0, fullEntry);
 
         await this.botState.persistChanges();
     }
 
     pop(chatId: number, from: number = 0): Nullable<MessageHistoryEntry> {
-        const chatHistory = this.botState.history[chatId] as MessageHistoryEntry[] | undefined;
+        const chatHistory = this.messageLog[chatId];
 
         if (!chatHistory || chatHistory.length === 0) return null;
 
@@ -42,7 +47,11 @@ export default class MessageHistory {
     }
 
     get(chatId: number, from: number = 0): Nullable<MessageHistoryEntry> {
-        return this.botState.history[chatId]?.[from] ?? null;
+        return this.messageLog[chatId]?.[from] ?? null;
+    }
+
+    getAll(chatId: number): MessageHistoryEntry[] {
+        return this.messageLog[chatId] ?? [];
     }
 
     // TODO update history entry for EditMessage

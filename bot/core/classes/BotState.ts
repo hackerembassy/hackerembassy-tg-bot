@@ -36,6 +36,7 @@ export default class BotState {
                 const persistedState = JSON.parse(serializedState) as BotState;
 
                 this.history = persistedState.history;
+                this.messages = persistedState.messages;
                 this.liveChats = persistedState.liveChats;
                 this.initLiveChats();
                 this.flags = persistedState.flags;
@@ -49,6 +50,7 @@ export default class BotState {
         }
 
         this.history = {};
+        this.messages = {};
         this.liveChats = [];
         this.flags = { ...DEFAULT_STATE_FLAGS };
 
@@ -81,6 +83,7 @@ export default class BotState {
 
     public liveChats: LiveChatHandler[] = [];
     public history: { [chatId: string]: Optional<MessageHistoryEntry[]> };
+    public messages: { [chatId: string]: Optional<MessageHistoryEntry[]> };
     public flags: StateFlags;
     public fileIdCache: { [key: string]: string } = {};
 
@@ -102,6 +105,7 @@ export default class BotState {
         }
         this.liveChats = [];
         this.history = {};
+        this.messages = {};
         this.flags = { ...DEFAULT_STATE_FLAGS };
         this.fileIdCache = {};
         this.persistChanges();

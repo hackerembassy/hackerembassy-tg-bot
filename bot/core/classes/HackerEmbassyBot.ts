@@ -407,11 +407,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     // TODO: add support for sending plain text and make it less bad
 
-    async sendStreamedMessage(
-        chatId: TelegramBot.ChatId,
-        stream: DeltaStream,
-        msg: Nullable<TelegramBot.Message>
-    ): Promise<boolean> {
+    async sendStreamedMessage(chatId: TelegramBot.ChatId, stream: DeltaStream, msg: TelegramBot.Message): Promise<boolean> {
+        this.sendChatAction(chatId, "typing", msg);
+
         let messageToEdit: Nullable<TelegramBot.Message> = null;
         let buffer = "";
         let window = 0;
@@ -422,6 +420,9 @@ export default class HackerEmbassyBot extends TelegramBot {
                     buffer += chunk.response;
                     window += chunk.response.length;
                 }
+
+                // Skip empty chunks
+                if (buffer.length === 0) continue;
 
                 if (!messageToEdit) {
                     messageToEdit = await this.sendMessageExt(chatId, buffer, msg);

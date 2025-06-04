@@ -676,9 +676,12 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Check restritions
             if (isBanned(user)) return;
-            if (!isAdmin && route.userRoles.length > 0 && !this.isUserAllowed(user, command))
+
+            const canSkipRestrictions = isAdmin && !impersonatedUser;
+
+            if (!canSkipRestrictions && route.userRoles.length > 0 && !this.isUserAllowed(user, command))
                 return this.sendRestrictedMessage(message, route, "restricted");
-            if (!isAdmin && route.allowedChats.length > 0 && !this.isChatAllowed(message.chat.id, command))
+            if (!canSkipRestrictions && route.allowedChats.length > 0 && !this.isChatAllowed(message.chat.id, command))
                 return this.sendRestrictedMessage(message, route, "chatnotallowed");
 
             // Parse global modifiers and set them to the context

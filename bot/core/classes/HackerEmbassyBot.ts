@@ -214,11 +214,14 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: TelegramBot.EditMessageTextOptions
     ): Promise<boolean | TelegramBot.Message> {
-        text = prepareMessageForMarkdown(text);
-        options = this.prepareOptionsForMarkdown({
-            ...options,
-            message_thread_id: msg.message_thread_id,
-        }) as EditMessageTextOptions;
+        text = options.parse_mode !== undefined ? text : prepareMessageForMarkdown(text);
+        options.message_thread_id = msg.message_thread_id;
+        options =
+            options.parse_mode !== undefined
+                ? options
+                : (this.prepareOptionsForMarkdown({
+                      ...options,
+                  }) as EditMessageTextOptions);
 
         return super.editMessageText(text, options);
     }
@@ -425,11 +428,16 @@ export default class HackerEmbassyBot extends TelegramBot {
                 if (buffer.length === 0) continue;
 
                 if (!messageToEdit) {
-                    messageToEdit = await this.sendMessageExt(chatId, buffer, msg);
+                    messageToEdit = await this.sendMessageExt(chatId, buffer, msg, {
+                        // @ts-ignore hack to force raw parse mode as the lib doesn't support it
+                        parse_mode: "",
+                    });
                 } else if (chunk.done || window >= MAX_STREAMING_WINDOW) {
                     await this.editMessageTextExt(buffer, messageToEdit, {
                         chat_id: chatId,
                         message_id: messageToEdit.message_id,
+                        // @ts-ignore hack to force raw parse mode as the lib doesn't support it
+                        parse_mode: "",
                     });
 
                     if (buffer.length > MAX_MESSAGE_LENGTH) {
@@ -454,8 +462,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: Nullable<TelegramBot.Message>,
         options: TelegramBot.SendMessageOptions = {}
     ): Promise<Nullable<TelegramBot.Message>> {
-        const preparedText = prepareMessageForMarkdown(text);
-        options = this.prepareOptionsForMarkdown({ ...options });
+        const preparedText = options.parse_mode !== undefined ? text : prepareMessageForMarkdown(text);
+        options = options.parse_mode !== undefined ? options : this.prepareOptionsForMarkdown({ ...options });
 
         const context = msg && this.context(msg);
         const mode = context?.mode;
@@ -645,10 +653,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Prepare context
             const actualUser = userService.prepareUser(message.from as TelegramBot.User);
+            const isAdmin = hasRole(actualUser, "admin");
             const impersonatedUser =
-                hasRole(actualUser, "admin") && text.includes(IMPERSONATION_MARKER)
-                    ? userService.getUser(this.extractImpersonatedUser(text))
-                    : null;
+                isAdmin && text.includes(IMPERSONATION_MARKER) ? userService.getUser(this.extractImpersonatedUser(text)) : null;
             const user = impersonatedUser ?? actualUser;
 
             const messageContext = this.startContext(message, user, command);
@@ -669,9 +676,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Check restritions
             if (isBanned(user)) return;
-            if (route.userRoles.length > 0 && !this.isUserAllowed(user, command))
+            if (!isAdmin && route.userRoles.length > 0 && !this.isUserAllowed(user, command))
                 return this.sendRestrictedMessage(message, route, "restricted");
-            if (route.allowedChats.length > 0 && !this.isChatAllowed(message.chat.id, command))
+            if (!isAdmin && route.allowedChats.length > 0 && !this.isChatAllowed(message.chat.id, command))
                 return this.sendRestrictedMessage(message, route, "chatnotallowed");
 
             // Parse global modifiers and set them to the context

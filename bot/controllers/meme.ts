@@ -73,10 +73,12 @@ export default class MemeController implements BotController {
         if (!targetUser) return bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
 
         const targetId = "userid" in targetUser ? targetUser.userid : targetUser.id;
-        const targetName = effectiveName(targetUser);
+        const targetName = formatUsername(effectiveName(targetUser), true);
         const userProfilePhotos = await bot.getUserProfilePhotos(targetId, { limit: 1 });
 
         if (userProfilePhotos.total_count === 0) return bot.sendMessageExt(msg.chat.id, t("meme.slap.no_avatar"), msg);
+
+        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         const avatarId = userProfilePhotos.photos[0][0].file_id;
         const avatarUrl = await bot.getFileLink(avatarId);
@@ -100,6 +102,8 @@ export default class MemeController implements BotController {
         const extractedTarget = username ?? effectiveName(msg.reply_to_message?.from);
 
         if (!extractedTarget) return bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
+
+        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         const target = formatUsername(extractedTarget, true);
         const caption = t("meme.slap.user", {

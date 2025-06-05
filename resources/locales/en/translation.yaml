@@ -821,6 +821,9 @@ meme:
         help: |
             🖐 Using this command you can slap someone
             #`/slap username#`
+            🤦 Make it personal
+            #`/slapp username#`
+        no_avatar: Couldn’t find an avatar for this user, slap him/her the old-fashioned way
     hug:
         user: |
             🫂 {{from}} hugs {{target}} with warmth and tenderness

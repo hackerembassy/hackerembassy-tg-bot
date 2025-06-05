@@ -821,6 +821,9 @@ meme:
         help: |
             🖐 Uzante ĉi tiun komandon vi povas frapi iun
             #`/slap uzantnomo#`
+            🤦 Faru ĝin persona
+            #`/slapp username#`
+        no_avatar: Ne trovis avataron por ĉi tiu uzanto, batu lin laŭ la malnova maniero
     hug:
         user: |
             🫂 {{from}} brakumas {{target}} kun varmeco kaj tenereco

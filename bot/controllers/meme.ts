@@ -5,13 +5,15 @@ import { Message } from "node-telegram-bot-api";
 import { BotConfig } from "@config";
 import { getToday } from "@utils/date";
 import { getImageFromPath, getRandomImageFromFolder } from "@utils/filesystem";
+import { overlayStaticImageOnGif } from "@utils/image";
 import { randomInteger } from "@utils/common";
 import { Route } from "@hackembot/core/decorators";
+import { userService } from "@services/domain/user";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotController } from "../core/types";
-import { effectiveName, formatUsername, OptionalParam, userLink } from "../core/helpers";
+import { effectiveName, formatUsername, getMentions, OptionalParam, userLink } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -60,6 +62,36 @@ export default class MemeController implements BotController {
         }
 
         await bot.sendPhotoExt(msg.chat.id, buffer, msg);
+    }
+
+    @Route(["slapp", "slapa", "slapavatar", "slapava", "slapface"], OptionalParam(/(\S+)/), match => [match[1]])
+    static async slapAvatarHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
+        const sender = bot.context(msg).user;
+        const targetUser =
+            getMentions(msg)[0] ?? (username ? userService.getUser(username.replace("@", "")) : msg.reply_to_message?.from);
+
+        if (!targetUser) return bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
+
+        const targetId = "userid" in targetUser ? targetUser.userid : targetUser.id;
+        const targetName = effectiveName(targetUser);
+        const userProfilePhotos = await bot.getUserProfilePhotos(targetId, { limit: 1 });
+
+        if (userProfilePhotos.total_count === 0) return bot.sendMessageExt(msg.chat.id, t("meme.slap.no_avatar"), msg);
+
+        const avatarId = userProfilePhotos.photos[0][0].file_id;
+        const avatarUrl = await bot.getFileLink(avatarId);
+        const gifBuffer = await overlayStaticImageOnGif("./resources/images/animations/slap-0.gif", avatarUrl, {
+            overlayWidth: 150,
+            overlayX: 135,
+            overlayY: 310,
+        });
+
+        const caption = t("meme.slap.user", {
+            from: userLink(sender),
+            target: targetName,
+        });
+
+        return bot.sendAnimationExt(msg.chat.id, gifBuffer, msg, { caption });
     }
 
     @Route(["slap"], OptionalParam(/(\S+)/), match => [match[1]])

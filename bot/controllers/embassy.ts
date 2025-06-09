@@ -766,6 +766,8 @@ export default class EmbassyController implements BotController {
 
         const replyPrompt = msg.reply_to_message?.text ?? msg.reply_to_message?.caption;
         const combined = prompt && replyPrompt ? `${replyPrompt}\n ${prompt}`.trim() : (prompt ?? replyPrompt);
+        const photoId = msg.reply_to_message?.photo?.[0]?.file_id ?? msg.photo?.[0]?.file_id;
+        const imageBase64 = photoId ? await bot.fetchFileAsBase64(photoId) : undefined;
 
         if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);
 
@@ -777,7 +779,7 @@ export default class EmbassyController implements BotController {
             if (model === "gpt" || model === neuralConfig.openai.model)
                 return bot.sendMessageExt(msg.chat.id, await openAI.askChat(combined, t("embassy.neural.contexts.default")), msg);
 
-            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(combined, model), msg);
+            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(combined, imageBase64, model), msg);
         } catch (error) {
             bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
             logger.error(error);

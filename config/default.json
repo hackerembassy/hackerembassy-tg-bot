@@ -210,7 +210,7 @@
         },
         "openwebui": {
             "base": "https://owo.hackem.cc",
-            "model": "HammerAI/openhermes-2.5-mistral:latest"
+            "model": "gemma3:27b"
         },
         "openai": {
             "model": "gpt-4o-mini",

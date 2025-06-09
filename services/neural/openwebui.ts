@@ -10,7 +10,7 @@ import { ChatCompletionResponse } from "./openai";
 
 const neuralConfig = config.get<NeuralConfig>("neural");
 
-type ollamaGenerateResponse = {
+type OllamaGenerateResponse = {
     model: string;
     created_at: string;
     response: string;
@@ -19,7 +19,7 @@ type ollamaGenerateResponse = {
     error?: string;
 };
 
-type ollamaModel = {
+type OllamaModel = {
     id: string;
     name: string;
     object: string;
@@ -27,9 +27,25 @@ type ollamaModel = {
     owned_by: string;
 };
 
-type ollamaModelsResponse = {
-    data: ollamaModel[];
+type OllamaModelsResponse = {
+    data: OllamaModel[];
 };
+
+interface TextContent {
+    type: "text";
+    text: string;
+}
+
+// Define a type for image content
+interface ImageContent {
+    type: "image_url";
+    image_url: {
+        url: string;
+    };
+}
+
+// Define a type that captures both possibilities
+type OpenAIContentItem = TextContent | ImageContent;
 
 // Transforms
 const OPENAI_LINE_PREFIX = "data: ";
@@ -145,7 +161,7 @@ export class OpenWebUI {
     async generateOllama(prompt: string, model: string = OpenWebUI.defaultModel, systemPrompt?: string) {
         const response = await this.generateOllamaBase(prompt, model, systemPrompt);
 
-        const body = (await response.json()) as ollamaGenerateResponse;
+        const body = (await response.json()) as OllamaGenerateResponse;
 
         if (body.error) throw new Error(`${body.error}`);
 
@@ -160,14 +176,27 @@ export class OpenWebUI {
         return response.body.pipe(split2()).pipe(wrapOllamaChunk()) as DeltaStream;
     }
 
-    async generateOpenAiStream(prompt: string, model: string = OpenWebUI.defaultModel) {
+    async generateOpenAiStream(prompt: string, image?: string, model: string = OpenWebUI.defaultModel) {
         const headers = {
             Authorization: `Bearer ${this.apiKey}`,
             "Content-Type": "application/json",
         };
+        // const message: OpenAIMessage = [];
+
+        const content: OpenAIContentItem[] = [{ type: "text", text: prompt }];
+
+        if (image) {
+            content.push({
+                type: "image_url",
+                image_url: {
+                    url: image,
+                },
+            });
+        }
+
         const data = {
-            model: model,
-            messages: [{ role: "user", content: prompt }],
+            model,
+            messages: [{ role: "user", content }],
             stream: true,
         };
 
@@ -197,7 +226,7 @@ export class OpenWebUI {
 
         if (!response.ok) throw new Error(`Ollama is not available: ${response.statusText}`);
 
-        const body = (await response.json()) as ollamaModelsResponse;
+        const body = (await response.json()) as OllamaModelsResponse;
 
         return body.data.map(model => model.id);
     }

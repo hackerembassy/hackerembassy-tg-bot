@@ -1,6 +1,6 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
-import TelegramBot from "node-telegram-bot-api";
+import TelegramBot, { PhotoSize } from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 
@@ -73,4 +73,10 @@ export function toEscapedTelegramMarkdown(text: string): string {
 
 export function stripCustomMarkup(text: string): string {
     return text.replaceAll(/#./g, "");
+}
+
+export function extractPhotoId(photo?: PhotoSize[], index: number = 1, backupIndex: number = 0): string | undefined {
+    if (!photo || photo.length === 0) return undefined;
+
+    return photo[index]?.file_id ?? photo[backupIndex]?.file_id;
 }

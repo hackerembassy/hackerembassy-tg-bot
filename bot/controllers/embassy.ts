@@ -33,7 +33,7 @@ import t from "../core/localization";
 import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
-import { effectiveName, OptionalParam } from "../core/helpers";
+import { effectiveName, extractPhotoId, OptionalParam } from "../core/helpers";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const botConfig = config.get<BotConfig>("bot");
@@ -766,7 +766,7 @@ export default class EmbassyController implements BotController {
 
         const replyPrompt = msg.reply_to_message?.text ?? msg.reply_to_message?.caption;
         const combined = prompt && replyPrompt ? `${replyPrompt}\n ${prompt}`.trim() : (prompt ?? replyPrompt);
-        const photoId = msg.reply_to_message?.photo?.[0]?.file_id ?? msg.photo?.[0]?.file_id;
+        const photoId = extractPhotoId(msg.reply_to_message?.photo) ?? extractPhotoId(msg.photo);
         const imageBase64 = photoId ? await bot.fetchFileAsBase64(photoId) : undefined;
 
         if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);

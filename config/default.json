@@ -31,7 +31,7 @@
         "history": {
             "commandsLimit": 50,
             "messagesLimit": 1000,
-            "summaryModel": "gemma3:27b"
+            "summaryModel": "summary"
         },
         "live": {
             "camRefreshInterval": 10000,

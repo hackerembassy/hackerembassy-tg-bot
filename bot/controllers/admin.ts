@@ -420,4 +420,12 @@ export default class AdminController implements BotController {
         });
         return bot.sendMessageExt(msg.chat.id, t("admin.copy.success", { target }), msg);
     }
+
+    @Route(["die", "kill"])
+    @UserRoles(Members)
+    static async dieHandler(bot: HackerEmbassyBot, msg: Message) {
+        await bot.sendMessageExt(msg.chat.id, "☠️ Oh no, im ded (docker pls save me)", msg);
+        logger.info(`Bot is shutting down by admin command from ${msg.from?.username} (${msg.from?.id})`);
+        process.exit(0);
+    }
 }

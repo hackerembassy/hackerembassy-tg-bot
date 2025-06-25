@@ -311,10 +311,9 @@ export default class ServiceController implements BotController {
         if (!isSupportedLanguage(lang) || lang === TEST_LANGUAGE)
             return bot.sendMessageExt(msg.chat.id, t("service.setlanguage.notsupported", { language: lang }), msg);
 
-        const userId = msg.from?.id;
-        const user = userId ? UsersRepository.getUserByUserId(userId) : null;
+        const user = bot.context(msg).user;
 
-        if (user && UsersRepository.updateUser(user.userid, { language: lang })) {
+        if (UsersRepository.updateUser(user.userid, { language: lang })) {
             bot.context(msg).language = lang;
             return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.success", { language: lang }), msg);
         }

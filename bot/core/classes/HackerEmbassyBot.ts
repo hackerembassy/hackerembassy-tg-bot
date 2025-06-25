@@ -680,9 +680,9 @@ export default class HackerEmbassyBot extends TelegramBot {
             const canSkipRestrictions = isAdmin && !impersonatedUser;
 
             if (!canSkipRestrictions && route.userRoles.length > 0 && !this.isUserAllowed(user, command))
-                return this.sendRestrictedMessage(message, route, "restricted");
+                return await messageContext.run(() => this.sendRestrictedMessage(message, route, "restricted"));
             if (!canSkipRestrictions && route.allowedChats.length > 0 && !this.isChatAllowed(message.chat.id, command))
-                return this.sendRestrictedMessage(message, route, "chatnotallowed");
+                return await messageContext.run(() => this.sendRestrictedMessage(message, route, "chatnotallowed"));
 
             // Parse global modifiers and set them to the context
             let textToMatch = text.replace(commandWithCase, command);

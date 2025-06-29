@@ -161,7 +161,7 @@
             "voicepath": "/api/services/script/convert_voice_and_play"
         },
         "browser": {
-            "target": "aee0b5cb4cd6bef1303d9e2c4be1a22e",
+            "target": "2b25a994298419c0fee113c2acda753f",
             "popuppath": "/api/services/browser_mod/popup",
             "closepath": "/api/services/browser_mod/close_popup"
         },

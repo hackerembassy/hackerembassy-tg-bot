@@ -156,7 +156,7 @@
         "speaker": {
             "entity": "media_player.lenovodash",
             "ttspath": "/api/services/script/announce_in_space",
-            "playpath": "/api/services/media_player/play_media",
+            "playpath": "/api/services/script/announce_url_in_space",
             "stoppath": "/api/services/media_player/media_stop",
             "voicepath": "/api/services/script/convert_voice_and_play"
         },

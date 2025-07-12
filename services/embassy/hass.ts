@@ -89,26 +89,25 @@ class Speakers {
     }
 
     async play(link: string): Promise<void> {
-        if (link.endsWith(".oga")) {
-            // Prevent command injection
-            if (link.match(/[^a-zA-Z0-9:/.\-_]/)) throw new Error("Invalid link");
+        // if (link.endsWith(".oga")) {
+        //     // Prevent command injection
+        //     if (link.match(/[^a-zA-Z0-9:/.\-_]/)) throw new Error("Invalid link");
 
-            // ignore errors, ffmpeg writes to stderr
-            await runSSHCommand(
-                "hass.lan",
-                22269,
-                "hassio",
-                os.homedir() + "/.ssh/hass",
-                `wget --inet4-only -O /media/tmp/voice.oga ${link}`
-            ).catch(() => null);
-            await hass.post(embassyApiConfig.speaker.voicepath, {});
-            return;
-        }
+        //     // ignore errors, ffmpeg writes to stderr
+        //     await runSSHCommand(
+        //         "hass.lan",
+        //         22269,
+        //         "hassio",
+        //         os.homedir() + "/.ssh/hass",
+        //         `wget --inet4-only -O /media/tmp/voice.oga ${link}`
+        //     ).catch(() => null);
+        //     await hass.post(embassyApiConfig.speaker.voicepath, {});
+        //     return;
+        // }
 
         const response = await hass.post(embassyApiConfig.speaker.playpath, {
-            entity_id: embassyApiConfig.speaker.entity,
-            media_content_id: link,
-            media_content_type: "music",
+            // entity_id: embassyApiConfig.speaker.entity,
+            url: link,
         });
 
         if (response.status !== 200) throw Error("Speaker request failed");

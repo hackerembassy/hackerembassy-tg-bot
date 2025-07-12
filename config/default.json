@@ -146,12 +146,14 @@
         "mqtthost": "hass.lan",
         "hassorigin": "http://hass.lan:8123",
         "cams": {
-            "downstairs": "/api/camera_proxy/camera.downstairs_2",
-            "downstairs2": "/api/camera_proxy/camera.first_floor",
+            "downstairs": "/api/camera_proxy/camera.downstairs",
+            "gateway": "/api/camera_proxy/camera.gateway",
             "upstairs": "/api/camera_proxy/camera.upstairs",
-            "printers": "/api/camera_proxy/camera.le_fail_lan",
-            "outdoors": "/api/camera_proxy/camera.outdoor",
-            "facecontrol": "/api/camera_proxy/camera.facecontrol"
+            "upstairs_ptz": "/api/camera_proxy/camera.upstairs",
+            "doorbell": "/api/camera_proxy/camera.reolink_video_doorbell_poe_snapshots_clear",
+            "kitchen": "/api/camera_proxy/camera.fridge",
+            "balcony": "/api/camera_proxy/camera.balcony",
+            "meeting_room": "/api/camera_proxy/camera.meeting_room"
         },
         "speaker": {
             "entity": "media_player.lenovodash",

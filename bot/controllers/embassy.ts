@@ -129,12 +129,13 @@ export default class EmbassyController implements BotController {
     }
 
     @Route(["downstairs", "webcam", "webcum", "cam", "cum", "firstfloor", "ff", "cam1a", "cum1a"], null, () => ["downstairs"])
-    @Route(["downstairs2", "firstfloor2", "ff2", "cam1b", "cum1b"], null, () => ["downstairs2"])
     @Route(["upstairs", "webcam2", "webcum2", "cam2", "cum2", "secondfloor", "sf"], null, () => ["upstairs"])
-    @Route(["outdoors", "doorcam", "doorcum", "precam", "precum", "dc"], null, () => ["outdoors"])
-    @Route(["face", "facecam", "facecum", "facecontrol"], null, () => ["facecontrol"])
-    @Route(["kitchen", "kitchencam", "kitchencum"], null, () => ["kitchen"])
-    @Route(["printerscam", "funroom", "funcam", "funcum"], null, () => ["printers"])
+    @Route(["upstairs2", "sf2"], null, () => ["upstairs_ptz"])
+    @Route(["face", "facecam", "facecum", "facecontrol", "outdoors", "doorcam", "doorcum", "dc"], null, () => ["doorbell"])
+    @Route(["kitchen", "kitchencam", "kitchencum", "fridge"], null, () => ["kitchen"])
+    @Route(["meeting_room", "meeting", "meetcam", "meetcum"], null, () => ["meeting_room"])
+    @Route(["balcony", "balcum", "balcam", "balcon"], null, () => ["balcony"])
+    @Route(["gw", "precam", "precum", "gatecam", "gateway"], null, () => ["gateway"])
     @FeatureFlag("embassy")
     @UserRoles(Members)
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string) {

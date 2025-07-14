@@ -1,10 +1,8 @@
-import os from "os";
-
 import config from "config";
 import fetch, { Response } from "node-fetch";
 
 import { CamConfig, EmbassyApiConfig } from "@config";
-import { getBufferFromResponse, runSSHCommand } from "@utils/network";
+import { getBufferFromResponse } from "@utils/network";
 
 // Configs
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -89,24 +87,7 @@ class Speakers {
     }
 
     async play(link: string): Promise<void> {
-        // if (link.endsWith(".oga")) {
-        //     // Prevent command injection
-        //     if (link.match(/[^a-zA-Z0-9:/.\-_]/)) throw new Error("Invalid link");
-
-        //     // ignore errors, ffmpeg writes to stderr
-        //     await runSSHCommand(
-        //         "hass.lan",
-        //         22269,
-        //         "hassio",
-        //         os.homedir() + "/.ssh/hass",
-        //         `wget --inet4-only -O /media/tmp/voice.oga ${link}`
-        //     ).catch(() => null);
-        //     await hass.post(embassyApiConfig.speaker.voicepath, {});
-        //     return;
-        // }
-
         const response = await hass.post(embassyApiConfig.speaker.playpath, {
-            // entity_id: embassyApiConfig.speaker.entity,
             url: link,
         });
 

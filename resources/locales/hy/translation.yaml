@@ -1,6 +1,6 @@
 general:
     errors:
-        generic: Something went wrong
+        generic: Something went wrong very wrong
         chatnotallowed: ⚠️ The command is only available in group space chats
         restricted: 📵 Sorry, you need to be {{required}} to run this command
         nouser: ⚠️ User not found, ask him to write something to the bot

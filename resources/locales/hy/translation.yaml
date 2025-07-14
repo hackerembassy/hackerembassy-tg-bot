@@ -1,908 +1,907 @@
 general:
     errors:
-        generic: Something went wrong very wrong
-        chatnotallowed: ⚠️ The command is only available in group space chats
-        restricted: 📵 Sorry, you need to be {{required}} to run this command
-        nouser: ⚠️ User not found, ask him to write something to the bot
+        generic: Ինչ-որ բան այն չէ
+        chatnotallowed: ⚠️ Հրամանը հասանելի է միայն խմբային չաթերում
+        restricted: 📵 Կներեք, այս հրամանը գործարկելու համար դուք պետք է լինեք {{required}}
+        nouser: ⚠️ Օգտատերը չի գտնվել, խնդրեք նրան ինչ-որ բան գրել բոտին
     buttons:
-        menu: 🏠 Menu
-        back: ↩️ Back
-        cancel: ❌ Cancel
-        ok: 🆗 Ok
-        yes: ✅ Yes
-        no: ❌ No
-        more: 📖 Read more
-        readmore: 📚 Read more
+        menu: 🏠 Մենյու
+        back: ↩️ Հետ
+        cancel: ❌ Չեղարկել
+        ok: 🆗 Լավ
+        yes: ✅ Այո
+        no: ❌ Ոչ
+        more: 📖 Կարդալ ավելին
+        readmore: 📚 Կարդալ ավելին
 basic:
     help: "{{availableCommands}}{{globalModifiers}}"
     about: |
-        🏫 Hacker Embassy (Yerevan Hackerspace) is a space where like-minded people passionate about technology and creativity gather. We work on projects together, share ideas and knowledge, and just communicate.
+        🏫 Hacker Embassy (Yerevan Hackerspace) տարածք է, որտեղ հավաքվում են տեխնոլոգիաներով և ստեղծագործականությամբ տարված համախոհ մարդիկ։ Մենք միասին աշխատում ենք նախագծերի վրա, կիսվում գաղափարներով ու գիտելիքներով և պարզապես շփվում։
 
-        💻 You can read more about us on our website https://hackem.cc/
+        💻 Մեր մասին ավելին կարող եք կարդալ մեր կայքում՝ https://hackem.cc/
 
-        📓 We store information about our projects, equipment and rules on our wiki https://lore.hackem.cc/
+        📓 Մեր նախագծերի, սարքավորումների և կանոնների մասին տեղեկությունները պահում ենք մեր վիքիում՝ https://lore.hackem.cc/
 
-        🤖 My code is open and free, development is carried out on GitHub: https://github.com/hackerembassy/hackerembassy-tg-bot
+        🤖 Իմ կոդը բաց է և անվճար, մշակումն իրականացվում է GitHub-ում՝ https://github.com/hackerembassy/hackerembassy-tg-bot
 
-        🍕 We always welcome new residents. Want to know how to become a member? Press the /join command
+        🍕 Մենք միշտ ողջունում ենք նոր բնակիչների։ Ցանկանու՞մ եք իմանալ, թե ինչպես դառնալ անդամ։ Սեղմեք /join հրամանը
     issue:
         space:
             help: |
-                📮 Using this command, you can #*anonymously#* report any problem in the space (something is missing, something doesn’t work, someone is doing something very wrong in the space).
-                Residents will definitely consider it and try to resolve it.
+                📮 Այս հրամանի միջոցով կարող եք #*անանուն#* հաղորդել տարածքում առկա ցանկացած խնդրի մասին (ինչ-որ բան պակասում է, ինչ-որ բան չի աշխատում, ինչ-որ մեկը շատ սխալ բան է անում տարածքում)։
+                Բնակիչները անպայման կքննարկեն և կփորձեն լուծել այն։
 
-                You can send a problem to the bot, for example, like this:
-                #`/issue The air conditioner does not work well and it is very hot on the first floor#`
-                #`/issue Out of toilet paper#`
-                #`/issue It would be nice to have a map of the internal network on the wiki#`
+                Խնդիրը բոտին կարող եք ուղարկել, օրինակ, այսպես.
+                #`/issue Օդորակիչը լավ չի աշխատում և առաջին հարկում շատ շոգ է#`
+                #`/issue Զուգարանի թուղթը վերջացել է#`
+                #`/issue Լավ կլիներ վիքիում ունենալ ներքին ցանցի քարտեզ#`
 
-                If the issue is related to our bot, then it is better to use the /bug command
-            sent: 💌 The problem has been sent to residents, they will definitely consider it. Thank you for helping our community.
+                Եթե խնդիրը կապված է մեր բոտի հետ, ապա ավելի լավ է օգտագործել /bug հրամանը
+            sent: 💌 Խնդիրն ուղարկվել է բնակիչներին, նրանք անպայման կքննարկեն այն։ Շնորհակալություն մեր համայնքին օգնելու համար։
             report: |
-                📩 You have a new issue!
+                📩 Դուք ունեք նոր խնդիր։
 
                 "{{issue}}"
         bot:
             help: |
-                📮 Using this command, you can report a bug in the bot.
+                📮 Այս հրամանի միջոցով կարող եք հաղորդել բոտի սխալի մասին։
 
-                You can create a new issue on GitHub if it doesn't already exist. Or you can send a bug report directly in Telegram, for example, like this:
-                #`/bug The automatic check-in doesn't work when I come to the space#`
+                Կարող եք նոր խնդիր ստեղծել GitHub-ում, եթե այն դեռ գոյություն չունի։ Կամ կարող եք սխալի մասին հաղորդում ուղարկել անմիջապես Telegram-ում, օրինակ, այսպես.
+                #`/bug Ավտոմատ գրանցումը չի աշխատում, երբ գալիս եմ տարածք#`
 
-                Your #*username will be automatically added#* to the message so that residents can contact you if they need additional information.
+                Ձեր #*օգտանունը ավտոմատ կավելացվի#* հաղորդագրությանը, որպեսզի բնակիչները կարողանան կապվել ձեզ հետ, եթե լրացուցիչ տեղեկությունների կարիք ունենան։
 
-                If the issue is related to the space itself, then it is better to use the /issue command
-            sent: 💌 The bug report has been sent to the maintainers, they will definitely review it. Thank you for helping our community.
+                Եթե խնդիրը կապված է հենց տարածքի հետ, ապա ավելի լավ է օգտագործել /issue հրամանը
+            sent: 💌 Սխալի մասին հաղորդումն ուղարկվել է սպասարկողներին, նրանք անպայման կվերանայեն այն։ Շնորհակալություն մեր համայնքին օգնելու համար։
             report: |
-                📩 {{reporter}} has encountered a problem with the bot! Could it be a bug?
+                📩 {{reporter}}-ը խնդիր է հանդիպել բոտի հետ։ Արդյո՞ք դա սխալ է։
 
                 "{{issue}}"
         buttons:
-            new: Create on GitHub
-            current: GitHub issues
+            new: Ստեղծել GitHub-ում
+            current: GitHub խնդիրներ
     residents: |
-        👥 Here they are, our magnificent residents:
+        👥 Ահա նրանք՝ մեր հրաշալի բնակիչները.
 
         {{userList}}
-        🧠 You can contact them for any Space question
+        🧠 Ցանկացած տարածքի հարցով կարող եք դիմել նրանց
     location:
         address: |
-            🏫 Our address: Armenia, Yerevan, Baghramyan Avenue 60 (entrance from the street)
+            🏫 Մեր հասցեն՝ Հայաստան, Երևան, Բաղրամյան պողոտա 60 (մուտքը փողոցից)
     donate: |
-        💸 Hackspace is not a commercial project and exists solely on donations from participants.
-        We contribute to the development of the space: paying rent and utilities, taking care of the space, helping in purchasing equipment.
-        We will be glad to receive any support.
+        💸 Հաքերային տարածքը առևտրային նախագիծ չէ և գոյություն ունի բացառապես մասնակիցների նվիրատվությունների հաշվին։
+        Մենք նպաստում ենք տարածքի զարգացմանը՝ վճարելով վարձավճարը և կոմունալ ծառայությունները, հոգ տանելով տարածքի մասին, օգնելով սարքավորումների ձեռքբերմանը։
+        Մենք ուրախ կլինենք ցանկացած աջակցության համար։
 
-        🫶 Starting from a certain amount of donations over the past {{period}} months, you receive the status of our sponsor:
+        🫶 Վերջին {{period}} ամիսների ընթացքում որոշակի նվիրատվությունների չափից սկսած՝ դուք ստանում եք մեր հովանավորի կարգավիճակը.
         {{sponsorshipTierList}}
 
-        You can donate to us in the following ways:
-        💵 Cash upon meeting (the best option).
+        Դուք կարող եք մեզ նվիրաբերել հետևյալ եղանակներով.
+        💵 Կանխիկ՝ հանդիպման ժամանակ (լավագույն տարբերակը)։
           {{donateCashCommand}}
-        💰 Cryptocurrency
+        💰 Կրիպտոարժույթ
           {{cryptoCommands}}
-        💳 Bank card Visa/Mastercard of Armenia
+        💳 Բանկային քարտ Visa/Mastercard Հայաստան
           {{donateCardCommand}}
-        🛠 Useful equipment or consumables
+        🛠 Օգտակար սարքավորումներ կամ սպառվող նյութեր
           {{donateEquipmentCommand}}
 
-        📊 You can see our current donations and your contribution by command {{fundsCommand}}
+        📊 Մեր ընթացիկ նվիրատվությունները և ձեր ներդրումը կարող եք տեսնել {{fundsCommand}} հրամանով
 
-        💌 For donation questions, please contact our accountants, they will help:
+        💌 Նվիրատվությունների հարցերով դիմեք մեր հաշվապահներին, նրանք կօգնեն.
         {{accountantsList}}
     donateCoin: |
-        🪙 Use this QR code or address below to donate to us at {{coin.fullname}}.
-          
-        ⚠️ Please note that the network is {{coin.network}} and you are using the correct address:
+        🪙 Օգտագործեք այս QR կոդը կամ ստորև նշված հասցեն՝ մեզ {{coin.fullname}}-ով նվիրաբերելու համար։
+
+        ⚠️ Խնդրում ենք նկատի ունենալ, որ ցանցը {{coin.network}} է, և դուք օգտագործում եք ճիշտ հասցեն.
         #`{{coin.address}}#`
 
-        💌 Don’t forget to write to the accountant before you donate and send the transaction code or link
-        in {{coin.explorer}} or a similar service after the donation
+        💌 Մի մոռացեք նվիրաբերելուց առաջ գրել հաշվապահին և նվիրատվությունից հետո ուղարկել գործարքի կոդը կամ հղումը
+        {{coin.explorer}}-ում կամ նմանատիպ ծառայությունում
 
-        🛍 If you want to donate in kind (ohh my) or in another way - click /donate
+        🛍 Եթե ցանկանում եք նվիրաբերել բնեղենով (օ՜, իմ) կամ այլ կերպ՝ սեղմեք /donate
     donateCard: |
-        💌 In order to donate this way, write to our accountants. They will tell you the current details or you can agree on the time and place of the transfer.
+        💌 Այս եղանակով նվիրաբերելու համար գրեք մեր հաշվապահներին։ Նրանք կասեն ձեզ ընթացիկ մանրամասները կամ կարող եք համաձայնեցնել փոխանցման ժամանակը և վայրը։
 
-        Here they are: {{accountantsList}}
+        Ահա նրանք՝ {{accountantsList}}
 
-        🛍 If you want to donate in kind or in another way, click /donate
+        🛍 Եթե ցանկանում եք նվիրաբերել բնեղենով կամ այլ կերպ, սեղմեք /donate
     donateEquipment: |
-        🛠 If you have an extra 3D printer, soldering iron or other useful(!) equipment lying around at home, and you are ready to donate it to Space (or share it for public use with us), we will be very grateful to accept it.
+        🛠 Եթե տանը ունեք ավելորդ 3D տպիչ, զոդման արդուկ կամ այլ օգտակար(!) սարքավորում, և պատրաստ եք այն նվիրաբերել տարածքին (կամ կիսվել մեզ հետ հանրային օգտագործման համար), մենք շատ շնորհակալ կլինենք այն ընդունելու համար։
 
-        🗑 It is important that the equipment or consumables are in working order or require minimal repairs and do not belong to the “junk” category.
+        🗑 Կարևոր է, որ սարքավորումը կամ սպառվող նյութերը լինեն աշխատանքային վիճակում կամ պահանջեն նվազագույն վերանորոգում և չպատկանեն «աղբի» կատեգորիային։
 
-        🧙‍♀️ Contact our residents, they will help with accepting equipment and resolving all issues.
+        🧙‍♀️ Կապվեք մեր բնակիչների հետ, նրանք կօգնեն սարքավորումների ընդունման և բոլոր հարցերի լուծման հարցում։
     join: |
-        🧑🏻‍🏫 If you are in Yerevan, passionate about technology and looking for like-minded people, come visit us.
-        - We hold a regular open day every Friday at 20.00.
-        - On Sundays at 20.00 we have an English Club, where you can practice your English.
-        - We often hold musical meetings on Mondays at 20.00: we bring guitars, play Rocksmith and jam.
-        - On any other day, the space can also receive guests, enter the command {{statusCommand}} to find out if the space is open and if there is anyone there.
+        🧑🏻‍🏫 Եթե Երևանում եք, տարված եք տեխնոլոգիաներով և փնտրում եք համախոհների, եկեք մեզ մոտ։
+        - Մենք ունենք կանոնավոր բաց օր ամեն ուրբաթ ժամը 20:00-ին։
+        - Կիրակի օրերին ժամը 20:00-ին ունենք անգլերենի ակումբ, որտեղ կարող եք կատարելագործել ձեր անգլերենը։
+        - Հաճախ ենք երաժշտական հանդիպումներ անցկացնում երկուշաբթի օրերին ժամը 20:00-ին՝ բերում ենք կիթառներ, նվագում Rocksmith և ջեմ ենք անում։
+        - Ցանկացած այլ օր տարածքը կարող է նաև հյուրեր ընդունել, մուտքագրեք {{statusCommand}} հրամանը՝ պարզելու համար, թե արդյոք տարածքը բաց է և արդյոք այնտեղ որևէ մեկը կա։
 
-        💸 Visits are free (free), but any donations to help our projects and rentals are very welcome.
-        More details can be found using the command {{donateCommand}}
+        💸 Այցելությունները անվճար են, բայց ցանկացած նվիրատվություն՝ մեր նախագծերին և վարձակալությանը օգնելու համար, շատ ողջունելի է։
+        Ավելին կարող եք գտնել {{donateCommand}} հրամանով
 
-        🗺 To find out how to find us, press {{locationCommand}}
+        🗺 Իմանալու համար, թե ինչպես գտնել մեզ, սեղմեք {{locationCommand}}
 
-        🔑 If you want to become a permanent member - a full-fledged resident of the community, i.e. have your own key, your own place to store things (tools, servers, etc.), participate in decision-making on the development of the space,\
-        then our requirements are simple:
-        - Friendliness and non-conflict.
-        - Willingness to participate in community life.
-        - Regular donations (of course, within your capabilities).
+        🔑 Եթե ցանկանում եք դառնալ մշտական անդամ՝ համայնքի լիիրավ բնակիչ, այսինքն՝ ունենալ ձեր սեփական բանալին, ձեր սեփական տեղը իրեր պահելու համար (գործիքներ, սերվերներ և այլն), մասնակցել տարածքի զարգացման վերաբերյալ որոշումների կայացմանը,
+        ապա մեր պահանջները պարզ են.
+        - Բարեկամություն և անկոնֆլիկտայնություն։
+        - Պատրաստակամություն՝ մասնակցելու համայնքի կյանքին։
+        - Կանոնավոր նվիրատվություններ (իհարկե, ձեր հնարավորությունների սահմաններում)։
 
-        🧙🏻‍♂️ Contact any Space resident, he will present your candidacy to the Space Council.
+        🧙🏻‍♂️ Կապվեք տարածքի ցանկացած բնակչի հետ, նա ձեր թեկնածությունը կներկայացնի Տարածքի խորհրդին։
     events:
         text: |
-            🎭 What's happening here:
-            - Master classes and presentations on various topics from 3D printing, modeling and soldering to neural networks, theorem proving algorithms and shibari. We will announce the date in advance in the chat.
-            - We often hold musical meetings on Mondays at 21.00: we bring guitars, play Rocksmith and jam.
-            - Every Friday at 20.00 we have a traditional open day, we communicate, get to know each other and hang out.
-            - On any other day, the space can also receive guests, see the space status to find out more.
+            🎭 Ի՞նչ է կատարվում այստեղ.
+            - Վարպետության դասեր և շնորհանդեսներ տարբեր թեմաներով՝ 3D տպագրությունից, մոդելավորումից և զոդումից մինչև նեյրոնային ցանցեր, թեորեմների ապացուցման ալգորիթմներ և շիբարի։ Ամսաթիվը նախապես կհայտարարենք չաթում։
+            - Հաճախ ենք երաժշտական հանդիպումներ անցկացնում երկուշաբթի օրերին ժամը 21:00-ին՝ բերում ենք կիթառներ, նվագում Rocksmith և ջեմ ենք անում։
+            - Ամեն ուրբաթ ժամը 20:00-ին ունենք ավանդական բաց օր, շփվում ենք, ծանոթանում և ժամանակ ենք անցկացնում։
+            - Ցանկացած այլ օր տարածքը կարող է նաև հյուրեր ընդունել, տեսեք տարածքի կարգավիճակը՝ ավելին իմանալու համար։
 
-            💸 Visits are free (free), but any donations to help our projects and rentals are very welcome.
+            💸 Այցելությունները անվճար են, բայց ցանկացած նվիրատվություն՝ մեր նախագծերին և վարձակալությանը օգնելու համար, շատ ողջունելի է։
         calendar: |
-            🗓You can follow our events on the calendar
+            🗓Մեր միջոցառումներին կարող եք հետևել օրացույցում
             {{calendarLink}}
-            Sign up with a plus sign ➕ at the bottom of the page or take {{iCalLink}}
-            Or even open the calendar directly in the cart {{openCalendarInTelegram}}
-            Upcoming events can be found by the command /upcoming, today's events - by the command /today
+            Գրանցվեք պլյուս նշանով ➕ էջի ներքևում կամ վերցրեք {{iCalLink}}
+            Կամ նույնիսկ բացեք օրացույցը անմիջապես զամբյուղում {{openCalendarInTelegram}}
+            Առաջիկա միջոցառումները կարող եք գտնել /upcoming հրամանով, այսօրվա միջոցառումները՝ /today հրամանով
         buttons:
-            today: 📣 Today
-            upcoming: 📆 Upcoming
-        opencalendar: Open calendar
+            today: 📣 Այսօր
+            upcoming: 📆 Առաջիկա
+        opencalendar: Բացել օրացույցը
         upcoming: |
-            🗓 Our upcoming events:
+            🗓 Մեր առաջիկա միջոցառումները.
         today: |
-            📣 Today the following events are taking place in the space:
+            📣 Այսօր տարածքում տեղի են ունենում հետևյալ միջոցառումները.
         todaysimple: |
-            Events today:
+            Միջոցառումներ այսօր.
         entrance: |
-            🎁 Admission is free as always, but we will welcome any donations to support the space.
+            🎁 Մուտքն անվճար է, ինչպես միշտ, բայց մենք ողջունում ենք ցանկացած նվիրատվություն՝ տարածքին աջակցելու համար։
         notoday: |
-            🏖 There are no planned events on Space today.
+            🏖 Այսօր տարածքում պլանավորված միջոցառումներ չկան։
 
-            But, if the space is open to guests, then you can just come to work on interesting projects or hang out. Check /status throughout the day.
-        error: 📂 No events found
+            Բայց, եթե տարածքը բաց է հյուրերի համար, ապա կարող եք պարզապես գալ՝ հետաքրքիր նախագծերի վրա աշխատելու կամ ժամանակ անցկացնելու համար։ Ստուգեք /status-ը օրվա ընթացքում։
+        error: 📂 Միջոցառումներ չեն գտնվել
     start:
         text: |
-            🇬🇧 Hello hacker. I am a bot for managing all sorts of processes in space.
-            [I am in development, you can participate in my development in the repository on the Space GitHub, contact #[korn9509#]#(t.me/korn9509#)].
+            🇬🇧 Ողջույն, հաքեր։ Ես բոտ եմ՝ տարածքում բոլոր տեսակի գործընթացները կառավարելու համար։
+            [Ես մշակման փուլում եմ, կարող եք մասնակցել իմ մշակմանը Space GitHub-ի պահոցում, կապվեք #[korn9509#]#(t.me/korn9509#)]։
 
-            🔖 To get a complete list of commands available to you, enter /help. Some commands are only visible to residents.
-            📮 Is something wrong in the space? Enter /issue in the bot. It's anonymous.
-            🐞 Found a bug in the bot? Enter /bug.
-            🗣 Change bot language / Сменить язык бота - /lang
+            🔖 Ձեզ հասանելի հրամանների ամբողջական ցուցակը ստանալու համար մուտքագրեք /help։ Որոշ հրամաններ տեսանելի են միայն բնակիչներին։
+            📮 Ինչ-որ բան այն չէ՞ տարածքում։ Մուտքագրեք /issue բոտում։ Այն անանուն է։
+            🐞 Բոտում սխալ գտա՞ք։ Մուտքագրեք /bug։
+            🗣 Փոխել բոտի լեզուն / Сменить язык бота - /lang
         buttons:
-            status: 📯 Status
-            events: 🗓 Events
-            funds: 💸 Donations
-            control: 🕹 Control
-            info: 📚 Info
-            birthdays: 🎉 Birthdays
-            needs: 🛍 Needs
-            printers: 🖨 3D Printers
-            topics: 📭 Topics
-            me: 🧙‍♂️ My profile
-            help: 📝 Commands
+            status: 📯 Կարգավիճակ
+            events: 🗓 Միջոցառումներ
+            funds: 💸 Նվիրատվություններ
+            control: 🕹 Կառավարում
+            info: 📚 Տեղեկություն
+            birthdays: 🎉 Ծննդյան օրեր
+            needs: 🛍 Կարիքներ
+            printers: 🖨 3D Տպիչներ
+            topics: 📭 Թեմաներ
+            me: 🧙‍♂️ Իմ պրոֆիլը
+            help: 📝 Հրամաններ
     control:
-        text: 🕹 Hackerspace control panel for residents
+        text: 🕹 Հաքերային տարածքի կառավարման վահանակ բնակիչների համար
         buttons:
-            unlock: 🔑 Castle
-            doorbell: 🔔 Bell
-            downstairs: 📹 Ia floor
-            downstairs2: 📹 Ib floor
-            kitchen: 📹 Kitchen
-            upstairs: 📹 II floor
-            outdoors: 📹 Entrance
-            facecontrol: 📹 Face
-            printers: 📹 Printers
-            superstatus: 🩻 Superstatus
+            unlock: 🔑 Ամրոց
+            doorbell: 🔔 Զանգակ
+            downstairs: 📹 I հարկ
+            downstairs2: 📹 Ib հարկ
+            kitchen: 📹 Խոհանոց
+            upstairs: 📹 II հարկ
+            outdoors: 📹 Մուտք
+            facecontrol: 📹 Դեմք
+            printers: 📹 Տպիչներ
+            superstatus: 🩻 Սուպերկարգավիճակ
             conditioner1: ❄️ Midea I
             conditioner2: ❄️ LG II
-            meme: 🔫 Meme
-            back: ↩️ Back
+            meme: 🔫 Մեմ
+            back: ↩️ Հետ
     info:
         text: |
-            📚 Here you can read about us.
-            If you want to know more, feel free to visit our website and wiki https://hackem.cc/
+            📚 Այստեղ կարող եք կարդալ մեր մասին։
+            Եթե ցանկանում եք ավելին իմանալ, ազատորեն այցելեք մեր կայք և վիքի https://hackem.cc/
         buttons:
-            about: 🏠 About space and bot
-            join: 🙋‍♀️ How to join
-            location: 🗺 How to find
-            donate: 🎁 How to donate
-            residents: 👩‍💻 Our residents
-            sponsors: 🫶 Our sponsors
-            back: ↩️ Back
+            about: 🏠 Տարածքի և բոտի մասին
+            join: 🙋‍♀️ Ինչպես միանալ
+            location: 🗺 Ինչպես գտնել
+            donate: 🎁 Ինչպես նվիրաբերել
+            residents: 👩‍💻 Մեր բնակիչները
+            sponsors: 🫶 Մեր հովանավորները
+            back: ↩️ Հետ
     meme:
         text: |
-            🔫 Meme panel
+            🔫 Մեմերի վահանակ
         buttons:
-            moan: 😮 Moan
-            fart: 💩 Fart
-            adler: 🤤 Adler
-            rickroll: 🕺 Rickroll
-            rzd: 🚇 Rzd
-            zhuchok: 🤰 Zhuchok
-            rfoxed: 🦊 Rfoxed
-            nani: 💥 Nani
-            cat: 🐱 Cat
-            dog: 🐶 Dog
-            cab: ​​🥷 Cab
-            cock: 🐔 Cock
-            sad: 🎺 Sad
-            badumtss: 🥁 Badumtss
-            dushno: 🪟 Dushno
-            all: 🎶 List of all sounds
-            stop: 🔇 STOOOOP
-            back: ↩️ Back
+            moan: 😮 Հառաչել
+            fart: 💩 Քամի բաց թողնել
+            adler: 🤤 Ադլեր
+            rickroll: 🕺 Ռիքրոլ
+            rzd: 🚇 ՌԺԴ
+            zhuchok: 🤰 Ժուչոկ
+            rfoxed: 🦊 Ռֆոքսեդ
+            nani: 💥 Նանի
+            cat: 🐱 Կատու
+            dog: 🐶 Շուն
+            cab: ​​🥷 Տաքսի
+            cock: 🐔 Աքաղաղ
+            sad: 🎺 Տխուր
+            badumtss: 🥁 Բադումց
+            dushno: 🪟 Դուշնո
+            all: 🎶 Բոլոր ձայների ցուցակը
+            stop: 🔇 ԿԱՆԳՆԵՑՐՈՒ
+            back: ↩️ Հետ
 admin:
     addUser:
-        success: ✅ User {{username}} added as {{roles}}
-        fail: ⚠️ Failed to add user (maybe there is already one?)
+        success: ✅ Օգտատեր {{username}}-ը ավելացվել է որպես {{roles}}
+        fail: ⚠️ Չհաջողվեց ավելացնել օգտատերին (գուցե արդեն կա՞)
     getUsers:
         text: |
-            👩‍💻 Current users:
+            👩‍💻 Ընթացիկ օգտատերեր.
     getRestrictedUsers:
         text: |
-            👻 Current users with limited rights:
+            👻 Սահմանափակ իրավունքներով ընթացիկ օգտատերեր.
     updateRoles:
-        success: ✅ {{username}} roles are set to {{roles}}
-        fail: ⚠️ Failed to update roles
+        success: ✅ {{username}}-ի դերերը սահմանվել են որպես {{roles}}
+        fail: ⚠️ Չհաջողվեց թարմացնել դերերը
     removeUser:
-        success: 🗑 User {{username}} deleted
-        fail: ⚠️ Failed to delete the user (maybe he didn’t exist?)
+        success: 🗑 Օգտատեր {{username}}-ը ջնջվել է
+        fail: ⚠️ Չհաջողվեց ջնջել օգտատերին (գուցե նա գոյություն չուներ՞)
     copy:
         help: |
-            📷 Copy the message you are replying to to a target chat
-
+            📷 Պատճենել այն հաղորդագրությունը, որին պատասխանում եք, նպատակային չաթ
             #`/copy main#`
             #`/copy chat_id#`
 
-            Notes:
-            - Chat aliases: {{chatsList}}
-            - Get the current chat id: /chatid
-        nochat: Specified chat not found
-        success: Message was copied to {{target}}
+            Նշումներ.
+            - Չաթի կեղծանուններ՝ {{chatsList}}
+            - Ստանալ ընթացիկ չաթի ID-ն՝ /chatid
+        nochat: Նշված չաթը չի գտնվել
+        success: Հաղորդագրությունը պատճենվել է {{target}}
     custom:
         help: |
-            ✉️ Creates a custom message with images and buttons in the current chat. Example: 
+            ✉️ Ստեղծում է հատուկ հաղորդագրություն՝ պատկերներով և կոճակներով ընթացիկ չաթում։ Օրինակ.
 
-            #`/custom Some text
-
+            #`/custom Որոշ տեքստ
             [{"text":"link","url":"https://hackem.cc"}]
             [{"text":"public cmd","cmd":"join"},{"text":"private cmd","bot":"join"}]#`
 
-            Notes:
-            - For sending an image, add this command to the image caption during attachment
-            - This message can be copied to another chat using the #`/copy chatname_or_id#` command as a reply to the message
+            Նշումներ.
+            - Պատկեր ուղարկելու համար այս հրամանը ավելացրեք պատկերի մակագրությանը կցելիս
+            - Այս հաղորդագրությունը կարող է պատճենվել մեկ այլ չաթ՝ օգտագործելով #`/copy chatname_or_id#` հրամանը՝ որպես պատասխան հաղորդագրությանը
 birthday:
     nextbirthdays: |
-        🎂 This month they celebrate their birthdays:
-    noone: Nobody? Strange...
+        🎂 Այս ամիս իրենց ծննդյան օրն են նշում.
+    noone: Ոչ ոք։ Տարօրինակ է...
     help: |
         {{usersList}}
-        Would you like to be congratulated too? Add your birthday with a command in the following formats:
+        Ցանկանու՞մ եք, որ ձեզ էլ շնորհավորեն։ Ավելացրեք ձեր ծննդյան օրը հետևյալ ձևաչափերով հրամանով.
         #`/mybirthday YYYY-MM-DD#`
         #`/mybirthday MM-DD#`
-        Tired of congratulating yourself? Enter the command:
+        Հոգնե՞լ եք ինքներդ ձեզ շնորհավորելուց։ Մուտքագրեք հրամանը.
         #`/mybirthday remove#`
     fail: |
-        🛂 Enter the date in the format #`YYYY-MM-DD#`, #`MM-DD#` or specify #`remove#`
-    set: 🎂 {{username}}'s birthday is set to {{date}}
-    remove: 🎂 {{username}}'s birthday has been reset
+        🛂 Մուտքագրեք ամսաթիվը #`YYYY-MM-DD#`, #`MM-DD#` ձևաչափով կամ նշեք #`remove#`
+    set: 🎂 {{username}}-ի ծննդյան օրը սահմանվել է {{date}}
+    remove: 🎂 {{username}}-ի ծննդյան օրը զրոյացվել է
     months:
-        january: January
-        february: February
-        march: March
-        april: April
-        may: may
-        june: June
-        july: july
-        august: August
-        september: September
-        october: October
-        november: November
-        december: December
+        january: Հունվար
+        february: Փետրվար
+        march: Մարտ
+        april: Ապրիլ
+        may: Մայիս
+        june: Հունիս
+        july: Հուլիս
+        august: Օգոստոս
+        september: Սեպտեմբեր
+        october: Հոկտեմբեր
+        november: Նոյեմբեր
+        december: Դեկտեմբեր
 embassy:
     common:
-        fail: ⚠️ Service unavailable
+        fail: ⚠️ Ծառայությունը անհասանելի է
     unlock:
-        success: 🔑 The door is open
-        success-alert: 🚪 The door was opened by user {{user}}
-        nomac: ❌ Your MAC address was not detected by the router. You have to be near the space to open it
+        success: 🔑 Դուռը բաց է
+        success-alert: 🚪 Դուռը բացել է օգտատեր {{user}}-ը
+        nomac: ❌ Ձեր MAC հասցեն չի հայտնաբերվել երթուղիչի կողմից։ Դուք պետք է լինեք տարածքի մոտ՝ այն բացելու համար
     webcam:
         location:
-            downstairs: Ground floor
-            downstairs2: Ground floor 2
-            kitchen: Kitchen
-            upstairs: Second floor
-            outdoors: Entrance door
-            facecontrol: Face control
-            printers: Printer
+            downstairs: Առաջին հարկ
+            downstairs2: Առաջին հարկ 2
+            kitchen: Խոհանոց
+            upstairs: Երկրորդ հարկ
+            outdoors: Մուտքի դուռ
+            facecontrol: Դեմքի հսկողություն
+            printers: Տպիչ
         fail: |
-            ⚠️ {{camLocationName}}: Camera not available yet
-        failall: "⚠️ All cameras are unavailable"
+            ⚠️ {{camLocationName}}. Տեսախցիկը դեռ հասանելի չէ
+        failall: "⚠️ Բոլոր տեսախցիկները անհասանելի են"
     climate:
         data: |
-            🌦 Climate in space:
-            Ground floor 🌡️ {{climateInfo.firstFloor.temperature}}ºC 💦 {{climateInfo.firstFloor.humidity}}% 💨 {{climateInfo.firstFloor.co2}}ppm
-            Second floor 🌡️ {{climateInfo.secondFloor.temperature}}ºC 💦 {{climateInfo.secondFloor.humidity}}%
+            🌦 Կլիման տարածքում.
+            Առաջին հարկ 🌡️ {{climateInfo.firstFloor.temperature}}ºC 💦 {{climateInfo.firstFloor.humidity}}% 💨 {{climateInfo.firstFloor.co2}}ppm
+            Երկրորդ հարկ 🌡️ {{climateInfo.secondFloor.temperature}}ºC 💦 {{climateInfo.secondFloor.humidity}}%
         secretdata: |
-            Fun room 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%
-        nodata: 🌚 Climate data not available
+            Զվարճանքի սենյակ 🌡️ {{climateInfo.bedroom.temperature}}ºC 💦 {{climateInfo.bedroom.humidity}}%
+        nodata: 🌚 Կլիմայի տվյալները հասանելի չեն
     conditioner:
         status: |
-            ❄️ {{name}} condo status:
-            Mode: {{conditionerStatus.state}}
-            Target temperature: {{conditionerStatus.attributes.temperature}}°C
-            Current temperature: {{conditionerStatus.attributes.current_temperature}}°C
+            ❄️ {{name}} կոնդիցիոների կարգավիճակը.
+            Ռեժիմ՝ {{conditionerStatus.state}}
+            Թիրախային ջերմաստիճան՝ {{conditionerStatus.attributes.temperature}}°C
+            Ընթացիկ ջերմաստիճան՝ {{conditionerStatus.attributes.current_temperature}}°C
 
-            ℹ️ Commands:
-            /{{firm}}on - Turn on
-            /{{firm}}off - Disable
-            #`/{{firm}}mode cool#` - Mode ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
-            #`/{{firm}}temp 24#` - Target temperature (16-28°C)
-            /preheat - Preheat the space in advance (midea only)
-        success: ✅ It worked
-        fail: ⚠️ It didn’t work out
-        unavailable: ⚠️ Air conditioning is not available
+            ℹ️ Հրամաններ.
+            /{{firm}}on - Միացնել
+            /{{firm}}off - Անջատել
+            #`/{{firm}}mode cool#` - Ռեժիմ ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
+            #`/{{firm}}temp 24#` - Թիրախային ջերմաստիճան (16-28°C)
+            /preheat - Նախապես տաքացնել տարածքը (միայն midea-ի համար)
+        success: ✅ Աշխատեց
+        fail: ⚠️ Չաշխատեց
+        unavailable: ⚠️ Օդորակիչը հասանելի չէ
         buttons:
-            turnon: 🌀 Enable
-            turnoff: ⛔️ Turn off
-            preheat: ☀️ Preheat
+            turnon: 🌀 Միացնել
+            turnoff: ⛔️ Անջատել
+            preheat: ☀️ Նախատաքացնել
             more: 🔼 +1°C
             less: 🔽 -1°C
-            auto: ♻️ Auto
-            heat: 🔥Heat
-            cool: 🥶 Cool
-            dry: ♨️ Dry
+            auto: ♻️ Ավտո
+            heat: 🔥 Ջերմություն
+            cool: 🥶 Սառը
+            dry: ♨️ Չոր
     printers:
         help: |
-            🖨 We have two 3D printers:
+            🖨 Մենք ունենք երկու 3D տպիչ.
 
-            🚺 Anette from ubershy and cake64
-            Documentation for it is available here:
+            🚺 Անետը ubershy-ից և cake64-ից
+            Դրա փաստաթղթերը հասանելի են այստեղ.
             https://lore.hackem.cc/s/main/doc/anette-xVZmu2XQSl
-            The web interface is available within the space network at {{anetteApi}}
-            The printer status can be found using the /anette command.
+            Վեբ ինտերֆեյսը հասանելի է տարածքի ցանցում՝ {{anetteApi}} հասցեով
+            Տպիչի կարգավիճակը կարող եք գտնել /anette հրամանով։
 
-            🚹 Plumbus by the_mihalich
-            Documentation for it is available here:
+            🚹 Պլումբուսը the_mihalich-ից
+            Դրա փաստաթղթերը հասանելի են այստեղ.
             https://lore.hackem.cc/s/main/doc/plumbus-7ZmS0dhPD6
-            The web interface is available within the space network at {{plumbusApi}}
-            The printer status can be found using the /plumbus command.
-        anettestatus: Anette status
-        plumbusstatus: Plumbus status
+            Վեբ ինտերֆեյսը հասանելի է տարածքի ցանցում՝ {{plumbusApi}} հասցեով
+            Տպիչի կարգավիճակը կարող եք գտնել /plumbus հրամանով։
+        anettestatus: Անետի կարգավիճակը
+        plumbusstatus: Պլումբուսի կարգավիճակը
     printerstatus:
-        statusheader: "💤 Printer status: {{state}}"
+        statusheader: "💤 Տպիչի կարգավիճակը՝ {{state}}"
         status: |
-            🖨 The file {{print_stats.filename}} is printed
+            🖨 Տպվում է {{print_stats.filename}} ֆայլը
 
-            🕔 Completion percentage {{progress}}%
-            🕔 Passed {{past}}
-            🕔 Approximately {{estimate}} left
+            🕔 Ավարտման տոկոսը՝ {{progress}}%
+            🕔 Անցել է՝ {{past}}
+            🕔 Մոտավորապես մնացել է՝ {{estimate}}
 
-            📏 {{usedFilament}} meters of filament used
+            📏 Օգտագործվել է {{usedFilament}} մետր թել
 
-            🔥 Extruder temperature {{extruder.temperature}}ºC, target {{extruder.target}}ºC
-            🔥 Table temperature {{heater_bed.temperature}}ºC, target {{heater_bed.target}}ºC
-        update: Update the status of {{printername}}
-        fail: ⚠️ Printer is not available yet
+            🔥 Էքստրուդերի ջերմաստիճանը՝ {{extruder.temperature}}ºC, թիրախը՝ {{extruder.target}}ºC
+            🔥 Սեղանի ջերմաստիճանը՝ {{heater_bed.temperature}}ºC, թիրախը՝ {{heater_bed.target}}ºC
+        update: Թարմացնել {{printername}}-ի կարգավիճակը
+        fail: ⚠️ Տպիչը դեռ հասանելի չէ
         undefinedtime: Xs
     doorbell:
-        success: 🔔 Ring the doorbell
-        fail: 🔕 Failed to call
+        success: 🔔 Զանգահարել զանգակը
+        fail: 🔕 Չհաջողվեց զանգահարել
     device:
         help: |
-            🖥 Device {{deviceName}} can be controlled over the network using the following commands:
-            #`/{{deviceName}} up#` - Enable
-            #`/{{deviceName}} down#` - Turn off
-            #`/{{deviceName}} status#` - Check availability
-            #`/{{deviceName}} help#` - Display this message
-        notfound: ⚠️ The device is not known to the system or something went very wrong
+            🖥 Սարքը {{deviceName}} կարող է կառավարվել ցանցի միջոցով՝ օգտագործելով հետևյալ հրամանները.
+            #`/{{deviceName}} up#` - Միացնել
+            #`/{{deviceName}} down#` - Անջատել
+            #`/{{deviceName}} status#` - Ստուգել հասանելիությունը
+            #`/{{deviceName}} help#` - Ցուցադրել այս հաղորդագրությունը
+        notfound: ⚠️ Սարքը հայտնի չէ համակարգին կամ ինչ-որ բան շատ սխալ է գնացել
         wake:
-            success: ⏰ Tried to wake up the device, monitor its status
-            fail: ⚠️ Failed to wake up the device
+            success: ⏰ Փորձեցի արթնացնել սարքը, վերահսկեք դրա կարգավիճակը
+            fail: ⚠️ Չհաջողվեց արթնացնել սարքը
         shutdown:
-            success: 📴 Shutdown command sent
-            fail: ⚠️ Something went wrong, maybe the device is already turned off?
+            success: 📴 Անջատման հրամանն ուղարկվել է
+            fail: ⚠️ Ինչ-որ բան այն չէ, գուցե սարքն արդեն անջատվա՞ծ է
         alive:
-            up: 🟢 Device available ({{time}} ms)
-            down: 🔴 Device unavailable
-            fail: ⚠️ It was not possible to find out the status of the device
+            up: 🟢 Սարքը հասանելի է ({{time}} մվ)
+            down: 🔴 Սարքը անհասանելի է
+            fail: ⚠️ Չհաջողվեց պարզել սարքի կարգավիճակը
     say:
         help: |
-            🗣 Using this command you can say something on the speaker in space, for example #`/say Hello, hackers#`
-        success: 🗣 Message sent to speaker
-        fail: ⚠️ Couldn't say
+            🗣 Այս հրամանի միջոցով կարող եք ինչ-որ բան ասել տարածքի բարձրախոսով, օրինակ՝ #`/say Ողջույն, հաքերներ#`
+        success: 🗣 Հաղորդագրությունն ուղարկվել է բարձրախոսին
+        fail: ⚠️ Չհաջողվեց ասել
     text:
         help: |
-            🗣 Using this command you can display a text message on a space led matrix, for example #`/text Hello, hackers#`
-        success: 🗣 Message sent to the led-matrix
-        fail: ⚠️ Couldn't send message
+            🗣 Այս հրամանի միջոցով կարող եք տեքստային հաղորդագրություն ցուցադրել տարածքի LED մատրիցի վրա, օրինակ՝ #`/text Ողջույն, հաքերներ#`
+        success: 🗣 Հաղորդագրությունն ուղարկվել է LED մատրիցին
+        fail: ⚠️ Չհաջողվեց ուղարկել հաղորդագրությունը
     html:
         help: |
-            🗣 Using this command you can display a html page on a space internal monitor, for example #`/html <h1>Hello, hackers<h1>#`
-            Clear the screen with #`/html clear#`
-        success: 🗣 Sent to the internal monitor
-        fail: ⚠️ Failed to send
+            🗣 Այս հրամանի միջոցով կարող եք HTML էջ ցուցադրել տարածքի ներքին մոնիտորի վրա, օրինակ՝ #`/html <h1>Ողջույն, հաքերներ<h1>#`
+            Մաքրել էկրանը #`/html clear#` հրամանով
+        success: 🗣 Ուղարկվել է ներքին մոնիտորին
+        fail: ⚠️ Չհաջողվեց ուղարկել
     gif:
         help: |
-            🗣 Using this command you can display a gif image on a space internal monitor, for example #`/gif https://c.tenor.com/WsPxFXB9CkUAAAAC/tenor.gif#`
-            Clear the screen with #`/gif clear#`
+            🗣 Այս հրամանի միջոցով կարող եք GIF պատկեր ցուցադրել տարածքի ներքին մոնիտորի վրա, օրինակ՝ #`/gif https://c.tenor.com/WsPxFXB9CkUAAAAC/tenor.gif#`
+            Մաքրել էկրանը #`/gif clear#` հրամանով
     play:
-        help: 🗣 Using this command you can play any sound from the link
-        success: 🗣 Sound sent to speaker
-        fail: ⚠️ Failed to play
+        help: 🗣 Այս հրամանի միջոցով կարող եք ցանկացած ձայն նվագարկել հղումից
+        success: 🗣 Ձայնն ուղարկվել է բարձրախոսին
+        fail: ⚠️ Չհաջողվեց նվագարկել
     stop:
-        success: 🔇 Playback on speaker is stopped
-        fail: ⚠️ Failed to stop playback
+        success: 🔇 Նվագարկումը բարձրախոսով դադարեցված է
+        fail: ⚠️ Չհաջողվեց դադարեցնել նվագարկումը
     availablesounds:
         success: |
-            🎶 List of available sounds
+            🎶 Հասանելի ձայների ցուցակը
             {{sounds}}
-        fail: ⚠️ Could not find available sounds
+        fail: ⚠️ Չհաջողվեց գտնել հասանելի ձայներ
     hey:
         text: |
-            📢 Hey, {{residentsInside}}
-        noresidents: 🛏 And the residents didn’t check in inside
+            📢 Հեյ, {{residentsInside}}
+        noresidents: 🛏 Իսկ բնակիչները ներսում չէին գրանցվել
     neural:
         contexts:
-            default: You are a Telegram bot of the hackerspace, you always answer briefly, funnily and like a robot. Don't forget to add robot sounds
-            ollama: Be concise unless otherwise specified
-            guess: You are a Telegram bot of the hackerspace, you receive commands that have not yet been implemented. Try to guess what the result would be if they were implemented and display only the result. Don't ask questions
+            default: Դուք հաքերային տարածքի Telegram բոտ եք, միշտ պատասխանում եք հակիրճ, զվարճալի և ռոբոտի նման։ Մի մոռացեք ավելացնել ռոբոտի ձայներ
+            ollama: Եղեք հակիրճ, եթե այլ բան նշված չէ
+            guess: Դուք հաքերային տարածքի Telegram բոտ եք, ստանում եք հրամաններ, որոնք դեռ չեն իրականացվել։ Փորձեք գուշակել, թե ինչ արդյունք կլիներ, եթե դրանք իրականացվեին, և ցուցադրեք միայն արդյունքը։ Հարցեր մի տվեք
         sd:
             help: |
-                🏞 This command allows you to generate an image using StableDiffusion.
+                🏞 Այս հրամանը թույլ է տալիս պատկեր ստեղծել StableDiffusion-ի միջոցով։
 
                 #`/txt2img cute cat drawing#`
-                #`/img2img cute cat#` (as a caption to an uploaded photo)
+                #`/img2img cute cat#` (որպես վերբեռնված լուսանկարի մակագրություն)
                 #`/sd race car != red#`
 
-                🖥 The model is hosted in our space on a gaming machine
-                on the second floor, so don't forget to turn it on before
-                use and turn it off after if no one is using it.
-                Car control in the /gaming team
-            fail: ⚠️ It was not possible to generate an image, but /gaming is definitely turned on and has not yet died from a ton of requests?
+                🖥 Մոդելը տեղակայված է մեր տարածքում՝ երկրորդ հարկի խաղային համակարգչի վրա,
+                այնպես որ մի մոռացեք այն միացնել օգտագործելուց առաջ
+                և անջատել այն բանից հետո, եթե ոչ ոք չի օգտագործում։
+                Մեքենայի կառավարումը /gaming թիմում
+            fail: ⚠️ Չհաջողվեց պատկեր ստեղծել, բայց /gaming-ը հաստատ միացվա՞ծ է և դեռ չի մահացել հարցումների տոննայից։
         ask:
             help: |
-                🔮 Ask a question to the neural network. Available only in group space chats. Available models can be checked here /models
+                🔮 Հարց տվեք նեյրոնային ցանցին։ Հասանելի է միայն խմբային չաթերում։ Հասանելի մոդելները կարող եք ստուգել այստեղ՝ /models
 
-                💬 Ask specific model:
-                #`/ask llama3.2:latest How to patch KDE under FreeBSD#`
-                💬 Ask GPT:
-                #`/gpt Write code in Python that inverts the input string#`
-                💬 Ask default Ollama model:
-                #`/ollama What is Hackerspace?#`
-            notset: ⚠️ Bot is not yet configured for this functionality
-            error: ⚠️ Something went wrong, does the model exist and is it running?
+                💬 Հարցրեք կոնկրետ մոդելին.
+                #`/ask llama3.2:latest Ինչպես կարկատել KDE-ն FreeBSD-ի տակ#`
+                💬 Հարցրեք GPT-ին.
+                #`/gpt Գրեք կոդ Python-ով, որը շրջում է մուտքային տողը#`
+                💬 Հարցրեք լռելյայն Ollama մոդելին.
+                #`/ollama Ի՞նչ է Hackerspace-ը#`
+            notset: ⚠️ Բոտը դեռ կազմաձևված չէ այս ֆունկցիոնալության համար
+            error: ⚠️ Ինչ-որ բան այն չէ, արդյո՞ք մոդելը գոյություն ունի և աշխատում է։
         models: |
-            🧠 Available models:
+            🧠 Հասանելի մոդելներ.
             {{modelsList}}
     ena:
-        street: Baghramyan
+        street: Բաղրամյան
         mentioned: |
-            ⚡️ Oops, {{street}} ({{hystreet}}) was mentioned on the website of Armenian power grids {{link}}
-            I hope this is not in Yerevan 😅
+            ⚡️ Օ՜, {{street}} ({{hystreet}}) նշվել է Հայաստանի էլեկտրական ցանցերի կայքում {{link}}
+            Հուսով եմ՝ սա Երևանում չէ 😅
         notmentioned: |
-            ⚡️ {{street}} ({{hystreet}}) is no longer mentioned on the Armenian Electricity Networks website. Everything is fine 👌
-        fail: ⚠️ Failed to check street
+            ⚡️ {{street}} ({{hystreet}}) այլևս չի նշվում Հայաստանի էլեկտրական ցանցերի կայքում։ Ամեն ինչ կարգին է 👌
+        fail: ⚠️ Չհաջողվեց ստուգել փողոցը
 funds:
     funds: |
-        💰 Here are our current funds:
+        💰 Ահա մեր ընթացիկ միջոցները.
 
-        {{list}}💸 To find out how to help us, click /donate
+        {{list}}💸 Իմանալու համար, թե ինչպես օգնել մեզ, սեղմեք /donate
     fund:
-        nofund: Fund not found
+        nofund: Միջոց չի գտնվել
         text: |
-            {{fundlist}}💸 To find out how to help us, click /donate
+            {{fundlist}}💸 Իմանալու համար, թե ինչպես օգնել մեզ, սեղմեք /donate
         buttons:
-            csv: 🧾 Export to CSV
-            donut: 📊 View chart
-        collected: Collected
-        postponed: postponed
-        closed: closed
-        open: open
-        from: from
+            csv: 🧾 Արտահանել CSV
+            donut: 📊 Դիտել գծապատկերը
+        collected: Հավաքված
+        postponed: հետաձգված
+        closed: փակված
+        open: բաց
+        from: -ից
     fundsall: |
-        💾 Here is an archive of all our funds
-
+        💾 Ահա մեր բոլոր միջոցների արխիվը
         {{list}}
     addfund:
-        success: 💰 Added collection {{fundName}} with target in {{targetValue}} {{currency}}
-        fail: ⚠️ Failed to add fee (maybe it already exists?)
+        success: 💰 Ավելացվել է հավաքածու {{fundName}}՝ թիրախով {{targetValue}} {{currency}}
+        fail: ⚠️ Չհաջողվեց ավելացնել վճարը (գուցե արդեն գոյություն ունի՞)
     updatefund:
-        success: 🔄 Updated {{fundName}} collection with a new target in {{targetValue}} {{currency}}
-        fail: ⚠️ Failed to update collection (maybe wrong name?)
+        success: 🔄 Թարմացվել է {{fundName}} հավաքածուն՝ նոր թիրախով {{targetValue}} {{currency}}
+        fail: ⚠️ Չհաջողվեց թարմացնել հավաքածուն (գուցե սխալ անուն՞)
     removefund:
-        success: 🗑 {{fundName}} collection removed
-        fail: ⚠️ Failed to delete collection
+        success: 🗑 {{fundName}} հավաքածուն հեռացվել է
+        fail: ⚠️ Չհաջողվեց ջնջել հավաքածուն
     closefund:
-        success: ☑️ {{fundName}} collection closed
-        fail: ⚠️ Failed to close collection
+        success: ☑️ {{fundName}} հավաքածուն փակվել է
+        fail: ⚠️ Չհաջողվեց փակել հավաքածուն
     changestatus:
-        success: 🔄 Collection status {{fundName}} changed to {{fundStatus}}
-        fail: ⚠️ Failed to change collection status
+        success: 🔄 Հավաքածուի կարգավիճակը {{fundName}} փոխվել է {{fundStatus}}
+        fail: ⚠️ Չհաջողվեց փոխել հավաքածուի կարգավիճակը
     transferdonation:
         success: |
-            ↪️ Donation [#`{{id}}#`] transferred to {{accountant}}
-            {{username}} donated to #`{{fund.name}}#` in the amount of {{donation.value}} {{donation.currency}}
-        fail: ⚠️ Failed to transfer donation [#`{{id}}#`]
-        nothing: ⚠️ Nothing transferred, fucker
+            ↪️ Նվիրատվությունը [#`{{id}}#`] փոխանցվել է {{accountant}}
+            {{username}}-ը նվիրաբերել է #`{{fund.name}}#`-ին՝ {{donation.value}} {{donation.currency}} չափով
+        fail: ⚠️ Չհաջողվեց փոխանցել նվիրատվությունը [#`{{id}}#`]
+        nothing: ⚠️ Ոչինչ չի փոխանցվել, անասուն
     adddonation:
         success: |
-            💸 [#`{{donationId}}#`] {{username}} donated {{value}} {{currency}} to #`{{fundName}}#`
+            💸 [#`{{donationId}}#`] {{username}}-ը նվիրաբերել է {{value}} {{currency}} #`{{fundName}}#`-ին
         increased: |
-            💸 [#`{{donationId}}#`] {{username}} increased his donation to #`{{fundName}}#` by another {{value}} {{currency}}
-        fail: ⚠️ Failed to add donation (maybe something is wrong with the currency or amount?)
+            💸 [#`{{donationId}}#`] {{username}}-ը ավելացրել է իր նվիրատվությունը #`{{fundName}}#`-ին ևս {{value}} {{currency}}-ով
+        fail: ⚠️ Չհաջողվեց ավելացնել նվիրատվությունը (գուցե ինչ-որ բան այն չէ արժույթի կամ գումարի հետ՞)
         sponsorship: |
-            {{emoji}} {{username}} now has {{tiername}} level
+            {{emoji}} {{username}}-ն այժմ ունի {{tiername}} մակարդակ
     removedonation:
-        success: 🗑 Donation removed [id:{{donationId}}]
-        fail: ⚠️ Failed to delete the donation (maybe it didn’t exist?)
+        success: 🗑 Նվիրատվությունը հեռացվել է [id:{{donationId}}]
+        fail: ⚠️ Չհաջողվեց ջնջել նվիրատվությունը (գուցե այն գոյություն չուներ՞)
     changedonation:
-        success: 🔄 Updated donation [id:{{donationId}}]
-        fail: ⚠️ Failed to update the donation (maybe it didn’t exist?)
+        success: 🔄 Թարմացվել է նվիրատվությունը [id:{{donationId}}]
+        fail: ⚠️ Չհաջողվեց թարմացնել նվիրատվությունը (գուցե այն գոյություն չուներ՞)
     showcosts:
-        fail: Current rental fee not found
+        fail: Ընթացիկ վարձավճարը չի գտնվել
     residentsdonated: |
-        💰 Resident donations this month:
+        💰 Բնակիչների նվիրատվությունները այս ամիս.
     residentshistory:
-        fail: ⚠️ Failed to generate donation schedule
-        empty: ⚠️ No donations found for this period
+        fail: ⚠️ Չհաջողվեց ստեղծել նվիրատվությունների ժամանակացույցը
+        empty: ⚠️ Այս ժամանակահատվածի համար նվիրատվություններ չեն գտնվել
     sponsors:
         list: |
-            🏅 Our beloved sponsors 🏅 
+            🏅 Մեր սիրելի հովանավորները 🏅
 
             {{list}}
 
-            🫶 Want to be part of this list? Just press How to Donate below
+            🫶 Ցանկանու՞մ եք լինել այս ցուցակի մաս։ Պարզապես սեղմեք «Ինչպես նվիրաբերել» ստորև
     refreshsponsorships:
-        success: 🔄 Sponsorships updated
-        fail: ⚠️ Failed to update sponsorships
+        success: 🔄 Հովանավորությունները թարմացվել են
+        fail: ⚠️ Չհաջողվեց թարմացնել հովանավորությունները
     export:
-        empty: ⚠️ Nothing to export
-        fail: ⚠️ Something is wrong
+        empty: ⚠️ Արտահանելու ոչինչ չկա
+        fail: ⚠️ Ինչ-որ բան այն չէ
     debt:
         text: |
-            🧾 Accountant {{username}} has the following donations:
+            🧾 Հաշվապահ {{username}}-ն ունի հետևյալ նվիրատվությունները.
 
             {{donationList}}
-            💰 Total {{total}} {{currency}} day
-
-            🛂 You can transfer a donation using the following commands:
-            #`/tosafe id#` - Separate donation to safe by id (or several ids, separated by commas)
-            #`/topaid id#` - Mark the donation as paid by id (went to the fund purpose)
-            #`/tocab id#` - Separate donation to Cab by id
-            #`/tonick id#` - Separate donation to Kole by id
-            #`/tosafeall fund_name#` - All your donations to safe from a certain fund
-            #`/tosafeall#` - All your donations to safe (carefully)
-            #`/transferdonation donation_id to username#` (td) - Transfer donation to another accountant
-        empty: 📂 You don’t have anything on you
+            💰 Ընդհանուր {{total}} {{currency}} օր
+            
+            🛂 Դուք կարող եք փոխանցել նվիրատվությունը՝ օգտագործելով հետևյալ հրամանները.
+            #`/tosafe id#` - Առանձնացնել նվիրատվությունը պահարանին ըստ ID-ի (կամ մի քանի ID-ի, բաժանված ստորակետերով)
+            #`/topaid id#` - Նշել նվիրատվությունը որպես վճարված ըստ ID-ի (գնացել է միջոցի նպատակին)
+            #`/tocab id#` - Առանձնացնել նվիրատվությունը Cab-ին ըստ ID-ի
+            #`/tonick id#` - Առանձնացնել նվիրատվությունը Kole-ին ըստ ID-ի
+            #`/tosafeall fund_name#` - Ձեր բոլոր նվիրատվությունները պահարանին որոշակի միջոցից
+            #`/tosafeall#` - Ձեր բոլոր նվիրատվությունները պահարանին (զգուշորեն)
+            #`/transferdonation donation_id to username#` (td) - Փոխանցել նվիրատվությունը մեկ այլ հաշվապահի
+        empty: 📂 Դուք ձեզ մոտ ոչինչ չունեք
 needs:
     buy:
-        nothing: 👌 No one has asked for anything yet
+        nothing: 👌 Ոչ ոք դեռ ոչինչ չի խնդրել
         pleasebuy: |
-            🙏 Someone buy this on your way to space:
-        byrequest: upon request
+            🙏 Ինչ-որ մեկը սա գնի տարածք գնալիս.
+        byrequest: ըստ հարցման
         helpbuy: |
-            ℹ️ You can ask to buy something on the way to the space using the command #`/buy item_name#`
-        helpbought: "✅ You can mark your purchase as completed by clicking on the button below:"
+            ℹ️ Դուք կարող եք խնդրել ինչ-որ բան գնել տարածք գնալիս՝ օգտագործելով #`/buy item_name#` հրամանը
+        helpbought: "✅ Դուք կարող եք ձեր գնումը նշել որպես ավարտված՝ սեղմելով ստորև նշված կոճակը."
         success: |
-            🙏 {{username}} asked someone to buy #`{{item}}#` on the way to space.
-        fail: Failed to add purchase request
+            🙏 {{username}}-ը խնդրել է ինչ-որ մեկին գնել #`{{item}}#` տարածք գնալիս։
+        fail: Չհաջողվեց ավելացնել գնման հարցումը
     bought:
         success: |
-            ✅ {{username}} bought #`{{item}}#` in space
-        notfound: 🙄 There was no open purchase request with this name, probably already purchased
-        undo: ❌ Cancel purchase
+            ✅ {{username}}-ը գնել է #`{{item}}#` տարածքում
+        notfound: 🙄 Այս անունով բաց գնման հարցում չկար, հավանաբար արդեն գնված է
+        undo: ❌ Չեղարկել գնումը
 service:
     welcome:
         confirm: |
-            🇬🇧 Hello {{newMember}}. Select your language if you are not a bot, otherwise you won’t be able to write here :)
+            🇬🇧 Ողջույն {{newMember}}։ Ընտրեք ձեր լեզուն, եթե բոտ չեք, հակառակ դեպքում չեք կարողանա այստեղ գրել :)
             🇷🇺 Привет, {{newMember}}. Выбери свой язык, если ты не бот, иначе не сможешь тут писать :)
-        captcha: Click me
+        captcha: Սեղմեք ինձ
         main: |
-            🇬🇧 Welcome to our cozy corner, {{newMember}}. I'm hackerspace bot manager. You can PM me to chat so I can briefly tell you about us
+            🇬🇧 Բարի գալուստ մեր հարմարավետ անկյուն, {{newMember}}։ Ես հաքերային տարածքի բոտ-կառավարիչն եմ։ Դուք կարող եք ինձ անձնական հաղորդագրություն ուղարկել՝ զրուցելու համար, որպեսզի ես կարողանամ հակիրճ պատմել ձեզ մեր մասին
         offtopic: |
-            🫖 Welcome to the chat topic of our hackspace, {{newMember}}
+            🫖 Բարի գալուստ մեր հաքերային տարածքի չաթի թեմային, {{newMember}}
 
-            Here you will find different topics on the main space projects, discussions of future events, news, memes, and so on.
-            Anything that doesn’t fit the topic of the topic is better to write in general, don’t spawn topics unnecessarily and be a bunny.
-            It is better to write organizational questions and questions regarding the space itself in the main chat @hacker_embassy
+            Այստեղ դուք կգտնեք տարբեր թեմաներ հիմնական տարածքի նախագծերի, ապագա իրադարձությունների քննարկումների, նորությունների, մեմերի և այլնի վերաբերյալ։
+            Այն ամենը, ինչը չի համապատասխանում թեմայի թեմային, ավելի լավ է գրել ընդհանուրում, անհարկի թեմաներ մի ստեղծեք և եղեք նապաստակ։
+            Կազմակերպչական հարցերն ու հենց տարածքին վերաբերող հարցերն ավելի լավ է գրել հիմնական չաթում՝ @hacker_embassy
         horny: |
-            🍆 Ohh, myyy. We have {{newMember}} cuming into our hot and cozy place.
-            Welcum to the club, buddy/gal!
+            🍆 Օ՜, իմ։ Մեզ մոտ {{newMember}} է գալիս մեր տաք և հարմարավետ վայրը։
+            Բարի գալուստ ակումբ, ընկեր/ուհի։
 
-            🍑 Members, please /slap our new guest as juicy as you can.
+            🍑 Անդամներ, խնդրում եմ /slap մեր նոր հյուրին այնքան հյութեղ, որքան կարող եք։
         key: |
-            🌭 Welcome to the Residents, {{newMember}}. Now you too are the sacred keeper of the key!
+            🌭 Բարի գալուստ Բնակիչներ, {{newMember}}։ Այժմ դուք էլ եք բանալու սուրբ պահապանը։
 
-            Take a look at my /help commands again, a lot of new things are now available to you. Pay attention to /control, which gives you unlimited (or not so much) power over the space itself. Use it wisely.
+            Նորից նայեք իմ /help հրամաններին, ձեզ համար շատ նոր բաներ են հասանելի։ Ուշադրություն դարձրեք /control-ին, որը ձեզ անսահմանափակ (կամ ոչ այնքան) իշխանություն է տալիս հենց տարածքի վրա։ Օգտագործեք այն իմաստուն։
 
-            🎉🎉🎉 Residents, raise your sausages for {{newMember}}
+            🎉🎉🎉 Բնակիչներ, բարձրացրեք ձեր երշիկները {{newMember}}-ի համար
         buttons:
-            about: 📚 Read more
+            about: 📚 Կարդալ ավելին
     setlanguage:
-        select: 🗣 Select your language
-        success: ✅ Language is set as {{language}}
-        error: ⚠️ Failed to set language
+        select: 🗣 Ընտրեք ձեր լեզուն
+        success: ✅ Լեզուն սահմանվել է որպես {{language}}
+        error: ⚠️ Չհաջողվեց սահմանել լեզուն
         notsupported: |
-            ⚠️ Language {{language}} is not supported, only #`ru#`, #`eo#`, #`uk#` and #`en#` are available
+            ⚠️ Լեզուն {{language}} չի աջակցվում, հասանելի են միայն #`ru#`, #`eo#`, #`uk#`, #`hy#`, և #`en#`
     removebuttons:
-        error: ⚠️ Failed to remove buttons
+        error: ⚠️ Չհաջողվեց հեռացնել կոճակները
     deprecated:
         notsupported: |
-            🚫 Command #`{{command}}#` is deprecated
+            🚫 Հրամանը #`{{command}}#` հնացած է
         replaced: |
-            🔄 Use #`{{replacement}}#` instead
+            🔄 Փոխարենը օգտագործեք #`{{replacement}}#`
     tldr:
         prompt: |
-            These are messages from a chat in a messenger. Mention main topics discussed by people and who was talking about them, provide a summary if needed
+            Սրանք հաղորդագրություններ են մեսենջերի չաթից։ Նշեք մարդկանց կողմից քննարկված հիմնական թեմաները և ով է խոսել դրանց մասին, անհրաժեշտության դեպքում տրամադրեք ամփոփում
         help: |
-            📝 Using this command, you can get a summary of the main topics discussed in the chat. The bot will analyze the last n messages and try to summarize them.
-            #`/tldr n#` - where n is the number of messages to analyze (default 1000)
-        notready: This feature currently works in test mode for chats without topics
+            📝 Այս հրամանի միջոցով կարող եք ստանալ չաթում քննարկված հիմնական թեմաների ամփոփում։ Բոտը կվերլուծի վերջին n հաղորդագրությունները և կփորձի ամփոփել դրանք։
+            #`/tldr n#` - որտեղ n-ը վերլուծվող հաղորդագրությունների քանակն է (լռելյայն՝ 1000)
+        notready: Այս գործառույթը ներկայումս աշխատում է փորձնական ռեժիմում՝ առանց թեմաների չաթերի համար
     token:
         help: |
-            🤖 This command can be used to manage the token for API access (currently just one)
+            🤖 Այս հրամանը կարող է օգտագործվել API մուտքի թոքենը կառավարելու համար (ներկայումս միայն մեկը)
 
-            #`/token set#` - Set a new token
-            #`/token remove#` - Remove the token
-            #`/token help#` - View this message
-        found: 🛂 You have a token set
-        notfound: 📴 No token is set for you
+            #`/token set#` - Սահմանել նոր թոքեն
+            #`/token remove#` - Հեռացնել թոքենը
+            #`/token help#` - Դիտել այս հաղորդագրությունը
+        found: 🛂 Դուք ունեք սահմանված թոքեն
+        notfound: 📴 Ձեզ համար թոքեն սահմանված չէ
         set: |
-            ✅ The token has been added, save it because it won't be shown again:
+            ✅ Թոքենն ավելացվել է, պահպանեք այն, քանի որ այն այլևս չի ցուցադրվի.
             #`{{token}}#`
         removed: |
-            🗑 The token has been removed, you can set a new one with the command
+            🗑 Թոքենը հեռացվել է, կարող եք նորը սահմանել հրամանով
             #`/token set#`
         exists: |
-            ⚠️ You already have a token, remove it before setting a new one using
+            ⚠️ Դուք արդեն ունեք թոքեն, հեռացրեք այն նորը սահմանելուց առաջ՝ օգտագործելով
             #`/token remove#`
-        missing: ⚠️ No installed token found
-        private: ⚠️ This command is only available in private chats
+        missing: ⚠️ Չի գտնվել տեղադրված թոքեն
+        private: ⚠️ Այս հրամանը հասանելի է միայն անձնական չաթերում
 status:
     buttons:
-        in: 🤝 I am in
-        out: 👋 I am out
-        inandin: 🤝 And I am in
-        inandout: 👋 But I am out
-        outandin: 🤝 But I am in
-        outandout: 👋 I am out as well
-        going: 🚕 Planning to come
-        notgoing: 🛌 Not planning
-        andgoing: 🚕 And I am planning
-        refresh: 🔃 Refresh
-        repeat: 🔃 Repeat
-        open: 🚪 Open space
-        close: 🔒 Close space
-        reopen: 🚪 Open again
-        reclose: 🔒 Close again
-        whoinside: 📹 Who is inside
-        whoelse: ❓ Who else?
-        save: 📷 Save
+        in: 🤝 Ես ներսում եմ
+        out: 👋 Ես դուրս եմ
+        inandin: 🤝 Եվ ես ներսում եմ
+        inandout: 👋 Բայց ես դուրս եմ
+        outandin: 🤝 Բայց ես ներսում եմ
+        outandout: 👋 Ես էլ եմ դուրս
+        going: 🚕 Պլանավորում եմ գալ
+        notgoing: 🛌 Չեմ պլանավորում
+        andgoing: 🚕 Եվ ես պլանավորում եմ
+        refresh: 🔃 Թարմացնել
+        repeat: 🔃 Կրկնել
+        open: 🚪 Բաց տարածք
+        close: 🔒 Փակ տարածք
+        reopen: 🚪 Նորից բացել
+        reclose: 🔒 Նորից փակել
+        whoinside: 📹 Ով է ներսում
+        whoelse: ❓ Ուրիշ ո՞վ
+        save: 📷 Պահպանել
     profile:
         donated: |
-            💵 The following donations were made:
+            💵 Կատարվել են հետևյալ նվիրատվությունները.
             {{donationList}}
-        total: 💰 Total added to space {{total}} {{currency}}
-        notfound: ⚠️ User not found
+        total: 💰 Ընդհանուր ավելացվել է տարածքին {{total}} {{currency}}
+        notfound: ⚠️ Օգտատերը չի գտնվել
     mac:
         buttons:
-            detect: 🔍 Detect automatically
-            autoinside: 📲 Enable autoinside
-            remove: 🗑 Remove MAC
+            detect: 🔍 Ավտոմատ հայտնաբերել
+            autoinside: 📲 Միացնել ավտոմատ մուտքը
+            remove: 🗑 Հեռացնել MAC-ը
         help: |
-            📡 Using this command you can set MAC addresses for auto-login and lock control functions
-            🪪 User addresses: {{usermacs}}
+            📡 Այս հրամանի միջոցով կարող եք սահմանել MAC հասցեներ ավտոմատ մուտքի և կողպեքի կառավարման գործառույթների համար
+            🪪 Օգտատերերի հասցեներ՝ {{usermacs}}
 
-            #`/mac add mac_address#` - Set your MAC address
-            #`/mac remove mac_address#` - Remove your MAC address
-            #`/mac clear#` - Clear your MAC addresses from the bot
+            #`/mac add mac_address#` - Սահմանել ձեր MAC հասցեն
+            #`/mac remove mac_address#` - Հեռացնել ձեր MAC հասցեն
+            #`/mac clear#` - Մաքրել ձեր MAC հասցեները բոտից
         fail: |
-            ⚠️ It was not possible to add this MAC. Maybe it's invalid or already occupied?
-            Examples of correct address settings:
+            ⚠️ Չհաջողվեց ավելացնել այս MAC-ը։ Գուցե այն անվավեր է կամ արդեն զբաղվա՞ծ է։
+            Ճիշտ հասցեի սահմանման օրինակներ.
             #`/mac add xx:xx:xx:xx:xx:xx#`
             #`/mac remove xx:xx:xx:xx:xx:xx#`
-        set: 📡 MAC address {{mac}} was successfully set for user {{username}}.
-        removed: 🗑 MAC address {{mac}} was removed for user {{username}}
+        set: 📡 MAC հասցեն {{mac}} հաջողությամբ սահմանվել է օգտատեր {{username}}-ի համար։
+        removed: 🗑 MAC հասցեն {{mac}} հեռացվել է օգտատեր {{username}}-ի համար
         cleared: |
-            🗑 MAC addresses have been removed for user {{username}}. Auto-login will no longer work.
+            🗑 MAC հասցեները հեռացվել են օգտատեր {{username}}-ի համար։ Ավտոմատ մուտքն այլևս չի աշխատի։
     autoinside:
         buttons:
-            status: 👁‍🗨 Status
-            enable: 📲 Enable
-            disable: 📵 Disable
-            mac: 📡 Control MACs
-            ghost: 👻 Ghost
+            status: 👁‍🗨 Կարգավիճակ
+            enable: 📲 Միացնել
+            disable: 📵 Անջատել
+            mac: 📡 Կառավարել MAC-ները
+            ghost: 👻 Ուրվական
         help: |
-            ⏲ ​​Using this command, you can automatically register in the space as soon as the MAC address of your device is detected on the network.
-            📌 If the device is inactive on the space network for {{timeout}} minutes, the user will be automatically logged out.
-            📌 When the feature is enabled, the current status of the device on the network takes precedence over manual login/logout commands.
-            ⚠️ To work, be sure to set the MAC address of your device and disable its randomization for the space network.
-        ghost: "#`/autoinside ghost#` - Check in for residents only"
-        fail: ⚠️ Failed to enable auto-login, although MAC is set. Someone give my developer a hard time.
+            ⏲ ​​Այս հրամանի միջոցով կարող եք ավտոմատ կերպով գրանցվել տարածքում, հենց որ ձեր սարքի MAC հասցեն հայտնաբերվի ցանցում։
+            📌 Եթե սարքը անգործուն է տարածքի ցանցում {{timeout}} րոպե, օգտատերը ավտոմատ կերպով դուրս կգա համակարգից։
+            📌 Երբ գործառույթը միացված է, սարքի ընթացիկ կարգավիճակը ցանցում գերակայում է ձեռքով մուտքի/ելքի հրամանների նկատմամբ։
+            ⚠️ Աշխատելու համար համոզվեք, որ սահմանել եք ձեր սարքի MAC հասցեն և անջատել դրա պատահականացումը տարածքի ցանցի համար։
+        ghost: "#`/autoinside ghost#` - Մուտք գրանցել միայն բնակիչների համար"
+        fail: ⚠️ Չհաջողվեց միացնել ավտոմատ մուտքը, թեև MAC-ը սահմանված է։ Թող ինչ-որ մեկը դժվարացնի իմ մշակողի կյանքը։
         nomac: |
-            ⚠️ Your MAC address is not set. Add it with the command /mac
-        set: 🕺 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}}
-        removed: 🚷 Auto login and auto logout are disabled for user {{username}}
-        isset: 🕺 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}}
-        isghost: 👻 Auto login and auto logout enabled for user {{username}} to MAC address {{usermac}} for residents only
-        isnotset: 🚷 Auto login and auto logout are disabled for user {{username}}
-        nouser: ⚠️ Your user was not found in the database (bug?)
-        notsupported: ⚠️ This command is not yet supported for users without a username
+            ⚠️ Ձեր MAC հասցեն սահմանված չէ։ Ավելացրեք այն /mac հրամանով
+        set: 🕺 Ավտոմատ մուտքը և ավտոմատ ելքը միացված են օգտատեր {{username}}-ի համար՝ MAC հասցեով {{usermac}}
+        removed: 🚷 Ավտոմատ մուտքը և ավտոմատ ելքը անջատված են օգտատեր {{username}}-ի համար
+        isset: 🕺 Ավտոմատ մուտքը և ավտոմատ ելքը միացված են օգտատեր {{username}}-ի համար՝ MAC հասցեով {{usermac}}
+        isghost: 👻 Ավտոմատ մուտքը և ավտոմատ ելքը միացված են օգտատեր {{username}}-ի համար՝ MAC հասցեով {{usermac}} միայն բնակիչների համար
+        isnotset: 🚷 Ավտոմատ մուտքը և ավտոմատ ելքը անջատված են օգտատեր {{username}}-ի համար
+        nouser: ⚠️ Ձեր օգտատերը չի գտնվել տվյալների բազայում (սխալ՞)
+        notsupported: ⚠️ Այս հրամանը դեռ չի աջակցվում առանց օգտանունի օգտատերերի համար
     status:
-        undefined: 🔐 Space status is undefined. Someone open it with /open
+        undefined: 🔐 Տարածքի կարգավիճակը սահմանված չէ։ Թող ինչ-որ մեկը բացի այն /open հրամանով
         noconnection: |
-            📵 Failed to contact space. Visitor data may not be current.
+            📵 Չհաջողվեց կապ հաստատել տարածքի հետ։ Այցելուների տվյալները կարող են արդիական չլինել։
 
             {{statusMessage}}
-        messageopened: This is a great reason to come in, so ring the bell or write to those inside - they will open it for you
-        messageclosed: We are waiting for one of the residents to open it. Maybe there is no one inside, or there is a closed meeting of residents, or they forgot to do /open again? Who knows... Better ask them in chat or tag them with the /hey command.
-        updated: ⏱ Updated at {{updatedDate}}
-        opened: "#*opened#*"
-        closed: "#*closed#*"
+        messageopened: Սա հիանալի պատճառ է ներս գալու համար, այնպես որ զանգահարեք զանգակը կամ գրեք ներսում գտնվողներին՝ նրանք կբացեն ձեզ համար
+        messageclosed: Մենք սպասում ենք, որ բնակիչներից մեկը բացի այն։ Գուցե ներսում ոչ ոք չկա, կամ բնակիչների փակ հանդիպում է, կամ նրանք մոռացել են նորից /open անել։ Ո՞վ գիտի... Ավելի լավ է հարցրեք նրանց չաթում կամ նշեք նրանց /hey հրամանով։
+        updated: ⏱ Թարմացվել է {{updatedDate}}-ին
+        opened: "#*բաց է#*"
+        closed: "#*փակ է#*"
         state: |
-            {{stateEmoji}} Space is {{state}} for guests by {{changedBy}}
+            {{stateEmoji}} Տարածքը {{state}} է հյուրերի համար՝ {{changedBy}}-ի կողմից
 
             {{stateMessage}}
 
         state_pin: "{{stateEmoji}} {{state}}"
-        insidechecked_pin: "👨‍💻 inside {{count}}"
+        insidechecked_pin: "👨‍💻 ներսում {{count}}"
         insidechecked: |
-            👨‍💻 [{{count}}] were checked inside:
-        nooneinside: 🛌 No one checked in inside
-        nooneinside_pin: 🛌 no one
-        going_pin: "🚕 planning {{count}}"
+            👨‍💻 [{{count}}] գրանցվել են ներսում.
+        nooneinside: 🛌 Ոչ ոք ներսում չի գրանցվել
+        nooneinside_pin: 🛌 ոչ ոք
+        going_pin: "🚕 պլանավորում է {{count}}"
         going: |
-            🚕 Planning to visit today [{{count}}]:
+            🚕 Պլանավորում են այցելել այսօր [{{count}}].
     open: |
-        🔑 Space #*open#* for guests by {{username}}. A great reason to come!
-    open-alert: 🔑 Space was opened by user {{user}}
+        🔑 Տարածքը #*բաց է#* հյուրերի համար՝ {{username}}-ի կողմից։ Հիանալի պատճառ է գալու համար։
+    open-alert: 🔑 Տարածքը բացվել է օգտատեր {{user}}-ի կողմից
     close: |
-        🔒 Space #*closed#* {{username}}. All those who checked in were sent home.
-    close-alert: 🔒 Space was closed by user {{user}}
-    evict: 🔒 The check-in list has been cleared.
+        🔒 Տարածքը #*փակ է#* {{username}}։ Բոլոր գրանցվածները ուղարկվել են տուն։
+    close-alert: 🔒 Տարածքը փակվել է օգտատեր {{user}}-ի կողմից
+    evict: 🔒 Գրանցման ցուցակը մաքրվել է։
     in:
-        notready: 🔐 Now the space is not ready to receive guests... or the residents forgot to do /open again
-        gotin: 🤝 {{username}} is now in space
-        until: " until {{until}}"
-        tryautoinside: 📲 Try the /autoinside command to check in to space automatically.
+        notready: 🔐 Այժմ տարածքը պատրաստ չէ հյուրեր ընդունելու... կամ բնակիչները մոռացել են նորից /open անել
+        gotin: 🤝 {{username}}-ն այժմ տարածքում է
+        until: " մինչև {{until}}"
+        tryautoinside: 📲 Փորձեք /autoinside հրամանը՝ ավտոմատ կերպով տարածք մուտք գործելու համար։
     out:
-        shouldnot: 🔐 And you are not on the list of marked people anyway (when the space is closed, it is cleared)
-        gotout: 👋 {{username}} is no longer in space. We hope he will come back again...
+        shouldnot: 🔐 Եվ դուք այնուամենայնիվ նշված մարդկանց ցուցակում չեք (երբ տարածքը փակ է, այն մաքրվում է)
+        gotout: 👋 {{username}}-ն այլևս տարածքում չէ։ Հուսով ենք՝ նա նորից կվերադառնա...
     inforce:
-        notready: 🔐 Sorry, you can’t bring this person now.
-        gotin: 🟢 {{memberusername}} brought {{username}} to space
+        notready: 🔐 Կներեք, այս մարդուն հիմա չեք կարող բերել։
+        gotin: 🟢 {{memberusername}}-ը {{username}}-ին բերեց տարածք
     outforce:
-        shouldnot: 🔐 Uh no, you can’t send him home.
-        gotout: 🔴 {{memberusername}} sent {{username}} home.
-    going: 🚕 {{username}} plans to go to space today {{note}}
-    notgoing: 🛌 {{username}} is no longer planning to go to space today {{note}}
+        shouldnot: 🔐 Օ՜, ոչ, դուք չեք կարող նրան տուն ուղարկել։
+        gotout: 🔴 {{memberusername}}-ը {{username}}-ին տուն ուղարկեց։
+    going: 🚕 {{username}}-ը պլանավորում է այսօր գնալ տարածք {{note}}
+    notgoing: 🛌 {{username}}-ն այլևս չի պլանավորում այսօր գնալ տարածք {{note}}
     shouldigo:
-        context: “You are a Telegram bot for the hackspace, always responding humorously and oddly. I will most likely not be allowed into the closed space, but I will be gladly accepted into the open space.”
-        prompt: “Should I go to the hackspace today if the space is {{state}} for me, {{going}} are planning to visit, and {{inside}} is inside?”
-        fail: I can't decide if I should go to the space today. Try again
+        context: “Դուք հաքերային տարածքի Telegram բոտ եք, միշտ պատասխանում եք հումորով և տարօրինակ։ Ինձ ամենայն հավանականությամբ թույլ չեն տա մտնել փակ տարածք, բայց ուրախությամբ կընդունեն բաց տարածք։”
+        prompt: “Արդյո՞ք պետք է այսօր գնամ հաքերային տարածք, եթե տարածքը {{state}} է ինձ համար, {{going}}-ը պլանավորում է այցելել, և {{inside}}-ը ներսում է։”
+        fail: Ես չեմ կարող որոշել՝ արդյոք պետք է այսօր գնամ տարածք։ Փորձեք նորից
     emoji:
         help: |
-            🐥 Using this command you can set an emoji
+            🐥 Այս հրամանի միջոցով կարող եք էմոջի սահմանել
 
-            #`/setemoji 🍗#` - Set your emoji
-            #`/setemoji status#` - View your installed emoji in the bot
-            #`/setemoji remove#` - Remove your emoji from the bot
-        fail: ⚠️ Please enter a valid emoji.
-        set: 🐥 Emoji {{emoji}} was successfully installed for user {{username}}.
-        removed: 🗑 Emoji removed for user {{username}}.
-        isset: 🐥 The emoji {{emoji}} is set for the user {{username}}.
-        isnotset: 🐥 Emoji not set for user {{username}}.
-    statsof: "🕔 {{username}} spent in space during the bot's existence (since January 2023) (based on marks)"
+            #`/setemoji 🍗#` - Սահմանել ձեր էմոջին
+            #`/setemoji status#` - Դիտել ձեր տեղադրված էմոջին բոտում
+            #`/setemoji remove#` - Հեռացնել ձեր էմոջին բոտից
+        fail: ⚠️ Խնդրում ենք մուտքագրել վավեր էմոջի։
+        set: 🐥 Էմոջի {{emoji}} հաջողությամբ տեղադրվել է օգտատեր {{username}}-ի համար։
+        removed: 🗑 Էմոջին հեռացվել է օգտատեր {{username}}-ի համար։
+        isset: 🐥 Էմոջի {{emoji}} սահմանված է օգտատեր {{username}}-ի համար։
+        isnotset: 🐥 Էմոջի սահմանված չէ օգտատեր {{username}}-ի համար։
+    statsof: "🕔 {{username}}-ը տարածքում անցկացրել է բոտի գոյության ընթացքում (2023 թվականի հունվարից) (ըստ նշումների)"
     stats:
-        start: "🕔 During the existence of the bot (since January 2023), these users spent time in space (based on marks)"
-        invaliddates: "🕔 I can’t understand the dates, try in YYYY-MM-DD format"
-        nousertimes: "📭 No marks found for this period"
-        hoursinspace: "Hours spent in space from {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{ to.year}}"
-        period: "🕔 From {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{to.year }} these users spent in space (based on marks)"
+        start: "🕔 Բոտի գոյության ընթացքում (2023 թվականի հունվարից) այս օգտատերերը ժամանակ են անցկացրել տարածքում (ըստ նշումների)"
+        invaliddates: "🕔 Ես չեմ կարող հասկանալ ամսաթվերը, փորձեք YYYY-MM-DD ձևաչափով"
+        nousertimes: "📭 Այս ժամանակահատվածի համար նշումներ չեն գտնվել"
+        hoursinspace: "Տարածքում անցկացրած ժամերը {{from.day}}/{{from.month}}/{{from.year}}-ից մինչև {{to.day}}/{{to.month}}/{{ to.year}}"
+        period: "🕔 {{from.day}}/{{from.month}}/{{from.year}}-ից մինչև {{to.day}}/{{to.month}}/{{to.year}} այս օգտատերերը ժամանակ են անցկացրել տարածքում (ըստ նշումների)"
         tryautoinside: |
-            📲 Do you want to know accurate statistics about yourself? Don't forget to check in with /in and /out, or better yet, use /autoinside to do it automatically
+            📲 Ցանկանու՞մ եք իմանալ ձեր մասին ճշգրիտ վիճակագրություն։ Մի մոռացեք գրանցվել /in և /out հրամաններով, կամ ավելի լավ է՝ օգտագործեք /autoinside՝ ավտոմատ կերպով դա անելու համար
         help: |
-            ℹ️ Stats commands:
-            • This month - /month
-            • Previous month - /lastmonth
-            • For the entire existence of the bot - /allstats
-            • Any period - #`/stats from 2023-05-01 to 2023-05-25#`
+            ℹ️ Վիճակագրության հրամաններ.
+            • Այս ամիս - /month
+            • Նախորդ ամիս - /lastmonth
+            • Բոտի ամբողջ գոյության ընթացքում - /allstats
+            • Ցանկացած ժամանակահատված - #`/stats from 2023-05-01 to 2023-05-25#`
 meme:
-    its_wednesday: 🐸 Kwa-kwa, today is Wednesday! The chance of getting /zhabka from me today is higher than ever (even where they are not usually found)!
-    not_wednesday: 🐸 Oh, the toads are sleeping today. Come back on Wednesday!
+    its_wednesday: 🐸 Կվա-կվա, այսօր չորեքշաբթի է։ Այսօր ինձնից /zhabka ստանալու հավանականությունն ավելի բարձր է, քան երբևէ (նույնիսկ այնտեղ, որտեղ դրանք սովորաբար չեն հանդիպում)։
+    not_wednesday: 🐸 Օ՜, այսօր գորտերը քնած են։ Վերադարձեք չորեքշաբթի։
     slap:
         user: |
-            🖐 {{from}} slaps {{target}}
+            🖐 {{from}}-ը ապտակում է {{target}}-ին
         help: |
-            🖐 Using this command you can slap someone
+            🖐 Այս հրամանի միջոցով կարող եք մեկին ապտակել
             #`/slap username#`
-            🤦 Make it personal
+            🤦 Անձնական դարձրեք
             #`/slapp username#`
-        no_avatar: Couldn’t find an avatar for this user, slap him/her the old-fashioned way
+        no_avatar: Չհաջողվեց գտնել այս օգտատիրոջ ավատարը, ապտակեք նրան հին ձևով
     hug:
         user: |
-            🫂 {{from}} hugs {{target}} with warmth and tenderness
+            🫂 {{from}}-ը գրկում է {{target}}-ին ջերմությամբ և քնքշությամբ
         help: |
-            🫂 Using this command you can hug someone
+            🫂 Այս հրամանի միջոցով կարող եք մեկին գրկել
             #`/hug username#`
 topics:
     general:
-        error: ⚠️ Something went wrong
-        notfound: ⚠️ Topic not found
-        empty: There is nothing yet
-        nosubscribers: 🌚 There are no subscribers to the topic {{topic}}
+        error: ⚠️ Ինչ-որ բան այն չէ
+        notfound: ⚠️ Թեմա չի գտնվել
+        empty: Դեռ ոչինչ չկա
+        nosubscribers: 🌚 Թեմային {{topic}} բաժանորդներ չկան
     buttons:
-        topics: 🗃 All topics
-        subscriptions: 💌 Subscriptions
+        topics: 🗃 Բոլոր թեմաները
+        subscriptions: 💌 Բաժանորդագրություններ
     topics:
         list: |
-            📭 Using this feature, you can subscribe to the newsletter on topics that interest you.
-            Topic authors will be able to easily mention you in group chats and send you personal notifications.
+            📭 Այս գործառույթի միջոցով կարող եք բաժանորդագրվել ձեզ հետաքրքրող թեմաների տեղեկագրին։
+            Թեմայի հեղինակները կկարողանան հեշտությամբ նշել ձեզ խմբային չաթերում և ուղարկել ձեզ անձնական ծանուցումներ։
 
-            🗃 List of available topics:
+            🗃 Հասանելի թեմաների ցուցակը.
             {{topics}}
 
-            📟 Commands:
-            View the list of available topics - /topics
-            View current subscriptions - /subscriptions
-            Subscribe to the newsletter - #`/subscribe topicname#`
-            Unsubscribe from the mailing list - #`/unsubscribe topicname#`
-            Tag all subscribers of the topic - #`/tag topicname#`
+            📟 Հրամաններ.
+            Դիտել հասանելի թեմաների ցուցակը - /topics
+            Դիտել ընթացիկ բաժանորդագրությունները - /subscriptions
+            Բաժանորդագրվել տեղեկագրին - #`/subscribe topicname#`
+            Հրաժարվել տեղեկագրից - #`/unsubscribe topicname#`
+            Նշել թեմայի բոլոր բաժանորդներին - #`/tag topicname#`
         member: |
-            📯 Resident teams:
-            Add a topic - #`/addtopic topicname topicdescription#`
-            Remove topic - #`/removetopic topicname#`
-            Personal messages to subscribers - #`/notify topicname message#`
+            📯 Բնակիչների թիմեր.
+            Ավելացնել թեմա - #`/addtopic topicname topicdescription#`
+            Հեռացնել թեմա - #`/removetopic topicname#`
+            Անձնական հաղորդագրություններ բաժանորդներին - #`/notify topicname message#`
     subscriptions:
         list: |
-            📭 You are subscribed to the following topics:
+            📭 Դուք բաժանորդագրված եք հետևյալ թեմաներին.
             {{topics}}
 
-            📟 Commands:
-            View the list of available topics - /topics
-            Unsubscribe from the mailing list - #`/unsubscribe topicname#`
-        empty: 🗿 You are not subscribed to any topic
+            📟 Հրամաններ.
+            Դիտել հասանելի թեմաների ցուցակը - /topics
+            Հրաժարվել տեղեկագրից - #`/unsubscribe topicname#`
+        empty: 🗿 Դուք բաժանորդագրված չեք որևէ թեմայի
     subscribe:
         success: |
-            📭 Subscription to topic {{topic}} is completed
+            📭 Թեմային {{topic}} բաժանորդագրությունն ավարտված է
 
-            📟 My subscriptions - /subscriptions
+            📟 Իմ բաժանորդագրությունները - /subscriptions
         already: |
-            👌 You are already subscribed to {{topic}}
+            👌 Դուք արդեն բաժանորդագրված եք {{topic}}-ին
 
-            📟 My subscriptions - /subscriptions
-        fail: ⚠️ Failed to subscribe to topic {{topic}}
+            📟 Իմ բաժանորդագրությունները - /subscriptions
+        fail: ⚠️ Չհաջողվեց բաժանորդագրվել թեմային {{topic}}
     unsubscribe:
         success: |
-            🗑 Subscription to topic {{topic}} has been removed
+            🗑 Թեմային {{topic}} բաժանորդագրությունը հեռացվել է
 
-            📟 My subscriptions - /subscriptions
+            📟 Իմ բաժանորդագրությունները - /subscriptions
         notsubscribed: |
-            🙅‍♀️ You are not subscribed to {{topic}}
+            🙅‍♀️ Դուք բաժանորդագրված չեք {{topic}}-ին
 
-            📟 My subscriptions - /subscriptions
-        fail: ⚠️ Failed to unsubscribe from topic {{topic}}. Are you sure you are subscribed?
+            📟 Իմ բաժանորդագրությունները - /subscriptions
+        fail: ⚠️ Չհաջողվեց հրաժարվել թեմայից {{topic}}։ Համոզվա՞ծ եք, որ բաժանորդագրված եք։
     add:
-        success: 📭 Topic {{topic}} added
-        exists: 👌 Topic {{topic}} already exists
-        fail: ⚠️ Failed to add topic {{topic}}
+        success: 📭 Թեմա {{topic}} ավելացվել է
+        exists: 👌 Թեմա {{topic}} արդեն գոյություն ունի
+        fail: ⚠️ Չհաջողվեց ավելացնել թեմա {{topic}}
     delete:
-        success: 🗑 Topic {{topic}} deleted
-        fail: ⚠️ Failed to delete topic {{topic}}
+        success: 🗑 Թեմա {{topic}} ջնջվել է
+        fail: ⚠️ Չհաջողվեց ջնջել թեմա {{topic}}
     notify:
         help: |
-            📭 Using this command you can send personal messages to all subscribers of the topic
+            📭 Այս հրամանի միջոցով կարող եք անձնական հաղորդագրություններ ուղարկել թեմայի բոլոր բաժանորդներին
             #`/notify topicname message#`
         message: |
-            📭 A message for you from the topic {{topic}}:
+            📭 Հաղորդագրություն ձեզ համար թեմայից {{topic}}.
 
             {{text}}
 
-            📟 My subscriptions - /subscriptions
-        started: 📯 Mailing list to {{topic}} subscribers has begun. Private messages will receive {{count}} followers within {{eta}} seconds
-        finished: ✅ Distribution to {{topic}} subscribers has been completed. Private messages successfully received {{received}}/{{count}} subscribers
+            📟 Իմ բաժանորդագրությունները - /subscriptions
+        started: 📯 Տեղեկագրի բաշխումը {{topic}} բաժանորդներին սկսվել է։ Անձնական հաղորդագրություններ կստանան {{count}} հետևորդներ {{eta}} վայրկյանի ընթացքում
+        finished: ✅ Բաշխումը {{topic}} բաժանորդներին ավարտվել է։ Անձնական հաղորդագրությունները հաջողությամբ ստացել են {{received}}/{{count}} բաժանորդներ
+
+

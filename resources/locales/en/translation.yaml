@@ -628,7 +628,7 @@ service:
         success: ✅ Language is set as {{language}}
         error: ⚠️ Failed to set language
         notsupported: |
-            ⚠️ Language {{language}} is not supported, only #`ru#`, #`eo#`, #`uk#` and #`en#` are available
+            ⚠️ Language {{language}} is not supported, only #`ru#`, #`eo#`, #`uk#`, #`hy#`, and #`en#` are available
     removebuttons:
         error: ⚠️ Failed to remove buttons
     deprecated:

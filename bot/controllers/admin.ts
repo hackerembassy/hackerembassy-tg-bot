@@ -123,60 +123,10 @@ export default class AdminController implements BotController {
         );
     }
 
-    // TODO remove when events are attached to the handler
-    static readonly eventCommandMap = {
-        [BotCustomEvent.statusLive]: BotCustomEvent.statusLive,
-        [BotCustomEvent.camLive]: BotCustomEvent.camLive,
-        status: BotCustomEvent.statusLive,
-        s: BotCustomEvent.statusLive,
-        ss: BotCustomEvent.statusLive,
-        downstairs: BotCustomEvent.camLive,
-        ff: BotCustomEvent.camLive,
-        cum: BotCustomEvent.camLive,
-        cam: BotCustomEvent.camLive,
-        webcam: BotCustomEvent.camLive,
-        webcum: BotCustomEvent.camLive,
-        printerscam: BotCustomEvent.camLive,
-        downstairs2: BotCustomEvent.camLive,
-        face: BotCustomEvent.camLive,
-        facecam: BotCustomEvent.camLive,
-        facecum: BotCustomEvent.camLive,
-        facecontrol: BotCustomEvent.camLive,
-        doorcam: BotCustomEvent.camLive,
-        doorcum: BotCustomEvent.camLive,
-        dc: BotCustomEvent.camLive,
-        outdoors: BotCustomEvent.camLive,
-        upstairs: BotCustomEvent.camLive,
-        sf: BotCustomEvent.camLive,
-        webcam2: BotCustomEvent.camLive,
-        webcum2: BotCustomEvent.camLive,
-        cum2: BotCustomEvent.camLive,
-        cam2: BotCustomEvent.camLive,
-        sf2: BotCustomEvent.camLive,    
-        kitchen: BotCustomEvent.camLive,
-        kitchencam: BotCustomEvent.camLive,
-        kitchencum: BotCustomEvent.camLive,
-        fridge: BotCustomEvent.camLive,
-        meetcam: BotCustomEvent.camLive,
-        meeting: BotCustomEvent.camLive,
-        meetcum: BotCustomEvent.camLive,
-        meeting_room: BotCustomEvent.camLive,
-        balcony: BotCustomEvent.camLive,
-        balcon: BotCustomEvent.camLive,
-        balcum: BotCustomEvent.camLive,
-        balcam: BotCustomEvent.camLive,
-        gw: BotCustomEvent.camLive,
-        precam: BotCustomEvent.camLive,
-        precum: BotCustomEvent.camLive,
-        gatecam: BotCustomEvent.camLive,
-        gateway: BotCustomEvent.camLive,
-    };
-
-    @Route(["stoplive", "cleanlive"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["stoplive", "cleanlive"])
     @UserRoles(Admins)
-    static async stopLiveHandler(bot: HackerEmbassyBot, msg: Message, event?: string) {
-        const customEvent = AdminController.eventCommandMap[event as keyof typeof this.eventCommandMap];
-        bot.botState.clearLiveHandlers(msg.chat.id, customEvent);
+    static async stopLiveHandler(bot: HackerEmbassyBot, msg: Message) {
+        bot.botState.clearLiveHandlers(msg.chat.id);
         await bot.sendMessageExt(msg.chat.id, "Live handlers are removed from this chat", msg);
     }
 

@@ -628,7 +628,7 @@ service:
         success: ✅ Lingvo estas agordita kiel {{language}}
         error: ⚠️ Malsukcesis agordi lingvon
         notsupported: |
-            ⚠️ Lingvo {{language}} ne estas subtenata, nur #`ru#`, #`eo#`, #`uk#` kaj #`en#` estas haveblaj
+            ⚠️ Lingvo {{language}} ne estas subtenata, nur #`ru#`, #`eo#`, #`uk#`, #`hy#`, kaj #`en#` estas haveblaj
     removebuttons:
         error: ⚠️ Malsukcesis forigi butonojn
     deprecated:

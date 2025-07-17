@@ -264,6 +264,7 @@ export default class ServiceController implements BotController {
     @Route(["setlanguage", "setlang", "lang", "language"], OptionalParam(/(\S+)/), match => [match[1]])
     @Route(["ru", "rus", "russian"], null, () => ["ru"])
     @Route(["en", "eng", "english"], null, () => ["en"])
+    @Route(["hy", "hye", "armenian"], null, () => ["hy"])
     @Route(["uk", "ukr", "ukrainian", "ua"], null, () => ["uk"])
     @Route(["eo", "epo", "esperanto"], null, () => ["eo"])
     static async setLanguageHandler(
@@ -276,6 +277,7 @@ export default class ServiceController implements BotController {
             const publicLanguages = [
                 { flag: "🇷🇺", code: "ru", label: "Ru" },
                 { flag: "🇬🇧", code: "en", label: "En" },
+                { flag: "🇦🇲", code: "hy", label: "Hy" },
                 { flag: "🇳🇬", code: "eo", label: "Eo" }, // Yeah, I know, that's Nigerian. There's no Esperanto flag in Unicode.
                 { flag: "🇺🇦", code: "uk", label: "Uk" },
             ];

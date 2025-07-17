@@ -629,7 +629,7 @@ service:
         success: ✅ Язык установлен как {{language}}
         error: ⚠️ Не удалось установить язык
         notsupported: |
-            ⚠️ Язык {{language}} не поддерживается, доступны только #`ru#`, #`eo#`, #`uk#` и #`en#`
+            ⚠️ Язык {{language}} не поддерживается, доступны только #`ru#`, #`eo#`, #`uk#`, #`hy#`, и #`en#`
     removebuttons:
         error: ⚠️ Не получилось убрать кнопки
     deprecated:

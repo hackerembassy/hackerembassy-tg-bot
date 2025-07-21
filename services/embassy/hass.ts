@@ -10,7 +10,7 @@ const climateConfig = embassyApiConfig.climate;
 const alarmConfig = embassyApiConfig.alarm;
 
 // Types
-export type AvailableConditioner = "downstairs" | "upstairs";
+export type AvailableConditioner = "private" | "upstairs";
 
 export type ConditionerMode = "off" | "auto" | "cool" | "dry" | "fan_only" | "heat_cool" | "heat";
 

@@ -267,7 +267,7 @@ export interface ClimateConfig {
 }
 
 export interface ConditionerConfig {
-    downstairsId: string;
+    privateId: string;
     upstairsId: string;
     statePath: string;
     turnOnPath: string;

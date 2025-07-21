@@ -213,7 +213,7 @@ class Conditioner {
 }
 
 export const AvailableConditioners = new Map<string, Conditioner>([
-    ["downstairs", new Conditioner(climateConfig.conditioner.downstairsId)],
+    ["private", new Conditioner(climateConfig.conditioner.privateId)],
     ["upstairs", new Conditioner(climateConfig.conditioner.upstairsId)],
 ]);
 

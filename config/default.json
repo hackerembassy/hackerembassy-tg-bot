@@ -183,8 +183,8 @@
         },
         "climate": {
             "conditioner": {
-                "downstairsId": "climate.midea_climate",
-                "upstairsId": "climate.upstairs_hvac",
+                "privateId": "climate.midea_climate",
+                "upstairsId": "climate.lg_hvac",
                 "statePath": "/api/states",
                 "turnOnPath": "/api/services/climate/turn_on",
                 "turnOffPath": "/api/services/climate/turn_off",

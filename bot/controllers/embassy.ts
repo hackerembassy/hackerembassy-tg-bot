@@ -561,8 +561,8 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["conditioner", "conditioner1", "midea", "ac", "ac1"], null, () => ["downstairs"])
-    @Route(["conditioner2", "ac2", "lg"], null, () => ["upstairs"])
+    @Route(["conditioner2", "lg", "ac2", "ac", "upac"], null, () => ["upstairs"])
+    @Route(["conditioner", "conditioner1", "ac1", "prac", "midea"], null, () => ["private"])
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
     static async conditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
@@ -614,7 +614,7 @@ export default class EmbassyController implements BotController {
         try {
             const conditionerStatus = await embassyService.getConditionerStatus(name);
 
-            text = t("embassy.conditioner.status", { name, conditionerStatus, firm: name === "downstairs" ? "midea" : "lg" });
+            text = t("embassy.conditioner.status", { name, conditionerStatus, firm: name === "private" ? "midea" : "lg" });
         } catch (error) {
             logger.error(error);
         } finally {
@@ -632,7 +632,7 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["mideaon", "acon", "ac1on"], null, () => ["downstairs"])
+    @Route(["mideaon", "acon", "ac1on"], null, () => ["private"])
     @Route(["lgon", "ac2on"], null, () => ["upstairs"])
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
@@ -642,7 +642,7 @@ export default class EmbassyController implements BotController {
         if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
-    @Route(["mideaoff", "acoff", "ac1off"], null, () => ["downstairs"])
+    @Route(["mideaoff", "acoff", "ac1off"], null, () => ["private"])
     @Route(["lgoff", "ac2off"], null, () => ["upstairs"])
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
@@ -652,7 +652,7 @@ export default class EmbassyController implements BotController {
         if (bot.context(msg).isButtonResponse) await EmbassyController.conditionerHandler(bot, msg, name);
     }
 
-    @Route(["mideaaddtemp", "acaddtemp", "ac1addtemp"], CaptureInteger, match => ["downstairs", Number(match[1])])
+    @Route(["mideaaddtemp", "acaddtemp", "ac1addtemp"], CaptureInteger, match => ["private", Number(match[1])])
     @Route(["lgaddtemp", "ac2addtemp"], CaptureInteger, match => ["upstairs", Number(match[1])])
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
@@ -666,7 +666,7 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    @Route(["mideatemp", "actemp", "ac1temp"], /(\d*)/, match => ["downstairs", Number(match[1])])
+    @Route(["mideatemp", "actemp", "ac1temp"], /(\d*)/, match => ["private", Number(match[1])])
     @Route(["lgtemp", "ac2temp"], /(\d*)/, match => ["upstairs", Number(match[1])])
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
@@ -675,7 +675,7 @@ export default class EmbassyController implements BotController {
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
     }
 
-    @Route(["mideamode", "acmode", "ac1mode"], /(\S+)/, match => ["downstairs", Number(match[1])])
+    @Route(["mideamode", "acmode", "ac1mode"], /(\S+)/, match => ["private", Number(match[1])])
     @Route(["lgmode", "ac2mode"], /(\S+)/, match => ["upstairs", Number(match[1])])
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)

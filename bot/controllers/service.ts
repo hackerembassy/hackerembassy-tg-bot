@@ -55,21 +55,26 @@ export default class ServiceController implements BotController {
         }
     }
 
-    @Route(["tldr"], OptionalParam(/(\d*)/), match => [match[1]])
+    @Route(["tldr"], OptionalParam(/(\d*)(?: (.+))?/), match => [match[1], match[2]])
     @UserRoles(TrustedMembers)
     @AllowedChats(PublicChats)
     @FeatureFlag("ai")
     @FeatureFlag("history")
-    static async tldrHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
+    static async tldrHandler(bot: HackerEmbassyBot, msg: Message, count: string, promptOverride: string) {
         if (!NonTopicChats.includes(msg.chat.id)) {
             return bot.sendMessageExt(msg.chat.id, t("service.tldr.notready"), msg);
         }
 
         const countToSummarize = Number(count);
+
+        if (isNaN(countToSummarize) || countToSummarize < 0 || countToSummarize > 1000) {
+            return bot.sendMessageExt(msg.chat.id, t("service.tldr.help"), msg);
+        }
+
         const chatHistory = bot.messageHistory.getAll(msg.chat.id).toReversed();
         const selectedMessages = countToSummarize > 0 ? chatHistory.slice(-countToSummarize) : chatHistory;
 
-        let prompt = t("service.tldr.prompt") + "\n\n";
+        let prompt = promptOverride ? promptOverride : t("service.tldr.prompt") + "\n\n";
         for (const message of selectedMessages) {
             if (message.text) prompt += `${message.from}: ${message.text}\n`;
         }

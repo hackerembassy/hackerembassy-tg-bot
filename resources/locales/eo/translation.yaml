@@ -92,7 +92,7 @@ basic:
         {{accountantsList}}
     donateCoin: |
         🪙 Uzu ĉi tiun QR-kodon aŭ adreson sube por donaci al ni per {{coin.fullname}}.
-          
+
         ⚠️ Bonvolu noti ke la reto estas {{coin.network}} kaj vi uzas la ĝustan adreson:
         #`{{coin.address}}#`
 
@@ -265,7 +265,7 @@ admin:
         success: Mesaĝo estis kopiita al {{target}}
     custom:
         help: |
-            ✉️ Kreas kutiman mesaĝon kun bildoj kaj butonoj en la nuna babilo. Ekzemplo: 
+            ✉️ Kreas kutiman mesaĝon kun bildoj kaj butonoj en la nuna babilo. Ekzemplo:
 
             #`/custom Iu teksto
 
@@ -313,10 +313,13 @@ embassy:
     webcam:
         location:
             downstairs: Unua etaĝo
-            downstairs2: Unua etaĝo 2
-            kitchen: Kuirejo
             upstairs: Dua etaĝo
+            upstairs_ptz: Dua etaĝo PTZ
+            balcony: Balcono
+            kitchen: Kuirejo
+            meeting_room: Rezervita sala
             outdoors: Enireja pordo
+            gateway: Porta pordo2
             facecontrol: Vizaĝa kontrolo
             printers: Presilo
         fail: |
@@ -552,7 +555,7 @@ funds:
         empty: ⚠️ Neniuj donacoj trovitaj por ĉi tiu periodo
     sponsors:
         list: |
-            🏅 Niaj amataj sponsoroj 🏅 
+            🏅 Niaj amataj sponsoroj 🏅
 
             {{list}}
 

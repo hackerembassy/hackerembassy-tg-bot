@@ -92,7 +92,7 @@ basic:
         {{accountantsList}}
     donateCoin: |
         🪙 Use this QR code or address below to donate to us at {{coin.fullname}}.
-          
+
         ⚠️ Please note that the network is {{coin.network}} and you are using the correct address:
         #`{{coin.address}}#`
 
@@ -265,7 +265,7 @@ admin:
         success: Message was copied to {{target}}
     custom:
         help: |
-            ✉️ Creates a custom message with images and buttons in the current chat. Example: 
+            ✉️ Creates a custom message with images and buttons in the current chat. Example:
 
             #`/custom Some text
 
@@ -313,10 +313,13 @@ embassy:
     webcam:
         location:
             downstairs: Ground floor
-            downstairs2: Ground floor 2
-            kitchen: Kitchen
             upstairs: Second floor
+            upstairs_ptz: Second floor PTZ
+            balcony: Balcony
+            kitchen: Kitchen
+            meeting_room: Meeting room
             outdoors: Entrance door
+            gateway: Gateway
             facecontrol: Face control
             printers: Printer
         fail: |
@@ -552,7 +555,7 @@ funds:
         empty: ⚠️ No donations found for this period
     sponsors:
         list: |
-            🏅 Our beloved sponsors 🏅 
+            🏅 Our beloved sponsors 🏅
 
             {{list}}
 

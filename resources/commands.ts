@@ -96,7 +96,12 @@ export const MemberCommandsList: string = `
 /superstatus (ss) - Статус и изображения со всех камер
 /downstairs (ff, cam1a) - Глянуть камеру первого этажа
 /upstairs (sf, cam2) - Глянуть камеру второго этажа
+/upstairs_ptz (sf2) - Глянуть подвижную камеру второго этажа
+/kitchen (fridge) - Глянуть камеру на кухне
+/balcony (balcam) - Глянуть камеру на балконе
+/meeting_room (meetcam) - Глянуть камеру в переговорке
 /facecontrol (face) - Глянуть камеру у входа
+/gateway (gw) - Глянуть камеру в подъезде
 /outdoors (doorcam) - Глянуть камеру снаружи
 /allcams (ac) - Глянуть все камеры
 
@@ -140,7 +145,7 @@ export const MemberCommandsList: string = `
 [END Команды резидентов]
 `;
 
-export const AdminCommandsList: string = ` 
+export const AdminCommandsList: string = `
 [Команды админов]
 
 /getusers

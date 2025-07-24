@@ -644,7 +644,8 @@ service:
             Jen mesaĝoj el babilejo en mesaĝilo. Menciu la ĉefajn temojn diskutitajn de homoj kaj kiu parolis pri ili, donu resumon se necese
         help: |
             📝 Per ĉi tiu komando, vi povas ricevi resumon de la ĉefaj temoj diskutitaj en la babilejo. La roboto analizos la lastajn n mesaĝojn kaj provos resumi ilin.
-            #`/tldr n#` - kie n estas la nombro da mesaĝoj por analizi (defaŭlte 1000)
+
+            #`/tldr n optional_prompt#` - kie n estas la nombro da mesaĝoj por analizi (max 1000)
         notready: Ĉi tiu funkcio nuntempe funkcias en testa reĝimo por babilejoj sen temoj
     token:
         help: |

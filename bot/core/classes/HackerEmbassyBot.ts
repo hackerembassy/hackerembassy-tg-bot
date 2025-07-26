@@ -39,7 +39,6 @@ import { effectiveName, OptionalRegExp, prepareMessageForMarkdown, tgUserLink } 
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {
-    DEFAULT_BOT_NAME,
     DEFAULT_CLEAR_QUEUE_LENGTH,
     DEFAULT_CLEAR_QUEUE_TIMEOUT,
     DEFAULT_TEMPORARY_MESSAGE_TIMEOUT,
@@ -86,7 +85,7 @@ const WelcomeMessageMap: {
 };
 
 export default class HackerEmbassyBot extends TelegramBot {
-    public name: string = DEFAULT_BOT_NAME;
+    public name: string = botConfig.name;
     public customEmitter = new EventEmitter();
     public botState = new BotState(this);
     public botMessageHistory = new MessageHistory(this.botState, this.botState.history, botConfig.history.commandsLimit);
@@ -117,11 +116,6 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     public start() {
-        // Who am I?
-        this.getMe()
-            .then(user => user.username && (this.name = user.username))
-            .catch(() => logger.error("Failed to get bot username"));
-
         // Let's start listening for events
         this.on("message", this.routeMessage);
         this.on("callback_query", this.routeCallback);

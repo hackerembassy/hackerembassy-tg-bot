@@ -10,10 +10,16 @@ import BotMessageContext from "./classes/BotMessageContext";
 
 const botConfig = config.get<BotConfig>("bot");
 
-// Supported languages
+export const PUBLIC_LANGUAGES = [
+    { flag: "🇷🇺", code: "ru", label: "Ru" },
+    { flag: "🇬🇧", code: "en", label: "En" },
+    { flag: "🇦🇲", code: "hy", label: "Hy" },
+    { flag: "🇳🇬", code: "eo", label: "Eo" }, // Yeah, I know, that's Nigerian. There's no Esperanto flag in Unicode.
+    { flag: "🇺🇦", code: "uk", label: "Uk" },
+] as const;
 export const DEFAULT_LANGUAGE = botConfig.defaultLocale as SupportedLanguage;
 export const TEST_LANGUAGE = "test";
-export const SUPPORTED_LANGUAGES = ["en", "ru", "hy", "eo", "uk", TEST_LANGUAGE] as const;
+export const SUPPORTED_LANGUAGES = [...PUBLIC_LANGUAGES.map(lang => lang.code), TEST_LANGUAGE] as const;
 
 // Type for supported languages
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];

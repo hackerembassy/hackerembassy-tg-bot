@@ -19,11 +19,12 @@ import {
 } from "@hackembot/core/decorators";
 
 import { openwebui } from "@services/neural/openwebui";
+import { splitArray } from "@utils/common";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
-import t, { DEFAULT_LANGUAGE, isSupportedLanguage, TEST_LANGUAGE } from "../core/localization";
+import t, { DEFAULT_LANGUAGE, isSupportedLanguage, PUBLIC_LANGUAGES, TEST_LANGUAGE } from "../core/localization";
 import { BotController, MessageHistoryEntry } from "../core/types";
 import { OptionalParam, tgUserLink } from "../core/helpers";
 import EmbassyController from "./embassy";
@@ -279,26 +280,19 @@ export default class ServiceController implements BotController {
         verificationDetails?: { vId: number; name: string }
     ) {
         if (!lang) {
-            const publicLanguages = [
-                { flag: "🇷🇺", code: "ru", label: "Ru" },
-                { flag: "🇬🇧", code: "en", label: "En" },
-                { flag: "🇦🇲", code: "hy", label: "Hy" },
-                { flag: "🇳🇬", code: "eo", label: "Eo" }, // Yeah, I know, that's Nigerian. There's no Esperanto flag in Unicode.
-                { flag: "🇺🇦", code: "uk", label: "Uk" },
-            ];
-
-            const inline_keyboard = [
-                publicLanguages.map(lang =>
+            const keyboardRowsCount = 3;
+            const publicLanguageGroups = splitArray(Array.from(PUBLIC_LANGUAGES), keyboardRowsCount);
+            const inline_keyboard = publicLanguageGroups.map(group =>
+                group.map(lang =>
                     InlineButton(`${lang.flag} ${lang.label}`, "setlanguage", ButtonFlags.Simple, {
                         params: lang.code,
                         vId: verificationDetails?.vId,
                     })
-                ),
-            ];
-
+                )
+            );
             // Ban this bot outta here
             if (verificationDetails?.vId) {
-                inline_keyboard[0].push(
+                inline_keyboard[keyboardRowsCount - 1].push(
                     InlineButton("🤖", "ban", ButtonFlags.Simple, {
                         params: verificationDetails.vId,
                     })

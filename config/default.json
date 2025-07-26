@@ -6,6 +6,7 @@
             "retryInterval": 10000,
             "maxRetryCount": 5
         },
+        "name": "HackerEmbassyBot",
         "timezone": "Asia/Yerevan",
         "defaultLocale": "ru",
         "launchDate": "2023-01-01",

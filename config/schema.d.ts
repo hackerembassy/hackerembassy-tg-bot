@@ -19,6 +19,7 @@ export interface WikiConfig {
 
 export interface BotConfig {
     instance: InstanceConfig;
+    name: string;
     timezone: string;
     defaultLocale: string;
     launchDate: string;

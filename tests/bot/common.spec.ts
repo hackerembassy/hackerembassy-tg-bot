@@ -26,6 +26,15 @@ describe("Bot behavior shared for all commands:", () => {
         expect(mockBot.popResults()).toHaveLength(2);
     });
 
+    test("bot should respond to messages the same way if it was mentioned explicitly", async () => {
+        await mockBot.processUpdate(createMockMessage(`/issue@${mockBot.name}`));
+        await mockBot.processUpdate(createMockMessage(`/issue`));
+
+        const responses = mockBot.popResults();
+
+        expect(responses[0]).toEqual(responses[1]);
+    });
+
     test("bot should respond to commands with any case and not miss parameters", async () => {
         await mockBot.processUpdate(createMockMessage(`/StAtUs`));
         await mockBot.processUpdate(createMockMessage(`/status`));

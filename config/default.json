@@ -154,7 +154,7 @@
             "downstairs": "/api/camera_proxy/camera.downstairs",
             "gateway": "/api/camera_proxy/camera.gateway",
             "upstairs": "/api/camera_proxy/camera.upstairs",
-            "upstairs_ptz": "/api/camera_proxy/camera.upstairs",
+            "upstairs_ptz": "/api/camera_proxy/camera.upstairs_ptz",
             "doorbell": "/api/camera_proxy/camera.reolink_video_doorbell_poe_snapshots_clear",
             "kitchen": "/api/camera_proxy/camera.fridge",
             "balcony": "/api/camera_proxy/camera.balcony",

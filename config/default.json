@@ -194,17 +194,17 @@
                 "preheatPath": "/api/services/script/preheat"
             },
             "first_floor": {
-                "temperature": "/api/states/sensor.first_floor_temperature",
-                "humidity": "/api/states/sensor.a4_c1_38_d7_e3_a2_e3a2_humidity",
+                "temperature": "/api/states/sensor.atc_downstairs_temperature",
+                "humidity": "/api/states/sensor.atc_downstairs_humidity",
                 "co2": "/api/states/sensor.downstairs_co2_value"
             },
             "second_floor": {
                 "temperature": "/api/states/sensor.second_floor_temperature",
-                "humidity": "/api/states/sensor.atc_1664_humidity"
+                "humidity": "/api/states/sensor.second_floor_humidity"
             },
             "bedroom": {
-                "temperature": "/api/states/sensor.atc_9ba1_temperature",
-                "humidity": "/api/states/sensor.atc_9ba1_humidity"
+                "temperature": "/api/states/sensor.atc_private_room_temperature",
+                "humidity": "/api/states/sensor.atc_private_room_humidity"
             }
         }
     },

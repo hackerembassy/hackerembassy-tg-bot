@@ -39,6 +39,7 @@ export default class MemeController implements BotController {
     @Route(["randomdog", "dog"], null, () => ["./resources/images/dogs"])
     @Route(["randomcat", "cat"], null, () => ["./resources/images/cats"])
     @Route(["randomcock", "cock"], null, () => ["./resources/images/roosters"])
+    @Route(["respect", "f"], null, () => ["./resources/images/respect"])
     @Route(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"], null, () => ["./resources/images/cab"])
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
         const isTimeForZhabka = getToday().getDay() === ITS_WEDNESDAY_YEAAAH && Math.random() < ZHABKA_CHANCE;

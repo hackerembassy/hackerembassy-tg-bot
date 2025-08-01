@@ -292,7 +292,7 @@ export default class ServiceController implements BotController {
             );
             // Ban this bot outta here
             if (verificationDetails?.vId) {
-                inline_keyboard[keyboardRowsCount - 1].push(
+                inline_keyboard[inline_keyboard.length - 1]?.push(
                     InlineButton("🤖", "ban", ButtonFlags.Simple, {
                         params: verificationDetails.vId,
                     })

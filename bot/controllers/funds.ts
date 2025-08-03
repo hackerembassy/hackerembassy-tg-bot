@@ -300,10 +300,6 @@ export default class FundsController implements BotController {
     }
 
     static async getAnimeImageForDonation(value: number, currency: string, user: User) {
-        const valueInDefaultCurrency = await convertCurrency(value, currency, DefaultCurrency);
-
-        if (!valueInDefaultCurrency) throw new Error("Failed to convert currency");
-
         if (value === 42069 || value === 69420 || value === 69 || value === 420) {
             return getImageFromPath(`./resources/images/memes/comedy.jpg`);
         } else if (value === 2040) {
@@ -313,7 +309,20 @@ export default class FundsController implements BotController {
         } else if (user.username && botConfig.funds.alternativeUsernames.includes(user.username)) {
             return getImageFromPath(`./resources/images/anime/guy.jpg`);
         } else {
-            const happinessLevel = value < 10000 ? 1 : value < 20000 ? 2 : value < 40000 ? 3 : value < 80000 ? 4 : 5; // lol
+            const convertedValue = await convertCurrency(value, currency, DefaultCurrency);
+
+            if (!convertedValue) throw new Error("Failed to convert currency");
+
+            const happinessLevel =
+                convertedValue < 10000
+                    ? 1
+                    : convertedValue < 20000
+                      ? 2
+                      : convertedValue < 40000
+                        ? 3
+                        : convertedValue < 80000
+                          ? 4
+                          : 5; // lol
             return getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
         }
     }

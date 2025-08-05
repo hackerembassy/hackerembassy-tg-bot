@@ -72,6 +72,7 @@ import {
 import { ButtonFlags, InlineDeepLinkButton } from "../inlineButtons";
 import ChatBridge from "./ChatBridge";
 import { MetadataKeys, NonTopicChats, PublicChats, RouteMetadata } from "../decorators";
+import { MessageStreamingError } from "../errors";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -413,6 +414,10 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         try {
             for await (const chunk of stream) {
+                if (chunk.error) {
+                    throw new MessageStreamingError(chunk.error);
+                }
+
                 if (chunk.response) {
                     buffer += chunk.response;
                     window += chunk.response.length;
@@ -445,6 +450,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             return true;
         } catch (error) {
+            if (error instanceof MessageStreamingError) {
+                throw error;
+            }
             logger.error(error);
             return false;
         }

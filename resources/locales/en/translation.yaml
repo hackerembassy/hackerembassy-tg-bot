@@ -470,7 +470,7 @@ embassy:
         ask:
             help: |
                 🔮 Ask a question to the neural network. Available only in group space chats. Available models can be checked here /models
-
+            usage: |
                 💬 Ask specific model:
                 #`/ask llama3.2:latest How to patch KDE under FreeBSD#`
                 💬 Ask GPT:
@@ -479,6 +479,8 @@ embassy:
                 #`/ollama What is Hackerspace?#`
             notset: ⚠️ Bot is not yet configured for this functionality
             error: ⚠️ Something went wrong, does the model exist and is it running?
+            modelnotfound: |
+                ⚠️ Model #`{{model}}#` not found, are you sure it exists or you are using the command correctly? Check the available models using /models
         models: |
             🧠 Available models:
             {{modelsList}}

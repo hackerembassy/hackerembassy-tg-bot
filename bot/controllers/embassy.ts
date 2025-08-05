@@ -750,7 +750,7 @@ export default class EmbassyController implements BotController {
     @AllowedChats(PublicChats)
     static async availableModelsHandler(bot: HackerEmbassyBot, msg: Message) {
         const openwebuiModels = await openwebui.getModels();
-        const models = [neuralConfig.openai.model, ...openwebuiModels];
+        const models = [neuralConfig.openai.model, ...openwebuiModels, "burivuh26"];
         const modelsList = TextGenerators.getModelsList(models, neuralConfig.openwebui.model);
 
         return bot.sendMessageExt(msg.chat.id, t("embassy.neural.models", { modelsList }), msg);
@@ -777,6 +777,10 @@ export default class EmbassyController implements BotController {
 
         try {
             bot.sendChatAction(msg.chat.id, "typing", msg);
+
+            if (model === "burivuh26" || model === "burivuh") {
+                return bot.sendMessageExt(msg.chat.id, `@burivuh26, ${combined}`, msg);
+            }
 
             if (model === "gpt" || model === neuralConfig.openai.model)
                 return bot.sendMessageExt(msg.chat.id, await openAI.askChat(combined, t("embassy.neural.contexts.default")), msg);

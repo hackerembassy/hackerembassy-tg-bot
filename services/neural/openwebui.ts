@@ -52,11 +52,15 @@ const OPENAI_LINE_PREFIX = "data: ";
 const OPEN_AI_DONE_MARK = "[DONE]";
 const OPEN_AI_NOT_FOUND = '{"detail":"Model not found"}';
 
+// Shared error messages
+export const MODEL_NOT_FOUND_ERROR = "Model not found";
+
 export type DeltaStream = AsyncIterable<DeltaObject>;
 
 export type DeltaObject = {
     response: string | null;
     done: boolean;
+    error?: string;
 };
 
 //{"selected_model_id": "gemma3:4b-it-qat"}
@@ -102,7 +106,7 @@ function wrapOpenAiChunk() {
                 this.push({ response: null, done: true });
                 return void this.push(null);
             } else if (line === OPEN_AI_NOT_FOUND) {
-                this.push({ response: "Model not found", done: true });
+                this.push({ response: null, done: true, error: MODEL_NOT_FOUND_ERROR });
                 return void this.push(null);
             }
             callback();

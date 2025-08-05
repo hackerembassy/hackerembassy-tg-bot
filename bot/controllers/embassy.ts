@@ -11,7 +11,7 @@ import { getDonationsSummary } from "@services/funds/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
 import logger from "@services/common/logger";
 import { userService, hasRole } from "@services/domain/user";
-import { openwebui } from "@services/neural/openwebui";
+import { MODEL_NOT_FOUND_ERROR, openwebui } from "@services/neural/openwebui";
 import { openAI } from "@services/neural/openai";
 
 import { sleep } from "@utils/common";
@@ -30,6 +30,7 @@ import {
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
+import { MessageStreamingError } from "../core/errors";
 import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
@@ -770,7 +771,7 @@ export default class EmbassyController implements BotController {
         const photoId = extractPhotoId(msg.reply_to_message?.photo) ?? extractPhotoId(msg.photo);
         const imageBase64 = photoId ? await bot.fetchFileAsBase64(photoId) : undefined;
 
-        if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help"), msg);
+        if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help") + t("embassy.neural.ask.usage"), msg);
 
         const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
@@ -782,6 +783,13 @@ export default class EmbassyController implements BotController {
 
             await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(combined, imageBase64, model), msg);
         } catch (error) {
+            if (error instanceof MessageStreamingError && error.message === MODEL_NOT_FOUND_ERROR) {
+                return bot.sendMessageExt(
+                    msg.chat.id,
+                    t("embassy.neural.ask.modelnotfound", { model }) + "\n" + t("embassy.neural.ask.usage"),
+                    msg
+                );
+            }
             bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
             logger.error(error);
         } finally {

@@ -470,7 +470,7 @@ embassy:
         ask:
             help: |
                 🔮 Demandu al la neŭra reto. Havebla nur en grupaj spacaj babiloj. Haveblaj modeloj povas esti kontrolitaj ĉi tie /models
-
+            usage: |
                 💬 Demandu specifan modelon:
                 #`/ask llama3.2:latest Kiel fliki KDE sub FreeBSD#`
                 💬 Demandu GPT:
@@ -479,6 +479,8 @@ embassy:
                 #`/ollama Kio estas Hakerspaco?#`
             notset: ⚠️ Roboto ankoraŭ ne estas agordita por ĉi tiu funkcio
             error: ⚠️ Io misokazis, ĉu la modelo ekzistas kaj ĉu ĝi funkcias?
+            modelnotfound: |
+                ⚠️ Modelo #`{{model}}#` ne trovita, ĉu vi certas, ke ĝi ekzistas aŭ ĉu vi uzas la komandon ĝuste? Kontrolu la disponeblajn modelojn per /models
         models: |
             🧠 Haveblaj modeloj:
             {{modelsList}}

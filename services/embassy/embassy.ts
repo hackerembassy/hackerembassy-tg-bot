@@ -224,7 +224,7 @@ class EmbassyService {
 
     private async getDevicesFromPrometheus() {
         const response = await fetchWithTimeout(
-            `${embassyApiConfig.spacenetwork.prometheusorigin}/api/v1/query?query=dawn_station_signal_dbm%20or%20hostapd_station_flag_assoc`
+            `${embassyApiConfig.spacenetwork.prometheusorigin}/api/v1/query?query=dawn_station_signal_dbm%20or%20hostapd_station_flag_assoc%20or%20wifi_station_signal_dbm`
         );
 
         if (!response.ok) throw new Error(`Prometheus query failed with status ${response.status}`);

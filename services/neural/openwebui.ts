@@ -58,7 +58,8 @@ export const MODEL_NOT_FOUND_ERROR = "Model not found";
 export type DeltaStream = AsyncIterable<DeltaObject>;
 
 export type DeltaObject = {
-    response: string | null;
+    response?: string;
+    scope?: string;
     done: boolean;
     error?: string;
 };
@@ -95,12 +96,17 @@ function wrapOpenAiChunk() {
                 }
 
                 const content = parsedLine.choices[0].delta?.content;
+                const reasoningContent = parsedLine.choices[0].delta?.reasoning_content;
 
-                if (!content) {
+                if (!content && !reasoningContent) {
                     this.push({ response: null, done: true });
                     return void this.push(null);
                 } else {
-                    this.push({ response: content, done: false });
+                    this.push({
+                        response: content ?? reasoningContent,
+                        done: false,
+                        scope: reasoningContent !== undefined ? "thinking" : undefined,
+                    });
                 }
             } else if (line === OPEN_AI_DONE_MARK) {
                 this.push({ response: null, done: true });

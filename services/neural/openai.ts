@@ -23,6 +23,7 @@ type ResponseChoice = {
     delta?: {
         role?: string;
         content?: string;
+        reasoning_content?: string;
     };
 };
 

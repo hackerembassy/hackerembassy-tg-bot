@@ -28,7 +28,7 @@ import { UserRole } from "@data/types";
 import logger from "@services/common/logger";
 import { hasRole, isBanned, userService } from "@services/domain/user";
 
-import { chunkSubstr } from "@utils/text";
+import { chunkSubstr, ZERO_WIDTH_SPACE } from "@utils/text";
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { DeltaStream } from "@services/neural/openwebui";
@@ -411,11 +411,24 @@ export default class HackerEmbassyBot extends TelegramBot {
         let messageToEdit: Nullable<TelegramBot.Message> = null;
         let buffer = "";
         let window = 0;
+        let currentScope: string | null = null;
 
         try {
             for await (const chunk of stream) {
                 if (chunk.error) {
                     throw new MessageStreamingError(chunk.error);
+                }
+
+                if (chunk.scope && !currentScope) {
+                    currentScope = chunk.scope;
+                    const startScopeHeader = `[${chunk.scope}]\n`;
+                    buffer += startScopeHeader;
+                    window += startScopeHeader.length;
+                } else if (!chunk.scope && currentScope) {
+                    const endScopeHeader = `\n[/${ZERO_WIDTH_SPACE}${currentScope}]\n\n`;
+                    currentScope = null;
+                    buffer += endScopeHeader;
+                    window += endScopeHeader.length;
                 }
 
                 if (chunk.response) {

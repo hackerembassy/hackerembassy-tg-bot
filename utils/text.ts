@@ -1,4 +1,5 @@
 export const REPLACE_MARKER = "\x1a";
+export const ZERO_WIDTH_SPACE = "\u200b";
 const ELLIPSIS = "...";
 
 export function isEmoji(message: string): boolean {

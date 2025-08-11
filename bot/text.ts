@@ -148,7 +148,8 @@ export function getStatusHeader(state: StateEx, short: boolean = false, isApi: b
         stateEmoji: state.open ? "🔓" : "🔒",
         state: state.open ? t("status.status.opened") : t("status.status.closed"),
         stateMessage: state.open ? t("status.status.messageopened") : t("status.status.messageclosed"),
-        changedBy: isApi ? formatUsername(state.changer.username, false, isApi) : userLink(state.changer),
+        changedBy:
+            isApi || state.changer.username ? formatUsername(state.changer.username, false, isApi) : userLink(state.changer),
     });
 }
 

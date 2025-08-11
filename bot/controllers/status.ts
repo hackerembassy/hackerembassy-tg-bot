@@ -382,8 +382,9 @@ export default class StatusController implements BotController {
             [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.reclose"), "close")],
             [AnnoyingInlineButton(bot, msg, t("status.buttons.whoelse"), "status")],
         ];
+        const username = opener.username ? helpers.formatUsername(opener.username) : helpers.userLink(opener);
 
-        await bot.sendMessageExt(msg.chat.id, t("status.open", { username: helpers.formatUsername(msg.from?.username) }), msg, {
+        await bot.sendMessageExt(msg.chat.id, t("status.open", { username }), msg, {
             reply_markup: {
                 inline_keyboard,
             },
@@ -392,11 +393,11 @@ export default class StatusController implements BotController {
 
     static async openedNotificationHandler(bot: HackerEmbassyBot, state: StateEx) {
         try {
-            await bot.sendMessageExt(
-                botConfig.chats.alerts,
-                t("status.open-alert", { user: helpers.userLink(state.changer) }),
-                null
-            );
+            const user = state.changer.username
+                ? helpers.formatUsername(state.changer.username)
+                : helpers.userLink(state.changer);
+
+            await bot.sendMessageExt(botConfig.chats.alerts, t("status.open-alert", { user }), null);
         } catch (error) {
             logger.error(error);
         }
@@ -404,11 +405,11 @@ export default class StatusController implements BotController {
 
     static async closedNotificationHandler(bot: HackerEmbassyBot, state: StateEx) {
         try {
-            await bot.sendMessageExt(
-                botConfig.chats.alerts,
-                t("status.close-alert", { user: helpers.userLink(state.changer) }),
-                null
-            );
+            const user = state.changer.username
+                ? helpers.formatUsername(state.changer.username)
+                : helpers.userLink(state.changer);
+
+            await bot.sendMessageExt(botConfig.chats.alerts, t("status.close-alert", { user }), null);
         } catch (error) {
             logger.error(error);
         }
@@ -425,12 +426,20 @@ export default class StatusController implements BotController {
         bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "open")]];
+        const username = closer.username ? helpers.formatUsername(closer.username) : helpers.userLink(closer);
 
-        await bot.sendMessageExt(msg.chat.id, t("status.close", { username: helpers.userLink(closer) }), msg, {
-            reply_markup: {
-                inline_keyboard,
-            },
-        });
+        await bot.sendMessageExt(
+            msg.chat.id,
+            t("status.close", {
+                username,
+            }),
+            msg,
+            {
+                reply_markup: {
+                    inline_keyboard,
+                },
+            }
+        );
     }
 
     @Route(["evict", "outforceall"])

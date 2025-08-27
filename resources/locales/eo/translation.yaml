@@ -227,7 +227,6 @@ basic:
             nani: 💥 Nani
             cat: 🐱 Kato
             dog: 🐶 Hundo
-            cab: 🥷 Kab
             cock: 🐔 Kok'
             sad: 🎺 Trista
             badumtss: 🥁 Badumtss
@@ -578,8 +577,9 @@ funds:
             🛂 Vi povas transdoni donacon uzante la sekvajn komandojn:
             #`/tosafe id#` - Apartigi donacon al sekurejo laŭ id (aŭ pluraj id-oj, apartigitaj per komoj)
             #`/topaid id#` - Marki la donacon kiel pagitan laŭ id (iris al la fonda celo)
-            #`/tocab id#` - Apartigi donacon al Cab laŭ id
-            #`/tonick id#` - Apartigi donacon al Kole laŭ id
+            #`/tonick id#` - Apartigi donacon al Kolya laŭ id
+            #`/totina id#` - Apartigi donacon al Tina laŭ id
+            #`/tohimura id#` - Apartigi donacon al Humira laŭ id
             #`/tosafeall fund_name#` - Ĉiuj viaj donacoj al sekurejo de certa fondo
             #`/tosafeall#` - Ĉiuj viaj donacoj al sekurejo (atente)
             #`/transferdonation donation_id to username#` (td) - Transdoni donacon al alia kontisto

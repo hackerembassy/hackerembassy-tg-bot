@@ -40,7 +40,6 @@ export default class MemeController implements BotController {
     @Route(["randomcat", "cat"], null, () => ["./resources/images/cats"])
     @Route(["randomcock", "cock"], null, () => ["./resources/images/roosters"])
     @Route(["respect", "f"], null, () => ["./resources/images/respect"])
-    @Route(["randomcab", "cab", "givemecab", "iwantcab", "ineedcab", "iwanttoseecab"], null, () => ["./resources/images/cab"])
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
         const isTimeForZhabka = getToday().getDay() === ITS_WEDNESDAY_YEAAAH && Math.random() < ZHABKA_CHANCE;
         const buffer = isTimeForZhabka ? await getRandomImageFromFolder(ZHABKAS_PATH) : await getRandomImageFromFolder(path);
@@ -155,9 +154,6 @@ export default class MemeController implements BotController {
         switch (target.slice(1)) {
             case bot.name:
                 source = "./resources/images/animations/hug-bot.gif";
-                break;
-            case "CabiaRangris":
-                source = "./resources/images/animations/hug-cab.gif";
                 break;
             case effectiveName(sender):
                 source = "./resources/images/animations/hug-self.gif";

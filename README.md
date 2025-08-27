@@ -27,14 +27,14 @@ This bot is built to handle various tasks related to managing our hackerspace. I
 -   Automatically recording participant entry and exit via the wifi network
 -   Keeping track of birthdays and automatically sending birthday congrats
 -   Sending utilities and internet bill reminders
--   Sending random photos of cats, dogs, and Cab
+-   Sending random photos of cats, dogs
 -   The ability to send sounds and text messages to the speakers in the space
 -   Generating space attendance stats with infographics
 -   Waking up, shutting down and probing internal devices
 -   Integration with Stable Diffusion (local) and GPT-3.5 Turbo
 -   Topics and Subscriptions for a DM newsletter
 -   Antispam in our public chats
--   English and Russian languages
+-   English, Russian, Armenian, Ukrainian and Esperanto languages
 
 An sqlite database is used to store data in the file ./data/db/data.db.
 To edit the database manually, I recommend https://sqlitebrowser.org/
@@ -83,23 +83,23 @@ All main dependencies in the cloud and internal service are installed using npm 
 
 ## Main files
 
-bot/core/classes/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality  
-bot/instance.ts - initialization of a singleton for working with a bot  
-bot/setup.ts - adding controllers, events and menus to the bot  
-bot/cron.ts - setting up actions that the bot performs automatically according to a timer  
+bot/core/classes/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality
+bot/instance.ts - initialization of a singleton for working with a bot
+bot/setup.ts - adding controllers, events and menus to the bot
+bot/cron.ts - setting up actions that the bot performs automatically according to a timer
 bot/controllers/\*.ts - user command handlers
 
 data/db.ts - instance of the database
 data/scripts.ts - scripts for database operations
 
-repositories - repositories on top of the database service  
-resources - all sorts of additional resources, pictures, texts, etc.  
-service - modules with functionality for various needs (communication via mqtt, receiving media, text generation, logging export, etc.)  
-utils - common reusable utilities  
-deploy - auxiliary files for deploying the bot and service  
+repositories - repositories on top of the database service
+resources - all sorts of additional resources, pictures, texts, etc.
+service - modules with functionality for various needs (communication via mqtt, receiving media, text generation, logging export, etc.)
+utils - common reusable utilities
+deploy - auxiliary files for deploying the bot and service
 scripts - scripts for automating some dev manipulations
 
-bot.ts - bot start file  
+bot.ts - bot start file
 embassy.ts - start file of the internal space service
 
 ## Configuration
@@ -115,22 +115,22 @@ If you want to serve your own translations, you should create translation.local.
 If you want this bot to serve SpaceApi, you can create your own spaceapi template. Create config/spaceapi.local.json with your own values. Check config/spaceapi.json for reference, which is going to be used if the local version is not provided.
 
 ### Environment variables needed
-HACKERBOTTOKEN - Telegram API token  
-UNLOCKKEY - Key for secure integrations between Bot and embassy API  
-MQTTUSER - Broker username  
-MQTTPASSWORD - Broker password  
-WIFIUSER - Keenetic router username  
-WIFIPASSWORD - Keenetic router user password  
-UNIFIUSER - Unifi AP username  
-UNIFIPASSWORD - Unifi AP password  
-GAMINGUSER - Gaming server username  
-GAMINGPASSWORD - Gaming server user password  
-HASSTOKEN - Home Assistant API token  
-HACKERGOOGLEAPIKEY - Google Calendar API token  
-OPENAIAPIKEY - OpenAI API token  
+HACKERBOTTOKEN - Telegram API token
+UNLOCKKEY - Key for secure integrations between Bot and embassy API
+MQTTUSER - Broker username
+MQTTPASSWORD - Broker password
+WIFIUSER - Keenetic router username
+WIFIPASSWORD - Keenetic router user password
+UNIFIUSER - Unifi AP username
+UNIFIPASSWORD - Unifi AP password
+GAMINGUSER - Gaming server username
+GAMINGPASSWORD - Gaming server user password
+HASSTOKEN - Home Assistant API token
+HACKERGOOGLEAPIKEY - Google Calendar API token
+OPENAIAPIKEY - OpenAI API token
 OLLAMAAPIKEY - Ollama API token
-SONAR_TOKEN - Sonar Cloud analysis token  
-WIKIAPIKEY - Outline Wiki API token  
+SONAR_TOKEN - Sonar Cloud analysis token
+WIKIAPIKEY - Outline Wiki API token
 OUTLINE_SIGNING_SECRET - Outline API signing secret for webhooks
 
 You can use a .env file in the root folder for development. Check the .env.example file for reference.

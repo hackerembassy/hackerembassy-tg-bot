@@ -221,8 +221,9 @@ export default class FundsController implements BotController {
     @Route(["transferdonation", "td"], /(\d[\d\s,]*?) to (.*\S)/, match => [match[1], match[2]])
     @Route(["tosafe"], CaptureListOfIds, match => [match[1], "safe"])
     @Route(["topaid", "paid", "tp"], CaptureListOfIds, match => [match[1], "paid"])
-    @Route(["tocab", "givecab", "tc"], CaptureListOfIds, match => [match[1], "CabiaRangris"])
     @Route(["tonick", "givenick", "tn"], CaptureListOfIds, match => [match[1], "korn9509"])
+    @Route(["totina", "givetina", "tt"], CaptureListOfIds, match => [match[1], "dipierro"])
+    @Route(["tohimura", "givehimura", "th"], CaptureListOfIds, match => [match[1], "himura_kazuto"])
     @UserRoles(Accountants)
     static transferDonationHandler(bot: HackerEmbassyBot, msg: Message, donations: string, accountantName: string) {
         const accountant = UsersRepository.getUserByName(accountantName.replace("@", ""));

@@ -10,6 +10,7 @@ import UsersRepository from "@repositories/users";
 import logger, { getLatestLogFilePath } from "@services/common/logger";
 import { hasRole } from "@services/domain/user";
 import { Admins, CaptureInteger, Members, Route, UserRoles } from "@hackembot/core/decorators";
+import { ButtonFlags, InlineButton } from "@hackembot/core/inlineButtons";
 
 import * as TextGenerators from "../text";
 import { StateFlags } from "../core/classes/BotState";
@@ -379,17 +380,45 @@ export default class AdminController implements BotController {
     @Route(["copy"], OptionalParam(/(\S+?)/), match => [match[1]])
     @UserRoles(Members)
     static async copyMessageHandler(bot: HackerEmbassyBot, msg: Message, target: string) {
-        const chatsList = TextGenerators.getCopyableList(Object.keys(botConfig.chats), ", ");
+        const chatsList = TextGenerators.getCopyableList([...Object.keys(botConfig.chats), "me"], ", ");
         if (!msg.reply_to_message || !target) return bot.sendMessageExt(msg.chat.id, t("admin.copy.help", { chatsList }), msg);
 
-        const chatId = botConfig.chats[target as keyof typeof botConfig.chats] || Number(target);
-        if (isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, t("admin.copy.nochat"), msg);
+        const chatId =
+            botConfig.chats[target as keyof typeof botConfig.chats] || (target === "me" ? msg.from?.id : Number(target));
+        if (!chatId || isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, t("admin.copy.nochat"), msg);
 
         await bot.copyMessage(chatId, msg.chat.id, msg.reply_to_message.message_id, {
             reply_markup: msg.reply_to_message.reply_markup,
             caption: msg.reply_to_message.caption,
         });
         return bot.sendMessageExt(msg.chat.id, t("admin.copy.success", { target }), msg);
+    }
+
+    @Route(["save"], OptionalParam(/(\S+?)/), match => [match[1]])
+    static saveMessageHandler(bot: HackerEmbassyBot, msg: Message, messageId?: number) {
+        const replyMessage = msg.reply_to_message;
+        const targetChatId = msg.from?.id;
+        const messageIdToCopy = replyMessage?.message_id ?? messageId;
+
+        if (!messageIdToCopy || !targetChatId) return bot.sendMessageExt(msg.chat.id, t("admin.save.help"), msg);
+
+        if (replyMessage?.message_id) {
+            bot.sendMessageExt(msg.chat.id, t("admin.save.success"), msg, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [InlineButton(t("admin.save.button"), `save`, ButtonFlags.Simple, { params: replyMessage.message_id })],
+                    ],
+                },
+            });
+        }
+
+        logger.info(
+            `User ${msg.from?.username} (${targetChatId}) is saving message ${messageIdToCopy} from chat ${msg.chat.title} (${msg.chat.id})`
+        );
+
+        return bot.copyMessage(targetChatId, msg.chat.id, messageIdToCopy, {
+            caption: replyMessage?.caption,
+        });
     }
 
     @Route(["die", "kill"])

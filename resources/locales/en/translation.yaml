@@ -262,6 +262,16 @@ admin:
             - Get the current chat id: /chatid
         nochat: Specified chat not found
         success: Message was copied to {{target}}
+    save:
+        help: |
+            📷 Save the message you are replying to to a chat with a bot
+
+            #`/save#`
+            #`/save message_id#`
+
+            👀 This action might be logged
+        success: Message was saved
+        button: 💾 Send me as well
     custom:
         help: |
             ✉️ Creates a custom message with images and buttons in the current chat. Example:

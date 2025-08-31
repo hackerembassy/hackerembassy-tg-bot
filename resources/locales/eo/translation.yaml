@@ -262,6 +262,16 @@ admin:
             - Ricevi la nunan babilan identigilon: /chatid
         nochat: Specifita babilo ne trovita
         success: Mesaĝo estis kopiita al {{target}}
+    save:
+        help: |
+            📷 Konservu la mesaĝon al kiu vi respondas en babilo kun la roboto
+
+            #`/save#`
+            #`/save message_id#`
+
+            👀 Ĉi tiu ago eble estos registrita
+        success: Mesaĝo estis konservita
+        button: 💾 Sendu al mi ankaŭ
     custom:
         help: |
             ✉️ Kreas kutiman mesaĝon kun bildoj kaj butonoj en la nuna babilo. Ekzemplo:

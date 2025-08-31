@@ -396,14 +396,18 @@ export default class AdminController implements BotController {
 
     @Route(["save"], OptionalParam(/(\S+?)/), match => [match[1]])
     static saveMessageHandler(bot: HackerEmbassyBot, msg: Message, messageId?: number) {
+        const isButtonResponse = bot.context(msg).isButtonResponse;
         const replyMessage = msg.reply_to_message;
         const targetChatId = msg.from?.id;
         const messageIdToCopy = replyMessage?.message_id ?? messageId;
 
         if (!messageIdToCopy || !targetChatId) return bot.sendMessageExt(msg.chat.id, t("admin.save.help"), msg);
 
-        if (replyMessage?.message_id) {
+        if (!isButtonResponse && replyMessage?.message_id) {
             bot.sendMessageExt(msg.chat.id, t("admin.save.success"), msg, {
+                reply_to_message_id: replyMessage.message_id,
+                message_thread_id: replyMessage.message_thread_id,
+                allow_sending_without_reply: true,
                 reply_markup: {
                     inline_keyboard: [
                         [InlineButton(t("admin.save.button"), `save`, ButtonFlags.Simple, { params: replyMessage.message_id })],

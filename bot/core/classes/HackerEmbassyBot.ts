@@ -866,7 +866,9 @@ export default class HackerEmbassyBot extends TelegramBot {
         route?: BotRoute,
         type: keyof typeof this.assets.images = "restricted"
     ) {
-        this.assets.images[type] = await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
+        if (!this.assets.images[type]) {
+            this.assets.images[type] = await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
+        }
 
         if (this.assets.images[type]) {
             this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {

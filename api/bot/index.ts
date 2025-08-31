@@ -34,7 +34,6 @@ try {
 } catch (error) {
     logger.error(error);
 }
-
 // Prometheus metrics
 app.use(promBundle({ includeMethod: true, includePath: true, includeStatusCode: true }));
 

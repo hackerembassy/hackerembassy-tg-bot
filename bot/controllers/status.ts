@@ -20,6 +20,7 @@ import { getTodayEventsCached, HSEvent } from "@services/external/googleCalendar
 import { spaceService } from "@services/domain/space";
 import { userService } from "@services/domain/user";
 import { openAI } from "@services/neural/openai";
+import telemetry from "@services/common/telemetry";
 
 import { sleep } from "@utils/common";
 import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
@@ -675,8 +676,11 @@ export default class StatusController implements BotController {
 
             // Filter users to update
             const usersToUpdateSet = new Set(checkInside ? [] : uniqueUsersMap.values());
+            const detectedMacs = await macsInsideRequest;
 
-            for (const mac of await macsInsideRequest) {
+            telemetry.detectedDevicesGauge.set(detectedMacs.length);
+
+            for (const mac of detectedMacs) {
                 const macUser = macUsersMap.get(mac);
                 if (!macUser) continue;
 
@@ -705,6 +709,9 @@ export default class StatusController implements BotController {
 
             // Notify live status messages
             bot.customEmitter.emit(BotCustomEvent.statusLive);
+
+            // Track people detected by autoinside
+            telemetry.detectedUsersGauge.set(userService.getPeopleAutoInside().length);
         } catch (error) {
             StatusController.isStatusError = true;
             logger.error(error);

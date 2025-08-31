@@ -30,6 +30,10 @@ function filterPeopleGoing(userState: UserState): boolean {
     return userState.status === (UserStateType.Going as number) && isToday(new Date(userState.date));
 }
 
+function filterAutoState(userState: UserState): boolean {
+    return (userState.type as UserStateChangeType) === UserStateChangeType.Auto;
+}
+
 // helper functions
 export function splitRoles(user: User) {
     return user.roles?.split("|") as UserRole[];
@@ -94,6 +98,10 @@ class UserService {
 
     public getPeopleInside(includeSecret = false): UserStateEx[] {
         return this.getRecentUserStates().filter(includeSecret ? filterAllPeopleInside : filterPeopleInside);
+    }
+
+    public getPeopleAutoInside(): UserStateEx[] {
+        return this.getRecentUserStates().filter(state => filterAllPeopleInside(state) && filterAutoState(state));
     }
 
     public getPeopleGoing() {

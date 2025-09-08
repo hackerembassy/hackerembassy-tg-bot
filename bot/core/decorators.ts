@@ -35,6 +35,7 @@ export const NonTopicChats = [
     botConfig.chats.test,
     botConfig.chats.alerts,
 ];
+export const ClosedChats = [botConfig.chats.alerts, botConfig.chats.horny, botConfig.chats.key];
 
 export interface RouteMetadata {
     aliases: string[];

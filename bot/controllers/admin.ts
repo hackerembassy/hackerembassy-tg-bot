@@ -9,7 +9,7 @@ import { User } from "@data/models";
 import UsersRepository from "@repositories/users";
 import logger, { getLatestLogFilePath } from "@services/common/logger";
 import { hasRole } from "@services/domain/user";
-import { Admins, CaptureInteger, Members, Route, UserRoles } from "@hackembot/core/decorators";
+import { Admins, AllowedChats, CaptureInteger, ClosedChats, Members, Route, UserRoles } from "@hackembot/core/decorators";
 import { ButtonFlags, InlineButton } from "@hackembot/core/inlineButtons";
 
 import * as TextGenerators from "../text";
@@ -395,6 +395,7 @@ export default class AdminController implements BotController {
     }
 
     @Route(["save"], OptionalParam(/(\S+?)/), match => [match[1]])
+    @AllowedChats(ClosedChats)
     static saveMessageHandler(bot: HackerEmbassyBot, msg: Message, messageId?: number) {
         const isButtonResponse = bot.context(msg).isButtonResponse;
         const replyMessage = msg.reply_to_message;

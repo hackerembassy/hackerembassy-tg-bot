@@ -323,7 +323,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         this.sendChatAction(chatId, "upload_photo", msg);
 
-        const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo)));
+        const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo as ArrayBuffer)));
         const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
 
         const messages = await super.sendMediaGroup(chatIdToUse, imageOpts as InputMedia[], {
@@ -344,7 +344,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: EditMessageMediaOptionsExt = {}
     ): Promise<TelegramBot.Message | boolean> {
-        const buffer = photo instanceof Buffer ? photo : Buffer.from(photo);
+        const buffer = photo instanceof Buffer ? photo : Buffer.from(photo as ArrayBuffer);
 
         // TMP file because the lib doesn't support using buffers for editMessageMedia yet
         const { path, cleanup } = await file();
@@ -845,13 +845,13 @@ export default class HackerEmbassyBot extends TelegramBot {
     reactToMessage(message: TelegramBot.Message) {
         try {
             if (message.text?.match(/(^|\s)(бот([еуа]|ом)?|bot)(\s|,|\.|$)/giu)) {
-                this.setMessageReaction(message.chat.id, message.message_id, "👀");
+                this.setMessageReactionEx(message.chat.id, message.message_id, "👀");
             } else if (
                 message.text?.match(
                     /(^|\s|\/)(\u0063\u006F\u0063\u006B|\u043A\u043E\u043A|\u0434\u0438\u043A|\u0070\u0069\u0073\u006B\u0061)(\s|,|\.|$|@)/giu
                 )
             ) {
-                this.setMessageReaction(message.chat.id, message.message_id, "🌭");
+                this.setMessageReactionEx(message.chat.id, message.message_id, "🌭");
             }
         } catch (error) {
             logger.error(error);
@@ -1077,8 +1077,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         return options;
     }
 
-    setMessageReaction(chatId: ChatId, messageId: number, reaction: BotAllowedReaction): Promise<boolean> {
-        //@ts-ignore
+    setMessageReactionEx(chatId: ChatId, messageId: number, reaction: BotAllowedReaction): Promise<boolean> {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         return super.setMessageReaction(chatId, messageId, {
             reaction: [

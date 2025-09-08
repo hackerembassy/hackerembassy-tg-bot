@@ -54,7 +54,7 @@ The bot is hosted on a VPS located at gateway.hackem.cc. The service, embassy-ap
 
 ## Dependencies
 
-Node v22.15.0
+Node v22.19.0
 All main dependencies in the cloud and internal service are installed using npm i
 
 ## Local deployment

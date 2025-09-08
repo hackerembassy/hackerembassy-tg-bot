@@ -20,7 +20,7 @@ export class UserRateLimiter {
             clearTimeout(UserRateLimiter.#debounceTimerIds.get(userId));
 
             const timerId = setTimeout(() => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
                 func(...args);
                 UserRateLimiter.#debounceTimerIds.delete(userId);
             }, rateLimit);

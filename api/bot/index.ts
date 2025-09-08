@@ -35,7 +35,16 @@ try {
     logger.error(error);
 }
 // Prometheus metrics
-app.use(promBundle({ includeMethod: true, includePath: true, includeStatusCode: true }));
+app.use(
+    promBundle({
+        includeMethod: true,
+        includePath: true,
+        includeStatusCode: true,
+        promClient: {
+            collectDefaultMetrics: {},
+        },
+    })
+);
 
 // Routes
 app.use("/text", textRouter);

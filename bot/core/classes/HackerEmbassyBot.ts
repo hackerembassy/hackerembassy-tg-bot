@@ -667,10 +667,6 @@ export default class HackerEmbassyBot extends TelegramBot {
             const command = commandWithCase.toLowerCase();
             const route = this.routeMap.get(command);
 
-            telemetry.receivedCommandsCounter.inc({
-                command: command,
-            });
-
             // Prepare context
             const actualUser = userService.prepareUser(message.from as TelegramBot.User);
             const isAdmin = hasRole(actualUser, "admin");
@@ -693,6 +689,10 @@ export default class HackerEmbassyBot extends TelegramBot {
                       )
                     : null;
             }
+
+            telemetry.receivedCommandsCounter.inc({
+                command: command,
+            });
 
             // Check restritions
             if (isBanned(user)) return;

@@ -33,6 +33,7 @@ import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { DeltaStream } from "@services/neural/openwebui";
 import { openAI } from "@services/neural/openai";
+import telemetry from "@services/common/telemetry";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../localization";
 import { effectiveName, OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "../helpers";
@@ -666,6 +667,10 @@ export default class HackerEmbassyBot extends TelegramBot {
             const command = commandWithCase.toLowerCase();
             const route = this.routeMap.get(command);
 
+            telemetry.receivedCommandsCounter.inc({
+                command: command,
+            });
+
             // Prepare context
             const actualUser = userService.prepareUser(message.from as TelegramBot.User);
             const isAdmin = hasRole(actualUser, "admin");
@@ -778,6 +783,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         // Get route handler
         const handler = this.routeMap.get(data.cmd)?.handler;
         if (!handler) throw Error(`Route handler for ${data.cmd} does not exist`);
+
+        telemetry.receivedCallbacksCounter.inc({
+            command: data.cmd,
+        });
 
         // Apply callback mode flags
         if (data.fs !== undefined) {

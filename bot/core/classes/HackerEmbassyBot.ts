@@ -18,7 +18,7 @@ import {
     ReplyKeyboardMarkup,
     SendMessageOptions,
 } from "node-telegram-bot-api";
-import { dir, file } from "tmp-promise";
+import { withDir, withFile } from "tmp-promise";
 
 import { BotConfig, BotFeatureFlag } from "@config";
 
@@ -339,7 +339,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         return Promise.resolve(messages);
     }
 
-    async editPhoto(
+    editPhoto(
         photo: Buffer | ArrayBuffer,
         msg: TelegramBot.Message,
         options: EditMessageMediaOptionsExt = {}
@@ -347,44 +347,42 @@ export default class HackerEmbassyBot extends TelegramBot {
         const buffer = photo instanceof Buffer ? photo : Buffer.from(photo as ArrayBuffer);
 
         // TMP file because the lib doesn't support using buffers for editMessageMedia yet
-        const { path, cleanup } = await file();
+        return withFile(async tmpFile => {
+            await fs.writeFile(tmpFile.path, buffer);
 
-        await fs.writeFile(path, buffer);
+            const imageOption = { type: "photo", media: `attach://${tmpFile.path}` } as InputMediaPhoto;
 
-        const imageOption = { type: "photo", media: `attach://${path}` } as InputMediaPhoto;
+            const inline_keyboard =
+                this.context(msg).mode.static || !options.reply_markup ? [] : options.reply_markup.inline_keyboard;
 
-        const inline_keyboard =
-            this.context(msg).mode.static || !options.reply_markup ? [] : options.reply_markup.inline_keyboard;
+            let message: Message | boolean = false;
 
-        let message: Message | boolean = false;
+            try {
+                message = await super.editMessageMedia(imageOption, {
+                    ...options,
+                    reply_markup: {
+                        inline_keyboard,
+                    },
+                    chat_id: msg.chat.id,
+                    message_id: msg.message_id,
+                    //@ts-ignore
+                    message_thread_id: this.context(msg).messageThreadId,
+                });
+            } catch (e) {
+                // only ignore not modified error
+                if (e instanceof Error && !e.message.includes("message is not modified")) throw e;
+            }
 
-        try {
-            message = await super.editMessageMedia(imageOption, {
-                ...options,
-                reply_markup: {
-                    inline_keyboard,
-                },
-                chat_id: msg.chat.id,
-                message_id: msg.message_id,
-                //@ts-ignore
-                message_thread_id: this.context(msg).messageThreadId,
-            });
-        } catch (e) {
-            // only ignore not modified error
-            if (e instanceof Error && !e.message.includes("message is not modified")) throw e;
-        }
+            if (options.caption) {
+                super.editMessageCaption(options.caption, {
+                    chat_id: msg.chat.id,
+                    message_id: msg.message_id,
+                    reply_markup: { inline_keyboard },
+                });
+            }
 
-        if (options.caption) {
-            super.editMessageCaption(options.caption, {
-                chat_id: msg.chat.id,
-                message_id: msg.message_id,
-                reply_markup: { inline_keyboard },
-            });
-        }
-
-        cleanup();
-
-        return Promise.resolve(message);
+            return Promise.resolve(message);
+        });
     }
 
     async sendLocationExt(
@@ -1002,15 +1000,16 @@ export default class HackerEmbassyBot extends TelegramBot {
         return null;
     }
 
-    async fetchFileAsBase64(fileId: string) {
-        const { path, cleanup } = await dir({
-            unsafeCleanup: true,
-        });
-        const photoPath = await this.downloadFile(fileId, path);
-        const fileString = await readFileAsBase64(photoPath);
-        cleanup();
+    fetchFileAsBase64(fileId: string) {
+        return withDir(
+            async dir => {
+                const photoPath = await this.downloadFile(fileId, dir.path);
+                const fileString = await readFileAsBase64(photoPath);
 
-        return fileString;
+                return fileString;
+            },
+            { unsafeCleanup: true }
+        );
     }
 
     addLiveMessage(
@@ -1078,7 +1077,6 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     setMessageReactionEx(chatId: ChatId, messageId: number, reaction: BotAllowedReaction): Promise<boolean> {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         return super.setMessageReaction(chatId, messageId, {
             reaction: [
                 {

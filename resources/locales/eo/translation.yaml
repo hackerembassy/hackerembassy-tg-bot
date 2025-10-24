@@ -354,7 +354,7 @@ embassy:
             /{{firm}}off - Malŝalti
             #`/{{firm}}mode cool#` - Reĝimo ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
             #`/{{firm}}temp 24#` - Cela temperaturo (16-28°C)
-            /preheat - Antaŭvarmigi la spacon (nur por Midea)
+            /preheat - Antaŭvarmigi la spacon
         success: ✅ Sukcesis
         fail: ⚠️ Ne sukcesis
         unavailable: ⚠️ Klimatizilo ne havebla

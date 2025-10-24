@@ -351,7 +351,7 @@ embassy:
             /{{firm}}off - Անջատել
             #`/{{firm}}mode cool#` - Ռեժիմ ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
             #`/{{firm}}temp 24#` - Թիրախային ջերմաստիճան (16-28°C)
-            /preheat - Նախապես տաքացնել space-ը (միայն midea-ի համար)
+            /preheat - Նախապես տաքացնել space-ը
         success: ✅ Աշխատեց
         fail: ⚠️ Չաշխատեց
         unavailable: ⚠️ Օդորակիչը հասանելի չէ

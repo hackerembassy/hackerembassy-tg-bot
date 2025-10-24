@@ -354,7 +354,7 @@ embassy:
             /{{firm}}off - Вырубить
             #`/{{firm}}mode cool#` - Режим ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
             #`/{{firm}}temp 24#` - Целевая температура (16-28°C)
-            /preheat - Подогреть спейс заранее (midea only)
+            /preheat - Подогреть спейс заранее
         success: ✅ Получилось
         fail: ⚠️ Не вышло
         unavailable: ⚠️ Кондей недоступен

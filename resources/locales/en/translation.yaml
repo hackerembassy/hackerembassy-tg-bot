@@ -354,7 +354,7 @@ embassy:
             /{{firm}}off - Disable
             #`/{{firm}}mode cool#` - Mode ("cool" | "dry" | "fan_only" | "heat_cool" | "heat")
             #`/{{firm}}temp 24#` - Target temperature (16-28°C)
-            /preheat - Preheat the space in advance (midea only)
+            /preheat - Preheat the space in advance
         success: ✅ It worked
         fail: ⚠️ It didn’t work out
         unavailable: ⚠️ Air conditioning is not available

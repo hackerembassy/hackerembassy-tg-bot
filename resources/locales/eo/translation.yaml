@@ -547,7 +547,7 @@ funds:
         success: |
             💸 [#`{{donationId}}#`] {{username}} donacis {{value}} {{currency}} al #`{{fundName}}#`
         increased: |
-            💸 [#`{{donationId}}#`] {{username}} pligrandigis sian donacon al #`{{fundName}}#` per aliaj {{value}} {{currency}}
+            💸 [#`{{donationId}}#`] {{username}} pligrandigis iliajn donacon al #`{{fundName}}#` per aliaj {{value}} {{currency}}
         fail: ⚠️ Malsukcesis aldoni donacon (eble io malĝusta kun la valuto aŭ kvanto?)
         sponsorship: |
             {{emoji}} {{username}} nun havas {{tiername}} nivelon

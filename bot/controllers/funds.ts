@@ -612,7 +612,6 @@ export default class FundsController implements BotController {
 
     @Route(["tosafeall"], helpers.OptionalParam(/(.*)/), match => ["safe", match[1]])
     @Route(["topaidall", "paidall"], helpers.OptionalParam(/(.*)/), match => ["paid", match[1]])
-    @Route(["tocaball", "givecaball", "givecaballmymoney", "tca"], OptionalParam(/(.*)/), match => ["CabiaRangris", match[1]])
     @UserRoles(Accountants)
     static transferAllToHandler(bot: HackerEmbassyBot, msg: Message, username: string, fundName?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);

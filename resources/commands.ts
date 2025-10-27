@@ -198,13 +198,12 @@ export const AccountantCommandsList: string = `
 #\`/changedonation donation_id to donation_value currency_code#\`
 #\`/removedonation donation_id#\` - Удалить донат
 #\`/transferdonation donation_id to username#\` (td) - Передать донат другому бухгалтеру
-#\`/tocab donation_id#\` - Передать донат Кабу
-#\`/tosafe donation_id#\` - Передать донат сейфу
+#\`/totina donation_id#\` - Передать донат Тине
 #\`/tonick donation_id#\` - Передать донат Коле
-#\`/tocaball fund_name#\` - Передать все свои донаты Кабу, опционально можно указать конкретный сбор
+#\`/tohimura donation_id#\` - Передать донат Химуре
+#\`/topaid donation_id#\` - Отметить донат оплаченным (ушел на цель сбора)
+#\`/tosafe donation_id#\` - Передать донат Сейфу(можно несколько id через запятую)
 #\`/tosafeall fund_name#\` - Передать все свои донаты сейфу, опционально можно указать конкретный сбор
-#\`/tonickall fund_name#\` - Передать все свои донаты Коле, опционально можно указать конкретный сбор
-#\`/paid donation_id#\` - Отметить донат оплаченным по id (ушел на цель сбора)
 #\`/profile username#\` - Статистика посещениий и донатов юзера
 #\`/debt username#\` - Сколько донатов числится на юзере (без параметра - на тебе)
 

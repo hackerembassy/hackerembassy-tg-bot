@@ -206,7 +206,7 @@ class UserService {
         try {
             if (!isValidMAC(mac)) throw new Error("Provided MAC is not valid");
 
-            return devicesRepository.addDevice(user.userid, mac);
+            return devicesRepository.addDevice(user.userid, mac.toLowerCase());
         } catch (error) {
             logger.error(error);
             return false;

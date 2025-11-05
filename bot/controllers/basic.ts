@@ -304,7 +304,7 @@ export default class BasicController implements BotController {
             ],
             [
                 InlineButton(t("basic.control.buttons.printers"), "webcam", ButtonFlags.Simple, { params: "printers" }),
-                InlineButton(t("basic.control.buttons.face"), "webcam", ButtonFlags.Simple, { params: "face" }),
+                InlineButton(t("basic.control.buttons.facecontrol"), "webcam", ButtonFlags.Simple, { params: "facecontrol" }),
                 InlineButton(t("basic.control.buttons.gateway"), "webcam", ButtonFlags.Simple, { params: "gateway" }),
             ],
             [

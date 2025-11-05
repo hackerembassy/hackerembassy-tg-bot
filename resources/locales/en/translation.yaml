@@ -3,7 +3,7 @@ general:
         generic: Something went wrong
         chatnotallowed: ⚠️ The command is only available in group space chats
         restricted: 📵 Sorry, you need to be {{required}} to run this command
-        nouser: ⚠️ User not found, ask him to write something to the bot
+        nouser: ⚠️ User not found, ask them to write something to the bot
     buttons:
         menu: 🏠 Menu
         back: ↩️ Back
@@ -187,18 +187,20 @@ basic:
     control:
         text: 🕹 Hackerspace control panel for residents
         buttons:
-            unlock: 🔑 Castle
+            unlock: 🔑 Entrance
             doorbell: 🔔 Bell
-            downstairs: 📹 Ia floor
-            downstairs2: 📹 Ib floor
-            kitchen: 📹 Kitchen
-            upstairs: 📹 II floor
-            outdoors: 📹 Entrance
             facecontrol: 📹 Face
+            gateway: 📹 Gateway
+            downstairs: 📹 I floor
+            upstairs: 📹 II floor
+            upstairs_ptz: 📹 II floor PTZ
+            kitchen: 📹 Kitchen
+            balcony: 📹 Balcony
+            meeting_room: 📹 Meeting room
             printers: 📹 Printers
             superstatus: 🩻 Superstatus
-            conditioner1: ❄️ Midea I
             conditioner2: ❄️ LG II
+            conditioner1: ❄️ Midea Private
             meme: 🔫 Meme
             back: ↩️ Back
     info:
@@ -793,7 +795,7 @@ status:
         notready: 🔐 Sorry, you can’t bring this person now.
         gotin: 🟢 {{memberusername}} brought {{username}} to space
     outforce:
-        shouldnot: 🔐 Uh no, you can’t send him home.
+        shouldnot: 🔐 Uh no, you can’t send them home.
         gotout: 🔴 {{memberusername}} sent {{username}} home.
     going: 🚕 {{username}} plans to go to space today {{note}}
     notgoing: 🛌 {{username}} is no longer planning to go to space today {{note}}

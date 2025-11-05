@@ -187,19 +187,21 @@ basic:
     control:
         text: 🕹 Hakerspaca kontrolpanelo por loĝantoj
         buttons:
-            unlock: 🔑 Kastelo
+            unlock: 🔑 Enirejo
             doorbell: 🔔 Sonorilo
-            downstairs: 📹 Ia etaĝo
-            downstairs2: 📹 Ib etaĝo
-            kitchen: 📹 Kuirejo
-            upstairs: 📹 II etaĝo
-            outdoors: 📹 Enirejo
             facecontrol: 📹 Vizaĝo
+            gateway: 📹 Pordego
+            downstairs: 📹 I-a etaĝo
+            upstairs: 📹 II-a etaĝo
+            upstairs_ptz: 📹 II-a etaĝo PTZ
+            kitchen: 📹 Kuirejo
+            balcony: 📹 Balkono
+            meeting_room: 📹 Kunvenejo
             printers: 📹 Presiloj
             superstatus: 🩻 Superstatuso
-            conditioner1: ❄️ Midea I
             conditioner2: ❄️ LG II
-            meme: 🔫 Memo
+            conditioner1: ❄️ Midea Privata
+            meme: 🔫 Memeo
             back: ↩️ Reen
     info:
         text: |

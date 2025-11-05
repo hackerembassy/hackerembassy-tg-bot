@@ -188,16 +188,18 @@ basic:
         buttons:
             unlock: 🔑 Ամրոց
             doorbell: 🔔 Զանգակ
-            downstairs: 📹 Ia հարկ
-            downstairs2: 📹 Ib հարկ
-            kitchen: 📹 Խոհանոց
-            upstairs: 📹 II հարկ
-            outdoors: 📹 Մուտք
             facecontrol: 📹 Դեմք
+            gateway: 📹 Դարպաս
+            downstairs: 📹 I հարկ
+            upstairs: 📹 II հարկ
+            upstairs_ptz: 📹 II հարկ PTZ
+            kitchen: 📹 Խոհանոց
+            balcony: 📹 Պատշգամբ
+            meeting_room: 📹 Նիստերի սենյակ
             printers: 📹 Տպիչներ
-            superstatus: 🩻 Սուպերկարգավիճակ
-            conditioner1: ❄️ Midea I
+            superstatus: 🩻 Սուպերստատուս
             conditioner2: ❄️ LG II
+            conditioner1: ❄️ Midea (անձնական)
             meme: 🔫 Մեմային
             back: ↩️ Հետ
     info:

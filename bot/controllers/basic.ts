@@ -289,18 +289,23 @@ export default class BasicController implements BotController {
         const inline_keyboard = [
             [InlineButton(t("basic.control.buttons.superstatus"), "superstatus")],
             [
-                InlineButton(t("basic.control.buttons.conditioner1"), "ac1", ButtonFlags.Editing, { params: "downstairs" }),
                 InlineButton(t("basic.control.buttons.conditioner2"), "ac2", ButtonFlags.Editing, { params: "upstairs" }),
+                InlineButton(t("basic.control.buttons.conditioner1"), "ac1", ButtonFlags.Editing, { params: "downstairs" }),
             ],
             [
                 InlineButton(t("basic.control.buttons.downstairs"), "webcam", ButtonFlags.Simple, { params: "downstairs" }),
-                InlineButton(t("basic.control.buttons.downstairs2"), "webcam", ButtonFlags.Simple, { params: "downstairs2" }),
                 InlineButton(t("basic.control.buttons.upstairs"), "webcam", ButtonFlags.Simple, { params: "upstairs" }),
+                InlineButton(t("basic.control.buttons.upstairs_ptz"), "webcam", ButtonFlags.Simple, { params: "upstairs_ptz" }),
+            ],
+            [
+                InlineButton(t("basic.control.buttons.kitchen"), "webcam", ButtonFlags.Simple, { params: "kitchen" }),
+                InlineButton(t("basic.control.buttons.balcony"), "webcam", ButtonFlags.Simple, { params: "balcony" }),
+                InlineButton(t("basic.control.buttons.meeting_room"), "webcam", ButtonFlags.Simple, { params: "meeting_room" }),
             ],
             [
                 InlineButton(t("basic.control.buttons.printers"), "webcam", ButtonFlags.Simple, { params: "printers" }),
-                InlineButton(t("basic.control.buttons.outdoors"), "webcam", ButtonFlags.Simple, { params: "outdoors" }),
-                InlineButton(t("basic.control.buttons.facecontrol"), "webcam", ButtonFlags.Simple, { params: "facecontrol" }),
+                InlineButton(t("basic.control.buttons.face"), "webcam", ButtonFlags.Simple, { params: "face" }),
+                InlineButton(t("basic.control.buttons.gateway"), "webcam", ButtonFlags.Simple, { params: "gateway" }),
             ],
             [
                 InlineButton(t("basic.control.buttons.unlock"), "unlock"),

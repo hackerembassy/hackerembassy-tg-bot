@@ -189,16 +189,18 @@ basic:
         buttons:
             unlock: 🔑 Замок
             doorbell: 🔔 Звонок
-            downstairs: 📹 Ia этаж
-            downstairs2: 📹 Ib этаж
-            kitchen: 📹 Кухня
-            upstairs: 📹 II этаж
-            outdoors: 📹 Вход
             facecontrol: 📹 Лицо
+            gateway: 📹 Коридор
+            downstairs: 📹 I этаж
+            upstairs: 📹 II этаж
+            upstairs_ptz: 📹 II этаж PTZ
+            kitchen: 📹 Кухня
+            balcony: 📹 Балкон
+            meeting_room: 📹 Переговорка
             printers: 📹 Принтеры
             superstatus: 🩻 Суперстатус
-            conditioner1: ❄️ Midea I
             conditioner2: ❄️ LG II
+            conditioner1: ❄️ Midea Спальня
             meme: 🔫 Мемошная
             back: ↩️ Назад
     info:

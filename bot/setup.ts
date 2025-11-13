@@ -88,7 +88,6 @@ const residentCommands = [
         description: "Посмотреть, что просили купить в спейс по дороге",
     },
     { command: "anette", description: "Статус Anette" },
-    { command: "plumbus", description: "Статус Plumbus" },
     { command: "stats", description: "Статистика по времени в спейсе" },
     { command: "topics", description: "Топики для подписки на уведомления" },
 ];

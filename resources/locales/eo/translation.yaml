@@ -380,13 +380,7 @@ embassy:
             La reta interfaco estas havebla ene de la spaca reto ĉe {{anetteApi}}
             La presila statuso povas esti trovita uzante la komandon /anette.
 
-            🚹 Plumbus de the_mihalich
-            Dokumentado por ĝi estas havebla ĉi tie:
-            https://lore.hackem.cc/s/main/doc/plumbus-7ZmS0dhPD6
-            La reta interfaco estas havebla ene de la spaca reto ĉe {{plumbusApi}}
-            La presila statuso povas esti trovita uzante la komandon /plumbus.
         anettestatus: Statuso de Anette
-        plumbusstatus: Statuso de Plumbus
     printerstatus:
         statusheader: "💤 Presila statuso: {{state}}"
         status: |

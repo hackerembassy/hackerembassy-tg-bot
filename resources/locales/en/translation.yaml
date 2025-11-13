@@ -379,14 +379,8 @@ embassy:
             https://lore.hackem.cc/s/main/doc/anette-xVZmu2XQSl
             The web interface is available within the space network at {{anetteApi}}
             The printer status can be found using the /anette command.
-
-            🚹 Plumbus by the_mihalich
-            Documentation for it is available here:
-            https://lore.hackem.cc/s/main/doc/plumbus-7ZmS0dhPD6
-            The web interface is available within the space network at {{plumbusApi}}
-            The printer status can be found using the /plumbus command.
+            
         anettestatus: Anette status
-        plumbusstatus: Plumbus status
     printerstatus:
         statusheader: "💤 Printer status: {{state}}"
         status: |

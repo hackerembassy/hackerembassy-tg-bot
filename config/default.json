@@ -114,10 +114,6 @@
         "anette": {
             "apibase": "http://printer-anette.lan",
             "camport": 8080
-        },
-        "plumbus": {
-            "apibase": "http://printer-plumbus.lan",
-            "camport": 8080
         }
     },
     "embassy-api": {

@@ -160,7 +160,6 @@ export interface AutoinsideTimeouts {
 
 export interface PrintersConfig {
     anette: PrinterEndpoint;
-    plumbus: PrinterEndpoint;
 }
 
 export interface PrinterEndpoint {

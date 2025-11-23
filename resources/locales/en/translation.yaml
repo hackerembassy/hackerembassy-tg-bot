@@ -100,12 +100,26 @@ basic:
         in {{coin.explorer}} or a similar service after the donation
 
         🛍 If you want to donate in kind (ohh my) or in another way - click /donate
-    donateCard: |
-        💌 In order to donate this way, write to our accountants. They will tell you the current details or you can agree on the time and place of the transfer.
+    donateCash: |
+        💌 To donate this way, please contact our accountants. You can arrange the time and place of transfer with them.
 
         Here they are: {{accountantsList}}
 
-        🛍 If you want to donate in kind or in another way, click /donate
+        Also, you can drop an anonymous donation in the box on the first floor.
+
+        🛍 If you want to donate in kind (ohh my) or in another way - press /donate
+    donateCard: |
+        💌 You can transfer money using one of the provided details:
+
+        🏢 By account number: `{{accountNumber}}`, `{{accountHolder}}`
+
+        💳 By card number: `{{cardNumber}}`,
+
+        To ensure your donation is not lost, please contact one of our accountants. You can also clarify with them an alternative way to donate.
+
+        Here they are: {{accountantsList}}
+
+        🛍 If you want to donate in kind (ohh my) or in another way - press /donate
     donateEquipment: |
         🛠 If you have an extra 3D printer, soldering iron or other useful(!) equipment lying around at home, and you are ready to donate it to Space (or share it for public use with us), we will be very grateful to accept it.
 
@@ -379,7 +393,7 @@ embassy:
             https://lore.hackem.cc/s/main/doc/anette-xVZmu2XQSl
             The web interface is available within the space network at {{anetteApi}}
             The printer status can be found using the /anette command.
-            
+
         anettestatus: Anette status
     printerstatus:
         statusheader: "💤 Printer status: {{state}}"

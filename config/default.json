@@ -81,6 +81,11 @@
                     "bronze": 32768
                 },
                 "period": 3
+            },
+            "payment": {
+                "accountNumber": "11820005814700",
+                "accountHolder": "AVGUSTINA DIPIERRO",
+                "cardNumber": "4318290081295822"
             }
         },
         "outage": {

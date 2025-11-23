@@ -95,6 +95,13 @@ export interface FundsConfig {
         levels: SponsorshipLevelsConfig;
         period: number;
     };
+    payment: PaymentDetailsConfig;
+}
+
+export interface PaymentDetailsConfig {
+    accountNumber: string;
+    accountHolder: string;
+    cardNumber: string;
 }
 
 export interface SponsorshipLevelsConfig {

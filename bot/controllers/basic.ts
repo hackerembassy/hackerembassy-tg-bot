@@ -211,14 +211,35 @@ export default class BasicController implements BotController {
         });
     }
 
-    @Route(["donatecash", "cash", "donatecard", "card"])
+    @Route(["donatecash", "cash"])
+    static async donateCashHandler(bot: HackerEmbassyBot, msg: Message) {
+        const accountantsList = TextGenerators.getAccountsList(
+            UsersRepository.getUsersByRole("accountant"),
+            bot.context(msg).mode
+        );
+
+        await bot.sendOrEditMessage(msg.chat.id, t("basic.donateCash", { accountantsList }), msg, {}, msg.message_id);
+    }
+
+    @Route(["donatecard", "card"])
     static async donateCardHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountantsList = TextGenerators.getAccountsList(
             UsersRepository.getUsersByRole("accountant"),
             bot.context(msg).mode
         );
 
-        await bot.sendOrEditMessage(msg.chat.id, t("basic.donateCard", { accountantsList }), msg, {}, msg.message_id);
+        await bot.sendOrEditMessage(
+            msg.chat.id,
+            t("basic.donateCard", {
+                accountantsList,
+                accountNumber: botConfig.funds.payment.accountNumber,
+                accountHolder: botConfig.funds.payment.accountHolder,
+                cardNumber: botConfig.funds.payment.cardNumber,
+            }),
+            msg,
+            {},
+            msg.message_id
+        );
     }
 
     @Route(["donateequipment", "equipment"])

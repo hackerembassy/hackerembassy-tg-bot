@@ -100,12 +100,26 @@ basic:
         en {{coin.explorer}} aŭ simila servo post la donaco
 
         🛍 Se vi volas donaci nature (ho mia) aŭ alimaniere - klaku /donate
-    donateCard: |
-        💌 Por donaci tiamaniere, skribu al niaj kontistoj. Ili diros al vi la nunajn detalojn aŭ vi povas interkonsenti pri la tempo kaj loko de la transdono.
+    donateCash: |
+        💌 Por donaci ĉi-maniere, bonvolu kontakti niajn kontistojn. Vi povas aranĝi la tempon kaj lokon de transdono kun ili.
 
         Jen ili: {{accountantsList}}
 
-        🛍 Se vi volas donaci nature aŭ alimaniere, klaku /donate
+        Ankaŭ, vi povas meti anoniman donacon en la skatolon sur la unua etaĝo.
+
+        🛍 Se vi volas donaci nature (ho mia) aŭ alimaniere - premu /donate
+    donateCard: |
+        💌 Vi povas transdoni monon per unu el la donitaj detaloj:
+
+        🏢 Per konto-numero: `{{accountNumber}}`, `{{accountHolder}}`
+
+        💳 Per kart-numero: `{{cardNumber}}`,
+
+        Por certigi, ke via donaco ne perdiĝos, bonvolu kontakti unu el niaj kontistoj. Vi ankaŭ povas klarigi kun ili alternativan manieron por donaci.
+
+        Jen ili: {{accountantsList}}
+
+        🛍 Se vi volas donaci nature (ho mia) aŭ alimaniere - premu /donate
     donateEquipment: |
         🛠 Se vi havas ekstran 3D-presilon, lutilon aŭ alian utilan(!) ekipaĵon kuŝantan hejme, kaj vi pretas donaci ĝin al la Spaco (aŭ dividi ĝin por publika uzo kun ni), ni estos tre dankemaj akcepti ĝin.
 

@@ -64,7 +64,7 @@ export const Coins: CoinDefinition[] = [
     {
         fullname: "Ton",
         shortname: "ton",
-        address: "EQDWp5mlGr9oNR_LGxvT1N4MEIqboRuCE35SZI2NTsH8QeO1",
+        address: "UQDWp5mlGr9oNR_LGxvT1N4MEIqboRuCE35SZI2NTsH8Qb5w",
         network: "TON",
         qrfile: "ton.jpg",
         explorer: "https://tonscan.com/",

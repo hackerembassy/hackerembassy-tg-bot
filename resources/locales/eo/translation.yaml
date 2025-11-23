@@ -111,9 +111,9 @@ basic:
     donateCard: |
         💌 Vi povas transdoni monon per unu el la donitaj detaloj:
 
-        🏢 Per konto-numero: `{{accountNumber}}`, `{{accountHolder}}`
+        🏢 Per konto-numero: #`{{accountNumber}}#`, #`{{accountHolder}}#`
 
-        💳 Per kart-numero: `{{cardNumber}}`,
+        💳 Per kart-numero: {{cardNumber}}
 
         Por certigi, ke via donaco ne perdiĝos, bonvolu kontakti unu el niaj kontistoj. Vi ankaŭ povas klarigi kun ili alternativan manieron por donaci.
 

@@ -111,9 +111,9 @@ basic:
     donateCard: |
         💌 You can transfer money using one of the provided details:
 
-        🏢 By account number: `{{accountNumber}}`, `{{accountHolder}}`
+        🏢 By account number: #`{{accountNumber}}#`, #`{{accountHolder}}#`
 
-        💳 By card number: `{{cardNumber}}`,
+        💳 By card number: `{{cardNumber}}`
 
         To ensure your donation is not lost, please contact one of our accountants. You can also clarify with them an alternative way to donate.
 

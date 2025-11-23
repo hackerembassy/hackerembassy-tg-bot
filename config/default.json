@@ -127,9 +127,9 @@
         },
         "devices": {
             "gaming": {
-                "host": "gayming.lan",
-                "mac": "2C:F0:5D:94:72:AA",
-                "os": "windows"
+                "host": "newgayming.lan",
+                "mac": "70:85:C2:75:12:4C",
+                "os": "linux"
             }
         },
         "service": {

@@ -332,7 +332,7 @@ export default class AdminController implements BotController {
         } catch (error) {
             logger.error(error);
 
-            const failedMessage = await bot.sendMessageExt(msg.chat.id, "🤡 /banFailed to ban user", msg);
+            const failedMessage = await bot.sendMessageExt(msg.chat.id, "🤡 Failed to ban user", msg);
 
             if (isPrivate) return;
 

@@ -47,7 +47,7 @@ describe("Basic commands:", () => {
 
         expect(mockBot.popResults()).toEqual([
             "basic\\.donate",
-            "basic\\.donateCard",
+            "basic\\.donateCash",
             "basic\\.donateCard", // Yeah, now it's the same
             "basic\\.donateCoin",
             "basic\\.donateEquipment",

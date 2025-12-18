@@ -139,6 +139,7 @@ export async function initConvert() {
         fiatInterval: currencyConfig.fiatUpdateInterval,
         calculateAverage: true,
         binance: true,
+        kraken: false, // Kraken API throws errors recently because the library requests too many currency pairs
     });
     await convert.ready(); //Wait for the initial cache to load
     await convert.addCurrency(

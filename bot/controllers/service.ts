@@ -10,6 +10,7 @@ import { generateRandomKey, sha256 } from "@utils/security";
 import {
     AllowedChats,
     FeatureFlag,
+    GreetingsChats,
     Members,
     NonTopicChats,
     PublicChats,
@@ -224,54 +225,63 @@ export default class ServiceController implements BotController {
     }
 
     static async newMemberHandler(bot: HackerEmbassyBot, memberUpdated: ChatMemberUpdated) {
-        const tgUser = memberUpdated.new_chat_member.user;
-        const chat = memberUpdated.chat;
-        const isPublicChat = PublicChats.includes(chat.id);
+        try {
+            const tgUser = memberUpdated.new_chat_member.user;
+            const chat = memberUpdated.chat;
+            const isGreetingsChat = GreetingsChats.includes(chat.id);
+            const isReturningMember =
+                memberUpdated.old_chat_member.status === "left" && memberUpdated.new_chat_member.status === "member";
 
-        if (
-            !isPublicChat ||
-            !(memberUpdated.old_chat_member.status === "left" && memberUpdated.new_chat_member.status === "member")
-        ) {
-            return;
-        }
-
-        const currentUser = UsersRepository.getUserByUserId(tgUser.id);
-
-        if (!botConfig.features.antispam || !botConfig.moderatedChats.includes(chat.id)) {
-            if (botConfig.features.welcome) await bot.sendWelcomeMessage(chat, tgUser, currentUser?.language ?? DEFAULT_LANGUAGE);
-
-            return;
-        }
-
-        if (!currentUser) {
-            UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
-
-            bot.lockChatMember(chat.id, tgUser.id);
-
-            logger.info(`New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
-        } else if (!currentUser.roles?.includes("restricted")) {
-            logger.info(
-                `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
-            );
-
-            if (botConfig.features.welcome) await bot.sendWelcomeMessage(chat, tgUser);
-
-            return;
-        } else {
-            bot.lockChatMember(chat.id, tgUser.id);
-
-            logger.info(`Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`);
-        }
-
-        await ServiceController.setLanguageHandler(
-            bot,
-            { chat, from: tgUser, message_id: 0, date: memberUpdated.date },
-            undefined,
-            {
-                vId: tgUser.id,
-                name: tgUserLink(tgUser),
+            if (!isGreetingsChat || !isReturningMember) {
+                return;
             }
-        );
+
+            const currentUser = UsersRepository.getUserByUserId(tgUser.id);
+
+            if (!botConfig.features.antispam || !botConfig.moderatedChats.includes(chat.id)) {
+                if (botConfig.features.welcome)
+                    await bot.sendWelcomeMessage(chat, tgUser, currentUser?.language ?? DEFAULT_LANGUAGE);
+
+                return;
+            }
+
+            if (!currentUser) {
+                UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
+
+                bot.lockChatMember(chat.id, tgUser.id);
+
+                logger.info(
+                    `New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`
+                );
+            } else if (!currentUser.roles?.includes("restricted")) {
+                logger.info(
+                    `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
+                );
+
+                if (botConfig.features.welcome) await bot.sendWelcomeMessage(chat, tgUser);
+
+                return;
+            } else {
+                bot.lockChatMember(chat.id, tgUser.id);
+
+                logger.info(
+                    `Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`
+                );
+            }
+
+            await ServiceController.setLanguageHandler(
+                bot,
+                { chat, from: tgUser, message_id: 0, date: memberUpdated.date },
+                undefined,
+                {
+                    vId: tgUser.id,
+                    name: tgUserLink(tgUser),
+                }
+            );
+        } catch (error) {
+            logger.error(`Failed to handle new member in chat ${memberUpdated.chat.id}`);
+            logger.debug(error);
+        }
     }
 
     @Route(["setlanguage", "setlang", "lang", "language"], OptionalParam(/(\S+)/), match => [match[1]])

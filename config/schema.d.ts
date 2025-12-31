@@ -138,6 +138,10 @@ export interface BotFeaturesConfig {
     chatbridge: boolean;
     /** Keep message history */
     history: boolean;
+    /** Greet new chat members */
+    greetings: boolean;
+    /** Allow voice messages */
+    voice: boolean;
 }
 
 export type BotFeatureFlag = keyof BotFeaturesConfig;

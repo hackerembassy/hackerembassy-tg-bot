@@ -65,7 +65,9 @@
             "ai": true,
             "calendar": true,
             "chatbridge": true,
-            "history": true
+            "history": true,
+            "greetings": true,
+            "voice": true
         },
         "moderatedChats": [-1001605898533],
         "guess": {

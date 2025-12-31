@@ -224,12 +224,17 @@ export default class ServiceController implements BotController {
     }
 
     static async newMemberHandler(bot: HackerEmbassyBot, memberUpdated: ChatMemberUpdated) {
-        if (!(memberUpdated.old_chat_member.status === "left" && memberUpdated.new_chat_member.status === "member")) {
+        const tgUser = memberUpdated.new_chat_member.user;
+        const chat = memberUpdated.chat;
+        const isPublicChat = PublicChats.includes(chat.id);
+
+        if (
+            !isPublicChat ||
+            !(memberUpdated.old_chat_member.status === "left" && memberUpdated.new_chat_member.status === "member")
+        ) {
             return;
         }
 
-        const tgUser = memberUpdated.new_chat_member.user;
-        const chat = memberUpdated.chat;
         const currentUser = UsersRepository.getUserByUserId(tgUser.id);
 
         if (!botConfig.features.antispam || !botConfig.moderatedChats.includes(chat.id)) {
@@ -241,7 +246,7 @@ export default class ServiceController implements BotController {
         if (!currentUser) {
             UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
 
-            if (PublicChats.includes(chat.id)) bot.lockChatMember(chat.id, tgUser.id);
+            bot.lockChatMember(chat.id, tgUser.id);
 
             logger.info(`New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
         } else if (!currentUser.roles?.includes("restricted")) {
@@ -253,7 +258,7 @@ export default class ServiceController implements BotController {
 
             return;
         } else {
-            if (PublicChats.includes(chat.id)) bot.lockChatMember(chat.id, tgUser.id);
+            bot.lockChatMember(chat.id, tgUser.id);
 
             logger.info(`Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }

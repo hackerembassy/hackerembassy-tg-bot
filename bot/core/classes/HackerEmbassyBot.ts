@@ -121,8 +121,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         // Let's start listening for events
         this.on("message", this.routeMessage);
         this.on("callback_query", this.routeCallback);
-        if (this.voiceHandler) this.on("voice", this.voiceHandler.bind(this, this));
-        if (this.chatMemberHandler) this.onExt("chat_member", this.chatMemberHandler);
+        if (botConfig.features.voice && this.voiceHandler) this.on("voice", this.voiceHandler.bind(this, this));
+        if (botConfig.features.greetings && this.chatMemberHandler) this.onExt("chat_member", this.chatMemberHandler);
         if (botConfig.features.reactions) this.on("message", message => this.reactToMessage(message));
 
         this.on("error", error => logger.error(error));

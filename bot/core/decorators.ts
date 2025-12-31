@@ -28,6 +28,7 @@ export const CaptureInteger = /(-?\d+)/;
 
 // Common chat IDs
 export const PublicChats = Object.values(botConfig.chats) as number[];
+export const GreetingsChats = [botConfig.chats.main, botConfig.chats.offtopic, botConfig.chats.horny, botConfig.chats.key];
 export const NonTopicChats = [
     botConfig.chats.main,
     botConfig.chats.horny,

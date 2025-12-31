@@ -1039,21 +1039,17 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     lockChatMember(chatId: ChatId, userId: number) {
-        try {
-            return this.restrictChatMember(chatId, userId, RESTRICTED_PERMISSIONS);
-        } catch (e) {
-            logger.error(e);
-            return Promise.resolve(false);
-        }
+        return this.restrictChatMember(chatId, userId, RESTRICTED_PERMISSIONS).catch(e => {
+            logger.error(`Failed to lock user ${userId} in chat ${chatId}`);
+            logger.debug(e);
+        });
     }
 
     unlockChatMember(chatId: ChatId, userId: number) {
-        try {
-            return this.restrictChatMember(chatId, userId, FULL_PERMISSIONS);
-        } catch (e) {
-            logger.error(e);
-            return Promise.resolve(false);
-        }
+        return this.restrictChatMember(chatId, userId, FULL_PERMISSIONS).catch(e => {
+            logger.error(`Failed to unlock user ${userId} in chat ${chatId}`);
+            logger.debug(e);
+        });
     }
 
     restrictChatMember(

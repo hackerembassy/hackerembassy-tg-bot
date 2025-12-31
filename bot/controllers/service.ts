@@ -240,7 +240,8 @@ export default class ServiceController implements BotController {
 
         if (!currentUser) {
             UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
-            bot.lockChatMember(chat.id, tgUser.id);
+
+            if (PublicChats.includes(chat.id)) bot.lockChatMember(chat.id, tgUser.id);
 
             logger.info(`New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`);
         } else if (!currentUser.roles?.includes("restricted")) {
@@ -252,7 +253,8 @@ export default class ServiceController implements BotController {
 
             return;
         } else {
-            bot.lockChatMember(chat.id, tgUser.id);
+            if (PublicChats.includes(chat.id)) bot.lockChatMember(chat.id, tgUser.id);
+
             logger.info(`Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`);
         }
 

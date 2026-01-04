@@ -86,6 +86,7 @@ export function convertToElapsedObject(seconds: number): ElapsedTimeObject {
 export function getMonthBoundaries(date: Date): { startMonthDate: Date; endMonthDate: Date } {
     const startMonthDate = new Date(date);
     startMonthDate.setUTCDate(1);
+    startMonthDate.setUTCHours(0, 0, 0, 0);
     const endMonthDate = new Date(date);
     endMonthDate.setUTCMonth(endMonthDate.getMonth() + 1);
     endMonthDate.setUTCDate(0);

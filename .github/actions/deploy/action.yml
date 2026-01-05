@@ -1,48 +1,46 @@
 name: Deploy containers via docker-compose
+description: Deploy updated containers to a remote server using SSH and Watchtower
 inputs:
-  ssh_user:
-    description: deploy target user
-    required: true
-  ssh_identity:
-    description: string for known_hosts file
-    required: true
-  ssh_key:
-    description: string for id_ed25519 file
-    required: true
-  ssh_host:
-    description: deploy target host
-    required: true
-  ssh_port:
-    description: deploy target port
-    required: true
+    ssh_user:
+        description: deploy target user
+        required: true
+    ssh_identity:
+        description: string for known_hosts file
+        required: true
+    ssh_key:
+        description: string for id_ed25519 file
+        required: true
+    ssh_host:
+        description: deploy target host
+        required: true
+    ssh_port:
+        description: deploy target port
+        required: true
 
 runs:
-  using: composite
-  steps:
-    -
-      name: Put server's SSH key
-      uses: ./.github/actions/ssh-keys
-      with:
-        alias: prod
-        host: ${{ inputs.ssh_host }}
-        port: ${{ inputs.ssh_port }}
-        user: ${{ inputs.ssh_user }}
-        identity: ${{ inputs.ssh_identity }}
-        key: ${{ inputs.ssh_key }}
-    -
-      name: Deploy
-      shell: bash
-      run: |
-        ssh -T prod '
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v /home/ansible/.docker/config.json:/config.json \
-            containrrr/watchtower \
-            --run-once \
-            hackem-bot
-        '
-    -
-      name: Destroy server's SSH key
-      uses: ./.github/actions/ssh-keys
-      with:
-        action: destroy
+    using: composite
+    steps:
+        - name: Put server's SSH key
+          uses: ./.github/actions/ssh-keys
+          with:
+              alias: prod
+              host: ${{ inputs.ssh_host }}
+              port: ${{ inputs.ssh_port }}
+              user: ${{ inputs.ssh_user }}
+              identity: ${{ inputs.ssh_identity }}
+              key: ${{ inputs.ssh_key }}
+        - name: Deploy
+          shell: bash
+          run: |
+              ssh -T prod '
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  -v /home/ansible/.docker/config.json:/config.json \
+                  containrrr/watchtower \
+                  --run-once \
+                  hackem-bot
+              '
+        - name: Destroy server's SSH key
+          uses: ./.github/actions/ssh-keys
+          with:
+              action: destroy

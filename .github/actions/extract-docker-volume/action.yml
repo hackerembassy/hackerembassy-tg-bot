@@ -1,74 +1,71 @@
-name: Deploy containers via docker-compose
+name: Extract docker volume via SSH
+description: Extract a docker volume from a remote server via SSH, optionally encrypting it
 inputs:
-  ssh_user:
-    description: deploy target user
-    required: true
-  ssh_identity:
-    description: string for known_hosts file
-    required: true
-  ssh_key:
-    description: string for id_ed25519 file
-    required: true
-  ssh_host:
-    description: deploy target host
-    required: true
-  ssh_port:
-    description: deploy target port
-    required: true
-  docker_volume:
-    description: docker volume to backup
-    required: true
-  encryption_key:
-    description: gpg public key to encrypt the artifact
-    required: false
-  encryption_key_fingerprint:
-    description: fingerprint of the encryption_key
-    required: false
+    ssh_user:
+        description: deploy target user
+        required: true
+    ssh_identity:
+        description: string for known_hosts file
+        required: true
+    ssh_key:
+        description: string for id_ed25519 file
+        required: true
+    ssh_host:
+        description: deploy target host
+        required: true
+    ssh_port:
+        description: deploy target port
+        required: true
+    docker_volume:
+        description: docker volume to backup
+        required: true
+    encryption_key:
+        description: gpg public key to encrypt the artifact
+        required: false
+    encryption_key_fingerprint:
+        description: fingerprint of the encryption_key
+        required: false
 
 runs:
-  using: composite
-  steps:
-    -
-      name: Put server's SSH key
-      uses: ./.github/actions/ssh-keys
-      with:
-        alias: prod
-        host: ${{ inputs.ssh_host }}
-        port: ${{ inputs.ssh_port }}
-        user: ${{ inputs.ssh_user }}
-        identity: ${{ inputs.ssh_identity }}
-        key: ${{ inputs.ssh_key }}
-    -
-      name: Extract docker volume
-      shell: bash
-      run: |
-        ssh -T prod '
-          set -xe
-          docker_volume=${{ inputs.docker_volume }}
-          proxy=$(docker run --detach --rm -v $docker_volume:/v  busybox  sleep 900)
-          tmp=$(mktemp --directory)
-          docker cp  $proxy:/v  $tmp/$docker_volume
-          docker rm --force $proxy
-          rm -f "~/$docker_volume.tar"
-          tar -cf ~/$docker_volume.tar  -C $tmp  $docker_volume
-          rm -r "$tmp"
-        '
-        scp prod:'~/${{ inputs.docker_volume }}.tar' ./${{ inputs.docker_volume }}.tar
-    -
-      name: Encrypt
-      if: ${{ inputs.encryption_key }}
-      shell: bash
-      run: |
-        set -xe
-        echo '${{ inputs.encryption_key }}' | gpg --import
-        gpg --encrypt \
-            --trust-model always \
-            --recipient ${{ inputs.encryption_key_fingerprint }} \
-            --output ./${{ inputs.docker_volume }}.tar.gpg \
-            ./${{ inputs.docker_volume }}.tar
-        shred -u ./${{ inputs.docker_volume }}.tar
-    -
-      name: Destroy server's SSH key
-      uses: ./.github/actions/ssh-keys
-      with:
-        action: destroy
+    using: composite
+    steps:
+        - name: Put server's SSH key
+          uses: ./.github/actions/ssh-keys
+          with:
+              alias: prod
+              host: ${{ inputs.ssh_host }}
+              port: ${{ inputs.ssh_port }}
+              user: ${{ inputs.ssh_user }}
+              identity: ${{ inputs.ssh_identity }}
+              key: ${{ inputs.ssh_key }}
+        - name: Extract docker volume
+          shell: bash
+          run: |
+              ssh -T prod '
+                set -xe
+                docker_volume=${{ inputs.docker_volume }}
+                proxy=$(docker run --detach --rm -v $docker_volume:/v  busybox  sleep 900)
+                tmp=$(mktemp --directory)
+                docker cp  $proxy:/v  $tmp/$docker_volume
+                docker rm --force $proxy
+                rm -f "~/$docker_volume.tar"
+                tar -cf ~/$docker_volume.tar  -C $tmp  $docker_volume
+                rm -r "$tmp"
+              '
+              scp prod:'~/${{ inputs.docker_volume }}.tar' ./${{ inputs.docker_volume }}.tar
+        - name: Encrypt
+          if: ${{ inputs.encryption_key }}
+          shell: bash
+          run: |
+              set -xe
+              echo '${{ inputs.encryption_key }}' | gpg --import
+              gpg --encrypt \
+                  --trust-model always \
+                  --recipient ${{ inputs.encryption_key_fingerprint }} \
+                  --output ./${{ inputs.docker_volume }}.tar.gpg \
+                  ./${{ inputs.docker_volume }}.tar
+              shred -u ./${{ inputs.docker_volume }}.tar
+        - name: Destroy server's SSH key
+          uses: ./.github/actions/ssh-keys
+          with:
+              action: destroy

@@ -119,5 +119,8 @@
             "npx prettier --write",
             "npx eslint --fix"
         ]
+    },
+    "overrides": {
+        "form-data@2.3.2": "2.5.4"
     }
 }

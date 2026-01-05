@@ -51,7 +51,6 @@
         "i18next": "^25.5.2",
         "i18next-fs-backend": "^2.6.0",
         "jimp": "^1.6.0",
-        "local-devices": "^4.0.0",
         "luci-rpc": "^1.0.5",
         "memoizee": "^0.4.17",
         "mqtt": "^5.14.1",

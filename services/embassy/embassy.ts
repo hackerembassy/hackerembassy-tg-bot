@@ -22,7 +22,6 @@ export const EmbassyLinkMacUrl = `${EmbassyBaseLocalDns}/devices/linkmac`;
 
 export enum DeviceCheckingMethod {
     OpenWRT = "openwrt",
-    Scan = "scan",
     Unifi = "unifi",
     Keenetic = "keenetic",
     Prometheus = "prometheus",

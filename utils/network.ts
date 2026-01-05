@@ -1,6 +1,6 @@
 import https from "https";
+import net from "net";
 
-import find from "local-devices";
 // @ts-ignore
 import { LUCI } from "luci-rpc";
 import { connect } from "mqtt";
@@ -9,8 +9,11 @@ import { NodeSSH } from "node-ssh";
 import { promise } from "ping";
 import wol from "wol";
 
+import { execCommand } from "./process";
+
 const DEFAULT_NETWORK_TIMEOUT = 8000;
 const DEFAULT_CANCELLATION_TIMEOUT = 15000;
+const MAC_REGEX = /(?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2})/;
 
 type LuciWlanAdapters = {
     result: {
@@ -93,11 +96,12 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
     });
 }
 
-export async function arp(ip: string, networkRange: string): Promise<string> {
-    // The ⁠local-devices library cannot parse ARP results for single IP address resolution on Alpine
-    const devices = await find({ address: networkRange, skipNameResolution: true });
+export async function arp(ip: string): Promise<string> {
+    if (!net.isIP(ip)) throw Error(`Invalid IP address: ${ip}`);
 
-    const mac = devices.find(d => d.ip === ip)?.mac;
+    const arpOutput = await execCommand("arp", ["-n", ip]);
+    const match = arpOutput.match(MAC_REGEX);
+    const mac = match ? match[0] : null;
 
     if (!mac) throw Error(`MAC not found for IP ${ip}`);
 
@@ -224,10 +228,5 @@ export class NeworkDevicesLocator {
         const devices = (await devicesResponse.json()) as { data: { mac: string }[] };
 
         return devices.data.map((device: { mac: string }) => device.mac);
-    }
-
-    static async findDevicesUsingNmap(networkRange: string) {
-        const devices = await find({ address: networkRange });
-        return devices.map(d => d.mac);
     }
 }

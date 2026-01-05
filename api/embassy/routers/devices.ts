@@ -49,10 +49,6 @@ router.get("/inside", async (req, res, next) => {
                 // We don't use our Xiaomi openWRT device as wifi access point anymore
                 res.json(await NeworkDevicesLocator.getDevicesFromOpenWrt(embassyApiConfig.spacenetwork.routerip, luciToken));
                 break;
-            case DeviceCheckingMethod.Scan:
-                // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
-                res.json(await NeworkDevicesLocator.findDevicesUsingNmap(embassyApiConfig.spacenetwork.networkRange));
-                break;
             case DeviceCheckingMethod.Unifi:
                 // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
                 if (!unifiUser || !unifiPassword) throw Error("Missing unifi credentials");
@@ -89,7 +85,7 @@ router.get("/linkmac", async (req, res, next) => {
 
         if (!ip) throw Error("Missing IP");
 
-        const mac = await arp(ip.replace("::ffff:", ""), embassyApiConfig.spacenetwork.networkRange);
+        const mac = await arp(ip.replace("::ffff:", ""));
 
         res.send(linkMacPage(mac));
     } catch (error) {

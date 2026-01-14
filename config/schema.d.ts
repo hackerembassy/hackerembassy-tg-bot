@@ -79,6 +79,7 @@ export interface LiveConfig {
 export interface RemindersConfig {
     utility: UtilityReminder;
     internet: UtilityReminder;
+    utility_water: UtilityReminder;
 }
 
 export interface OutageConfig {

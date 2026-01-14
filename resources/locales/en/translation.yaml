@@ -1,7 +1,7 @@
 general:
     errors:
         generic: Something went wrong
-        chatnotallowed: ⚠️ The command is only available in group space chats
+        chatnotallowed: ⚠️ The command is only available in group chats of Space
         restricted: 📵 Sorry, you need to be {{required}} to run this command
         nouser: ⚠️ User not found, ask them to write something to the bot
     buttons:
@@ -37,7 +37,7 @@ basic:
                 #`/issue It would be nice to have a map of the internal network on the wiki#`
 
                 If the issue is related to our bot, then it is better to use the /bug command
-            sent: 💌 The problem has been sent to residents, they will definitely consider it. Thank you for helping our community.
+            sent: 💌 The problem has been sent to residents, they will definitely read it soon. Thank you for helping our community.
             report: |
                 📩 You have a new issue!
 
@@ -132,6 +132,7 @@ basic:
         - On Sundays at 20.00 we have an English Club, where you can practice your English.
         - We often hold musical meetings on Mondays at 20.00: we bring guitars, play Rocksmith and jam.
         - On any other day, the space can also receive guests, enter the command {{statusCommand}} to find out if the space is open and if there is anyone there.
+        - Check other events with /upcoming command.
 
         💸 Visits are free (free), but any donations to help our projects and rentals are very welcome.
         More details can be found using the command {{donateCommand}}
@@ -144,7 +145,7 @@ basic:
         - Willingness to participate in community life.
         - Regular donations (of course, within your capabilities).
 
-        🧙🏻‍♂️ Contact any Space resident, he will present your candidacy to the Space Council.
+        🧙🏻‍♂️ Contact any Space resident, and they will present your candidacy to the Space Council.
     events:
         text: |
             🎭 What's happening here:
@@ -167,19 +168,19 @@ basic:
         upcoming: |
             🗓 Our upcoming events:
         today: |
-            📣 Today the following events are taking place in the space:
+            📣 The following events are taking place in Space today:
         todaysimple: |
             Events today:
         entrance: |
-            🎁 Admission is free as always, but we will welcome any donations to support the space.
+            🎁 Admission is free as always, but we will welcome any donations to support the Space.
         notoday: |
-            🏖 There are no planned events on Space today.
+            🏖 There are no planned events in Space today.
 
             But, if the space is open to guests, then you can just come to work on interesting projects or hang out. Check /status throughout the day.
         error: 📂 No events found
     start:
         text: |
-            🇬🇧 Hello hacker. I am a bot for managing all sorts of processes in space.
+            🇬🇧 Hello hacker. I am a bot for managing all sorts of things in Space.
             [I am in development, you can participate in my development in the repository on the Space GitHub, contact #[korn9509#]#(t.me/korn9509#)].
 
             🔖 To get a complete list of commands available to you, enter /help. Some commands are only visible to residents.
@@ -222,7 +223,7 @@ basic:
             📚 Here you can read about us.
             If you want to know more, feel free to visit our website and wiki https://hackem.cc/
         buttons:
-            about: 🏠 About space and bot
+            about: 🏠 About Space and bot
             join: 🙋‍♀️ How to join
             location: 🗺 How to find
             donate: 🎁 How to donate
@@ -265,7 +266,7 @@ admin:
         fail: ⚠️ Failed to update roles
     removeUser:
         success: 🗑 User {{username}} deleted
-        fail: ⚠️ Failed to delete the user (maybe he didn’t exist?)
+        fail: ⚠️ Failed to delete the user (maybe they don’t exist?)
     copy:
         help: |
             📷 Copy the message you are replying to to a target chat
@@ -280,7 +281,7 @@ admin:
         success: Message was copied to {{target}}
     save:
         help: |
-            📷 Save the message you are replying to to a chat with a bot
+            📷 Save the message you are replying to to your PMs with the bot
 
             #`/save#`
             #`/save message_id#`
@@ -303,13 +304,13 @@ admin:
 birthday:
     nextbirthdays: |
         🎂 This month they celebrate their birthdays:
-    noone: Nobody? Strange...
+    noone: Nobody? Weird...
     help: |
         {{usersList}}
         Would you like to be congratulated too? Add your birthday with a command in the following formats:
         #`/mybirthday YYYY-MM-DD#`
         #`/mybirthday MM-DD#`
-        Tired of congratulating yourself? Enter the command:
+        Tired of this? Enter the command:
         #`/mybirthday remove#`
     fail: |
         🛂 Enter the date in the format #`YYYY-MM-DD#`, #`MM-DD#` or specify #`remove#`
@@ -320,9 +321,9 @@ birthday:
         february: February
         march: March
         april: April
-        may: may
+        may: May
         june: June
-        july: july
+        july: July
         august: August
         september: September
         october: October
@@ -345,7 +346,7 @@ embassy:
             meeting_room: Meeting room
             outdoors: Entrance door
             gateway: Gateway
-            facecontrol: Face control
+            facecontrol: Face Control
             printers: Printer
         fail: |
             ⚠️ {{camLocationName}}: Camera not available yet
@@ -372,7 +373,7 @@ embassy:
             #`/{{firm}}temp 24#` - Target temperature (16-28°C)
             /preheat - Preheat the space in advance
         success: ✅ It worked
-        fail: ⚠️ It didn’t work out
+        fail: ⚠️ It didn’t work...
         unavailable: ⚠️ Air conditioning is not available
         buttons:
             turnon: 🌀 Enable
@@ -413,7 +414,7 @@ embassy:
         undefinedtime: Xs
     doorbell:
         success: 🔔 Ring the doorbell
-        fail: 🔕 Failed to call
+        fail: 🔕 Failed to ring
     device:
         help: |
             🖥 Device {{deviceName}} can be controlled over the network using the following commands:
@@ -421,7 +422,7 @@ embassy:
             #`/{{deviceName}} down#` - Turn off
             #`/{{deviceName}} status#` - Check availability
             #`/{{deviceName}} help#` - Display this message
-        notfound: ⚠️ The device is not known to the system or something went very wrong
+        notfound: ⚠️ The device is not known to the system or something went very wrong (/devicename up/down/status)
         wake:
             success: ⏰ Tried to wake up the device, monitor its status
             fail: ⚠️ Failed to wake up the device
@@ -485,7 +486,7 @@ embassy:
                 on the second floor, so don't forget to turn it on before
                 use and turn it off after if no one is using it.
                 Car control in the /gaming team
-            fail: ⚠️ It was not possible to generate an image, but /gaming is definitely turned on and has not yet died from a ton of requests?
+            fail: ⚠️ It was not possible to generate an image, is /gaming definitely turned on and has not yet died from a ton of requests?
         ask:
             help: |
                 🔮 Ask a question to the neural network. Available only in group space chats. Available models can be checked here /models
@@ -510,16 +511,16 @@ embassy:
             I hope this is not in Yerevan 😅
         notmentioned: |
             ⚡️ {{street}} ({{hystreet}}) is no longer mentioned on the Armenian Electricity Networks website. Everything is fine 👌
-        fail: ⚠️ Failed to check street
+        fail: ⚠️ Failed to check the street on ENA's website.
 funds:
     funds: |
         💰 Here are our current funds:
 
-        {{list}}💸 To find out how to help us, click /donate
+        {{list}}💸 To find out how to fund us, click /donate
     fund:
         nofund: Fund not found
         text: |
-            {{fundlist}}💸 To find out how to help us, click /donate
+            {{fundlist}}💸 To find out how to fund us, click /donate
         buttons:
             csv: 🧾 Export to CSV
             donut: 📊 View chart
@@ -533,20 +534,20 @@ funds:
 
         {{list}}
     addfund:
-        success: 💰 Added collection {{fundName}} with target in {{targetValue}} {{currency}}
+        success: 💰 Added fund {{fundName}} with {{targetValue}} {{currency}} target
         fail: ⚠️ Failed to add fee (maybe it already exists?)
     updatefund:
-        success: 🔄 Updated {{fundName}} collection with a new target in {{targetValue}} {{currency}}
-        fail: ⚠️ Failed to update collection (maybe wrong name?)
+        success: 🔄 Updated {{fundName}} fund with a new {{targetValue}} {{currency}} target
+        fail: ⚠️ Failed to update fund (maybe wrong name?)
     removefund:
-        success: 🗑 {{fundName}} collection removed
-        fail: ⚠️ Failed to delete collection
+        success: 🗑 {{fundName}} fund removed
+        fail: ⚠️ Failed to delete fund
     closefund:
-        success: ☑️ {{fundName}} collection closed
-        fail: ⚠️ Failed to close collection
+        success: ☑️ {{fundName}} fund closed
+        fail: ⚠️ Failed to close fund
     changestatus:
-        success: 🔄 Collection status {{fundName}} changed to {{fundStatus}}
-        fail: ⚠️ Failed to change collection status
+        success: 🔄 {{fundName}} fund status changed to {{fundStatus}}
+        fail: ⚠️ Failed to change fund status
     transferdonation:
         success: |
             ↪️ Donation [#`{{id}}#`] transferred to {{accountant}}
@@ -595,13 +596,13 @@ funds:
             💰 Total {{total}} {{currency}} day
 
             🛂 You can transfer a donation using the following commands:
-            #`/tosafe id#` - Separate donation to safe by id (or several ids, separated by commas)
+            #`/tosafe id#` - Transfer donation to safe by id (or several ids, separated by commas)
             #`/topaid id#` - Mark the donation as paid by id (went to the fund purpose)
-            #`/tonick id#` - Separate donation to Kolya by id
-            #`/totina id#` - Separate donation to Tina by id
-            #`/tohimura id#` - Separate donation to Humira by id
-            #`/tosafeall fund_name#` - All your donations to safe from a certain fund
-            #`/tosafeall#` - All your donations to safe (carefully)
+            #`/tonick id#` - Transfer donation to Kolya by id
+            #`/totina id#` - Transfer donation to Tina by id
+            #`/tohimura id#` - Transfer donation to Humira by id
+            #`/tosafeall fund_name#` - Transfer all your donations to safe from a certain fund
+            #`/tosafeall#` - Transfer every single donation on you to safe (be careful!)
             #`/transferdonation donation_id to username#` (td) - Transfer donation to another accountant
         empty: 📂 You don’t have anything on you
 needs:
@@ -693,32 +694,32 @@ status:
     buttons:
         in: 🤝 I am in
         out: 👋 I am out
-        inandin: 🤝 And I am in
-        inandout: 👋 But I am out
-        outandin: 🤝 But I am in
+        inandin: 🤝 Me too!
+        inandout: 👋 I’ve left
+        outandin: 🤝 I’m in!
         outandout: 👋 I am out as well
-        going: 🚕 Planning to come
-        notgoing: 🛌 Not planning
-        andgoing: 🚕 And I am planning
+        going: 🚕 Planning to visit
+        notgoing: 🛌 Not going
+        andgoing: 🚕 Me too!
         refresh: 🔃 Refresh
         repeat: 🔃 Repeat
-        open: 🚪 Open space
-        close: 🔒 Close space
-        reopen: 🚪 Open again
-        reclose: 🔒 Close again
-        whoinside: 📹 Who is inside
+        open: 🚪 Open Space
+        close: 🔒 Close Space
+        reopen: 🚪 Re-open Space
+        reclose: 🔒 Close Space
+        whoinside: 📹 Who is inside?
         whoelse: ❓ Who else?
         save: 📷 Save
     profile:
         donated: |
             💵 The following donations were made:
             {{donationList}}
-        total: 💰 Total added to space {{total}} {{currency}}
+        total: 💰 Total donations to space {{total}} {{currency}}
         notfound: ⚠️ User not found
     mac:
         buttons:
             detect: 🔍 Detect automatically
-            autoinside: 📲 Enable autoinside
+            autoinside: 📲 Enable auto-inside
             remove: 🗑 Remove MAC
         help: |
             📡 Using this command you can set MAC addresses for auto-login and lock control functions
@@ -744,11 +745,11 @@ status:
             mac: 📡 Control MACs
             ghost: 👻 Ghost
         help: |
-            ⏲ ​​Using this command, you can automatically register in the space as soon as the MAC address of your device is detected on the network.
-            📌 If the device is inactive on the space network for {{timeout}} minutes, the user will be automatically logged out.
+            ⏲ ​​Using this command, you can automatically check-in to Space as soon as the MAC address of your device is detected on the network.
+            📌 If the device is inactive on the Space network for {{timeout}} minutes, you will be automatically logged out.
             📌 When the feature is enabled, the current status of the device on the network takes precedence over manual login/logout commands.
-            ⚠️ To work, be sure to set the MAC address of your device and disable its randomization for the space network.
-        ghost: "#`/autoinside ghost#` - Check in for residents only"
+            ⚠️ Be sure to set the MAC address of your device and disable its randomization for the space network.
+        ghost: "#`/autoinside ghost#` - Check-in visible for residents only"
         fail: ⚠️ Failed to enable auto-login, although MAC is set. Someone give my developer a hard time.
         nomac: |
             ⚠️ Your MAC address is not set. Add it with the command /mac
@@ -766,7 +767,7 @@ status:
 
             {{statusMessage}}
         messageopened: This is a great reason to come in, so ring the bell or write to those inside - they will open it for you
-        messageclosed: We are waiting for one of the residents to open it. Maybe there is no one inside, or there is a closed meeting of residents, or they forgot to do /open again? Who knows... Better ask them in chat or tag them with the /hey command.
+        messageclosed: We are waiting for one of the residents to open it. Maybe there is nobody inside, or there is a private meeting, or they forgot to do /open again? Who knows... Better ask them in chat or tag them with the /hey command.
         updated: ⏱ Updated at {{updatedDate}}
         opened: "#*opened#*"
         closed: "#*closed#*"
@@ -778,7 +779,7 @@ status:
         state_pin: "{{stateEmoji}} {{state}}"
         insidechecked_pin: "👨‍💻 inside {{count}}"
         insidechecked: |
-            👨‍💻 [{{count}}] were checked inside:
+            👨‍💻 [{{count}}] were checked in:
         nooneinside: 🛌 No one checked in inside
         nooneinside_pin: 🛌 no one
         going_pin: "🚕 planning {{count}}"
@@ -792,21 +793,21 @@ status:
     close-alert: 🔒 Space was closed by user {{user}}
     evict: 🔒 The check-in list has been cleared.
     in:
-        notready: 🔐 Now the space is not ready to receive guests... or the residents forgot to do /open again
-        gotin: 🤝 {{username}} is now in space
+        notready: 🔐 The space is not ready to receive guests now... or the residents forgot to do /open again
+        gotin: 🤝 {{username}} is checked-in
         until: " until {{until}}"
-        tryautoinside: 📲 Try the /autoinside command to check in to space automatically.
+        tryautoinside: 📲 Try the /autoinside command to check-in to Space automatically.
     out:
         shouldnot: 🔐 And you are not on the list of marked people anyway (when the space is closed, it is cleared)
-        gotout: 👋 {{username}} is no longer in space. We hope he will come back again...
+        gotout: 👋 {{username}} is no longer in Space. We hope they will visit us again...
     inforce:
         notready: 🔐 Sorry, you can’t bring this person now.
         gotin: 🟢 {{memberusername}} brought {{username}} to space
     outforce:
         shouldnot: 🔐 Uh no, you can’t send them home.
         gotout: 🔴 {{memberusername}} sent {{username}} home.
-    going: 🚕 {{username}} plans to go to space today {{note}}
-    notgoing: 🛌 {{username}} is no longer planning to go to space today {{note}}
+    going: 🚕 {{username}} plans to visit Space today {{note}}
+    notgoing: 🛌 {{username}} is no longer goint to visit Space today {{note}}
     shouldigo:
         context: “You are a Telegram bot for the hackspace, always responding humorously and oddly. I will most likely not be allowed into the closed space, but I will be gladly accepted into the open space.”
         prompt: “Should I go to the hackspace today if the space is {{state}} for me, {{going}} are planning to visit, and {{inside}} is inside?”
@@ -819,7 +820,7 @@ status:
             #`/setemoji status#` - View your installed emoji in the bot
             #`/setemoji remove#` - Remove your emoji from the bot
         fail: ⚠️ Please enter a valid emoji.
-        set: 🐥 Emoji {{emoji}} was successfully installed for user {{username}}.
+        set: 🐥 Emoji {{emoji}} was set for user {{username}}.
         removed: 🗑 Emoji removed for user {{username}}.
         isset: 🐥 The emoji {{emoji}} is set for the user {{username}}.
         isnotset: 🐥 Emoji not set for user {{username}}.
@@ -828,10 +829,10 @@ status:
         start: "🕔 During the existence of the bot (since January 2023), these users spent time in space (based on marks)"
         invaliddates: "🕔 I can’t understand the dates, try in YYYY-MM-DD format"
         nousertimes: "📭 No marks found for this period"
-        hoursinspace: "Hours spent in space from {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{ to.year}}"
-        period: "🕔 From {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{to.year }} these users spent in space (based on marks)"
+        hoursinspace: "Hours spent in Space from {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{ to.year}}"
+        period: "🕔 From {{from.day}}/{{from.month}}/{{from.year}} to {{to.day}}/{{to.month}}/{{to.year }} these people spent in space (based on check-ins)"
         tryautoinside: |
-            📲 Do you want to know accurate statistics about yourself? Don't forget to check in with /in and /out, or better yet, use /autoinside to do it automatically
+            📲 Do you want to know accurate statistics about yourself? Don't forget to check-in with /in and /out, or better yet, use /autoinside to do it automatically
         help: |
             ℹ️ Stats commands:
             • This month - /month
@@ -839,7 +840,7 @@ status:
             • For the entire existence of the bot - /allstats
             • Any period - #`/stats from 2023-05-01 to 2023-05-25#`
 meme:
-    its_wednesday: 🐸 Kwa-kwa, today is Wednesday! The chance of getting /zhabka from me today is higher than ever (even where they are not usually found)!
+    its_wednesday: 🐸 ケロケロ, today is Wednesday! The chance of getting /zhabka from me today is higher than ever (even where they are not usually found)!
     not_wednesday: 🐸 Oh, the toads are sleeping today. Come back on Wednesday!
     slap:
         user: |
@@ -867,7 +868,7 @@ topics:
         subscriptions: 💌 Subscriptions
     topics:
         list: |
-            📭 Using this feature, you can subscribe to the newsletter on topics that interest you.
+            📭 Using this feature, you can subscribe to the newsletter on topics that might interest you.
             Topic authors will be able to easily mention you in group chats and send you personal notifications.
 
             🗃 List of available topics:
@@ -905,7 +906,7 @@ topics:
         fail: ⚠️ Failed to subscribe to topic {{topic}}
     unsubscribe:
         success: |
-            🗑 Subscription to topic {{topic}} has been removed
+            🗑 Unsubscribed from topic {{topic}}
 
             📟 My subscriptions - /subscriptions
         notsubscribed: |

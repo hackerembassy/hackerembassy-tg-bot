@@ -586,8 +586,11 @@ funds:
         success: 🔄 Sponsorships updated
         fail: ⚠️ Failed to update sponsorships
     export:
+        donuthelp: |
+            Nope, try it like this instead: #`/donut fund_name#`
+            Or just #`/costsdonut#` to see the rental costs chart
         empty: ⚠️ Nothing to export
-        fail: ⚠️ Something is wrong
+        fail: ⚠️ Something is wrong, are you sure the fund exists?
     debt:
         text: |
             🧾 Accountant {{username}} has the following donations:

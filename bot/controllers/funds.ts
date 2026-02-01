@@ -647,8 +647,17 @@ export default class FundsController implements BotController {
         }
     }
 
-    @Route(["exportdonut", "donut", "ed"], /(.*\S)/, match => [match[1]])
-    static async exportDonutHandler(bot: HackerEmbassyBot, msg: Message, fundName: string) {
+    @Route(["exportdonut", "donut", "ed"], OptionalParam(/(.*\S)/), match => [match[1]])
+    static async exportDonutHandler(bot: HackerEmbassyBot, msg: Message, fundName?: string) {
+        if (!fundName) {
+            const donutImage = await getImageFromPath(`./resources/images/memes/donut.jpg`);
+            const help = t("funds.export.donuthelp");
+
+            return donutImage
+                ? await bot.sendPhotoExt(msg.chat.id, donutImage, msg, { caption: help })
+                : await bot.sendMessageExt(msg.chat.id, help, msg);
+        }
+
         let imageBuffer: Buffer;
 
         try {
@@ -659,10 +668,10 @@ export default class FundsController implements BotController {
                 return;
             }
 
-            await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
         } catch (error) {
             logger.error(error);
-            await bot.sendMessageExt(msg.chat.id, t("funds.export.fail"), msg);
+            return await bot.sendMessageExt(msg.chat.id, t("funds.export.fail"), msg);
         }
     }
 }

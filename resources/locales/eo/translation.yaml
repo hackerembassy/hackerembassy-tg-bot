@@ -585,8 +585,11 @@ funds:
         success: 🔄 Sponsorecoj ĝisdatigitaj
         fail: ⚠️ Malsukcesis ĝisdatigi sponsorecojn
     export:
+        donuthelp: |
+            Ne, provu ĝin tiel anstataŭe #`/donut fund_name#`
+            Aŭ simple #`/costsdonut#` por vidi la diagramon de lupagoj
         empty: ⚠️ Nenio por eksporti
-        fail: ⚠️ Io misokazis
+        fail: ⚠️ Io misfunkciis, ĉu ekzistas fonduso?
     debt:
         text: |
             🧾 Kontisto {{username}} havas la sekvajn donacojn:

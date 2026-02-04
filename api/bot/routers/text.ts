@@ -95,7 +95,7 @@ if (apiConfig.features.calendar) {
 }
 
 router.get("/funds", async (_, res) => {
-    const funds = FundsRepository.getAllFunds().filter(p => p.status === "open");
+    const funds = FundsRepository.getFundsByStatus("open");
     const donations = FundsRepository.getAllDonations(true, true);
 
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });

@@ -16,6 +16,7 @@ import {
     SponsorshipNameToLevel,
 } from "@services/funds/export";
 import { UserVisit } from "@services/domain/user";
+import { DonationResult } from "@services/funds/donation";
 
 import { splitArray } from "@utils/common";
 import { REPLACE_MARKER } from "@utils/text";
@@ -524,19 +525,12 @@ export function getAutoinsideMessageStatus(
     }
 }
 
-export function getNewDonationText(
-    user: User,
-    value: number,
-    currency: string,
-    lastInsertRowid: number | bigint,
-    fundName: string,
-    hasAlreadyDonated: boolean
-) {
-    return t(hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
+export function getNewDonationText(user: User, donationResult: DonationResult, fundName: string) {
+    return t(donationResult.hasAlreadyDonated ? "funds.adddonation.increased" : "funds.adddonation.success", {
         username: formatUsername(user.username),
-        value: toBasicMoneyString(value),
-        currency,
-        donationId: lastInsertRowid,
+        value: toBasicMoneyString(donationResult.amount),
+        currency: donationResult.currency,
+        donationId: donationResult.donationId,
         fundName,
     });
 }

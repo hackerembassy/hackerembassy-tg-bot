@@ -26,6 +26,15 @@ const doc = {
             message: "Приблизительно к 21:00",
             $token: "guest_token",
         },
+        donation: {
+            $userId: 10,
+            $username: "rfoxed",
+            $amount: 50,
+            currency: "USD",
+            postChatId: 123456789,
+            accountant: "kitausername",
+            $token: "terminal_token",
+        },
     },
 };
 

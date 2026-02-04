@@ -20,6 +20,7 @@ import {
 } from "@hackembot/core/decorators";
 
 import { openwebui } from "@services/neural/openwebui";
+import { hasRole } from "@services/domain/user";
 import { splitArray } from "@utils/common";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
@@ -173,7 +174,7 @@ export default class ServiceController implements BotController {
     static async chatidHandler(bot: HackerEmbassyBot, msg: Message) {
         if (msg.chat.type === "private") {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}`, msg);
-        } else if (bot.context(msg).user.roles?.includes("member")) {
+        } else if (hasRole(bot.context(msg).user, "admin", "member")) {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}, topicId: ${msg.message_thread_id}`, msg);
         } else {
             bot.sendRestrictedMessage(msg);

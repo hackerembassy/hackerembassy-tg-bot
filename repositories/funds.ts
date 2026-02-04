@@ -25,6 +25,10 @@ class FundsRepository extends BaseRepository {
         return this.db.select().from(funds).all();
     }
 
+    getFundsByStatus(status: string) {
+        return this.db.select().from(funds).where(eq(funds.status, status)).all();
+    }
+
     getFundByName(fundName: string) {
         return this.db.select().from(funds).where(eq(funds.name, fundName)).get();
     }

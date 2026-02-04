@@ -306,6 +306,101 @@
         }
       }
     },
+    "/api/usernames": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/funds": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/funds/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/funds/{id}/donations": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Fund id to add donation to"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donation"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/wiki/tree": {
       "get": {
         "description": "",
@@ -441,6 +536,45 @@
         "required": [
           "username",
           "isgoing",
+          "token"
+        ]
+      },
+      "donation": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "example": 10
+          },
+          "username": {
+            "type": "string",
+            "example": "rfoxed"
+          },
+          "amount": {
+            "type": "number",
+            "example": 50
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "postChatId": {
+            "type": "number",
+            "example": 123456789
+          },
+          "accountant": {
+            "type": "string",
+            "example": "kitausername"
+          },
+          "token": {
+            "type": "string",
+            "example": "terminal_token"
+          }
+        },
+        "required": [
+          "userId",
+          "username",
+          "amount",
           "token"
         ]
       }

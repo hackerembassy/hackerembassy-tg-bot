@@ -38,6 +38,12 @@ export const SERVICE_USERS = {
         username: "hass",
         roles: "service",
     },
+    terminal: {
+        ...DefaultUser,
+        userid: 5,
+        username: "terminal",
+        roles: "service",
+    },
 };
 
 export const TEST_USERS = {
@@ -68,6 +74,12 @@ export const DefaultState: StateEx = {
     changer: SERVICE_USERS.anon,
 };
 
-export const SEED_SERVICE_USERS: User[] = [SERVICE_USERS.anon, SERVICE_USERS.paid, SERVICE_USERS.safe, SERVICE_USERS.hass];
+export const SEED_SERVICE_USERS: User[] = [
+    SERVICE_USERS.anon,
+    SERVICE_USERS.paid,
+    SERVICE_USERS.safe,
+    SERVICE_USERS.hass,
+    SERVICE_USERS.terminal,
+];
 
 export const SEED_TEST_USERS: User[] = [TEST_USERS.admin, TEST_USERS.accountant, TEST_USERS.guest];

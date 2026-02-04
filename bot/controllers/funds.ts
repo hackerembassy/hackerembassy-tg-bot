@@ -18,6 +18,7 @@ import {
 import * as ExportHelper from "@services/funds/export";
 import logger from "@services/common/logger";
 import { userService } from "@services/domain/user";
+import { donateToFund, DonationResult } from "@services/funds/donation";
 
 import { getMonthBoundaries, getToday } from "@utils/date";
 import { getImageFromPath } from "@utils/filesystem";
@@ -347,79 +348,55 @@ export default class FundsController implements BotController {
             // Prepare and validate input
             const value = parseMoneyValue(valueString);
             const preparedCurrency = await prepareCurrency(currency);
+
             if (isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
 
             const user =
                 UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
                 UsersRepository.getUserByUserId(helpers.getMentions(msg)[0]?.id);
             const accountant = bot.context(msg).user;
-            if (!user) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
-            const fund = FundsRepository.getFundByName(fundName);
-            if (!fund) return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.nofund"), msg);
+            if (!user) throw new Error("User not found");
 
-            // Check if user has already donated to this fund
-            const existingUserDonations = FundsRepository.getDonationsForName(fundName).filter(
-                donation => donation.user_id === user.userid
-            );
-            const hasAlreadyDonated = existingUserDonations.length > 0;
+            const donationResult = await donateToFund(fundName, value, preparedCurrency, user, accountant);
 
-            // Add donation to the fund
-            const lastInsertRowid = FundsRepository.addDonationTo(
-                fund.id,
-                user.userid,
-                value,
-                accountant.userid,
-                preparedCurrency
-            );
-
-            // Update user sponsorship level
-            const userDonations = FundsRepository.getDonationsOf(
-                user.userid,
-                false,
-                false,
-                ExportHelper.getSponsorshipStartPeriodDate()
-            );
-            const sponsorship = await ExportHelper.getSponsorshipLevel(userDonations);
-            const hasUpdatedSponsorship = user.sponsorship !== sponsorship;
-
-            if (hasUpdatedSponsorship) {
-                user.sponsorship = sponsorship;
-                userService.saveUser(user);
-            }
-
-            // Send message to the chat
-            const newDonationText = TextGenerators.getNewDonationText(
-                user,
-                value,
-                preparedCurrency,
-                lastInsertRowid,
-                fundName,
-                hasAlreadyDonated
-            );
-            const sponsorshipText = hasUpdatedSponsorship ? "\n" + TextGenerators.getNewSponsorshipText(user, sponsorship) : "";
-            const caption = `${newDonationText}${sponsorshipText}`;
-            const animeImage = await FundsController.getAnimeImageForDonation(value, preparedCurrency, user);
-
-            if (animeImage) {
-                await bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption });
-            } else {
-                await bot.sendMessageExt(msg.chat.id, caption, msg);
-            }
-
-            // Send notification to Space
-            bot.context(msg).mode.silent = true;
-            const textInSpace = replaceUnsafeSymbolsForAscii(newDonationText);
-
-            return Promise.allSettled([
-                EmbassyController.textinspaceHandler(bot, msg, textInSpace),
-                EmbassyController.playinspaceHandler(bot, msg, "money", true),
-            ]);
+            return await FundsController.sendGratitude(bot, msg, donationResult, user, fundName);
         } catch (error) {
             logger.error(error);
 
             return bot.sendMessageExt(msg.chat.id, t("funds.adddonation.fail"), msg);
         }
+    }
+
+    static async sendGratitude(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        donationResult: DonationResult,
+        user: User,
+        fundName: string
+    ) {
+        // Send message to the chat
+        const newDonationText = TextGenerators.getNewDonationText(user, donationResult, fundName);
+        const sponsorshipText = donationResult.hasUpdatedSponsorship
+            ? "\n" + TextGenerators.getNewSponsorshipText(user, donationResult.newSponsorshipLevel)
+            : "";
+        const caption = `${newDonationText}${sponsorshipText}`;
+        const animeImage = await FundsController.getAnimeImageForDonation(donationResult.amount, donationResult.currency, user);
+
+        if (animeImage) {
+            await bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption });
+        } else {
+            await bot.sendMessageExt(msg.chat.id, caption, msg);
+        }
+
+        // Send notification to Space
+        bot.context(msg).mode.silent = true;
+        const textInSpace = replaceUnsafeSymbolsForAscii(newDonationText);
+
+        return Promise.allSettled([
+            EmbassyController.textinspaceHandler(bot, msg, textInSpace),
+            EmbassyController.playinspaceHandler(bot, msg, "money", true),
+        ]);
     }
 
     @Route(["costs", "cs", "rent"], OptionalParam(/(\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?)(\s.*)?/), match => [

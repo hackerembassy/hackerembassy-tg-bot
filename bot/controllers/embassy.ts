@@ -7,7 +7,7 @@ import usersRepository from "@repositories/users";
 import fundsRepository from "@repositories/funds";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import embassyService from "@services/embassy/embassy";
-import { getDonationsSummary } from "@services/funds/export";
+import { getFundDonationsSummary } from "@services/funds/export";
 import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
 import logger from "@services/common/logger";
 import { userService, hasRole } from "@services/domain/user";
@@ -198,9 +198,7 @@ export default class EmbassyController implements BotController {
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
         const inline_keyboard = [
-            [
-                InlineButton(t("embassy.printers.anettestatus"), "printerstatus", ButtonFlags.Simple, { params: "anette" }),
-            ],
+            [InlineButton(t("embassy.printers.anettestatus"), "printerstatus", ButtonFlags.Simple, { params: "anette" })],
             [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
@@ -472,7 +470,7 @@ export default class EmbassyController implements BotController {
 
             if (!selectedFund) throw Error(`No fund ${fund} found`);
 
-            const donationsSummary = await getDonationsSummary(selectedFund);
+            const donationsSummary = await getFundDonationsSummary(selectedFund);
 
             await EmbassyController.textinspaceHandler(
                 bot,

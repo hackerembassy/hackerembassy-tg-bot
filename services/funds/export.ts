@@ -340,7 +340,7 @@ export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDon
     return combinedDonations;
 }
 
-export async function getDonationsSummary(fund: Fund, limit?: number) {
+export async function getFundDonationsSummary(fund: Fund, limit?: number) {
     const donations = FundsRepository.getDonationsForFundId(fund.id, true, true) as (DonationEx & { converted_value?: number })[];
 
     for (const donation of donations) {

@@ -17,7 +17,7 @@ declare global {
     }
 
     type RequestWithBody<T> = import("express").Request<import("express-serve-static-core").ParamsDictionary, any, T, any>;
-    type EntityType = "hass" | "user";
+    type EntityType = "hass" | "terminal" | "user";
 }
 
 export {};

@@ -13,14 +13,32 @@ import { MINUTE } from "@utils/date";
 import { safeJsonStringify } from "@utils/text";
 import { hasRole } from "@services/domain/user";
 
+const specialEntities = [
+    {
+        name: "hass",
+        token: process.env["HASSAPIKEY"],
+        user: SERVICE_USERS.hass,
+    },
+    {
+        name: "terminal",
+        token: process.env["TERMINALAPIKEY"],
+        user: SERVICE_USERS.terminal,
+    },
+] as const;
+
+function isSpecialEntity(name: string): boolean {
+    return specialEntities.some(entity => entity.name === name);
+}
+
 export function createAuthentificationMiddlware(): RequestHandler {
     return function authn(req, res, next): void {
         req.token = extractToken(req as RequestWithOptionalTokenBody);
 
         if (req.token) {
-            if (req.token === process.env["UNLOCKKEY"]) {
-                req.entity = "hass";
-                req.user = SERVICE_USERS.hass;
+            const specialEntity = specialEntities.find(entity => req.token === entity.token);
+            if (specialEntity) {
+                req.entity = specialEntity.name;
+                req.user = specialEntity.user;
             } else {
                 const userkey = ApiKeyRepository.getUserByApiKey(sha256(req.token));
                 if (userkey) {
@@ -43,7 +61,7 @@ export function createAuthorizationMiddleware(userroles: UserRole[]): RequestHan
             return;
         }
 
-        const allowed = req.entity && (req.entity === "hass" || hasRole(req.user as User, ...userroles));
+        const allowed = req.entity && (isSpecialEntity(req.entity) || hasRole(req.user as User, ...userroles));
 
         if (!allowed) {
             logger.info(`Got request with invalid token from ${req.ip}`);
@@ -99,3 +117,4 @@ export function createOutlineVerificationMiddleware(token?: string): RequestHand
 export const authentificate = createAuthentificationMiddlware();
 export const allowMembers = createAuthorizationMiddleware(["member"]);
 export const allowTrustedMembers = createAuthorizationMiddleware(["member", "trusted"]);
+export const allowSpecialEntities = createAuthorizationMiddleware([]);

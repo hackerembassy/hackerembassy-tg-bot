@@ -61,10 +61,11 @@ function setupCronJobs(bot: HackerEmbassyBot): void {
 
     // Meme reminders
     if (botConfig.features.birthday)
-        runningJobs.push(new CronJob("0 0 * * *", () => BirthdayController.sendBirthdayWishes(bot, null)));
+        // Better to run this a little after midnight since the tg client devs kinda struggle with telling yesterday and today apart around midnight
+        runningJobs.push(new CronJob("1 0 * * *", () => BirthdayController.sendBirthdayWishes(bot, null)));
 
     if (botConfig.features.wednesday)
-        runningJobs.push(new CronJob("0 0 * * 3", () => MemeController.remindItIsWednesdayHandler(bot)));
+        runningJobs.push(new CronJob("1 0 * * 3", () => MemeController.remindItIsWednesdayHandler(bot)));
 
     // START THESE JOBS!!!
     runningJobs.forEach(job => job.start());

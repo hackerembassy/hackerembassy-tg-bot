@@ -267,7 +267,7 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
         const parsedChatId = isNaN(bodyChatId) ? botConfig.chats[body.postChat as keyof typeof botConfig.chats] : bodyChatId;
 
         if (parsedChatId) {
-            await FundsController.sendGratitude(
+            FundsController.sendGratitude(
                 bot,
                 {
                     message_id: 0,
@@ -283,7 +283,7 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
                 donationResult,
                 user,
                 fund.name
-            );
+            ).catch(e => logger.error(`Failed to post donation message to chat: ${(e as Error).message}`));
         }
 
         res.json({ message: "Success" });

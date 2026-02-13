@@ -17,6 +17,8 @@ import FundsController from "@hackembot/controllers/funds";
 import { BotConfig } from "@config";
 const botConfig = config.get<BotConfig>("bot");
 
+import { getRequestIp } from "@utils/express";
+
 import wikiRouter from "./wiki";
 import embassyRouter from "./embassy";
 import { spaceApiTemplate } from "../templates";
@@ -255,10 +257,11 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
         if (!accountant) return void res.status(400).send({ error: "Accountant user not found" });
 
         const donationResult = await donateToFund(fund.name, body.amount, body.currency ?? "AMD", user, accountant);
+        const requestIp = getRequestIp(req) ?? "unknown";
 
-        bot.sendAlert(
-            `🗳 New donation added via API:\nIP: ${req.ip} \nUser: ${user.username ?? user.first_name} (${user.userid})\nFund: ${fund.name}\nAmount: ${donationResult.amount} ${donationResult.currency}`
-        );
+        const alertMessage = `New donation added via API:\nIP: ${requestIp} \nUser: ${user.username ?? user.first_name} (${user.userid})\nFund: ${fund.name}\nAmount: ${donationResult.amount} ${donationResult.currency}`;
+        logger.info(alertMessage);
+        bot.sendAlert(`🗳 ${alertMessage}`).catch(e => logger.error(`Failed to send donation alert: ${(e as Error).message}`));
 
         const bodyChatId = Number(body.postChat);
         const parsedChatId = isNaN(bodyChatId) ? botConfig.chats[body.postChat as keyof typeof botConfig.chats] : bodyChatId;

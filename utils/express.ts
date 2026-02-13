@@ -42,3 +42,10 @@ export function extractToken(req: RequestWithOptionalTokenBody): string | undefi
 
     return req.body?.token;
 }
+
+export function getRequestIp(req: Request): string | undefined {
+    const forwardedFor = req.headers["x-forwarded-for"];
+    const ip = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor;
+
+    return ip ?? req.socket.remoteAddress ?? req.ip;
+}

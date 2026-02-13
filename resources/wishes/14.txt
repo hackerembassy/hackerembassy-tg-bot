@@ -1,6 +1,6 @@
 
 \u0023include <iostream>
-\u0023include<string>
+\u0023include <string>
 
 void printBirthdayCake(int layers) {
     for(int i = 0; i < layers; i++) {

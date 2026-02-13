@@ -10,6 +10,8 @@ import { hasBirthdayToday, isIsoDateString, MINUTE } from "@utils/date";
 import { OptionalParam, userLink } from "@hackembot/core/helpers";
 import { Admins, FeatureFlag, Route, UserRoles } from "@hackembot/core/decorators";
 
+import logger from "@services/common/logger";
+
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
@@ -59,28 +61,37 @@ export default class BirthdayController implements BotController {
         return bot.sendMessageExt(msg.chat.id, t("birthday.fail"), msg);
     }
 
-    @Route(["sendwishes"])
+    @Route(["sendwishes"], OptionalParam(/(\S+)(?: (\S+))?/), match => [match[1], match[2]])
     @FeatureFlag("birthday")
     @UserRoles(Admins)
-    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>) {
-        const birthdayUsers = UsersRepository.getUsers().filter(u => u.username && hasBirthdayToday(u.birthday));
+    static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, username?: string, wishfilename?: string) {
+        try {
+            const birthdayUsers = username
+                ? [UsersRepository.getUserByName(username.replace("@", ""))].filter(u => u !== undefined)
+                : UsersRepository.getUsers().filter(u => u.username && hasBirthdayToday(u.birthday));
 
-        if (birthdayUsers.length === 0) return;
+            if (birthdayUsers.length === 0) return;
 
-        await RateLimiter.executeOverTime(
-            birthdayUsers.map(
-                u => async () =>
-                    bot.sendMessageExt(botConfig.chats.main, await getWish(u.username ?? "[no username provided]"), msg)
-            ),
-            MINUTE
-        );
+            await RateLimiter.executeOverTime(
+                birthdayUsers.map(
+                    u => async () =>
+                        bot.sendMessageExt(botConfig.chats.main, await getWish(u.username as string, wishfilename), msg)
+                ),
+                MINUTE
+            );
+        } catch (e) {
+            logger.error(`Failed to send birthday wishes: ${(e as Error).message}`);
+        }
     }
 }
 
-async function getWish(username: string) {
+async function getWish(username: string, wishfilename?: string): Promise<string> {
     const files = await fs.readdir(baseWishesDir);
-    const randomNum = Math.floor(Math.random() * files.length);
-    const wishTemplate = await fs.readFile(path.join(baseWishesDir, files[randomNum]), { encoding: "utf8" });
+    const wishfile = wishfilename ? files.find(f => f === wishfilename) : files[Math.floor(Math.random() * files.length)];
+
+    if (!wishfile) throw Error(`Wish file ${wishfilename} not found`);
+
+    const wishTemplate = await fs.readFile(path.join(baseWishesDir, wishfile), { encoding: "utf8" });
     const persomalizedWish = wishTemplate.replaceAll(/\$username/g, `@${username}`);
 
     // Cake is a lie

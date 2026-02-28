@@ -336,36 +336,25 @@ const shortMonthNames: string[] = [
 ];
 
 export function getBirthdaysList(birthdayUsers: Nullable<User[]> | undefined, mode: { mention: boolean }): string {
-    let message = t("birthday.nextbirthdays");
-    let usersList = `\n${t("birthday.noone")}\n`;
+    if (!birthdayUsers || birthdayUsers.length === 0) return t("birthday.noone");
 
-    if (birthdayUsers) {
-        const usersWithBirthdayThisMonth = birthdayUsers
-            .filter(u => u.birthday !== null)
-            .map(u => {
-                const parts = (u.birthday as string).split("-");
-                return {
-                    day: Number(parts[2]),
-                    month: Number(parts[1]),
-                    ...u,
-                };
-            })
-            .filter(u => {
-                return u.month === new Date().getMonth() + 1;
-            })
-            .sort((u1, u2) => u1.day - u2.day);
+    const userList = birthdayUsers
+        .map(u => {
+            const parts = (u.birthday as string).split("-");
+            return {
+                day: Number(parts[2]),
+                month: Number(parts[1]),
+                ...u,
+            };
+        })
+        .sort((u1, u2) => (u1.month === u2.month ? u1.day - u2.day : u1.month - u2.month))
+        .map(
+            u =>
+                `${u.day} ${t(shortMonthNames[u.month - 1])} - ${u.username ? formatUsername(u.username, mode.mention) : userLink(u)}`
+        )
+        .join("\n");
 
-        if (usersWithBirthdayThisMonth.length > 0) {
-            usersList = "";
-            for (const user of usersWithBirthdayThisMonth) {
-                message += `${user.day} ${t(shortMonthNames[user.month - 1])} - ${
-                    user.username ? formatUsername(user.username, mode.mention) : userLink(user)
-                }\n`;
-            }
-        }
-    }
-
-    return message + t("birthday.help", { usersList });
+    return userList;
 }
 
 export function getPrintersInfo(): string {

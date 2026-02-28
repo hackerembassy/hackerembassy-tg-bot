@@ -47,6 +47,10 @@ export function isBanned(user: User) {
     return user.roles?.includes("banned");
 }
 
+export function sanitizeUsername(username: string): string {
+    return username.replace("@", "");
+}
+
 // Classes
 class UserService {
     private lastUserStateCache: Map<number, UserStateEx> = new Map();
@@ -87,8 +91,18 @@ class UserService {
 
     public getUser(identifier: number | string) {
         return typeof identifier === "string"
-            ? usersRepository.getUserByName(identifier)
+            ? usersRepository.getUserByName(sanitizeUsername(identifier))
             : usersRepository.getUserByUserId(identifier);
+    }
+
+    public getUsersWithBirthdays() {
+        return usersRepository.getUsersWithBirthdays();
+    }
+
+    public setBithday(user: User, date: string | null) {
+        const fulldate = date?.length === 5 ? "0000-" + date : date;
+
+        return usersRepository.updateUser(user.userid, { birthday: fulldate });
     }
 
     public saveUser(user: User) {

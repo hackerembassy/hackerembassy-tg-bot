@@ -305,7 +305,6 @@ birthday:
         🎂 Ĉi-monate ili festas siajn naskiĝtagojn:
     noone: Neniu? Strange...
     help: |
-        {{usersList}}
         Ĉu vi ankaŭ volas esti gratulita? Aldonu vian naskiĝtagon per komando en la sekvaj formatoj:
         #`/mybirthday YYYY-MM-DD#`
         #`/mybirthday MM-DD#`
@@ -313,6 +312,8 @@ birthday:
         #`/mybirthday remove#`
     fail: |
         🛂 Enigu la daton en la formato #`YYYY-MM-DD#`, #`MM-DD#` aŭ specifu #`remove#`
+    current: 🎂 Via naskiĝtago estas agordita al {{date}}
+    notset: 🎂 Via naskiĝtago ne estas agordita
     set: 🎂 Naskiĝtago de {{username}} estas agordita al {{date}}
     remove: 🎂 Naskiĝtago de {{username}} estas nuligita
     months:

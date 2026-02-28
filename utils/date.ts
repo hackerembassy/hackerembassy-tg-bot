@@ -1,4 +1,4 @@
-import { TOptions } from "i18next";
+import { type TOptions } from "i18next";
 
 export interface DateObject {
     day: number;
@@ -145,6 +145,12 @@ export function compareMonthNames(a: string, b: string) {
 const LOCALE_ISO_DATE_FORMAT = "sv";
 const DATE_SUBSTRING_INDICES: [number, number] = [5, 10];
 
+/**
+ * Checks if the given date string has the same day and month as the current date
+ * Ignores the year, so it can be used for checking birthdays
+ * @param date Date string in ISO format (YYYY-MM-DD)
+ * @returns false if the date is null or not in the correct format, true if the day and month match today's date
+ */
 export function hasBirthdayToday(date: Nullable<string>) {
     if (!date) return false;
 
@@ -153,6 +159,26 @@ export function hasBirthdayToday(date: Nullable<string>) {
     return date.substring(5, 10) === currentDate;
 }
 
+/**
+ * Checks if the given date string has the same month as the current date
+ * Ignores the day and year, so it can be used for checking if a birthday is in the current month
+ * @param date - Date string in ISO format (YYYY-MM-DD)
+ * @returns false if the date is null or not in the correct format, true if the month matches the current month
+ */
+export function hasBithdayThisMonth(date: Nullable<string>) {
+    if (!date) return false;
+
+    const currentMonth = new Date().getMonth() + 1;
+    const birthdayMonth = parseInt(date.substring(5, 7));
+
+    return birthdayMonth === currentMonth;
+}
+
+/**
+ * Checks if the given string is in ISO date format (YYYY-MM-DD or MM-DD)
+ * @param date - Date string to check
+ * @returns true if the string is in valid ISO date format, false otherwise
+ */
 export function isIsoDateString(date?: string) {
     return date ? /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date) : false;
 }

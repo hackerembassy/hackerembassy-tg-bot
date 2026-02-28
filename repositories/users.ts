@@ -1,5 +1,5 @@
 import { ChatId } from "node-telegram-bot-api";
-import { eq, like, sql, ne } from "drizzle-orm";
+import { eq, like, sql, ne, isNotNull } from "drizzle-orm";
 
 import { users } from "@data/schema";
 
@@ -9,6 +9,10 @@ type User = typeof users.$inferSelect;
 class UserRepository extends BaseRepository {
     getUsers() {
         return this.db.select().from(users).all();
+    }
+
+    getUsersWithBirthdays() {
+        return this.db.select().from(users).where(isNotNull(users.birthday)).all();
     }
 
     getSponsors() {

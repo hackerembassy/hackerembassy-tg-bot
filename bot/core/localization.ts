@@ -46,6 +46,7 @@ use(Backend).init({
         escapeValue: false,
     },
     debug: false,
+    showSupportNotice: false,
 });
 
 const translateWithDetectedLanguage = (key: string, options?: any, lang?: string): string => {

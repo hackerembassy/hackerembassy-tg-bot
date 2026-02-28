@@ -1,6 +1,5 @@
 import config from "config";
 import { RequestInit } from "node-fetch";
-import { PingResponse } from "ping";
 
 import { EmbassyApiConfig } from "@config";
 import { Device, User } from "@data/models";
@@ -120,7 +119,11 @@ class EmbassyService {
 
         if (!response.ok) throw Error();
 
-        return response.json() as Promise<PingResponse>;
+        return response.json() as Promise<{
+            alive: boolean;
+            output: string;
+            time: number;
+        }>;
     }
 
     shutdownDevice(deviceName: string) {

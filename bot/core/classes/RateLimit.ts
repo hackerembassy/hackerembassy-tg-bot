@@ -57,7 +57,7 @@ export class UserRateLimiter {
 
                 UserRateLimiter.#cooldownTimerIds.set(userId, timerId);
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
                 await func(...args);
             }
         };

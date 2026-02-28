@@ -1038,10 +1038,24 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.botState.debouncedPersistChanges();
     }
 
+    //#region Chat member management extensions
+    isChatMember(chatId: ChatId, userId: number): Promise<boolean> {
+        return this.getChatMember(chatId, userId)
+            .then(m => m.status !== "left" && m.status !== "kicked" && m.status !== "restricted")
+            .catch(e => {
+                logger.error(`Failed to get chat member ${userId} in chat ${chatId}`);
+                logger.debug(e);
+
+                return false;
+            });
+    }
+
     lockChatMember(chatId: ChatId, userId: number) {
         return this.restrictChatMember(chatId, userId, RESTRICTED_PERMISSIONS).catch(e => {
             logger.error(`Failed to lock user ${userId} in chat ${chatId}`);
             logger.debug(e);
+
+            return false;
         });
     }
 
@@ -1049,6 +1063,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         return this.restrictChatMember(chatId, userId, FULL_PERMISSIONS).catch(e => {
             logger.error(`Failed to unlock user ${userId} in chat ${chatId}`);
             logger.debug(e);
+
+            return false;
         });
     }
 
@@ -1062,6 +1078,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     ) {
         return super.restrictChatMember(chatId, userId, options);
     }
+    //#endregion
 
     private createRegex(aliases: string[], paramRegex: Nullable<RegExp>, optional: boolean = false) {
         const commandPart = `/(?:${aliases.join("|")})`;

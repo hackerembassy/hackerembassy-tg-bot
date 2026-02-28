@@ -305,7 +305,6 @@ birthday:
         🎂 В этом месяце празднуют свои днюхи:
     noone: Никто? Странно...
     help: |
-        {{usersList}}
         Хочешь, чтобы тебя тоже поздравили? Добавляй свою днюху командой в форматах:
         #`/mybirthday YYYY-MM-DD#`
         #`/mybirthday MM-DD#`
@@ -313,6 +312,8 @@ birthday:
         #`/mybirthday remove#`
     fail: |
         🛂 Укажите дату в формате #`YYYY-MM-DD#`, #`MM-DD#` или укажите #`remove#`
+    current: 🎂 Твой день рождения установлен как {{date}}
+    notset: 🎂 Твой день рождения не установлен
     set: 🎂 День рождения {{username}} установлен как {{date}}
     remove: 🎂 День рождения {{username}} сброшен
     months:

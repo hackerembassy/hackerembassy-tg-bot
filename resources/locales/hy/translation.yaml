@@ -302,7 +302,6 @@ birthday:
         🎂 Այս ամիս իրենց ծննդյան օրն են նշում.
     noone: Ոչ ոք։ Տարօրինակ է...
     help: |
-        {{usersList}}
         Ցանկանու՞մ ես, որ քեզ էլ շնորհավորեն։ Ավելացրու քո ծննդյան օրը հետևյալ հրամանով.
         #`/mybirthday YYYY-MM-DD#`
         #`/mybirthday MM-DD#`
@@ -310,6 +309,8 @@ birthday:
         #`/mybirthday remove#`
     fail: |
         🛂 Մուտքագրիր ամսաթիվը հետևյալ ձևաչափով՝ #`YYYY-MM-DD#`, #`MM-DD#, կամ նշիր #`remove#`
+    current: 🎂 Քո ծննդյան օրը սահմանված է որպես {{date}}
+    notset: 🎂 Քո ծննդյան օրը սահմանված չէ
     set: 🎂 {{username}}-ի ծննդյան օրը սահմանվել է {{date}}
     remove: 🎂 {{username}}-ի ծննդյան օրը զրոյացվել է
     months:

@@ -306,7 +306,6 @@ birthday:
         🎂 This month they celebrate their birthdays:
     noone: Nobody? Weird...
     help: |
-        {{usersList}}
         Would you like to be congratulated too? Add your birthday with a command in the following formats:
         #`/mybirthday YYYY-MM-DD#`
         #`/mybirthday MM-DD#`
@@ -314,6 +313,8 @@ birthday:
         #`/mybirthday remove#`
     fail: |
         🛂 Enter the date in the format #`YYYY-MM-DD#`, #`MM-DD#` or specify #`remove#`
+    current: 🎂 Your birthday is set to {{date}}
+    notset: 🎂 Your birthday is not set
     set: 🎂 {{username}}'s birthday is set to {{date}}
     remove: 🎂 {{username}}'s birthday has been reset
     months:

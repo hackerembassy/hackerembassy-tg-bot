@@ -75,6 +75,12 @@ export function stripCustomMarkup(text: string): string {
     return text.replaceAll(/#./g, "");
 }
 
+export function formatDateTime(text: string, date: Date): string {
+    const unixTime = Math.floor(date.getTime() / 1000);
+
+    return `#!#[${text}#]#(tg://time?unix#=${unixTime}#)`;
+}
+
 export function extractPhotoId(photo?: PhotoSize[], index: number = 1, backupIndex: number = 0): string | undefined {
     if (!photo || photo.length === 0) return undefined;
 

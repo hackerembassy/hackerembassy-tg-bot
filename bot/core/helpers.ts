@@ -81,6 +81,10 @@ export function formatDateTime(text: string, date: Date): string {
     return `#!#[${text}#]#(tg://time?unix#=${unixTime}#)`;
 }
 
+export function formatMonospaced(text: string): string {
+    return `#\`${text}#\``;
+}
+
 export function extractPhotoId(photo?: PhotoSize[], index: number = 1, backupIndex: number = 0): string | undefined {
     if (!photo || photo.length === 0) return undefined;
 

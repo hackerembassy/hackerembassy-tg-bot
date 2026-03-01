@@ -14,6 +14,7 @@ import { SERVICE_USERS } from "@data/seed";
 
 import bot from "@hackembot/instance";
 import FundsController from "@hackembot/controllers/funds";
+import { formatMonospaced, userLink } from "@hackembot/core/helpers";
 import { BotConfig } from "@config";
 const botConfig = config.get<BotConfig>("bot");
 
@@ -260,7 +261,7 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
         const donationResult = await donateToFund(fund.name, body.amount, body.currency ?? "AMD", user, accountant);
         const requestIp = getRequestIp(req) ?? "unknown";
 
-        const alertMessage = `New donation added via API:\nIP: ${requestIp} \nUser: ${user.username ?? user.first_name} (${user.userid})\nFund: ${fund.name}\nAmount: ${donationResult.amount} ${donationResult.currency}`;
+        const alertMessage = `New donation added via API:\n- Donation ID: ${formatMonospaced(donationResult.donationId.toString())}\n- Fund: ${formatMonospaced(fund.name)}\n- Amount: ${formatMonospaced(donationResult.amount + " " + donationResult.currency)}\n- IP: ${requestIp} \n- User: ${userLink(user)} [${user.userid}]\n`;
         logger.info(alertMessage);
         bot.sendAlert(`🗳 ${alertMessage}`).catch(e => logger.error(`Failed to send donation alert: ${(e as Error).message}`));
 

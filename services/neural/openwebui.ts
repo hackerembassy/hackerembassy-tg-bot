@@ -216,6 +216,11 @@ export class OpenWebUI {
             body: JSON.stringify(data),
         });
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`${this.base} is not available: ${response.statusText} - ${errorText}`);
+        }
+
         if (!response.body) {
             throw new Error("Streaming not supported: no response body.");
         }

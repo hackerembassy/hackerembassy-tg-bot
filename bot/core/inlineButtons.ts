@@ -14,7 +14,7 @@ export enum ButtonFlags {
     Silent = 1 << 1, // 10
 }
 
-export function InlineButton(text: string, command?: string, flags?: ButtonFlags, options?: any) {
+export function InlineButton(text: string, command?: string, flags?: ButtonFlags, options?: object) {
     return {
         text,
         callback_data: JSON.stringify({ cmd: command, fs: flags, ...options }),
@@ -41,7 +41,7 @@ export function AnnoyingInlineButton(
     text: string,
     command: string,
     flags?: ButtonFlags,
-    options?: any
+    options?: object
 ) {
     return bot.context(msg).mode.forward || AnnoyingChats.includes(msg.chat.id)
         ? InlineDeepLinkButton(text, bot.name, command)

@@ -739,7 +739,7 @@ export default class StatusController implements BotController {
 
     @Route(["profile"], /(\S+)/, match => [match[1]])
     @UserRoles(Accountants)
-    static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string): Promise<any> {
+    static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
@@ -769,6 +769,8 @@ export default class StatusController implements BotController {
 
             if (imageBuffer.length !== 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
         }
+
+        return;
     }
 
     @Route(["statsof"], /(\S+)/, match => [match[1]])
@@ -811,7 +813,7 @@ export default class StatusController implements BotController {
 
     @Route(["stats"], OptionalParam(/(?:from (\S+) ?)?(?:to (\S+))?/), match => [match[1], match[2]])
     @Route(["statsall", "allstats"], null, () => [botConfig.launchDate])
-    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string): Promise<any> {
+    static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
         if (!fromDateString && !toDateString) return bot.sendMessageExt(msg.chat.id, t("status.stats.help"), msg);
@@ -844,5 +846,7 @@ export default class StatusController implements BotController {
         for (const statsText of statsTexts) {
             await bot.sendMessageExt(msg.chat.id, statsText, msg);
         }
+
+        return;
     }
 }

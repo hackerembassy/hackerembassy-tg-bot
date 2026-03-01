@@ -12,7 +12,7 @@ const router = Router();
 /**
  * Endpoint to generate text with Ollama
  */
-router.post("/ollama/generate", async (req: RequestWithBody<ollamaBody>, res, next): Promise<any> => {
+router.post("/ollama/generate", async (req: RequestWithBody<ollamaBody>, res, next) => {
     try {
         if (!req.body.prompt) return res.sendStatus(400).send({ message: "Prompt is required" });
 
@@ -20,16 +20,17 @@ router.post("/ollama/generate", async (req: RequestWithBody<ollamaBody>, res, ne
 
         if (!response) throw Error("Ollama generation process failed");
 
-        res.send({ response });
+        return res.send({ response });
     } catch (error) {
         next(error);
+        return;
     }
 });
 
 /**
  * Endpoint to ask StableDiffusion to generate an image from a text prompt
  */
-router.post("/sd/txt2img", async (req: RequestWithBody<txt2imgBody>, res, next): Promise<any> => {
+router.post("/sd/txt2img", async (req: RequestWithBody<txt2imgBody>, res, next) => {
     try {
         if (!req.body.prompt) return res.sendStatus(400).send({ message: "Prompt is required" });
 
@@ -37,16 +38,17 @@ router.post("/sd/txt2img", async (req: RequestWithBody<txt2imgBody>, res, next):
 
         if (!image) throw Error("txt2image process failed");
 
-        res.send({ image });
+        return res.send({ image });
     } catch (error) {
         next(error);
+        return;
     }
 });
 
 /**
  * Endpoint to ask StableDiffusion to generate an image from a text prompt and a starting image
  */
-router.post("/sd/img2img", async (req: RequestWithBody<img2imgBody>, res, next): Promise<any> => {
+router.post("/sd/img2img", async (req: RequestWithBody<img2imgBody>, res, next) => {
     try {
         if (!req.body.image) return res.sendStatus(400).send({ message: "Initial image is required" });
 
@@ -54,9 +56,10 @@ router.post("/sd/img2img", async (req: RequestWithBody<img2imgBody>, res, next):
 
         if (!image) throw Error("img2image process failed");
 
-        res.send({ image });
+        return res.send({ image });
     } catch (error) {
         next(error);
+        return;
     }
 });
 

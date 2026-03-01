@@ -15,12 +15,12 @@ export class UserRateLimiter {
     static readonly #limitTimerIds = new Map<number, NodeJS.Timeout>();
     static readonly #cooldownTimerIds = new Map<number, NodeJS.Timeout>();
 
-    static debounced(func: Function, userId: number, rateLimit = DEFAULT_USER_RATE_LIMIT): (...args: any) => void {
-        return (...args: any) => {
+    static debounced(func: Function, userId: number, rateLimit = DEFAULT_USER_RATE_LIMIT): (...args: unknown[]) => void {
+        return (...args: unknown[]) => {
             clearTimeout(UserRateLimiter.#debounceTimerIds.get(userId));
 
             const timerId = setTimeout(() => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 func(...args);
                 UserRateLimiter.#debounceTimerIds.delete(userId);
             }, rateLimit);
@@ -29,10 +29,11 @@ export class UserRateLimiter {
         };
     }
 
-    static limited(func: Function, userId: number, rateLimit = DEFAULT_USER_RATE_LIMIT): (...args: any) => void {
-        return (...args: any) => {
+    static limited(func: Function, userId: number, rateLimit = DEFAULT_USER_RATE_LIMIT): (...args: unknown[]) => void {
+        return (...args: unknown[]) => {
             const cooldown = UserRateLimiter.#limitTimerIds.get(userId);
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             if (!cooldown) func(args);
             clearTimeout(cooldown);
 
@@ -45,8 +46,8 @@ export class UserRateLimiter {
         };
     }
 
-    static throttled(func: Function, userId: number, rateLimit = DEFAULT_USER_RATE_LIMIT): (...args: any) => Promise<void> {
-        return async (...args: any) => {
+    static throttled(func: Function, userId: number, rateLimit = DEFAULT_USER_RATE_LIMIT): (...args: unknown[]) => Promise<void> {
+        return async (...args: unknown[]) => {
             const cooldown = UserRateLimiter.#cooldownTimerIds.get(userId);
 
             if (!cooldown) {
@@ -57,7 +58,7 @@ export class UserRateLimiter {
 
                 UserRateLimiter.#cooldownTimerIds.set(userId, timerId);
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 await func(...args);
             }
         };
@@ -68,7 +69,7 @@ export class RateLimiter {
     static async executeOverTime<T>(
         calls: (() => Promise<T>)[],
         rateLimit = DEFAULT_API_RATE_LIMIT,
-        onFailure?: (error: any) => T
+        onFailure?: (error: unknown) => T
     ): Promise<T[]> {
         const results: T[] = [];
 

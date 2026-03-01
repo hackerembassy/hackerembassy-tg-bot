@@ -99,7 +99,7 @@ export type BotMessageContextMode = {
 
 export type LiveChatHandler = {
     chatId: ChatId;
-    handler: (...args: any[]) => void;
+    handler: (...args: unknown[]) => void;
     event: BotCustomEvent;
     serializationData: SerializedFunction;
 };
@@ -107,7 +107,7 @@ export type LiveChatHandler = {
 export type SerializedFunction = {
     functionName: string;
     module: string;
-    params: any[];
+    params: unknown[];
 };
 
 export type MessageHistoryEntry = {
@@ -117,7 +117,7 @@ export type MessageHistoryEntry = {
     datetime: number;
 };
 
-export type MatchMapperFunction = (match: RegExpExecArray) => any[];
+export type MatchMapperFunction = (match: RegExpExecArray) => unknown[];
 
 export type BotRoute = {
     regex: RegExp;
@@ -128,17 +128,17 @@ export type BotRoute = {
     optional: boolean;
 };
 
-export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: any[]) => any;
+export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: unknown[]) => unknown;
 
-export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => any;
+export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: TelegramBot.CallbackQuery) => unknown;
 
-export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: TelegramBot.ChatMemberUpdated) => any;
+export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: TelegramBot.ChatMemberUpdated) => unknown;
 
 export type CallbackData = {
     fs?: ButtonFlags;
     vId?: number;
     cmd?: string;
-    params?: any;
+    params?: unknown;
 };
 
 // Intefraces

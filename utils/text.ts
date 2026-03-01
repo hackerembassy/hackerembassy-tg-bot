@@ -57,7 +57,7 @@ export function safeJsonParse<T>(str: string) {
     }
 }
 
-export function safeJsonStringify(obj: any) {
+export function safeJsonStringify(obj: unknown) {
     try {
         return JSON.stringify(obj);
     } catch {

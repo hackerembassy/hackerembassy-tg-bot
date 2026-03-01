@@ -6,14 +6,14 @@ export function sleep(ms: number) {
 
 // @typescript-eslint/no-unsafe-function-type
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export function debounce(func: Function, delay: number): (...args: any[]) => void {
+export function debounce(func: Function, delay: number): (...args: unknown[]) => void {
     let timeoutId: string | number | NodeJS.Timeout;
 
     return function (...args) {
         clearTimeout(timeoutId);
 
         timeoutId = setTimeout(() => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             func(...args);
         }, delay);
     };

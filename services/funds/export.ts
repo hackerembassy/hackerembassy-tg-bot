@@ -241,7 +241,7 @@ export function createDonut(
                     align: "end",
                     display: "auto",
                     offset: 10,
-                    formatter: (val: any) => val,
+                    formatter: (val: unknown) => val,
                     font: {
                         size: 15,
                     },

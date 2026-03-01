@@ -227,7 +227,7 @@ class Hass {
         });
     }
 
-    post(path: string, body: any): Promise<Response> {
+    post(path: string, body: unknown): Promise<Response> {
         return fetch(embassyApiConfig.hassorigin + path, {
             method: "POST",
             headers: {

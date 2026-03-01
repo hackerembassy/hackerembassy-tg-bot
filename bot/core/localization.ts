@@ -24,7 +24,7 @@ export const SUPPORTED_LANGUAGES = [...PUBLIC_LANGUAGES.map(lang => lang.code), 
 // Type for supported languages
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
-export function isSupportedLanguage(value: any): value is SupportedLanguage {
+export function isSupportedLanguage(value?: string | null): value is SupportedLanguage {
     return SUPPORTED_LANGUAGES.includes(value as SupportedLanguage);
 }
 
@@ -49,7 +49,7 @@ use(Backend).init({
     showSupportNotice: false,
 });
 
-const translateWithDetectedLanguage = (key: string, options?: any, lang?: string): string => {
+const translateWithDetectedLanguage = (key: string, options?: TOptions, lang?: string): string => {
     const state = BotMessageContext.async.getStore();
     return t<string, TOptions, string>(key, { ...options, lng: lang ?? state?.language ?? DEFAULT_LANGUAGE } as TOptions);
 };

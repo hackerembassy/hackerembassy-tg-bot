@@ -9,7 +9,7 @@ type txt2imgResponse = {
     images: string[];
     error?: string;
     detail?: string;
-    parameters: any;
+    parameters: unknown;
     info: string;
 };
 

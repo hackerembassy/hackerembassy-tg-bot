@@ -1,7 +1,7 @@
 import https from "https";
 import net from "net";
 
-// @ts-ignore
+// @ts-expect-error LuCI types are broken
 import { LUCI } from "luci-rpc";
 import { connect } from "mqtt";
 import { default as fetch, RequestInit, Response } from "node-fetch";
@@ -49,7 +49,6 @@ export function fetchWithTimeout(uri: string, options?: RequestInit & { timeout?
     const timeout = options?.timeout ?? DEFAULT_NETWORK_TIMEOUT;
     const cancellation = new Cancellation(timeout);
 
-    // @ts-ignore
     return fetch(uri, { signal: cancellation.signal, ...options }).finally(() => cancellation.reset());
 }
 
@@ -204,6 +203,7 @@ export class NeworkDevicesLocator {
 
         if (loginResponse.status !== 200) throw new Error("Login failed");
 
+        /* eslint-disable no-unexpected-multiline */
         const cookiesHeader = loginResponse.headers
             .raw()
             ["set-cookie"].map((cookie: string) => cookie.split(";")[0])

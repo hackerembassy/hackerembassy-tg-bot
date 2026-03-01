@@ -24,27 +24,29 @@ router.get("/sounds", async (_, res, next) => {
     }
 });
 
-router.post("/tts", async (req: RequestWithBody<{ text?: string }>, res, next): Promise<any> => {
+router.post("/tts", async (req: RequestWithBody<{ text?: string }>, res, next) => {
     try {
         if (!req.body.text) return res.status(400).send({ message: "Text is required" });
 
         await speakers.say(req.body.text);
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 
-router.post("/play", async (req: RequestWithBody<{ link?: string }>, res, next): Promise<any> => {
+router.post("/play", async (req: RequestWithBody<{ link?: string }>, res, next) => {
     try {
         if (!req.body.link) return res.status(400).send({ message: "Link is required" });
 
         await speakers.play(req.body.link);
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 

@@ -6,10 +6,10 @@ import { Logger } from "winston";
 // Optional type for a legacy hass module
 export type RequestWithOptionalTokenBody = Request<
     ParamsDictionary,
-    any,
+    unknown,
     Optional<{ token?: string }>,
     ParsedQs,
-    Record<string, any>
+    Record<string, unknown>
 >;
 
 export function createErrorMiddleware(logger: Logger): ErrorRequestHandler {

@@ -75,7 +75,6 @@ export default class BotState {
                 continue;
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             liveChat.handler = () => restoredHandler(this.bot, ...liveChat.serializationData.params);
             this.bot.customEmitter.on(liveChat.event, liveChat.handler);
         }

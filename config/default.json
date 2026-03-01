@@ -223,7 +223,7 @@
             "model": "gemma3:27b"
         },
         "openai": {
-            "model": "gpt-4o-mini",
+            "model": "gpt-5-mini",
             "timeout": 60000
         }
     },

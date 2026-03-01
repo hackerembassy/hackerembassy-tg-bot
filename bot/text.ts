@@ -32,7 +32,7 @@ import {
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
-import { effectiveName, formatUsername, toEscapedTelegramMarkdown, userLink } from "./core/helpers";
+import { effectiveName, formatDateTime, formatUsername, toEscapedTelegramMarkdown, userLink } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 const calendarConfig = config.get<CalendarConfig>("calendar");
@@ -434,8 +434,9 @@ export function HSEventToString(event: HSEvent, short: boolean = false): string 
     const eventStart = event.start?.toLocaleString("RU-ru", dateTimeOptions);
     const eventEnd = event.end?.toLocaleString("RU-ru", dateTimeOptions);
     const eventTime = event.allDay && eventStart === eventEnd ? eventStart : `${eventStart} - ${eventEnd}`;
+    const formattedEventTime = eventTime && event.start ? formatDateTime(eventTime, event.start) : eventTime;
 
-    let result = `${event.summary}: ${eventTime}`;
+    let result = `${event.summary}: ${formattedEventTime}`;
 
     if (!short && event.description) {
         result += `\n${toEscapedTelegramMarkdown(event.description)}`;

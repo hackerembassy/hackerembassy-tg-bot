@@ -191,7 +191,6 @@ export class OpenWebUI {
             Authorization: `Bearer ${this.apiKey}`,
             "Content-Type": "application/json",
         };
-        // const message: OpenAIMessage = [];
 
         const content: OpenAIContentItem[] = [{ type: "text", text: prompt }];
 
@@ -199,7 +198,7 @@ export class OpenWebUI {
             content.push({
                 type: "image_url",
                 image_url: {
-                    url: image,
+                    url: `data:image/jpeg;base64,${image}`,
                 },
             });
         }

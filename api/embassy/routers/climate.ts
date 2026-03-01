@@ -28,7 +28,7 @@ router.get("/conditioners/:name/state", async (req, res, next) => {
     }
 });
 
-router.post("/conditioners/:name/power/:action", async (req, res, next): Promise<any> => {
+router.post("/conditioners/:name/power/:action", async (req, res, next) => {
     try {
         const conditioner = AvailableConditioners.get(req.params.name);
 
@@ -56,14 +56,16 @@ router.post("/conditioners/:name/power/:action", async (req, res, next): Promise
 
         if (!wasStateUpdated) throw new Error("State was not updated");
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 
-router.post("/conditioners/:name/mode", async (req: RequestWithBody<{ mode?: ConditionerMode }>, res, next): Promise<any> => {
+router.post("/conditioners/:name/mode", async (req: RequestWithBody<{ mode?: ConditionerMode }>, res, next) => {
     try {
+        //@ts-expect-error - TypeScript is confused about the type of req.body
         const conditioner = AvailableConditioners.get(req.params.name);
         const requestBody = req.body;
         const mode = requestBody.mode;
@@ -77,13 +79,14 @@ router.post("/conditioners/:name/mode", async (req: RequestWithBody<{ mode?: Con
         const updatedState = await conditioner.getState();
         if (updatedState.state !== mode) throw new Error("Mode was not updated");
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 
-router.post("/conditioners/:name/preheat", async (req, res, next): Promise<any> => {
+router.post("/conditioners/:name/preheat", async (req, res, next) => {
     try {
         const conditioner = AvailableConditioners.get(req.params.name);
 
@@ -93,13 +96,14 @@ router.post("/conditioners/:name/preheat", async (req, res, next): Promise<any> 
 
         if (response.status !== 200) throw new Error("Preheat failed");
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 
-router.post("/conditioners/:name/temperature", async (req, res, next): Promise<any> => {
+router.post("/conditioners/:name/temperature", async (req, res, next) => {
     try {
         const conditioner = AvailableConditioners.get(req.params.name);
         const requestBody = req.body as { diff?: number; temperature?: number } | undefined;
@@ -119,9 +123,10 @@ router.post("/conditioners/:name/temperature", async (req, res, next): Promise<a
 
         if (newState.attributes.temperature !== newTemperature) throw new Error("Temperature was not updated");
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 

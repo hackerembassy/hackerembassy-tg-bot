@@ -22,7 +22,7 @@ router.get("/tree", async (_, res, next) => {
     }
 });
 
-router.get("/page/:id", async (req, res, next): Promise<any> => {
+router.get("/page/:id", async (req, res, next) => {
     try {
         if (!req.params.id) return void res.status(400).send({ error: "Missing page id" });
 
@@ -39,7 +39,7 @@ const debounceTimers = new Map<string, NodeJS.Timeout>();
 const WEBHOOK_DEBOUNCE = MINUTE;
 
 // Webhook for Outline
-router.post("/hooks/documents.update", outlineSignedMiddleware, (req, res, next): any => {
+router.post("/hooks/documents.update", outlineSignedMiddleware, (req, res, next) => {
     try {
         const body = req.body as Optional<OutlineWebhookPayload>;
         if (!body || body.event !== "documents.update") return void res.sendStatus(400);

@@ -150,7 +150,7 @@ class EmbassyService {
         return this.requestToEmbassy(`/devices/${deviceName}/wake`, "POST").then(successOrThrow);
     }
 
-    controlConditioner(name: AvailableConditioner, action: ConditionerActions, body: any) {
+    controlConditioner(name: AvailableConditioner, action: ConditionerActions, body: unknown) {
         return this.requestToEmbassy(`/climate/conditioners/${name}/${action}`, "POST", body).then(successOrThrow);
     }
 
@@ -253,7 +253,7 @@ class EmbassyService {
     private async requestToEmbassy(
         endpoint: string,
         method: "GET" | "POST" = "GET",
-        body: any = undefined,
+        body: unknown = undefined,
         timeout: number = 15000,
         secure = true
     ) {

@@ -3,7 +3,7 @@ import { Router } from "express";
 import { AvailablePrinters } from "@services/embassy/printer3d";
 const router = Router();
 
-router.get("/:name", async (req, res, next): Promise<any> => {
+router.get("/:name", async (req, res, next) => {
     try {
         const printer = AvailablePrinters.get(req.params.name);
 
@@ -16,9 +16,10 @@ router.get("/:name", async (req, res, next): Promise<any> => {
         const thumbnailPath = fileMetadata?.thumbnails?.at(-1)?.relative_path;
         const thumbnailBuffer = thumbnailPath ? await printer.getThumbnail(thumbnailPath) : null;
 
-        res.send({ status, thumbnailBuffer, cam });
+        return res.send({ status, thumbnailBuffer, cam });
     } catch (error) {
         next(error);
+        return;
     }
 });
 

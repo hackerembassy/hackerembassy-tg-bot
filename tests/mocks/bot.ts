@@ -18,8 +18,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
     override async sendMessage(chatId: ChatId, text: string, options: SendMessageOptions): Promise<Message> {
         this.results.push(text);
         await sleep(0);
-        // @ts-ignore
-        return Promise.resolve({ message_id: 1 });
+        return Promise.resolve({ message_id: 1, date: 0, chat: { id: chatId, type: "private" }, text } as Message);
     }
 
     override async sendPhoto(
@@ -30,8 +29,12 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
     ): Promise<Message> {
         this.results.push(options.caption ?? "");
         await sleep(0);
-        // @ts-ignore
-        return Promise.resolve({ message_id: 1 });
+        return Promise.resolve({
+            message_id: 1,
+            date: 0,
+            chat: { id: chatId, type: "private" },
+            caption: options.caption,
+        } as Message);
     }
 
     async processUpdate(update: TelegramBot.Update) {

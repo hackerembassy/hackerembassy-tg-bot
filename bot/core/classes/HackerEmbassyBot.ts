@@ -113,7 +113,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     private guessIgnoreList = new Set(botConfig.guess.ignoreList);
 
     constructor(token: string) {
-        // @ts-ignore polling options type in the lib is a lie
+        // @ts-expect-error polling options type in the lib is a lie
         super(token, { polling: POLLING_OPTIONS });
     }
 
@@ -193,7 +193,6 @@ export default class HackerEmbassyBot extends TelegramBot {
             listener.bind(this)(this, query as CallbackQuery & Message & ChatMemberUpdated);
         };
 
-        // @ts-ignore
         super.on(event, newListener);
     }
 
@@ -328,7 +327,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         const messages = await super.sendMediaGroup(chatIdToUse, imageOpts as InputMedia[], {
             ...options,
-            // @ts-ignore
+            //@ts-expect-error the lib types don't include message_thread_id for sendMediaGroup but it actually works
             message_thread_id: this.context(msg).messageThreadId,
         });
 
@@ -365,7 +364,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                     },
                     chat_id: msg.chat.id,
                     message_id: msg.message_id,
-                    //@ts-ignore
+                    //@ts-expect-error the lib types don't include message_thread_id for editMessageMedia but it actually works
                     message_thread_id: this.context(msg).messageThreadId,
                 });
             } catch (e) {
@@ -440,14 +439,14 @@ export default class HackerEmbassyBot extends TelegramBot {
 
                 if (!messageToEdit) {
                     messageToEdit = await this.sendMessageExt(chatId, buffer, msg, {
-                        // @ts-ignore hack to force raw parse mode as the lib doesn't support it
+                        // @ts-expect-error hack to force raw parse mode as the lib doesn't support it
                         parse_mode: "",
                     });
                 } else if (chunk.done || window >= MAX_STREAMING_WINDOW) {
                     await this.editMessageTextExt(buffer, messageToEdit, {
                         chat_id: chatId,
                         message_id: messageToEdit.message_id,
-                        // @ts-ignore hack to force raw parse mode as the lib doesn't support it
+                        // @ts-expect-error hack to force raw parse mode as the lib doesn't support it
                         parse_mode: "",
                     });
 
@@ -720,7 +719,6 @@ export default class HackerEmbassyBot extends TelegramBot {
                 const matchedParams = match ? route.paramMapper(match) : null;
 
                 if (matchedParams) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     await messageContext.run(() => route.handler(this, message, ...matchedParams));
                     return;
                 } else if (!route.optional) {
@@ -793,7 +791,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         }
 
         // Call callback handler with params
-        const params: [HackerEmbassyBot, TelegramBot.Message, ...any] = [this, msg];
+        const params: [HackerEmbassyBot, TelegramBot.Message, ...unknown[]] = [this, msg];
 
         if (data.params !== undefined) {
             if (Array.isArray(data.params)) params.push(...(data.params as unknown[]));
@@ -1015,7 +1013,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     addLiveMessage(
         liveMessage: Message,
         event: BotCustomEvent,
-        handler: (...args: any[]) => Promise<void>,
+        handler: (...args: unknown[]) => Promise<void>,
         serializationData: SerializedFunction
     ) {
         const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id && cr.event === event);
@@ -1111,7 +1109,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     deleteMessages(chatId: ChatId, messageIds: number[]): Promise<boolean> {
-        //@ts-ignore
+        //@ts-expect-error the lib types don't include deleteMessages but it actually works
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         return super.deleteMessages(chatId, messageIds);
     }

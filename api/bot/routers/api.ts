@@ -31,7 +31,8 @@ apiRouter.use("/wiki", wikiRouter);
 apiRouter.use("/embassy", embassyRouter);
 
 // Helpers
-const isFromMemberOrHass = (req: Request): boolean => req.entity === "hass" || (req.user && hasRole(req.user as User, "member"));
+const isFromMemberOrHass = (req: Request): boolean =>
+    req.entity === "hass" || (!!req.user && hasRole(req.user as User, "member"));
 
 // Routes
 apiRouter.get("/space", (_, res) => {

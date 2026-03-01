@@ -61,8 +61,8 @@ export type OutlineWebhookPayload = {
                 }>;
             };
             text: string;
-            icon: any;
-            color: any;
+            icon: string;
+            color: string;
             tasks: {
                 completed: number;
                 total: number;
@@ -71,7 +71,7 @@ export type OutlineWebhookPayload = {
             createdBy: {
                 id: string;
                 name: string;
-                avatarUrl: any;
+                avatarUrl: string;
                 color: string;
                 role: string;
                 isSuspended: boolean;
@@ -84,7 +84,7 @@ export type OutlineWebhookPayload = {
             updatedBy: {
                 id: string;
                 name: string;
-                avatarUrl: any;
+                avatarUrl: string;
                 color: string;
                 role: string;
                 isSuspended: boolean;
@@ -94,15 +94,15 @@ export type OutlineWebhookPayload = {
                 timezone: string;
             };
             publishedAt: string;
-            archivedAt: any;
-            deletedAt: any;
+            archivedAt: string;
+            deletedAt: string;
             collaboratorIds: Array<string>;
             revision: number;
             fullWidth: boolean;
             collectionId: string;
-            parentDocumentId: any;
+            parentDocumentId: string;
             isCollectionDeleted: boolean;
-            templateId: any;
+            templateId: string;
             template: boolean;
             insightsEnabled: boolean;
         };
@@ -178,7 +178,7 @@ class WikiJs {
             }),
         });
 
-        const body = (await response.json()) as { data: any };
+        const body = (await response.json()) as { data: unknown };
 
         return body.data;
     }
@@ -237,7 +237,7 @@ class OutlineWiki {
         node.children.forEach(child => this.setSegmentRecursive(child));
     }
 
-    private async wikiRequest(query: string, body: any, useToken = true) {
+    private async wikiRequest(query: string, body: unknown, useToken = true) {
         if (useToken && !this.token) throw new Error("No token provided");
 
         const response = await fetch(this.apiEndpoint + query, {
@@ -249,7 +249,7 @@ class OutlineWiki {
             body: JSON.stringify(body),
         });
 
-        const responseBody = (await response.json()) as { data: any };
+        const responseBody = (await response.json()) as { data: unknown };
 
         return responseBody.data;
     }

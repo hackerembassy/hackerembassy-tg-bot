@@ -36,15 +36,16 @@ router.post("/alarm", encryptedAuthRequired, async (req: RequestWithBody<{ state
     }
 });
 
-router.post("/led-matrix", async (req: RequestWithBody<{ message?: string }>, res, next): Promise<any> => {
+router.post("/led-matrix", async (req: RequestWithBody<{ message?: string }>, res, next) => {
     try {
         if (!req.body.message) return res.sendStatus(400).send({ message: "Message is required" });
 
         await displays.showOnMatrix(req.body.message);
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 

@@ -701,7 +701,7 @@ export default class EmbassyController implements BotController {
         msg: Message,
         name: AvailableConditioner,
         action: ConditionerActions,
-        body: any
+        body: unknown
     ) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 

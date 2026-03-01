@@ -93,7 +93,7 @@ router.get("/linkmac", async (req, res, next) => {
     }
 });
 
-router.post("/:name/wake", async (req, res, next): Promise<any> => {
+router.post("/:name/wake", async (req, res, next) => {
     try {
         const device = req.params.name;
         const mac = embassyApiConfig.devices[device]?.mac;
@@ -106,13 +106,14 @@ router.post("/:name/wake", async (req, res, next): Promise<any> => {
 
         logger.info(`Woke up ${mac}`);
 
-        res.send({ message: "Magic packet sent" });
+        return res.send({ message: "Magic packet sent" });
     } catch (error) {
         next(error);
+        return;
     }
 });
 
-router.post("/:name/shutdown", async (req, res, next): Promise<any> => {
+router.post("/:name/shutdown", async (req, res, next) => {
     try {
         const device = req.params.name;
         const host = embassyApiConfig.devices[device]?.host;
@@ -130,22 +131,24 @@ router.post("/:name/shutdown", async (req, res, next): Promise<any> => {
         await ssh.exec(command, [""]);
         ssh.dispose();
 
-        res.sendStatus(200);
+        return res.sendStatus(200);
     } catch (error) {
         next(error);
+        return;
     }
 });
 
-router.post("/:name/ping", async (req, res, next): Promise<any> => {
+router.post("/:name/ping", async (req, res, next) => {
     try {
         const device = req.params.name;
         const host = embassyApiConfig.devices[device]?.host ?? device;
 
         if (!host) return res.sendStatus(400).send({ message: "Device not found" });
 
-        res.send(await ping(host));
+        return res.send(await ping(host));
     } catch (error) {
         next(error);
+        return;
     }
 });
 

@@ -11,7 +11,7 @@ import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 
 export default class NeedsController implements BotController {
-    @Route(["needs"])
+    @Route(["needs"], "List open needs")
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
         const needs = NeedsRepository.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs);
@@ -33,7 +33,7 @@ export default class NeedsController implements BotController {
         );
     }
 
-    @Route(["buy", "need"], /(.*)/, match => [match[1]])
+    @Route(["buy", "need"], "Buy an item", /(.*)/, match => [match[1]])
     static async buyHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const requester = bot.context(msg).user;
         const success = NeedsRepository.addBuy(item, requester.userid, new Date());
@@ -49,7 +49,7 @@ export default class NeedsController implements BotController {
         await NeedsController.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.item ?? "");
     }
 
-    @Route(["boughtundo"], /(\d+)/, match => [match[1]])
+    @Route(["boughtundo"], "Undo a bought item", /(\d+)/, match => [match[1]])
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
         const need = NeedsRepository.getNeedById(id);
         const sender = bot.context(msg).user;
@@ -59,7 +59,7 @@ export default class NeedsController implements BotController {
         }
     }
 
-    @Route(["bought"], /(.*)/, match => [match[1]])
+    @Route(["bought"], "Mark an item as bought", /(.*)/, match => [match[1]])
     static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const buyer = bot.context(msg).user;
         const need = NeedsRepository.getOpenNeedByItem(item);
@@ -82,7 +82,7 @@ export default class NeedsController implements BotController {
         });
     }
 
-    @Route(["boughtbutton"], null, match => [match[1]])
+    @Route(["boughtbutton"], "Handle bought button click", null, match => [match[1]])
     static async boughtButtonHandler(bot: HackerEmbassyBot, message: Message, id: number, data: string): Promise<void> {
         await NeedsController.boughtByIdHandler(bot, message, id);
 

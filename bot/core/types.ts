@@ -120,12 +120,14 @@ export type MessageHistoryEntry = {
 export type MatchMapperFunction = (match: RegExpExecArray) => unknown[];
 
 export type BotRoute = {
+    id: string;
     regex: RegExp;
     handler: BotHandler;
     userRoles: UserRole[];
     allowedChats: ChatId[];
     paramMapper: Nullable<MatchMapperFunction>;
     optional: boolean;
+    description?: Optional<string>;
 };
 
 export type BotHandler = (bot: HackerEmbassyBot, msg: TelegramBot.Message, ...rest: unknown[]) => unknown;

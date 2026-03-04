@@ -18,7 +18,7 @@ import { OptionalParam, userLink } from "../core/helpers";
 import { listTopics } from "../text";
 
 export default class SubscriptionsController implements BotController {
-    @Route(["mysubscriptions", "subscriptions", "subs"])
+    @Route(["mysubscriptions", "subscriptions", "subs"], "List your topic subscriptions")
     static async mySubscriptionsHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
             const subscriptions = SubscriptionsService.getSubscriptionsByUser(bot.context(msg).user);
@@ -63,7 +63,7 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["tagsubscribers", "tagsubs", "tag"], /(\S+)/, match => [match[1]])
+    @Route(["tagsubscribers", "tagsubs", "tag"], "List subscribers of a topic", /(\S+)/, match => [match[1]])
     static tagSubscribersHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const topic = SubscriptionsService.getTopic(topicname);
@@ -95,7 +95,12 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["notify", "notifysubs", "notifysubscribers"], OptionalParam(/(\S+) (.*)/s), match => [match[1], match[2]])
+    @Route(
+        ["notify", "notifysubs", "notifysubscribers"],
+        "Notify subscribers of a topic",
+        OptionalParam(/(\S+) (.*)/s),
+        match => [match[1], match[2]]
+    )
     @UserRoles(Members)
     static async notifySubscribersHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, text: string) {
         try {
@@ -157,7 +162,7 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["topics"], OptionalParam(/(all)/), match => [match[1]])
+    @Route(["topics"], "List all topics", OptionalParam(/(all)/), match => [match[1]])
     static async topicsHandler(bot: HackerEmbassyBot, msg: Message, param?: string) {
         try {
             const isMember = bot.context(msg).user.roles?.includes("member");
@@ -190,7 +195,7 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["addtopic", "createtopic"], /(\S+)(?: (.*))?/, match => [match[1], match[2]])
+    @Route(["addtopic", "createtopic"], "Add a new topic", /(\S+)(?: (.*))?/, match => [match[1], match[2]])
     @UserRoles(Members)
     static async addTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string, topicdescription: string) {
         try {
@@ -210,7 +215,7 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["deletetopic", "removetopic"], /(\S+)/, match => [match[1]])
+    @Route(["deletetopic", "removetopic"], "Delete a topic", /(\S+)/, match => [match[1]])
     @UserRoles(Members)
     static async deleteTopicHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
@@ -232,7 +237,7 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["subscribe", "sub"], /(\S+)/, match => [match[1]])
+    @Route(["subscribe", "sub"], "Subscribe to a topic", /(\S+)/, match => [match[1]])
     static subscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const sender = bot.context(msg).user;
@@ -252,7 +257,7 @@ export default class SubscriptionsController implements BotController {
         }
     }
 
-    @Route(["unsubscribe", "unsub"], /(\S+)/, match => [match[1]])
+    @Route(["unsubscribe", "unsub"], "Unsubscribe from a topic", /(\S+)/, match => [match[1]])
     static unsubscribeHandler(bot: HackerEmbassyBot, msg: Message, topicname: string) {
         try {
             const sender = bot.context(msg).user;

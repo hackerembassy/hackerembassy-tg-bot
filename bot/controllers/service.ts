@@ -37,7 +37,7 @@ const botConfig = config.get<BotConfig>("bot");
 const DeprecatedReplacementMap = new Map<string, string>([["knock", "hey"]]);
 
 export default class ServiceController implements BotController {
-    @Route(["clear"], OptionalParam(/(\d*)/), match => [match[1]])
+    @Route(["clear"], "Clear last n messages", OptionalParam(/(\d*)/), match => [match[1]])
     @UserRoles(Members)
     static async clearHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
@@ -58,7 +58,7 @@ export default class ServiceController implements BotController {
         }
     }
 
-    @Route(["tldr"], OptionalParam(/(\d*)(?: (.+))?/), match => [match[1], match[2]])
+    @Route(["tldr"], "Summarize the last n messages", OptionalParam(/(\d*)(?: (.+))?/), match => [match[1], match[2]])
     @UserRoles(TrustedMembers)
     @AllowedChats(PublicChats)
     @FeatureFlag("ai")
@@ -89,7 +89,7 @@ export default class ServiceController implements BotController {
         );
     }
 
-    @Route(["combine", "squash", "sq"], OptionalParam(/(\d*)/), match => [match[1]])
+    @Route(["combine", "squash", "sq"], "Combine the last n messages into one", OptionalParam(/(\d*)/), match => [match[1]])
     @UserRoles(Members)
     static async combineHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
@@ -170,7 +170,7 @@ export default class ServiceController implements BotController {
         }
     }
 
-    @Route(["chatid"])
+    @Route(["chatid"], "Get chat ID and topic ID if applicable")
     static async chatidHandler(bot: HackerEmbassyBot, msg: Message) {
         if (msg.chat.type === "private") {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}`, msg);
@@ -181,7 +181,7 @@ export default class ServiceController implements BotController {
         }
     }
 
-    @Route(["knock"])
+    @Route(["knock"], "Deprecated command")
     static deprecatedHandler(bot: HackerEmbassyBot, msg: Message) {
         const command = bot.context(msg).command;
         const replacement = command ? DeprecatedReplacementMap.get(command) : undefined;
@@ -193,14 +193,14 @@ export default class ServiceController implements BotController {
         bot.sendTemporaryMessage(msg.chat.id, text, msg);
     }
 
-    @Route(["superstatus", "ss"])
+    @Route(["superstatus", "ss"], "Get status with cams")
     @UserRoles(Members)
     static async superstatusHandler(bot: HackerEmbassyBot, msg: Message) {
         await StatusController.statusHandler(bot, msg);
         await EmbassyController.allCamsHandler(bot, msg);
     }
 
-    @Route(["removebuttons", "rb", "static"])
+    @Route(["removebuttons", "rb", "static"], "Remove inline buttons from a message")
     @UserRoles(Members)
     static async removeButtons(bot: HackerEmbassyBot, msg: Message) {
         try {
@@ -285,12 +285,12 @@ export default class ServiceController implements BotController {
         }
     }
 
-    @Route(["setlanguage", "setlang", "lang", "language"], OptionalParam(/(\S+)/), match => [match[1]])
-    @Route(["ru", "rus", "russian"], null, () => ["ru"])
-    @Route(["en", "eng", "english"], null, () => ["en"])
-    @Route(["hy", "hye", "armenian"], null, () => ["hy"])
-    @Route(["uk", "ukr", "ukrainian", "ua"], null, () => ["uk"])
-    @Route(["eo", "epo", "esperanto"], null, () => ["eo"])
+    @Route(["setlanguage", "setlang", "lang", "language"], "Set the language", OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["ru", "rus", "russian"], "Set language to Russian", null, () => ["ru"])
+    @Route(["en", "eng", "english"], "Set language to English", null, () => ["en"])
+    @Route(["hy", "hye", "armenian"], "Set language to Armenian", null, () => ["hy"])
+    @Route(["uk", "ukr", "ukrainian", "ua"], "Set language to Ukrainian", null, () => ["uk"])
+    @Route(["eo", "epo", "esperanto"], "Set language to Esperanto", null, () => ["eo"])
     static async setLanguageHandler(
         bot: HackerEmbassyBot,
         msg: Message,
@@ -342,7 +342,7 @@ export default class ServiceController implements BotController {
         return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.error", { language: lang }), msg);
     }
 
-    @Route(["token"], OptionalParam(/(\S+?)/), match => [match[1]])
+    @Route(["token"], "Manage API tokens", OptionalParam(/(\S+?)/), match => [match[1]])
     @UserRoles(TrustedMembers)
     static tokenHandler(bot: HackerEmbassyBot, msg: Message, command: string) {
         const context = bot.context(msg);

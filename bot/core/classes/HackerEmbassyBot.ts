@@ -19,6 +19,7 @@ import {
     SendMessageOptions,
 } from "node-telegram-bot-api";
 import { withDir, withFile } from "tmp-promise";
+import memoizee from "memoizee";
 
 import { BotConfig, BotFeatureFlag } from "@config";
 
@@ -917,8 +918,17 @@ export default class HackerEmbassyBot extends TelegramBot {
             const method = controller[methodName as keyof BotController] as BotHandler;
             const handler = method.bind(controller);
 
-            for (const route of routes) {
-                this.addRoute(route.aliases, handler, route.paramRegex, route.paramMapper, roles, allowedChats);
+            // Reverse the routes to ensure that the first defined route takes precedence over the others when added to the map
+            for (const route of routes.toReversed()) {
+                this.addRoute(
+                    route.aliases,
+                    handler,
+                    route.paramRegex,
+                    route.paramMapper,
+                    roles,
+                    allowedChats,
+                    route.description
+                );
             }
         }
     }
@@ -929,23 +939,56 @@ export default class HackerEmbassyBot extends TelegramBot {
         paramRegex: Nullable<RegExp> = null,
         paramMapper: Nullable<MatchMapperFunction> = null,
         userRoles: UserRole[] = [],
-        allowedChats: ChatId[] = []
+        allowedChats: ChatId[] = [],
+        description?: Optional<string>
     ): void {
         const optional = paramRegex instanceof OptionalRegExp;
         const regex = this.createRegex(aliases, paramRegex, optional);
+        const id = aliases[0]; // Use the first alias as the route identifier
+
         const botRoute = {
+            id,
             regex,
             handler,
             paramMapper,
             optional,
             userRoles,
             allowedChats,
+            description,
         };
 
         for (const alias of aliases) {
             this.routeMap.set(alias, botRoute);
         }
     }
+
+    private getRouteDescriptionsInternal(roles: UserRole[] = ["default"]): { command: string; description: string }[] {
+        const descriptions: { command: string; description: string }[] = [];
+        const selectedEntries = new Map<string, BotRoute>();
+        const foundIds = new Set<string>(); // Set tracked handlers to ensure we only take the first command for each handler
+
+        // Deduplicate routes by id, prioritizing the first defined command for each handler
+        for (const [command, route] of this.routeMap.entries()) {
+            if (!foundIds.has(route.id)) {
+                selectedEntries.set(command, route);
+                foundIds.add(route.id);
+            }
+        }
+
+        // Filter the selected routes by user roles
+        for (const [command, route] of selectedEntries.entries()) {
+            if (
+                route.description &&
+                (route.userRoles.length === 0 || roles.some(role => route.userRoles.includes(role) || role === "admin"))
+            ) {
+                descriptions.push({ command, description: route.description });
+            }
+        }
+
+        return descriptions;
+    }
+
+    public getRouteDescriptions = memoizee(this.getRouteDescriptionsInternal);
 
     async sendOrEditMessage(
         chatId: number,

@@ -21,7 +21,7 @@ import * as TextGenerators from "../text";
 const botConfig = config.get<BotConfig>("bot");
 
 export default class BirthdayController implements BotController {
-    @Route(["birthdays", "birthday"])
+    @Route(["birthdays", "birthday"], "List upcoming birthdays")
     @FeatureFlag("birthday")
     static async birthdayHandler(bot: HackerEmbassyBot, msg: Message) {
         const usersWithBirthday = userService.getUsersWithBirthdays().filter(u => u.username && hasBithdayThisMonth(u.birthday));
@@ -43,7 +43,7 @@ export default class BirthdayController implements BotController {
         );
     }
 
-    @Route(["mybirthday", "mybday", "bday"], OptionalParam(/(.*\S)/), match => [match[1]])
+    @Route(["mybirthday", "mybday", "bday"], "Manage your birthday", OptionalParam(/(.*\S)/), match => [match[1]])
     @FeatureFlag("birthday")
     static myBirthdayHandler(bot: HackerEmbassyBot, msg: Message, input?: string) {
         try {
@@ -76,7 +76,7 @@ export default class BirthdayController implements BotController {
         }
     }
 
-    @Route(["sendwishes"], OptionalParam(/(\S+)(?: (\S+))?/), match => [match[1], match[2]])
+    @Route(["sendwishes"], "Send birthday wishes", OptionalParam(/(\S+)(?: (\S+))?/), match => [match[1], match[2]])
     @FeatureFlag("birthday")
     @UserRoles(Admins)
     static async sendBirthdayWishes(bot: HackerEmbassyBot, msg: Nullable<Message>, username?: string, wishfilename?: string) {

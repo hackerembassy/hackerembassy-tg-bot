@@ -40,6 +40,7 @@ export const ClosedChats = [botConfig.chats.alerts, botConfig.chats.horny, botCo
 
 export interface RouteMetadata {
     aliases: string[];
+    description: Optional<string>;
     paramRegex: Optional<OptionalRegExp>;
     paramMapper: Optional<MatchMapperFunction>;
 }
@@ -62,14 +63,20 @@ export function FeatureFlag(flag: BotFeatureFlag) {
     };
 }
 
-export function Route(aliases: string[], paramRegex?: Optional<OptionalRegExp>, paramMapper?: Optional<MatchMapperFunction>) {
+export function Route(
+    aliases: string[],
+    description?: Optional<string>,
+    paramRegex?: Optional<OptionalRegExp>,
+    paramMapper?: Optional<MatchMapperFunction>
+) {
     return function (target: BotController, propertyKey: string | symbol) {
         const currentMetadata = (Reflect.getMetadata(MetadataKeys.Route, target, propertyKey) || []) as RouteMetadata[];
         currentMetadata.push({
             aliases,
+            description,
             paramRegex,
             paramMapper,
         });
-        Reflect.defineMetadata("route", currentMetadata, target, propertyKey);
+        Reflect.defineMetadata(MetadataKeys.Route, currentMetadata, target, propertyKey);
     };
 }

@@ -3,7 +3,6 @@ import config from "config";
 import { Message } from "node-telegram-bot-api";
 
 import { UserRole } from "@data/types";
-
 import { BotConfig } from "@config";
 import UsersRepository from "@repositories/users";
 import { getCoinDefinition, getCoinQR } from "@services/funds/currency";
@@ -23,13 +22,13 @@ import { BotController, ITelegramUser } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 import { getEventsList } from "../text";
-import { CommandsMap } from "../../resources/commands";
 import { OptionalParam } from "../core/helpers";
+import { CommandsMap } from "../../resources/commands";
 
 const botConfig = config.get<BotConfig>("bot");
 
 export default class BasicController implements BotController {
-    @Route(["help"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["help"], "Display help information", OptionalParam(/(\S+)/), match => [match[1]])
     static async helpHandler(bot: HackerEmbassyBot, msg: Message, role?: string) {
         const selectedRole = role && !Object.keys(Commands.CommandsMap).includes(role) ? "default" : role;
         const userRoles = splitRoles(bot.context(msg).user);
@@ -51,7 +50,27 @@ export default class BasicController implements BotController {
         return await bot.sendLongMessage(msg.chat.id, text, msg);
     }
 
-    @Route(["about"])
+    @Route(["newhelp"], "Display new help information")
+    static async newhelpHandler(bot: HackerEmbassyBot, msg: Message) {
+        const userRoles = splitRoles(bot.context(msg).user);
+
+        // TODO: Localize command descriptions
+        // TODO: Add command groups
+        // TODO: Add aliases to descriptions
+        const availableCommands = bot
+            .getRouteDescriptions(userRoles)
+            .map(cmd => `/${cmd.command} - ${cmd.description}`)
+            .join("\n");
+
+        const text = t("basic.help", {
+            availableCommands,
+            globalModifiers: Commands.GlobalModifiers,
+        });
+
+        return await bot.sendLongMessage(msg.chat.id, text, msg);
+    }
+
+    @Route(["about"], "Information about the bot and the space")
     static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
@@ -70,7 +89,7 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["join"])
+    @Route(["join"], "Information on how to join the space and become a member")
     static async joinHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
@@ -90,7 +109,7 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["events"])
+    @Route(["events"], "Information about upcoming and today's events")
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
         const message = TextGenerators.getEventsText(botConfig.features.calendar, `${bot.url}/calendar`);
 
@@ -132,8 +151,8 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["issue", "report"], OptionalParam(/(.*)/ims), match => ["space", match[1]])
-    @Route(["bug", "bugreport"], OptionalParam(/(.*)/ims), match => ["bot", match[1]])
+    @Route(["issue", "report"], "Report an issue or bug in the space", OptionalParam(/(.*)/ims), match => ["space", match[1]])
+    @Route(["bug", "bugreport"], "Report an issue or bug in the bot", OptionalParam(/(.*)/ims), match => ["bot", match[1]])
     static async issueHandler(bot: HackerEmbassyBot, msg: Message, target: "bot" | "space", issueText: string) {
         if (issueText) {
             const sentMessage = t(`basic.issue.${target}.sent`);
@@ -159,7 +178,7 @@ export default class BasicController implements BotController {
         }
     }
 
-    @Route(["donate"])
+    @Route(["donate"], "Information on how to donate to the space")
     static async donateHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
@@ -183,19 +202,24 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["location", "where"])
+    @Route(["location", "where"], "Information on the location of the space")
     static async locationHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendPhotoExt(msg.chat.id, "./resources/images/house.jpg", msg, { caption: t("basic.location.address") });
         await bot.sendLocationExt(msg.chat.id, 40.194336, 44.497607, msg);
     }
 
-    @Route(["donatecrypto", "crypto"], /(btc|eth|usdc|usdt|trx|ton)/, match => [match[1]])
-    @Route(["btc"], null, () => ["btc"])
-    @Route(["eth"], null, () => ["eth"])
-    @Route(["usdc"], null, () => ["usdc"])
-    @Route(["usdt"], null, () => ["usdt"])
-    @Route(["trx"], null, () => ["trx"])
-    @Route(["ton"], null, () => ["ton"])
+    @Route(
+        ["donatecrypto", "crypto"],
+        "Information on how to donate using cryptocurrency",
+        /(btc|eth|usdc|usdt|trx|ton)/,
+        match => [match[1]]
+    )
+    @Route(["btc"], null, null, () => ["btc"])
+    @Route(["eth"], null, null, () => ["eth"])
+    @Route(["usdc"], null, null, () => ["usdc"])
+    @Route(["usdt"], null, null, () => ["usdt"])
+    @Route(["trx"], null, null, () => ["trx"])
+    @Route(["ton"], null, null, () => ["ton"])
     static async donateCoinHandler(bot: HackerEmbassyBot, msg: Message, coinname: string) {
         const coinDefinition = getCoinDefinition(coinname.toLowerCase());
 
@@ -211,7 +235,7 @@ export default class BasicController implements BotController {
         });
     }
 
-    @Route(["donatecash", "cash"])
+    @Route(["donatecash", "cash"], "Information on how to donate using cash")
     static async donateCashHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountantsList = TextGenerators.getAccountsList(
             UsersRepository.getUsersByRole("accountant"),
@@ -221,7 +245,7 @@ export default class BasicController implements BotController {
         await bot.sendOrEditMessage(msg.chat.id, t("basic.donateCash", { accountantsList }), msg, {}, msg.message_id);
     }
 
-    @Route(["donatecard", "card"])
+    @Route(["donatecard", "card"], "Information on how to donate using a card")
     static async donateCardHandler(bot: HackerEmbassyBot, msg: Message) {
         const accountantsList = TextGenerators.getAccountsList(
             UsersRepository.getUsersByRole("accountant"),
@@ -242,7 +266,7 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["donateequipment", "equipment"])
+    @Route(["donateequipment", "equipment"], "Information on how to donate equipment to the space")
     static async donateEquipmentHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [[AnnoyingInlineButton(bot, msg, t("basic.info.buttons.residents"), "getresidents")]];
         await bot.sendOrEditMessage(
@@ -254,7 +278,7 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["getresidents", "gr", "residents", "members"])
+    @Route(["getresidents", "gr", "residents", "members"], "Get the list of current residents of the space")
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
@@ -265,7 +289,7 @@ export default class BasicController implements BotController {
         await bot.sendOrEditMessage(msg.chat.id, message, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
     }
 
-    @Route(["start", "startpanel", "sp"])
+    @Route(["start", "startpanel", "sp"], "Start menu with main commands")
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [InlineButton(t("basic.start.buttons.status"), "status", ButtonFlags.Editing)],
@@ -303,7 +327,7 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["controlpanel", "cp"])
+    @Route(["controlpanel", "cp"], "Control panel for embassy residents with various controls and webcams")
     @FeatureFlag("embassy")
     @UserRoles(Members)
     static async controlPanelHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -348,7 +372,7 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["infopanel", "info", "ip", "faq"])
+    @Route(["infopanel", "info", "ip", "faq"], "Information panel with details about the space, how to join, donate, and more")
     static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
@@ -379,7 +403,7 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["memepanel", "meme", "memes", "mp"])
+    @Route(["memepanel", "meme", "memes", "mp"], "Meme panel for trusted members with various meme options")
     @UserRoles(TrustedMembers)
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
@@ -430,7 +454,12 @@ export default class BasicController implements BotController {
         );
     }
 
-    @Route(["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"], OptionalParam(/(\d)/), match => [match[1]])
+    @Route(
+        ["upcomingevents", "ue", "upcoming", "upcumingevents", "upcuming"],
+        "List of upcoming events in the space, optionally specify how many",
+        OptionalParam(/(\d)/),
+        match => [match[1]]
+    )
     @FeatureFlag("calendar")
     static async upcomingEventsHandler(bot: HackerEmbassyBot, msg: Message, numberOfEvents?: number) {
         let messageText: string = t("basic.events.upcoming") + "\n";
@@ -463,7 +492,7 @@ export default class BasicController implements BotController {
         }
     }
 
-    @Route(["todayevents", "today", "te"])
+    @Route(["todayevents", "today", "te"], "List of today's events in the space")
     @FeatureFlag("calendar")
     static async todayEventsHandler(bot: HackerEmbassyBot, msg: Message) {
         let messageText: string = "";

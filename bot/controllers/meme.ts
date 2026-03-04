@@ -25,7 +25,7 @@ const NOT_WEDNESDAY_SAD_IMAGE = "./resources/images/memes/notwednesday.jpg";
 export default class MemeController implements BotController {
     static readonly 𓆏 = (𓈝: 𓇍, 𓎶: 𓇝) => (𓁺() === 𓀥 ? 𓉢(𓈝, 𓎶, 𓇠) : 𓉡(𓈝, 𓎶, 𓃾));
 
-    @Route(["randomzhabka", "randomtoad", "zhabka", "zhaba", "toad", "wednesday"])
+    @Route(["randomzhabka", "randomtoad", "zhabka", "zhaba", "toad", "wednesday"], "Get a random zhabka (toad) image!")
     static async randomZhabkaHandler(bot: HackerEmbassyBot, msg: Message) {
         await MemeController.𓆏(bot, msg);
     }
@@ -36,10 +36,10 @@ export default class MemeController implements BotController {
         if (msg) await MemeController.randomImagePathHandler(bot, msg, ZHABKAS_PATH);
     }
 
-    @Route(["randomdog", "dog"], null, () => ["./resources/images/dogs"])
-    @Route(["randomcat", "cat"], null, () => ["./resources/images/cats"])
-    @Route(["randomcock", "cock"], null, () => ["./resources/images/roosters"])
-    @Route(["respect", "f"], null, () => ["./resources/images/respect"])
+    @Route(["randomdog", "dog"], "Get a random dog image", null, () => ["./resources/images/dogs"])
+    @Route(["randomcat", "cat"], "Get a random cat image", null, () => ["./resources/images/cats"])
+    @Route(["randomcock", "cock"], "Get a random cock image", null, () => ["./resources/images/roosters"])
+    @Route(["respect", "f"], "Get a random F image", null, () => ["./resources/images/respect"])
     static async randomImagePathHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
         const isTimeForZhabka = getToday().getDay() === ITS_WEDNESDAY_YEAAAH && Math.random() < ZHABKA_CHANCE;
         const buffer = isTimeForZhabka ? await getRandomImageFromFolder(ZHABKAS_PATH) : await getRandomImageFromFolder(path);
@@ -52,7 +52,7 @@ export default class MemeController implements BotController {
         await bot.sendPhotoExt(msg.chat.id, buffer, msg);
     }
 
-    @Route(["syrniki", "pidarasi", "pidorasi"], null, () => ["./resources/images/memes/syrniki.jpeg"])
+    @Route(["syrniki", "pidarasi", "pidorasi"], "Get a random syrnik", null, () => ["./resources/images/memes/syrniki.jpeg"])
     static async imageHandler(bot: HackerEmbassyBot, msg: Message, path: string) {
         const buffer = await getImageFromPath(path);
 
@@ -64,7 +64,9 @@ export default class MemeController implements BotController {
         await bot.sendPhotoExt(msg.chat.id, buffer, msg);
     }
 
-    @Route(["slapp", "slapa", "slapavatar", "slapava", "slapface"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["slapp", "slapa", "slapavatar", "slapava", "slapface"], "Slap a user's avatar", OptionalParam(/(\S+)/), match => [
+        match[1],
+    ])
     static async slapAvatarHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const sender = bot.context(msg).user;
         const targetUser =
@@ -96,7 +98,7 @@ export default class MemeController implements BotController {
         return bot.sendAnimationExt(msg.chat.id, gifBuffer, msg, { caption });
     }
 
-    @Route(["slap"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["slap"], "Slap a user", OptionalParam(/(\S+)/), match => [match[1]])
     static async slapHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const sender = bot.context(msg).user;
         const extractedTarget = username ?? effectiveName(msg.reply_to_message?.from);
@@ -136,7 +138,7 @@ export default class MemeController implements BotController {
     }
 
     // TODO: deduplicate hugHandler and slapHandler
-    @Route(["hug"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["hug"], "Hug a user", OptionalParam(/(\S+)/), match => [match[1]])
     static async hugHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const sender = bot.context(msg).user;
         const extractedTarget = username ?? effectiveName(msg.reply_to_message?.from);

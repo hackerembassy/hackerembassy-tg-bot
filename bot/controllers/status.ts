@@ -50,7 +50,10 @@ const botConfig = config.get<BotConfig>("bot");
 export default class StatusController implements BotController {
     static isStatusError = false;
 
-    @Route(["mac", "setmac", "mymac"], OptionalParam(/(\S*)(?: (.+))?/), match => [match[1], match[2]])
+    @Route(["mac", "setmac", "mymac"], "Manage your MAC addresses", OptionalParam(/(\S*)(?: (.+))?/), match => [
+        match[1],
+        match[2],
+    ])
     static async macHandler(bot: HackerEmbassyBot, msg: Message, cmd: string, mac?: string) {
         const user = bot.context(msg).user;
         const userLink = helpers.userLink(user);
@@ -125,7 +128,7 @@ export default class StatusController implements BotController {
         return inline_keyboard;
     }
 
-    @Route(["autoinside"], OptionalParam(/(.*\S)/), match => [match[1]])
+    @Route(["autoinside"], "Manage your autoinside settings", OptionalParam(/(.*\S)/), match => [match[1]])
     @FeatureFlag("autoinside")
     static async autoinsideHandler(bot: HackerEmbassyBot, msg: Message, cmd: string) {
         const mode = bot.context(msg).mode;
@@ -283,8 +286,8 @@ export default class StatusController implements BotController {
         await StatusController.statusHandler(bot, msg, true);
     }
 
-    @Route(["status", "s"], OptionalParam(/(short)/), match => [match[1] === "short"])
-    @Route(["shortstatus", "statusshort", "shs"], null, () => [true])
+    @Route(["status", "s"], "Show the current status of the space", OptionalParam(/(short)/), match => [match[1] === "short"])
+    @Route(["shortstatus", "statusshort", "shs"], null, null, () => [true])
     static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
         const context = bot.context(msg);
         if (!context.isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
@@ -343,7 +346,7 @@ export default class StatusController implements BotController {
         }
     }
 
-    @Route(["shouldigo", "shouldvisit", "shouldgo", "should"])
+    @Route(["shouldigo", "shouldvisit", "shouldgo", "should"], "Ask the AI if you should go to the space")
     @FeatureFlag("ai")
     @AllowedChats(PublicChats)
     static async shouldIGoHandler(bot: HackerEmbassyBot, msg: Message) {
@@ -371,7 +374,7 @@ export default class StatusController implements BotController {
         }
     }
 
-    @Route(["open", "o"])
+    @Route(["open", "o"], "Open the space")
     @UserRoles(Members)
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
         const opener = bot.context(msg).user;
@@ -416,7 +419,7 @@ export default class StatusController implements BotController {
         }
     }
 
-    @Route(["close", "c"])
+    @Route(["close", "c"], "Close the space")
     @UserRoles(Members)
     static async closeHandler(bot: HackerEmbassyBot, msg: Message) {
         const closer = bot.context(msg).user;
@@ -443,7 +446,7 @@ export default class StatusController implements BotController {
         );
     }
 
-    @Route(["evict", "outforceall"])
+    @Route(["evict", "outforceall"], "Evict all users from the space")
     @UserRoles(Members)
     static async evictHandler(bot: HackerEmbassyBot, msg: Message) {
         userService.evictPeople();
@@ -452,22 +455,32 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
-    @Route(["inforce", "inf", "goin"], RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`), match => [
-        match[2],
-        match[1],
-    ])
+    @Route(
+        ["inforce", "inf", "goin"],
+        "Force a user to enter the space",
+        RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`),
+        match => [match[2], match[1]]
+    )
     @UserRoles(TrustedMembers)
     static inForceHandler(bot: HackerEmbassyBot, msg: Message, durationString?: string, username?: string) {
         this.inHandler(bot, msg, false, durationString, username);
     }
 
-    @Route(["inghost", "ghost"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [match[1]])
+    @Route(
+        ["inghost", "ghost"],
+        "Enter the space in ghost mode",
+        OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)),
+        match => [match[1]]
+    )
     @UserRoles(TrustedMembers)
     static inGhostHandler(bot: HackerEmbassyBot, msg: Message, durationString?: string, username?: string) {
         this.inHandler(bot, msg, true, durationString, username);
     }
 
-    @Route(["in", "iaminside"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [false, match[1]])
+    @Route(["in", "iaminside"], "Enter the space", OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [
+        false,
+        match[1],
+    ])
     static inHandler(bot: HackerEmbassyBot, msg: Message, ghost: boolean = false, durationString?: string, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
@@ -517,13 +530,13 @@ export default class StatusController implements BotController {
         });
     }
 
-    @Route(["outforce", "outf", "gohome"], /(\S+)/, match => [match[1]])
+    @Route(["outforce", "outf", "gohome"], "Force a user to leave the space", /(\S+)/, match => [match[1]])
     @UserRoles(TrustedMembers)
     static outForceHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         this.outHandler(bot, msg, username);
     }
 
-    @Route(["out", "iamleaving"])
+    @Route(["out", "iamleaving"], "Leave the space")
     static outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
@@ -570,7 +583,7 @@ export default class StatusController implements BotController {
         });
     }
 
-    @Route(["going", "coming", "cuming", "g"], OptionalParam(/(.*)/), match => [match[1]])
+    @Route(["going", "coming", "cuming", "g"], "Mark yourself as going to the space", OptionalParam(/(.*)/), match => [match[1]])
     static async goingHandler(bot: HackerEmbassyBot, msg: Message, note?: string) {
         const sender = bot.context(msg).user;
 
@@ -596,7 +609,12 @@ export default class StatusController implements BotController {
         });
     }
 
-    @Route(["notgoing", "notcoming", "notcuming", "ng"], OptionalParam(/(.*)/), match => [match[1]])
+    @Route(
+        ["notgoing", "notcoming", "notcuming", "ng"],
+        "Mark yourself as not going to the space",
+        OptionalParam(/(.*)/),
+        match => [match[1]]
+    )
     static async notGoingHandler(bot: HackerEmbassyBot, msg: Message, note?: string) {
         const sender = bot.context(msg).user;
 
@@ -611,7 +629,7 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    @Route(["setemoji", "emoji", "myemoji"], OptionalParam(/(.*)/), match => [match[1]])
+    @Route(["setemoji", "emoji", "myemoji"], "Set your emoji", OptionalParam(/(.*)/), match => [match[1]])
     @UserRoles(TrustedMembers)
     static async setemojiHandler(bot: HackerEmbassyBot, msg: Message, emoji: string) {
         const sender = bot.context(msg).user;
@@ -638,7 +656,7 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, message, msg);
     }
 
-    @Route(["detected"])
+    @Route(["detected"], "List detected devices")
     @UserRoles(Admins)
     static async detectedDevicesHandler(bot: HackerEmbassyBot, msg: Message) {
         const detectedDevices = await embassyService.fetchMacsInside();
@@ -732,12 +750,12 @@ export default class StatusController implements BotController {
         if (timedOutUsers.length > 0) bot.customEmitter.emit(BotCustomEvent.statusLive);
     }
 
-    @Route(["me"])
+    @Route(["me"], "View your stats and profile")
     static meHandler(bot: HackerEmbassyBot, msg: Message) {
         this.profileHandler(bot, msg);
     }
 
-    @Route(["profile"], /(\S+)/, match => [match[1]])
+    @Route(["profile"], "View a user's stats and profile", /(\S+)/, match => [match[1]])
     @UserRoles(Accountants)
     static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
@@ -773,8 +791,8 @@ export default class StatusController implements BotController {
         return;
     }
 
-    @Route(["statsof"], /(\S+)/, match => [match[1]])
-    @Route(["mystats"])
+    @Route(["statsof"], "View a user's stats", /(\S+)/, match => [match[1]])
+    @Route(["mystats"], "View your stats")
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -791,8 +809,10 @@ export default class StatusController implements BotController {
         );
     }
 
-    @Route(["month", "statsmonth", "monthstats"])
-    @Route(["lastmonth", "statslastmonth", "lastmonthstats"], null, () => [new Date().getMonth() - 1])
+    @Route(["month", "statsmonth", "monthstats"], "View stats for a specific month")
+    @Route(["lastmonth", "statslastmonth", "lastmonthstats"], "View stats for the last month", null, () => [
+        new Date().getMonth() - 1,
+    ])
     static async statsMonthHandler(bot: HackerEmbassyBot, msg: Message, month?: number) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 
@@ -811,8 +831,13 @@ export default class StatusController implements BotController {
         await StatusController.statsHandler(bot, msg, startMonthDate.toDateString(), endMonthDate.toDateString());
     }
 
-    @Route(["stats"], OptionalParam(/(?:from (\S+) ?)?(?:to (\S+))?/), match => [match[1], match[2]])
-    @Route(["statsall", "allstats"], null, () => [botConfig.launchDate])
+    @Route(
+        ["stats"],
+        "View stats for user visits for a specific period",
+        OptionalParam(/(?:from (\S+) ?)?(?:to (\S+))?/),
+        match => [match[1], match[2]]
+    )
+    @Route(["statsall", "allstats"], "View all stats since launch date", null, () => [botConfig.launchDate])
     static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string) {
         bot.sendChatAction(msg.chat.id, "typing", msg);
 

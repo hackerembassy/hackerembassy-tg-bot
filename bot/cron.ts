@@ -57,6 +57,11 @@ function setupCronJobs(bot: HackerEmbassyBot): void {
                 bot.sendMessageExt(botConfig.chats.key, botConfig.reminders.internet.message, null);
             })
         );
+        runningJobs.push(
+            new CronJob(botConfig.reminders.utility_water.cron, () => {
+                bot.sendMessageExt(botConfig.chats.key, botConfig.reminders.utility_water.message, null);
+            })
+        );
     }
 
     // Meme reminders

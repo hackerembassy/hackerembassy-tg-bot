@@ -754,6 +754,7 @@ export default class EmbassyController implements BotController {
 
     @Route(["ask"], OptionalParam(/(\S+?)(?: (.*))?/ims), match => [match[2], match[1]])
     @Route(["gpt"], OptionalParam(/(.*)/ims), match => [match[1], "gpt"])
+    @Route(["glados"], OptionalParam(/(.*)/ims), match => [match[1], "glados"])
     @Route(["ollama", "llama", "lama", "openwebui"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("ai")
     @AllowedChats(PublicChats)

@@ -6,8 +6,8 @@
     "url": "https://hackem.cc/",
     "location": {
         "address": "Baghramyan ave. 60, Yerevan, Armenia",
-        "lon": 40.194336,
-        "lat": 44.497607,
+        "lon": 44.497607,
+        "lat": 40.194336,
         "timezone": "Asia/Yerevan"
     },
     "contact": {

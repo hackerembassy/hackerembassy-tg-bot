@@ -118,7 +118,7 @@ export function toBasicMoneyString(value: number): string {
 }
 
 export async function prepareCurrency(currencyInput: string): Promise<Nullable<string>> {
-    if (!currencyInput.length) return currencyConfig.default;
+    if (currencyInput.length === 0) return currencyConfig.default;
 
     if (Object.keys(CurrencySymbolToCode).includes(currencyInput)) return CurrencySymbolToCode[currencyInput as CurrencySymbol];
 

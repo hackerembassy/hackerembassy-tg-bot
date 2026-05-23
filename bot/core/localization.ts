@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import path from "node:path";
 
 import config from "config";
 import { t, TOptions, use } from "i18next";
@@ -34,7 +34,7 @@ const RESOURCES_PATH = "../../resources/locales/";
 void use(Backend).init({
     returnNull: false,
     backend: {
-        loadPath: join(__dirname, RESOURCES_PATH, DEFAULT_LOCALES_PATH_PATTERN),
+        loadPath: path.join(__dirname, RESOURCES_PATH, DEFAULT_LOCALES_PATH_PATTERN),
     },
     supportedLngs: SUPPORTED_LANGUAGES,
     preload: SUPPORTED_LANGUAGES,

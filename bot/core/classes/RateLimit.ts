@@ -65,19 +65,17 @@ export class UserRateLimiter {
     }
 }
 
-export class RateLimiter {
-    static async executeOverTime<T>(
-        calls: (() => Promise<T>)[],
-        rateLimit = DEFAULT_API_RATE_LIMIT,
-        onFailure?: (error: unknown) => T
-    ): Promise<T[]> {
-        const results: T[] = [];
+export async function executeOverTime<T>(
+    calls: (() => Promise<T>)[],
+    rateLimit = DEFAULT_API_RATE_LIMIT,
+    onFailure?: (error: unknown) => T
+): Promise<T[]> {
+    const results: T[] = [];
 
-        for (const call of calls) {
-            results.push(await call().catch(onFailure));
-            await sleep(rateLimit);
-        }
-
-        return results;
+    for (const call of calls) {
+        results.push(await call().catch(onFailure));
+        await sleep(rateLimit);
     }
+
+    return results;
 }

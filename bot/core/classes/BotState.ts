@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "node:fs";
-import Module from "module";
-import { dirname, join } from "node:path";
+import Module from "node:module";
+import path from "node:path";
 
 import config from "config";
 
@@ -26,7 +26,7 @@ export default class BotState {
     bot: HackerEmbassyBot;
 
     constructor(bot: HackerEmbassyBot) {
-        this.statepath = join(botConfig.persistedfolderpath, BotState.STATE_FILE_NAME);
+        this.statepath = path.join(botConfig.persistedfolderpath, BotState.STATE_FILE_NAME);
         this.bot = bot;
 
         if (existsSync(this.statepath)) {
@@ -54,7 +54,7 @@ export default class BotState {
         this.liveChats = [];
         this.flags = { ...DEFAULT_STATE_FLAGS };
 
-        mkdirSync(dirname(this.statepath), { recursive: true });
+        mkdirSync(path.dirname(this.statepath), { recursive: true });
         writeFileSync(this.statepath, JSON.stringify({ ...this, bot: undefined }));
         logger.info("Created new state");
     }
@@ -93,7 +93,7 @@ export default class BotState {
             this.bot.customEmitter.removeListener(lc.event, lc.handler);
         }
 
-        this.liveChats = this.liveChats.filter(lc => toRemove.indexOf(lc) === -1);
+        this.liveChats = this.liveChats.filter(lc => !toRemove.includes(lc));
 
         void this.persistChanges();
     }

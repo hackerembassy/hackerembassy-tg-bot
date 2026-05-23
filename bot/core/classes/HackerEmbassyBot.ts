@@ -1,15 +1,14 @@
 import { promises as fs } from "node:fs";
-import { EventEmitter, Stream } from "stream";
+import { EventEmitter, Stream } from "node:stream";
 
 import "reflect-metadata";
 
 import config from "config";
 
-import {
+import TelegramBot, {
     CallbackQuery,
     ChatId,
     ChatMemberUpdated,
-    default as TelegramBot,
     EditMessageTextOptions,
     InlineKeyboardMarkup,
     InputMedia,
@@ -52,7 +51,7 @@ import {
     RESTRICTED_PERMISSIONS,
 } from "../constants";
 import MessageHistory from "./MessageHistory";
-import { RateLimiter, UserRateLimiter } from "./RateLimit";
+import { executeOverTime, UserRateLimiter } from "./RateLimit";
 import {
     BotAllowedReaction,
     BotCallbackHandler,
@@ -207,14 +206,14 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: TelegramBot.Message,
         options: TelegramBot.EditMessageTextOptions
     ): Promise<boolean | TelegramBot.Message> {
-        text = options.parse_mode !== undefined ? text : prepareMessageForMarkdown(text);
+        text = options.parse_mode === undefined ? prepareMessageForMarkdown(text) : text;
         options.message_thread_id = msg.message_thread_id;
         options =
-            options.parse_mode !== undefined
-                ? options
-                : (this.prepareOptionsForMarkdown({
+            options.parse_mode === undefined
+                ? (this.prepareOptionsForMarkdown({
                       ...options,
-                  }) as EditMessageTextOptions);
+                  }) as EditMessageTextOptions)
+                : options;
 
         return super.editMessageText(text, options);
     }
@@ -365,9 +364,9 @@ export default class HackerEmbassyBot extends TelegramBot {
                     //@ts-expect-error the lib types don't include message_thread_id for editMessageMedia but it actually works
                     message_thread_id: this.context(msg).messageThreadId,
                 });
-            } catch (e) {
+            } catch (error) {
                 // only ignore not modified error
-                if (e instanceof Error && !e.message.includes("message is not modified")) throw e;
+                if (error instanceof Error && !error.message.includes("message is not modified")) throw error;
             }
 
             if (options.caption) {
@@ -473,16 +472,16 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: Nullable<TelegramBot.Message>,
         options: TelegramBot.SendMessageOptions = {}
     ): Promise<Nullable<TelegramBot.Message>> {
-        const preparedText = options.parse_mode !== undefined ? text : prepareMessageForMarkdown(text);
-        options = options.parse_mode !== undefined ? options : this.prepareOptionsForMarkdown({ ...options });
+        const preparedText = options.parse_mode === undefined ? prepareMessageForMarkdown(text) : text;
+        options = options.parse_mode === undefined ? this.prepareOptionsForMarkdown({ ...options }) : options;
 
         const context = msg && this.context(msg);
         const mode = context?.mode;
         const chatIdToUse = mode?.forward ? this.forwardTarget : chatId;
 
-        const reply_markup = !mode?.static
-            ? (options.reply_markup as InlineKeyboardMarkup | ReplyKeyboardMarkup | undefined)
-            : undefined;
+        const reply_markup = mode?.static
+            ? undefined
+            : (options.reply_markup as InlineKeyboardMarkup | ReplyKeyboardMarkup | undefined);
 
         const message_thread_id = msg ? this.context(msg).messageThreadId : undefined;
 
@@ -561,7 +560,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             .map((chunk, index) => `📧 ${index + 1} часть 📧\n\n${chunk}\n📧 Конец части ${index + 1} 📧`)
             .map(chunk => () => this.sendMessageExt(chatId, chunk, msg, options));
 
-        void RateLimiter.executeOverTime(messageResponses);
+        void executeOverTime(messageResponses);
     }
 
     private deleteQueue: number[] = [];
@@ -805,9 +804,8 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             if (!success) throw new Error("Failed to verify user");
 
-            botConfig.moderatedChats.forEach(
-                chatId => void this.unlockChatMember(chatId, userChat.id).catch(error => logger.error(error))
-            );
+            for (const chatId of botConfig.moderatedChats)
+                void this.unlockChatMember(chatId, userChat.id).catch(error => logger.error(error));
 
             await this.sendWelcomeMessage(msg.chat, userChat, language);
             await this.deleteMessage(msg.chat.id, msg.message_id);
@@ -892,17 +890,15 @@ export default class HackerEmbassyBot extends TelegramBot {
             this.assets.images[type] = await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
         }
 
-        if (this.assets.images[type]) {
-            return this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
-                caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
-            });
-        } else {
-            return this.sendMessageExt(
-                message.chat.id,
-                t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
-                message
-            );
-        }
+        return this.assets.images[type]
+            ? this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
+                  caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
+              })
+            : this.sendMessageExt(
+                  message.chat.id,
+                  t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
+                  message
+              );
     }
 
     addEventRoutes(voiceHandler: BotHandler, chatMemberHandler: ChatMemberHandler) {
@@ -1044,10 +1040,10 @@ export default class HackerEmbassyBot extends TelegramBot {
             serializationData,
         };
 
-        if (chatRecordIndex !== -1) {
-            this.botState.liveChats[chatRecordIndex] = newChatRecord;
-        } else {
+        if (chatRecordIndex === -1) {
             this.botState.liveChats.push(newChatRecord);
+        } else {
+            this.botState.liveChats[chatRecordIndex] = newChatRecord;
         }
 
         this.botState.debouncedPersistChanges();
@@ -1057,27 +1053,27 @@ export default class HackerEmbassyBot extends TelegramBot {
     isChatMember(chatId: ChatId, userId: number): Promise<boolean> {
         return this.getChatMember(chatId, userId)
             .then(m => m.status !== "left" && m.status !== "kicked" && m.status !== "restricted")
-            .catch(e => {
+            .catch(error => {
                 logger.error(`Failed to get chat member ${userId} in chat ${chatId}`);
-                logger.debug(e);
+                logger.debug(error);
 
                 return false;
             });
     }
 
     lockChatMember(chatId: ChatId, userId: number) {
-        return this.restrictChatMember(chatId, userId, RESTRICTED_PERMISSIONS).catch(e => {
+        return this.restrictChatMember(chatId, userId, RESTRICTED_PERMISSIONS).catch(error => {
             logger.error(`Failed to lock user ${userId} in chat ${chatId}`);
-            logger.debug(e);
+            logger.debug(error);
 
             return false;
         });
     }
 
     unlockChatMember(chatId: ChatId, userId: number) {
-        return this.restrictChatMember(chatId, userId, FULL_PERMISSIONS).catch(e => {
+        return this.restrictChatMember(chatId, userId, FULL_PERMISSIONS).catch(error => {
             logger.error(`Failed to unlock user ${userId} in chat ${chatId}`);
-            logger.debug(e);
+            logger.debug(error);
 
             return false;
         });

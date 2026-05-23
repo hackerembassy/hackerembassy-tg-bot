@@ -182,7 +182,7 @@ export const NeworkDevicesLocator = {
 
         for (const wlanAdapter of adapters) {
             const devices = wlanAdapter.result[1]?.results;
-            if (devices) macs = macs.concat(devices.map(dev => dev.mac?.toLowerCase() ?? ""));
+            if (devices) macs = [...macs, ...devices.map(dev => dev.mac?.toLowerCase() ?? "")];
         }
 
         return macs;

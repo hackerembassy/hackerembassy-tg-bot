@@ -19,8 +19,7 @@ export function formatUsername(username: Optional<string>, mention = false, isAp
 
     if (isApi) return `@${username}`;
 
-    if (mention) return `@${username}`.replaceAll("_", "\\_");
-    else return `#[${username}#]#(t.me/${username}#)`;
+    return mention ? `@${username}`.replaceAll("_", "\\_") : `#[${username}#]#(t.me/${username}#)`;
 }
 
 export function tgUserLink(tgUser: ITelegramUser) {
@@ -51,7 +50,7 @@ export function prepareMessageForMarkdown(message: string): string {
     return message
         .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
         .replaceAll(/#([_*[\]()~`>+\-=|{}.!])/g, "$1")
-        .replaceAll(/#/g, "")
+        .replaceAll("#", "")
         .replaceAll("\\u0023", "\\#");
 }
 
@@ -68,7 +67,7 @@ export function toEscapedTelegramMarkdown(text: string): string {
         .replaceAll(/https?:\/\/t\.me/g, "t.me")
         .replaceAll(/\[t\.me\/(.*?)\]/g, "[$1]")
         .replaceAll(/\[(.*?)\]\((.*?)\)/g, "#[$1#]#($2#)")
-        .replaceAll(/%5F/g, "_");
+        .replaceAll("%5F", "_");
 }
 
 export function stripCustomMarkup(text: string): string {

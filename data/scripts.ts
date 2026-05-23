@@ -49,5 +49,5 @@ export function getOrCreateDb(
 export async function seedUsers(seedUsers: User[]) {
     const usersRepository = (await import("@repositories/users")).default;
 
-    seedUsers.forEach(user => usersRepository.addUser(user.userid, user.username, user.roles?.split("|")));
+    for (const user of seedUsers) usersRepository.addUser(user.userid, user.username, user.roles?.split("|"));
 }

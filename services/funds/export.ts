@@ -200,7 +200,7 @@ export function createDonut(
     labels: string[],
     data: string[] | number[],
     titleText: string,
-    params = { width: 1400, height: 900 },
+    params: { width: number; height: number },
     donutLabels: ChartLabel[] = [],
     customColorScheme: string[] | undefined = undefined
 ): ChartJsImage {
@@ -261,8 +261,8 @@ function createLines(
     labels: string[],
     data: { label: string; data: string[] | number[] }[],
     titleText: string,
-    params = { width: 1400, height: 900 },
-    axisLables: { x?: string; y?: string } = { x: undefined, y: undefined }
+    params: { width: number; height: number },
+    axisLables: { x?: string; y?: string }
 ) {
     const chart: ChartJsImage = new ChartJsImage();
 
@@ -361,7 +361,7 @@ export async function getFundDonationsSummary(fund: Fund, limit?: number) {
         }));
 
     // Processing data for HASS
-    const collected_value = parseFloat(resultDonations.reduce((acc, d) => acc + (d.converted_value ?? 0), 0).toFixed(2));
+    const collected_value = Number.parseFloat(resultDonations.reduce((acc, d) => acc + (d.converted_value ?? 0), 0).toFixed(2));
     const ranked_donations = resultDonations.map(d => `${d.rank}. ${d.username} - ${d.combined_value}`).join("    ");
     const fund_stats = `${fund.name} - ${collected_value} out of ${fund.target_value} ${fund.target_currency}`;
 

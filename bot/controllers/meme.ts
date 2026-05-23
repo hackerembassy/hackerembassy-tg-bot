@@ -114,18 +114,22 @@ export default class MemeController implements BotController {
         let source: string;
 
         switch (target.slice(1)) {
-            case bot.name:
+            case bot.name: {
                 source = "./resources/images/animations/slap-bot.gif";
                 break;
-            case "korn9509":
+            }
+            case "korn9509": {
                 source = "./resources/images/animations/slap-korn.gif";
                 break;
-            case effectiveName(sender):
+            }
+            case effectiveName(sender): {
                 source = "./resources/images/animations/slap-self.gif";
                 break;
-            default:
+            }
+            default: {
                 source = `./resources/images/animations/slap-${Math.random() < 0.5 ? 0 : randomInteger(0, 6)}.gif`;
                 break;
+            }
         }
 
         const gif = await getImageFromPath(source).catch(() => null);
@@ -152,15 +156,18 @@ export default class MemeController implements BotController {
         let source: string;
 
         switch (target.slice(1)) {
-            case bot.name:
+            case bot.name: {
                 source = "./resources/images/animations/hug-bot.gif";
                 break;
-            case effectiveName(sender):
+            }
+            case effectiveName(sender): {
                 source = "./resources/images/animations/hug-self.gif";
                 break;
-            default:
+            }
+            default: {
                 source = `./resources/images/animations/hug-${randomInteger(0, 4)}.gif`;
                 break;
+            }
         }
 
         const gif = await getImageFromPath(source).catch(() => null);

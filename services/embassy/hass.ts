@@ -71,7 +71,7 @@ export interface SpaceClimate {
 // Classes
 class Cams {
     async getImage(camName: keyof CamConfig): Promise<Buffer> {
-        if (!embassyApiConfig.cams[camName]) throw ReferenceError("No cam with such name defined");
+        if (!embassyApiConfig.cams[camName]) throw new ReferenceError("No cam with such name defined");
 
         return getBufferFromResponse(await hass.get(embassyApiConfig.cams[camName]));
     }

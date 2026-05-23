@@ -253,7 +253,7 @@ class EmbassyService {
     private async requestToEmbassy(
         endpoint: string,
         method: "GET" | "POST" = "GET",
-        body: unknown = undefined,
+        body?: unknown,
         timeout: number = 15000,
         secure = true
     ) {

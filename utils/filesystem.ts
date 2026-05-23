@@ -51,7 +51,7 @@ export async function downloadTmpFile(url: string, postfix: string) {
 export function readFirstExistingFile(...files: string[]): string | null {
     for (const file of files) {
         if (fs.existsSync(file)) {
-            return fs.readFileSync(file, "utf-8");
+            return fs.readFileSync(file, "utf8");
         }
     }
     return null;

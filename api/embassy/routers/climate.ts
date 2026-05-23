@@ -37,15 +37,18 @@ router.post("/conditioners/:name/power/:action", async (req, res, next) => {
         const action = req.params.action;
 
         switch (action) {
-            case "on":
+            case "on": {
                 await conditioner.turnOn();
                 break;
-            case "off":
+            }
+            case "off": {
                 await conditioner.turnOff();
                 break;
-            default:
+            }
+            default: {
                 res.sendStatus(400).send({ message: "Invalid action, use 'on' or 'off'" });
                 return;
+            }
         }
 
         await sleep(5000);

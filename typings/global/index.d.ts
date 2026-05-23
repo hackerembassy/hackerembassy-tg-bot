@@ -25,4 +25,5 @@ declare global {
     type EntityType = "hass" | "terminal" | "user";
 }
 
+// eslint-disable-next-line unicorn/require-module-specifiers
 export {};

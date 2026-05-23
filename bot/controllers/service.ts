@@ -63,7 +63,7 @@ export default class ServiceController implements BotController {
     @AllowedChats(PublicChats)
     @FeatureFlag("ai")
     @FeatureFlag("history")
-    static async tldrHandler(bot: HackerEmbassyBot, msg: Message, count: string, promptOverride: string) {
+    static async tldrHandler(bot: HackerEmbassyBot, msg: Message, count: string, promptOverride?: string) {
         if (!NonTopicChats.includes(msg.chat.id)) {
             return bot.sendMessageExt(msg.chat.id, t("service.tldr.notready"), msg);
         }
@@ -77,7 +77,7 @@ export default class ServiceController implements BotController {
         const chatHistory = bot.messageHistory.getAll(msg.chat.id).toReversed();
         const selectedMessages = countToSummarize > 0 ? chatHistory.slice(-countToSummarize) : chatHistory;
 
-        let prompt = promptOverride ? promptOverride : t("service.tldr.prompt") + "\n\n";
+        let prompt = promptOverride ?? t("service.tldr.prompt") + "\n\n";
         for (const message of selectedMessages) {
             if (message.text) prompt += `${message.from}: ${message.text}\n`;
         }
@@ -254,7 +254,13 @@ export default class ServiceController implements BotController {
                 logger.info(
                     `New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`
                 );
-            } else if (!currentUser.roles?.includes("restricted")) {
+            } else if (currentUser.roles?.includes("restricted")) {
+                void bot.lockChatMember(chat.id, tgUser.id);
+
+                logger.info(
+                    `Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`
+                );
+            } else {
                 logger.info(
                     `Known user [${currentUser.userid}](${currentUser.username}) joined the chat [${chat.id}](${chat.title})`
                 );
@@ -262,12 +268,6 @@ export default class ServiceController implements BotController {
                 if (botConfig.features.welcome) await bot.sendWelcomeMessage(chat, tgUser);
 
                 return;
-            } else {
-                void bot.lockChatMember(chat.id, tgUser.id);
-
-                logger.info(
-                    `Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`
-                );
             }
 
             await ServiceController.setLanguageHandler(
@@ -299,7 +299,7 @@ export default class ServiceController implements BotController {
     ) {
         if (!lang) {
             const keyboardRowsCount = 3;
-            const publicLanguageGroups = splitArray(Array.from(PUBLIC_LANGUAGES), keyboardRowsCount);
+            const publicLanguageGroups = splitArray([...PUBLIC_LANGUAGES], keyboardRowsCount);
             const inline_keyboard = publicLanguageGroups.map(group =>
                 group.map(lang =>
                     InlineButton(`${lang.flag} ${lang.label}`, "setlanguage", ButtonFlags.Simple, {
@@ -368,12 +368,13 @@ export default class ServiceController implements BotController {
                 return bot.sendMessageExt(msg.chat.id, t("service.token.removed"), msg);
             }
             case "help":
-            default:
+            default: {
                 return bot.sendMessageExt(
                     msg.chat.id,
                     `${t("service.token.help")}\n${t(key ? "service.token.found" : "service.token.notfound")}`,
                     msg
                 );
+            }
         }
     }
 }

@@ -34,6 +34,6 @@ function newIssueUrl(owner: string, repo: string, title: string, body: string, l
 function encodeURIComponentSkipCyrillic(str: string) {
     return str
         .split("")
-        .map(char => (new RegExp(/[а-яА-Я]/).exec(char) ? char : encodeURIComponent(char)))
+        .map(char => (new RegExp(/[а-яА-Я]/).test(char) ? char : encodeURIComponent(char)))
         .join("");
 }

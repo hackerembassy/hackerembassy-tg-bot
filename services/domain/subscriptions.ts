@@ -17,7 +17,7 @@ class SubscriptionsService {
     }
 
     public getPseudoTopics() {
-        return Array.from(PseudoTopics.values());
+        return [...PseudoTopics.values()];
     }
 
     public getAllTopics(includePseudo: boolean = false) {
@@ -42,16 +42,21 @@ class SubscriptionsService {
         if (!pseudoTopic) return subscriptionsRepository.getSubscriptionsByTopicId(topic.id, true);
 
         switch (pseudoTopic.name) {
-            case "members":
+            case "members": {
                 return usersRepository.getUsersByRole("member").map(this.userToSubscription);
-            case "trusted":
+            }
+            case "trusted": {
                 return usersRepository.getUsersByRole("trusted").map(this.userToSubscription);
-            case "accountants":
+            }
+            case "accountants": {
                 return usersRepository.getUsersByRole("accountant").map(this.userToSubscription);
-            case "debtors":
+            }
+            case "debtors": {
                 return this.getDebtors().map(this.userToSubscription);
-            default:
+            }
+            default: {
                 return [];
+            }
         }
     }
 

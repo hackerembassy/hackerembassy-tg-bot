@@ -308,14 +308,18 @@ export default class EmbassyController implements BotController {
             if (!device) throw new Error("Unknown device");
 
             switch (operation) {
-                case DeviceOperation.Up:
+                case DeviceOperation.Up: {
                     return EmbassyController.wakeHandler(bot, msg, deviceName);
-                case DeviceOperation.Down:
+                }
+                case DeviceOperation.Down: {
                     return EmbassyController.shutdownHandler(bot, msg, deviceName);
-                case DeviceOperation.Status:
+                }
+                case DeviceOperation.Status: {
                     return EmbassyController.pingHandler(bot, msg, deviceName, false);
-                default:
+                }
+                default: {
                     break;
+                }
             }
 
             await bot.sendMessageExt(msg.chat.id, t("embassy.device.help", { deviceName }), msg);
@@ -448,11 +452,13 @@ export default class EmbassyController implements BotController {
 
             switch (html) {
                 case "clear":
-                case "remove":
+                case "remove": {
                     await embassyService.clearScreen();
                     break;
-                default:
+                }
+                default: {
                     await embassyService.showScreen(html);
+                }
             }
 
             return bot.sendMessageExt(msg.chat.id, t("embassy.html.success"), msg);

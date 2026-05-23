@@ -10,7 +10,7 @@ import { Members, Route, UserRoles } from "@hackembot/core/decorators";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { DEFAULT_API_RATE_LIMIT, DEFAULT_NOTIFICATIONS_RATE_LIMIT, RateLimiter } from "../core/classes/RateLimit";
+import { DEFAULT_API_RATE_LIMIT, DEFAULT_NOTIFICATIONS_RATE_LIMIT, executeOverTime } from "../core/classes/RateLimit";
 import { BotController } from "../core/types";
 import { OptionalParam, userLink } from "../core/helpers";
 import { listTopics } from "../text";
@@ -21,7 +21,7 @@ export default class SubscriptionsController implements BotController {
         try {
             const subscriptions = SubscriptionsService.getSubscriptionsByUser(bot.context(msg).user);
 
-            if (!subscriptions.length) {
+            if (subscriptions.length === 0) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.subscriptions.empty"), msg);
                 return;
             }
@@ -67,14 +67,14 @@ export default class SubscriptionsController implements BotController {
 
             const subscriptions = SubscriptionsService.getSubscriptionsByTopic(topic);
 
-            if (!subscriptions.length)
+            if (subscriptions.length === 0)
                 return bot.sendMessageExt(msg.chat.id, t("topics.general.nosubscribers", { topic: topicname }), msg);
 
             const mentions = subscriptions.map(subscription =>
                 subscription.user.username ? `@${subscription.user.username}` : userLink(subscription.user)
             );
 
-            return RateLimiter.executeOverTime(
+            return executeOverTime(
                 splitArray(mentions, MAX_MENTIONS_WITH_NOTIFICATIONS).map(
                     chunk => () => bot.sendMessageExt(msg.chat.id, chunk.join(" "), msg)
                 ),
@@ -108,7 +108,7 @@ export default class SubscriptionsController implements BotController {
 
             const subscriptions = SubscriptionsService.getSubscriptionsByTopic(topic);
 
-            if (!subscriptions.length) {
+            if (subscriptions.length === 0) {
                 await bot.sendMessageExt(msg.chat.id, t("topics.general.nosubscribers", { topic: topicname }), msg);
                 return;
             }
@@ -132,7 +132,7 @@ export default class SubscriptionsController implements BotController {
 
             const message = t("topics.notify.message", { topic: topicname, text });
 
-            const results = await RateLimiter.executeOverTime(
+            const results = await executeOverTime(
                 subscriptions.map(s => () => bot.sendMessageExt(s.user_id, message, msg)),
                 DEFAULT_NOTIFICATIONS_RATE_LIMIT,
                 error => {

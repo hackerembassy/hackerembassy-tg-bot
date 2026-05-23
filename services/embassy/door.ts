@@ -21,12 +21,14 @@ class DoorLock {
 
         try {
             switch (method) {
-                case UnlockMethod.MQTT:
+                case UnlockMethod.MQTT: {
                     await this.unlockByMqtt();
                     break;
-                case UnlockMethod.HTTP:
+                }
+                case UnlockMethod.HTTP: {
                     await this.unlockByHttp();
                     break;
+                }
             }
             logger.info(`Door is opened using ${method}`);
         } catch (error) {

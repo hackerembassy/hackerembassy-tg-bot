@@ -28,7 +28,7 @@ import { Accountants, CaptureListOfIds, Members, Route, UserRoles } from "@hacke
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { RateLimiter } from "../core/classes/RateLimit";
+import { executeOverTime } from "../core/classes/RateLimit";
 import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
@@ -253,7 +253,7 @@ export default class FundsController implements BotController {
             messages.push(text);
         }
 
-        return RateLimiter.executeOverTime(messages.map(m => () => bot.sendMessageExt(msg.chat.id, m, msg)));
+        return executeOverTime(messages.map(m => () => bot.sendMessageExt(msg.chat.id, m, msg)));
     }
 
     @Route(["getsponsors", "sponsors"])
@@ -302,30 +302,40 @@ export default class FundsController implements BotController {
     }
 
     static async getAnimeImageForDonation(value: number, currency: string, user: User) {
-        if (value === 42069 || value === 69420 || value === 69 || value === 420) {
-            return getImageFromPath(`./resources/images/memes/comedy.jpg`);
-        } else if (value === 2040) {
-            return getImageFromPath(`./resources/images/memes/2040.jpg`);
-        } else if (value === 8266) {
-            return getImageFromPath(`./resources/images/memes/8266.jpg`);
-        } else if (user.username && botConfig.funds.alternativeUsernames.includes(user.username)) {
-            return getImageFromPath(`./resources/images/anime/guy.jpg`);
-        } else {
-            const convertedValue = await convertCurrency(value, currency, DefaultCurrency);
+        switch (value) {
+            case 42069:
+            case 69420:
+            case 69:
+            case 420: {
+                return getImageFromPath(`./resources/images/memes/comedy.jpg`);
+            }
+            case 2040: {
+                return getImageFromPath(`./resources/images/memes/2040.jpg`);
+            }
+            case 8266: {
+                return getImageFromPath(`./resources/images/memes/8266.jpg`);
+            }
+            default: {
+                if (user.username && botConfig.funds.alternativeUsernames.includes(user.username)) {
+                    return getImageFromPath(`./resources/images/anime/guy.jpg`);
+                } else {
+                    const convertedValue = await convertCurrency(value, currency, DefaultCurrency);
 
-            if (!convertedValue) throw new Error("Failed to convert currency");
+                    if (!convertedValue) throw new Error("Failed to convert currency");
 
-            const happinessLevel =
-                convertedValue < 10000
-                    ? 1
-                    : convertedValue < 20000
-                      ? 2
-                      : convertedValue < 40000
-                        ? 3
-                        : convertedValue < 80000
-                          ? 4
-                          : 5; // lol
-            return getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
+                    const happinessLevel =
+                        convertedValue < 10000
+                            ? 1
+                            : convertedValue < 20000
+                              ? 2
+                              : convertedValue < 40000
+                                ? 3
+                                : convertedValue < 80000
+                                  ? 4
+                                  : 5; // lol
+                    return getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
+                }
+            }
         }
     }
 
@@ -383,11 +393,9 @@ export default class FundsController implements BotController {
         const caption = `${newDonationText}${sponsorshipText}`;
         const animeImage = await FundsController.getAnimeImageForDonation(donationResult.amount, donationResult.currency, user);
 
-        if (animeImage) {
-            await bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption });
-        } else {
-            await bot.sendMessageExt(msg.chat.id, caption, msg);
-        }
+        await (animeImage
+            ? bot.sendPhotoExt(msg.chat.id, animeImage, msg, { caption })
+            : bot.sendMessageExt(msg.chat.id, caption, msg));
 
         // Send notification to Space
         bot.context(msg).mode.silent = true;
@@ -409,7 +417,7 @@ export default class FundsController implements BotController {
 
         if (!isAccountant || !valueString || !userName) return FundsController.showCostsHandler(bot, msg);
 
-        const selectedCurrency = currency.length ? currency : DefaultCurrency;
+        const selectedCurrency = currency.length > 0 ? currency : DefaultCurrency;
         const latestCostsFund = FundsRepository.getLatestCosts();
 
         if (!latestCostsFund) return bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
@@ -503,13 +511,13 @@ export default class FundsController implements BotController {
         const donations = FundsRepository.getCostsFundDonations(year);
         const residentIds = UsersRepository.getUsersByRole("member").map(u => u.userid);
 
-        if (residentIds.length !== 0 && donations.length > 0) {
+        if (residentIds.length > 0 && donations.length > 0) {
             const residentsDonations = donations.filter(d => residentIds.includes(d.user_id));
 
             const filteredDonations = ExportHelper.prepareCostsForExport(residentsDonations, COSTS_PREFIX);
             const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, `${COSTS_PREFIX} ${year}`);
 
-            if (imageBuffer.length !== 0) return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            if (imageBuffer.length > 0) return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
 
             return await bot.sendMessageExt(msg.chat.id, t("funds.residentshistory.fail"), msg);
         }
@@ -569,8 +577,8 @@ export default class FundsController implements BotController {
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
         const donations = FundsRepository.getFundDonationsHeldBy(target.userid);
-        const donationList = donations.length ? TextGenerators.generateFundDonationsList(donations, true) : "";
-        const totalDonated = donations.length ? await sumDonations(donations) : 0;
+        const donationList = donations.length > 0 ? TextGenerators.generateFundDonationsList(donations, true) : "";
+        const totalDonated = donations.length > 0 ? await sumDonations(donations) : 0;
         const formattedUsername = helpers.userLink(target);
 
         const message =

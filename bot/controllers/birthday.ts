@@ -14,7 +14,7 @@ import { OptionalParam, userLink } from "../core/helpers";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { RateLimiter } from "../core/classes/RateLimit";
+import { executeOverTime } from "../core/classes/RateLimit";
 import { BotController } from "../core/types";
 import * as TextGenerators from "../text";
 
@@ -88,7 +88,7 @@ export default class BirthdayController implements BotController {
 
             if (birthdayTodayUsers.length === 0) return;
 
-            await RateLimiter.executeOverTime(
+            await executeOverTime(
                 birthdayTodayUsers.map(u => async () => {
                     const isMember = await bot.isChatMember(birthdayTargetChat, u.userid);
 
@@ -104,8 +104,8 @@ export default class BirthdayController implements BotController {
                 }),
                 MINUTE
             );
-        } catch (e) {
-            logger.error(`Failed to send birthday wishes: ${(e as Error).message}`);
+        } catch (error) {
+            logger.error(`Failed to send birthday wishes: ${(error as Error).message}`);
         }
     }
 }
@@ -118,7 +118,7 @@ async function getWish(username: string, wishfilename?: string): Promise<string>
     if (!wishfile) throw new Error(`Wish file ${wishfilename} not found`);
 
     const wishTemplate = await fs.readFile(path.join(baseWishesDir, wishfile), { encoding: "utf8" });
-    const persomalizedWish = wishTemplate.replaceAll(/\$username/g, `@${username}`);
+    const persomalizedWish = wishTemplate.replaceAll("$username", `@${username}`);
 
     // Cake is a lie
     return `🎂 ${persomalizedWish}`;

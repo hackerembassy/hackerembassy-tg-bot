@@ -134,7 +134,7 @@ apiRouter.post("/out", allowTrustedMembers, (req, res) => {
 });
 
 apiRouter.post("/open", allowMembers, (req, res) => {
-    spaceService.openSpace(req.user as User);
+    spaceService.openSpace(req.user as User, false);
 
     res.send({ message: "Success" });
 });
@@ -196,13 +196,16 @@ apiRouter.get("/funds", allowSpecialEntities, (req, res) => {
     switch (status) {
         case "open":
         case "closed":
-        case "suspended":
+        case "suspended": {
             return void res.json(FundsRepository.getFundsByStatus(status));
+        }
         case "all":
-        case undefined:
+        case undefined: {
             return void res.json(FundsRepository.getAllFunds());
-        default:
+        }
+        default: {
             return void res.status(400).send({ error: "Invalid status" });
+        }
     }
 });
 
@@ -263,7 +266,9 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
 
         const alertMessage = `New donation added via API:\n- Donation ID: ${formatMonospaced(donationResult.donationId.toString())}\n- Fund: ${formatMonospaced(fund.name)}\n- Amount: ${formatMonospaced(donationResult.amount + " " + donationResult.currency)}\n- IP: ${requestIp} \n- User: ${userLink(user)} [${user.userid}]\n`;
         logger.info(alertMessage);
-        bot.sendAlert(`🗳 ${alertMessage}`).catch(e => logger.error(`Failed to send donation alert: ${(e as Error).message}`));
+        bot.sendAlert(`🗳 ${alertMessage}`).catch(error =>
+            logger.error(`Failed to send donation alert: ${(error as Error).message}`)
+        );
 
         const bodyChatId = Number(body.postChat);
         const parsedChatId = Number.isNaN(bodyChatId)
@@ -282,12 +287,12 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
                         first_name: "Terminal",
                     },
                     chat: { id: parsedChatId, type: "group" },
-                    date: new Date().getTime(),
+                    date: Date.now(),
                 },
                 donationResult,
                 user,
                 fund.name
-            ).catch(e => logger.error(`Failed to post donation message to chat: ${(e as Error).message}`));
+            ).catch(error => logger.error(`Failed to post donation message to chat: ${(error as Error).message}`));
         }
 
         res.json({ message: "Success" });

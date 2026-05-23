@@ -40,7 +40,7 @@ export function splitRoles(user: User) {
 }
 
 export function hasRole(user: User, ...roles: UserRole[]) {
-    return user.roles?.length !== 0 ? splitRoles(user).some(r => roles.includes(r)) : false;
+    return user.roles?.length === 0 ? false : splitRoles(user).some(r => roles.includes(r));
 }
 
 export function isBanned(user: User) {
@@ -161,7 +161,7 @@ class UserService {
     public setGoingState(user: User, isGoing: boolean, note?: string) {
         this.pushPeopleState({
             status: isGoing ? UserStateType.Going : UserStateType.Outside,
-            date: new Date().getTime(),
+            date: Date.now(),
             until: null,
             user_id: user.userid,
             type: UserStateChangeType.Manual,
@@ -275,7 +275,7 @@ class UserService {
     // Private methods
     private getRecentUserStates() {
         if (this.lastUserStateCache.size === 0) {
-            const allUserStates = statusRepository.getAllUserStates(new Date().getTime() - MONTH);
+            const allUserStates = statusRepository.getAllUserStates(Date.now() - MONTH);
 
             for (const userstate of allUserStates) {
                 if (this.lastUserStateCache.has(userstate.user_id)) continue;
@@ -284,7 +284,7 @@ class UserService {
             }
         }
 
-        return Array.from(this.lastUserStateCache.values());
+        return [...this.lastUserStateCache.values()];
     }
 
     private refreshCachedUser(user: User): void {

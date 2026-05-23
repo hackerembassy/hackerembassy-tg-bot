@@ -6,7 +6,7 @@ import { BotConfig } from "@config";
 import HackerEmbassyBot from "./classes/HackerEmbassyBot";
 
 const botConfig = config.get<BotConfig>("bot");
-const AnnoyingChats = [botConfig.chats.main, botConfig.chats.offtopic];
+const AnnoyingChats = new Set([botConfig.chats.main, botConfig.chats.offtopic]);
 
 export enum ButtonFlags {
     Simple = 0,
@@ -43,7 +43,7 @@ export function AnnoyingInlineButton(
     flags?: ButtonFlags,
     options?: object
 ) {
-    return bot.context(msg).mode.forward || AnnoyingChats.includes(msg.chat.id)
+    return bot.context(msg).mode.forward || AnnoyingChats.has(msg.chat.id)
         ? InlineDeepLinkButton(text, bot.name, command)
         : InlineButton(text, command, flags, options);
 }

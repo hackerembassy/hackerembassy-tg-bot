@@ -378,7 +378,7 @@ export default class StatusController implements BotController {
     static async openHandler(bot: HackerEmbassyBot, msg: Message) {
         const opener = bot.context(msg).user;
 
-        spaceService.openSpace(opener, { checkOpener: false });
+        spaceService.openSpace(opener, false);
         bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [
@@ -823,7 +823,7 @@ export default class StatusController implements BotController {
 
         if (!fromDateString && !toDateString) return bot.sendMessageExt(msg.chat.id, t("status.stats.help"), msg);
 
-        const fromDate = new Date(fromDateString ? fromDateString : botConfig.launchDate);
+        const fromDate = new Date(fromDateString ?? botConfig.launchDate);
         const toDate = toDateString ? new Date(toDateString) : new Date();
         toDate.setHours(23, 59, 59, 999);
 

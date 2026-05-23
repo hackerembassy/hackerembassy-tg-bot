@@ -57,12 +57,12 @@ export default class AdminController implements BotController {
             );
 
             // Allow simplified button definition
-            inline_keyboard.forEach(row => {
-                row.forEach(button => {
+            for (const row of inline_keyboard) {
+                for (const button of row) {
                     if (!button.callback_data && button.cmd) button.callback_data = JSON.stringify({ cmd: button.cmd });
                     if (!button.url && button.bot) button.url = `t.me/${bot.name}?start=${button.bot}`;
-                });
-            });
+                }
+            }
 
             const messageText = textLines.join("\n");
 
@@ -101,8 +101,9 @@ export default class AdminController implements BotController {
     static async getLogHandler(bot: HackerEmbassyBot, msg: Message) {
         const lastLogFilePath = getLatestLogFilePath();
 
-        if (!lastLogFilePath) await bot.sendMessageExt(msg.chat.id, "Log file not found", msg);
-        else await bot.sendDocument(msg.chat.id, lastLogFilePath);
+        await (lastLogFilePath
+            ? bot.sendDocument(msg.chat.id, lastLogFilePath)
+            : bot.sendMessageExt(msg.chat.id, "Log file not found", msg));
     }
 
     @Route(["getstate", "state"])
@@ -253,25 +254,32 @@ export default class AdminController implements BotController {
         if (!chat) return await bot.sendMessageExt(msg.chat.id, "Please provide a chat id, clear, list or here command", msg);
 
         switch (chat) {
-            case "clear":
+            case "clear": {
                 bot.autoRemoveChats = [];
                 return await bot.sendMessageExt(msg.chat.id, "Banned chats are cleared", msg);
-            case "list":
+            }
+            case "list": {
                 return await bot.sendMessageExt(msg.chat.id, `Banned chats: ${bot.autoRemoveChats.join(", ")}`, msg);
-            case "main":
+            }
+            case "main": {
                 bot.autoRemoveChats.push(botConfig.chats.main);
                 break;
-            case "offtopic":
+            }
+            case "offtopic": {
                 bot.autoRemoveChats.push(botConfig.chats.offtopic);
                 break;
-            case "horny":
+            }
+            case "horny": {
                 bot.autoRemoveChats.push(botConfig.chats.horny);
                 break;
-            case "here":
+            }
+            case "here": {
                 bot.autoRemoveChats.push(msg.chat.id);
                 break;
-            default:
+            }
+            default: {
                 bot.autoRemoveChats.push(Number(chat));
+            }
         }
 
         return await bot.sendMessageExt(msg.chat.id, `Chat ${chat} is added to the silent list`, msg);

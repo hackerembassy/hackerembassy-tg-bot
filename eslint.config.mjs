@@ -12,6 +12,7 @@ export default defineConfig([
     js.configs.recommended,
     importPlugin.flatConfigs.recommended,
     importPlugin.flatConfigs.typescript,
+    eslintPluginUnicorn.configs.recommended,
     configs.recommendedTypeChecked,
 
     {
@@ -64,6 +65,14 @@ export default defineConfig([
             "no-console": "warn",
             "no-unexpected-multiline": "warn",
             "unicorn/no-useless-promise-resolve-reject": "error",
+            "unicorn/prefer-module": "off",
+            "unicorn/prefer-spread": "off",
+            "unicorn/no-await-expression-member": "off",
+            "unicorn/no-nested-ternary": "off",
+            "unicorn/no-array-sort": "off",
+            "unicorn/prefer-event-target": "off",
+            "unicorn/no-array-reduce": "off",
+            "unicorn/no-array-callback-reference": "off",
             "unicorn/prevent-abbreviations": "off",
             "unicorn/prefer-string-slice": "off",
             "unicorn/escape-case": "off",
@@ -73,6 +82,8 @@ export default defineConfig([
             "unicorn/filename-case": "off",
             "unicorn/no-hex-escape": "off",
             "unicorn/no-null": "off",
+            "unicorn/no-useless-switch-case": "off",
+            "unicorn/prefer-math-trunc": "off",
             "import/order": [
                 "error",
                 {

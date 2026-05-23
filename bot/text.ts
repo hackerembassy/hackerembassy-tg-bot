@@ -45,7 +45,7 @@ export async function createFundList(
     funds: Optional<Fund[]>,
     donations: DonationEx[],
     { showAdmin = false, isHistory = false, isApi = false }: FundListOptions,
-    mode = { mention: false }
+    mode: Pick<BotMessageContextMode, "mention">
 ): Promise<string> {
     let list = "";
 
@@ -71,14 +71,18 @@ export async function createFundList(
 
 export function generateFundStatus(fund: Fund, sumOfAllDonations: number, isHistory: boolean): string {
     switch (fund.status) {
-        case "closed":
+        case "closed": {
             return `☑️ \\[${t("funds.fund.closed")}]`;
-        case "postponed":
+        }
+        case "postponed": {
             return `⏱ \\[${t("funds.fund.postponed")}]`;
-        case "open":
+        }
+        case "open": {
             return `${sumOfAllDonations < fund.target_value ? "🟠" : "🟢"}${isHistory ? ` \\[${t("funds.fund.open")}]` : ""}`;
-        default:
+        }
+        default: {
             return `⚙️ \\[${fund.status}]`;
+        }
     }
 }
 
@@ -138,7 +142,7 @@ export function generateDonationsList(
 }
 
 export function getTodayEventsShortText(todayEvents: HSEvent[], short: boolean = false): string {
-    const eventsHeader = !short ? t("basic.events.todaysimple") : "";
+    const eventsHeader = short ? "" : t("basic.events.todaysimple");
     const eventsList = getEventsList(todayEvents, true);
 
     return `${eventsHeader}${eventsList}`;
@@ -203,11 +207,11 @@ export function getStatusMessage(
 
     // Misc
     stateText += climateInfo ? getClimateMessage(climateInfo, options) : options.isApi ? "" : REPLACE_MARKER;
-    stateText += !options.isApi
-        ? t("status.status.updated", {
+    stateText += options.isApi
+        ? ""
+        : t("status.status.updated", {
               updatedDate: new Date().toLocaleString("RU-ru").replace(",", "").substring(0, 21),
-          })
-        : "";
+          });
 
     return stateText;
 }
@@ -275,10 +279,10 @@ export function getNeedsList(needs: (Need & { requester: User })[]): string {
 }
 
 export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = false): string {
-    const cryptoCommands = !isApi ? Coins.map(coin => `/${coin.shortname}`).join("  ") : "";
+    const cryptoCommands = isApi ? "" : Coins.map(coin => `/${coin.shortname}`).join("  ");
     const currency = currencyConfig.default;
 
-    const sponsorshipTierList = Array.from(SponsorshipNameToLevel.entries())
+    const sponsorshipTierList = [...SponsorshipNameToLevel.entries()]
         .map(
             ([name, level]) =>
                 `${SponsorshipLevelToEmoji.get(level)} ${name} - ${botConfig.funds.sponsorship.levels[name]} ${currency}`
@@ -286,10 +290,10 @@ export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = fa
         .join("\n");
 
     return t("basic.donate", {
-        donateCashCommand: !isApi ? "/cash" : "",
-        donateCardCommand: !isApi ? "/card" : "",
-        donateEquipmentCommand: !isApi ? "/equipment" : "",
-        fundsCommand: !isApi ? "/funds" : "funds",
+        donateCashCommand: isApi ? "" : "/cash",
+        donateCardCommand: isApi ? "" : "/card",
+        donateEquipmentCommand: isApi ? "" : "/equipment",
+        fundsCommand: isApi ? "funds" : "/funds",
         cryptoCommands,
         accountantsList: accountants ? getAccountsList(accountants, { mention: false }, isApi) : "",
         sponsorshipTierList,
@@ -300,9 +304,9 @@ export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = fa
 
 export function getJoinText(isApi: boolean = false): string {
     return t("basic.join", {
-        statusCommand: `${!isApi ? "/" : ""}status`,
-        donateCommand: `${!isApi ? "/" : ""}donate`,
-        locationCommand: `${!isApi ? "/" : ""}location`,
+        statusCommand: `${isApi ? "" : "/"}status`,
+        donateCommand: `${isApi ? "" : "/"}donate`,
+        locationCommand: `${isApi ? "" : "/"}location`,
     });
 }
 
@@ -409,8 +413,7 @@ export function getStatsTexts(userTimes: UserVisit[], dateBoundaries: DateBounda
 export function getStatsList(userTimes: UserVisit[], offset = 0): string {
     const lines = [];
 
-    for (let i = 0; i < userTimes.length; i++) {
-        const userTime = userTimes[i];
+    for (const [i, userTime] of userTimes.entries()) {
         const userPlace = i + offset + 1;
         const medal = userPlace === 1 ? "🥇" : userPlace === 2 ? "🥈" : userPlace === 3 ? "🥉" : userPlace < 11 ? "🧁" : "🍪";
         const place = `${medal}${userPlace}`.padEnd(4, " ");
@@ -452,7 +455,7 @@ export function getEventsList(events: HSEvent[], short: boolean = false): string
 export function getTodayEventsText(todayEvents: HSEvent[]): string {
     let messageText = "";
 
-    if (todayEvents.length !== 0) {
+    if (todayEvents.length > 0) {
         messageText += t("basic.events.today") + "\n";
         messageText += getEventsList(todayEvents) + "\n\n";
         messageText += t("basic.events.entrance");
@@ -484,7 +487,7 @@ export function getInMessage(
             memberusername: force ? formatUsername(inviter, mode.mention) : undefined,
         });
         const untilPart = until ? t("status.in.until", { until: until.toLocaleString() }) : "";
-        const tryAutoInsidePart = !force ? "\n\n" + t("status.in.tryautoinside") : "";
+        const tryAutoInsidePart = force ? "" : "\n\n" + t("status.in.tryautoinside");
 
         return insidePart + untilPart + tryAutoInsidePart;
     }
@@ -498,20 +501,23 @@ export function getAutoinsideMessageStatus(
     username: string | undefined
 ) {
     switch (userautoinside) {
-        case AutoInsideMode.Enabled:
+        case AutoInsideMode.Enabled: {
             return t("status.autoinside.isset", {
                 usermac: usermacList,
                 username,
             });
-        case AutoInsideMode.Ghost:
+        }
+        case AutoInsideMode.Ghost: {
             return t("status.autoinside.isghost", {
                 usermac: usermacList,
                 username,
             });
-        default:
+        }
+        default: {
             return t("status.autoinside.isnotset", {
                 username,
             });
+        }
     }
 }
 

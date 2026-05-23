@@ -51,15 +51,11 @@ function setupCronJobs(bot: HackerEmbassyBot): void {
             new CronJob(
                 botConfig.reminders.utility.cron,
                 () => void bot.sendMessageExt(botConfig.chats.key, botConfig.reminders.utility.message, null)
-            )
-        );
-        runningJobs.push(
+            ),
             new CronJob(
                 botConfig.reminders.internet.cron,
                 () => void bot.sendMessageExt(botConfig.chats.key, botConfig.reminders.internet.message, null)
-            )
-        );
-        runningJobs.push(
+            ),
             new CronJob(
                 botConfig.reminders.utility_water.cron,
                 () => void bot.sendMessageExt(botConfig.chats.key, botConfig.reminders.utility_water.message, null)
@@ -76,5 +72,5 @@ function setupCronJobs(bot: HackerEmbassyBot): void {
         runningJobs.push(new CronJob("1 0 * * 3", () => MemeController.remindItIsWednesdayHandler(bot)));
 
     // START THESE JOBS!!!
-    runningJobs.forEach(job => job.start());
+    for (const job of runningJobs) job.start();
 }

@@ -12,8 +12,8 @@ async function postbuild() {
         await ensureDir("./dist/log");
 
         console.log("Postbuild completed successfully");
-    } catch (err) {
-        console.error(err);
+    } catch (error) {
+        console.error(error);
     }
 }
 

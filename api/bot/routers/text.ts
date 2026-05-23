@@ -98,7 +98,7 @@ router.get("/funds", async (_, res) => {
     const funds = FundsRepository.getFundsByStatus("open");
     const donations = FundsRepository.getAllDonations(true, true);
 
-    const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true });
+    const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true }, { mention: false });
 
     const message = `⚒ Вот наши текущие сборы:
 

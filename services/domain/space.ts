@@ -11,7 +11,7 @@ export class SpaceService {
         return statusRepository.getSpaceLastState();
     }
 
-    public openSpace(opener: User, options: { checkOpener: boolean } = { checkOpener: false }): void {
+    public openSpace(opener: User, checkOpener: boolean = false): void {
         const opendate = new Date();
         const state = {
             open: 1,
@@ -24,7 +24,7 @@ export class SpaceService {
 
         broadcast.emit(BroadcastEvents.SpaceOpened, state);
 
-        if (!options.checkOpener) return;
+        if (!checkOpener) return;
 
         userService.letIn(opener, UserStateChangeType.Opened, opendate);
     }

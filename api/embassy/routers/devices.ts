@@ -5,7 +5,7 @@ import { NodeSSH } from "node-ssh";
 import { EmbassyApiConfig } from "@config";
 import logger from "@services/common/logger";
 import { DeviceCheckingMethod } from "@services/embassy/embassy";
-import { wakeOnLan, ping, NeworkDevicesLocator, arp } from "@utils/network";
+import { wakeOnLan, pingHost, NeworkDevicesLocator, arp } from "@utils/network";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 
@@ -148,7 +148,7 @@ router.post("/:name/ping", async (req, res, next) => {
 
         if (!host) return res.sendStatus(400).send({ message: "Device not found" });
 
-        return res.send(await ping(host));
+        return res.send(await pingHost(host));
     } catch (error) {
         next(error);
         return;

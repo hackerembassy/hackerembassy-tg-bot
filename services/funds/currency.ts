@@ -9,6 +9,8 @@ import { Convert } from "easy-currencies";
 
 import { CurrencyConfig } from "@config";
 
+import { PROJECT_ROOT } from "@utils/filesystem";
+
 import logger from "../common/logger";
 
 export type CoinDefinition = {
@@ -95,7 +97,6 @@ const CurrencySymbolToCode = {
 const MediatorCurrency = "USD";
 
 const currencyConfig = config.get<CurrencyConfig>("currency");
-const QRBaseFolder = "../../resources/coins/qr";
 
 export const DefaultCurrency = currencyConfig.default;
 
@@ -210,5 +211,5 @@ export function getCoinDefinition(coinname: string): CoinDefinition | undefined 
 }
 
 export async function getCoinQR(coinDef: CoinDefinition): Promise<Buffer> {
-    return await fs.readFile(path.join(__dirname, QRBaseFolder, coinDef.qrfile));
+    return await fs.readFile(path.join(PROJECT_ROOT, "resources/coins/qr", coinDef.qrfile));
 }

@@ -25,7 +25,8 @@
             "base-url": {
                 "enabled": false
             }
-        }
+        },
+        "resolveFullPaths": true
     },
     "include": ["./**/*"],
     "exclude": ["node_modules", "coverage", "dist"]

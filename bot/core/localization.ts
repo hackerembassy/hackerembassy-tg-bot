@@ -5,6 +5,7 @@ import { t, TOptions, use } from "i18next";
 import Backend from "i18next-fs-backend";
 
 import { BotConfig } from "@config";
+import { PROJECT_ROOT } from "@utils/filesystem";
 
 import BotMessageContext from "./classes/BotMessageContext";
 
@@ -29,12 +30,12 @@ export function isSupportedLanguage(value?: string | null): value is SupportedLa
 }
 
 const DEFAULT_LOCALES_PATH_PATTERN = "{{lng}}/{{ns}}.yaml";
-const RESOURCES_PATH = "../../resources/locales/";
+const RESOURCES_PATH = "resources/locales/";
 
 void use(Backend).init({
     returnNull: false,
     backend: {
-        loadPath: path.join(__dirname, RESOURCES_PATH, DEFAULT_LOCALES_PATH_PATTERN),
+        loadPath: path.join(PROJECT_ROOT, RESOURCES_PATH, DEFAULT_LOCALES_PATH_PATTERN),
     },
     supportedLngs: SUPPORTED_LANGUAGES,
     preload: SUPPORTED_LANGUAGES,

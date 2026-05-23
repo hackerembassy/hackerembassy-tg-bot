@@ -14,6 +14,8 @@ import logger from "@services/common/logger";
 import { catErrorPage } from "@utils/html";
 import { createErrorMiddleware } from "@utils/express";
 
+import { PROJECT_ROOT } from "@utils/filesystem";
+
 import apiRouter from "./routers/api";
 import textRouter from "./routers/text";
 
@@ -23,12 +25,12 @@ const port = apiConfig.port;
 
 app.use(cors());
 app.use(express.json());
-app.use("/static", express.static(path.join(__dirname, "../..", apiConfig.static)));
+app.use("/static", express.static(path.join(PROJECT_ROOT, apiConfig.static)));
 app.use(createErrorMiddleware(logger));
 
 // Add Swagger if exists
 try {
-    const swaggerFile = fs.readFileSync(path.resolve(__dirname, "swagger-schema.json"));
+    const swaggerFile = fs.readFileSync(path.resolve(PROJECT_ROOT, "swagger-schema.json"));
     const swaggerDocument = JSON.parse(swaggerFile.toString()) as swaggerUi.JsonObject;
     app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 } catch (error) {

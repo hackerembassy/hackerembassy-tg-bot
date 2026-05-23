@@ -6,7 +6,7 @@ import { LUCI } from "luci-rpc";
 import { connect } from "mqtt";
 import fetch, { RequestInit, Response } from "node-fetch";
 import { NodeSSH } from "node-ssh";
-import { promise } from "ping";
+import ping from "ping";
 import wol from "wol";
 
 import { execCommand } from "./process";
@@ -69,8 +69,8 @@ export async function wakeOnLan(mac: string) {
     return await wol.wake(mac);
 }
 
-export function ping(host: string) {
-    return promise.probe(host, {
+export function pingHost(host: string) {
+    return ping.promise.probe(host, {
         timeout: 5,
         min_reply: 4,
     });

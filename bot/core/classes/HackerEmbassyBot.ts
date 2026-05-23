@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
-import { EventEmitter, Stream } from "node:stream";
+import { Stream } from "node:stream";
+import { EventEmitter } from "node:events";
 
 import "reflect-metadata";
 

@@ -6,9 +6,10 @@ import { Router } from "express";
 
 import { EmbassyApiConfig } from "@config";
 import { speakers } from "@services/embassy/hass";
+import { PROJECT_ROOT } from "@utils/filesystem";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
-const staticPath = path.join(__dirname, "../../..", embassyApiConfig.service.static);
+const staticPath = path.join(PROJECT_ROOT, embassyApiConfig.service.static);
 
 const router = Router();
 

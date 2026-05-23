@@ -8,6 +8,7 @@ import { EmbassyApiConfig } from "@config";
 import logger from "@services/common/logger";
 import { catErrorPage } from "@utils/html";
 import { createDebugMiddleware, createErrorMiddleware } from "@utils/express";
+import { PROJECT_ROOT } from "@utils/filesystem";
 
 import spaceRouter from "./routers/space";
 import speakerRouter from "./routers/speaker";
@@ -21,7 +22,7 @@ import screenRouter from "./routers/screen";
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
 const port = embassyApiConfig.service.port;
 const app = express();
-const staticPath = path.join(__dirname, "../..", embassyApiConfig.service.static);
+const staticPath = path.join(PROJECT_ROOT, embassyApiConfig.service.static);
 
 if (process.env["BOTDEBUG"] === "true") app.use(createDebugMiddleware());
 app.use(cors());

@@ -83,7 +83,7 @@ class Speakers {
             message: text,
         });
 
-        if (response.status !== 200) throw Error("Speaker request failed");
+        if (response.status !== 200) throw new Error("Speaker request failed");
     }
 
     async play(link: string): Promise<void> {
@@ -91,7 +91,7 @@ class Speakers {
             url: link,
         });
 
-        if (response.status !== 200) throw Error("Speaker request failed");
+        if (response.status !== 200) throw new Error("Speaker request failed");
     }
 
     async stop(): Promise<void> {
@@ -99,7 +99,7 @@ class Speakers {
             entity_id: embassyApiConfig.speaker.entity,
         });
 
-        if (response.status !== 200) throw Error("Speaker request failed");
+        if (response.status !== 200) throw new Error("Speaker request failed");
     }
 }
 
@@ -111,7 +111,7 @@ class Displays {
             size: "fullscreen",
         });
 
-        if (response.status !== 200) throw Error("Browser request failed");
+        if (response.status !== 200) throw new Error("Browser request failed");
     }
 
     async closePopup(): Promise<void> {
@@ -119,7 +119,7 @@ class Displays {
             browser_id: embassyApiConfig.browser.target,
         });
 
-        if (response.status !== 200) throw Error("Browser request failed");
+        if (response.status !== 200) throw new Error("Browser request failed");
     }
 
     async showOnMatrix(text: string): Promise<void> {
@@ -127,7 +127,7 @@ class Displays {
             message: text,
         });
 
-        if (response.status !== 200) throw Error("Matrix request failed");
+        if (response.status !== 200) throw new Error("Matrix request failed");
     }
 }
 

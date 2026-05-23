@@ -1,4 +1,4 @@
-import crypto, { BinaryLike } from "crypto";
+import crypto, { BinaryLike } from "node:crypto";
 
 export function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));

@@ -448,9 +448,6 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "event": {
-                    "example": "any"
-                  },
                   "payload": {
                     "example": "any"
                   }

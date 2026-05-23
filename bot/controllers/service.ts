@@ -70,7 +70,7 @@ export default class ServiceController implements BotController {
 
         const countToSummarize = Number(count);
 
-        if (isNaN(countToSummarize) || countToSummarize < 0 || countToSummarize > 1000) {
+        if (Number.isNaN(countToSummarize) || countToSummarize < 0 || countToSummarize > 1000) {
             return bot.sendMessageExt(msg.chat.id, t("service.tldr.help"), msg);
         }
 
@@ -93,7 +93,7 @@ export default class ServiceController implements BotController {
     @UserRoles(Members)
     static async combineHandler(bot: HackerEmbassyBot, msg: Message, count: string) {
         const inputCount = Number(count);
-        const countToCombine = inputCount > 2 ? inputCount : 2;
+        const countToCombine = Math.max(inputCount, 2);
 
         const orderOfLastMessageToEdit = msg.reply_to_message?.message_id
             ? bot.botMessageHistory.orderOf(msg.chat.id, msg.reply_to_message.message_id)
@@ -310,7 +310,7 @@ export default class ServiceController implements BotController {
             );
             // Ban this bot outta here
             if (verificationDetails?.vId) {
-                inline_keyboard[inline_keyboard.length - 1]?.push(
+                inline_keyboard.at(-1)?.push(
                     InlineButton("🤖", "ban", ButtonFlags.Simple, {
                         params: verificationDetails.vId,
                     })

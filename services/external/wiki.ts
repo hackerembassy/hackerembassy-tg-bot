@@ -223,7 +223,7 @@ class OutlineWiki {
             id: this.publicCollectionId,
         })) as PageListTreeNode[];
 
-        data.forEach(node => this.setSegmentRecursive(node));
+        for (const node of data) this.setSegmentRecursive(node);
 
         return data[0].children;
     }
@@ -234,7 +234,7 @@ class OutlineWiki {
 
     private setSegmentRecursive(node: PageListTreeNode) {
         node.segment = node.url?.slice(node.url.lastIndexOf("/") + 1, node.url.lastIndexOf("-"));
-        node.children.forEach(child => this.setSegmentRecursive(child));
+        for (const child of node.children) this.setSegmentRecursive(child);
     }
 
     private async wikiRequest(query: string, body: unknown, useToken = true) {

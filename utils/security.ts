@@ -1,5 +1,5 @@
-import { promises as fs } from "fs";
-import crypto from "crypto";
+import { promises as fs } from "node:fs";
+import crypto from "node:crypto";
 
 import NodeRSA from "node-rsa";
 

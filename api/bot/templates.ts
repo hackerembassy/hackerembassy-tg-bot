@@ -8,7 +8,7 @@ function loadSpaceApiTemplate() {
         return spaceApiFile ? (JSON.parse(spaceApiFile) as object) : undefined;
     } catch (error) {
         logger.error(error);
-        return undefined;
+        return;
     }
 }
 

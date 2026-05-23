@@ -1,6 +1,6 @@
 import "winston-daily-rotate-file";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 import config from "config";
 import { createLogger, format, transports } from "winston";

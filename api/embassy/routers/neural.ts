@@ -18,7 +18,7 @@ router.post("/ollama/generate", async (req: RequestWithBody<ollamaBody>, res, ne
 
         const response = await openwebui.generateOllama(req.body.prompt, req.body.model);
 
-        if (!response) throw Error("Ollama generation process failed");
+        if (!response) throw new Error("Ollama generation process failed");
 
         return res.send({ response });
     } catch (error) {
@@ -36,7 +36,7 @@ router.post("/sd/txt2img", async (req: RequestWithBody<txt2imgBody>, res, next) 
 
         const image = await stableDiffusion.txt2image(req.body.prompt, req.body.negative_prompt);
 
-        if (!image) throw Error("txt2image process failed");
+        if (!image) throw new Error("txt2image process failed");
 
         return res.send({ image });
     } catch (error) {
@@ -54,7 +54,7 @@ router.post("/sd/img2img", async (req: RequestWithBody<img2imgBody>, res, next) 
 
         const image = await stableDiffusion.img2image(req.body.image, req.body.prompt, req.body.negative_prompt);
 
-        if (!image) throw Error("img2image process failed");
+        if (!image) throw new Error("img2image process failed");
 
         return res.send({ image });
     } catch (error) {

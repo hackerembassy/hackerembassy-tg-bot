@@ -62,7 +62,7 @@ class EmbassyService {
         );
 
         if (!response.ok)
-            throw Error("Unlock request to space failed", {
+            throw new Error("Unlock request to space failed", {
                 cause: response.statusText,
             });
 
@@ -103,7 +103,7 @@ class EmbassyService {
     async getSpaceClimate() {
         const response = await this.requestToEmbassy(`/climate`, "GET", null, 4000);
 
-        if (!response.ok) throw Error("Failed to get climate data, status: " + response.status);
+        if (!response.ok) throw new Error("Failed to get climate data, status: " + response.status);
 
         return response.json() as Promise<SpaceClimate>;
     }
@@ -117,7 +117,7 @@ class EmbassyService {
     async pingDevice(deviceName: string) {
         const response = await this.requestToEmbassy(`/devices/${deviceName}/ping`, "POST");
 
-        if (!response.ok) throw Error();
+        if (!response.ok) throw new Error("Failed to ping device, status: " + response.status);
 
         return response.json() as Promise<{
             alive: boolean;
@@ -205,7 +205,7 @@ class EmbassyService {
 
         const [primaryResponse, secondaryResponse] = (await Promise.allSettled([
             this.deviceRequest(primaryMethod),
-            secondaryMethod ? this.deviceRequest(secondaryMethod) : Promise.resolve(undefined),
+            secondaryMethod ? this.deviceRequest(secondaryMethod) : Promise.resolve(),
         ])) as PromiseSettledResult<string[]>[];
 
         const devicesList = [

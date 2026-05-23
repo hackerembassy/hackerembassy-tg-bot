@@ -45,15 +45,15 @@ export function replaceUnsafeSymbolsForAscii(message: string) {
         .replaceAll(/[💸|💎|🥇|🥈|🥉] /gu, "")
         .replaceAll(/[#|`]/g, "")
         .replaceAll(/\(.*?\)/g, "")
-        .replaceAll(/-/g, "\u002D")
-        .replaceAll(/\n/g, " ");
+        .replaceAll("-", "\u002D")
+        .replaceAll("\n", " ");
 }
 
 export function safeJsonParse<T>(str: string) {
     try {
         return JSON.parse(str) as T;
     } catch {
-        return undefined;
+        return;
     }
 }
 
@@ -61,6 +61,6 @@ export function safeJsonStringify(obj: unknown) {
     try {
         return JSON.stringify(obj);
     } catch {
-        return undefined;
+        return;
     }
 }

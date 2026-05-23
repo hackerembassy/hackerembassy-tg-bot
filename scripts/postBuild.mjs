@@ -17,6 +17,6 @@ async function postbuild() {
     }
 }
 
-postbuild();
+void postbuild();
 
 export default postbuild;

@@ -59,7 +59,7 @@ export default class EmbassyController implements BotController {
             const hasMacInside = await embassyService.isAnyDeviceInside(userMacs);
 
             if (!hasMacInside)
-                throw Error(`User ${user.username} is not inside, but he/she tried to unlock the door`, {
+                throw new Error(`User ${user.username} is not inside, but he/she tried to unlock the door`, {
                     cause: "mac",
                 });
 
@@ -101,7 +101,7 @@ export default class EmbassyController implements BotController {
             const images = await embassyService.getAllCameras();
 
             if (images.length > 0) await bot.sendPhotos(msg.chat.id, images, msg);
-            else throw Error("No available images");
+            else throw new Error("No available images");
         } catch (error) {
             logger.error(error);
 
@@ -155,7 +155,7 @@ export default class EmbassyController implements BotController {
                 ],
             ];
 
-            if (webcamImage.byteLength === 0) throw Error("Empty webcam image");
+            if (webcamImage.byteLength === 0) throw new Error("Empty webcam image");
 
             if (context.isEditing) {
                 await bot.editPhoto(webcamImage, msg, {
@@ -305,7 +305,7 @@ export default class EmbassyController implements BotController {
         try {
             const device = embassyApiConfig.devices[deviceName];
 
-            if (!device) throw Error();
+            if (!device) throw new Error("Unknown device");
 
             switch (operation) {
                 case DeviceOperation.Up:
@@ -468,7 +468,7 @@ export default class EmbassyController implements BotController {
         try {
             const selectedFund = fund ? fundsRepository.getFundByName(fund) : fundsRepository.getLatestCosts();
 
-            if (!selectedFund) throw Error(`No fund ${fund} found`);
+            if (!selectedFund) throw new Error(`No fund ${fund} found`);
 
             const donationsSummary = await getFundDonationsSummary(selectedFund);
 
@@ -654,7 +654,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
     static async addConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, diff: number) {
-        if (isNaN(diff)) throw Error();
+        if (Number.isNaN(diff)) throw new Error("Invalid temperature difference");
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { diff });
 
         if (bot.context(msg).isButtonResponse) {
@@ -668,7 +668,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
     static async setConditionerTempHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner, temperature: number) {
-        if (isNaN(temperature)) throw Error();
+        if (Number.isNaN(temperature)) throw new Error("Invalid temperature");
         await EmbassyController.controlConditioner(bot, msg, name, ConditionerActions.TEMPERATURE, { temperature });
     }
 

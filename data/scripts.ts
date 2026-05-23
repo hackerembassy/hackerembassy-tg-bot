@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import path from "path";
-import fs, { existsSync } from "fs";
+import path from "node:path";
+import fs, { existsSync } from "node:fs";
 
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";

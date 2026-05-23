@@ -86,7 +86,7 @@ export function formatMonospaced(text: string): string {
 }
 
 export function extractPhotoId(photo?: PhotoSize[], index: number = 1, backupIndex: number = 0): string | undefined {
-    if (!photo || photo.length === 0) return undefined;
+    if (!photo || photo.length === 0) return;
 
     return photo[index]?.file_id ?? photo[backupIndex]?.file_id;
 }

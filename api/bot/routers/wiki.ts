@@ -42,7 +42,7 @@ const WEBHOOK_DEBOUNCE = MINUTE;
 router.post("/hooks/documents.update", outlineSignedMiddleware, (req, res, next) => {
     try {
         const body = req.body as Optional<OutlineWebhookPayload>;
-        if (!body || body.event !== "documents.update") return void res.sendStatus(400);
+        if (body?.event !== "documents.update") return void res.sendStatus(400);
 
         const { title, url, updatedBy } = body.payload.model;
 

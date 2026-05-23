@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import { promises as fs } from "fs";
-import path from "path";
+import { promises as fs } from "node:fs";
+import path from "node:path";
 
 import config from "config";
 import CryptoConvert from "crypto-convert";
@@ -189,7 +189,7 @@ export async function convertCurrency(
         }
     } catch (error) {
         logger.error("Error while converting currency", error);
-        return undefined;
+        return;
     }
 }
 

@@ -1,4 +1,4 @@
-import { Transform } from "stream";
+import { Transform } from "node:stream";
 
 import config from "config";
 import fetch from "node-fetch";
@@ -105,7 +105,7 @@ function wrapOpenAiChunk() {
                     this.push({
                         response: content ?? reasoningContent,
                         done: false,
-                        scope: reasoningContent !== undefined ? "thinking" : undefined,
+                        scope: reasoningContent === undefined ? undefined : "thinking",
                     });
                 }
             } else if (line === OPEN_AI_DONE_MARK) {

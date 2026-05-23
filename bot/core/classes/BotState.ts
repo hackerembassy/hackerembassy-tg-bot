@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, promises, readFileSync, writeFileSync } from "node:fs";
 import Module from "module";
-import { dirname, join } from "path";
+import { dirname, join } from "node:path";
 
 import config from "config";
 

@@ -40,7 +40,7 @@ export function splitRoles(user: User) {
 }
 
 export function hasRole(user: User, ...roles: UserRole[]) {
-    return user.roles?.length !== 0 ? splitRoles(user).filter(r => roles.includes(r)).length > 0 : false;
+    return user.roles?.length !== 0 ? splitRoles(user).some(r => roles.includes(r)) : false;
 }
 
 export function isBanned(user: User) {

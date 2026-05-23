@@ -1,5 +1,5 @@
-import fs from "fs/promises";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 import config from "config";
 import { Message } from "node-telegram-bot-api";
@@ -95,7 +95,7 @@ export default class BirthdayController implements BotController {
                     // Allow forcing a wish by username even if the user is not a member for testing purposes
                     if (!isMember && !username) {
                         logger.warn(`User ${u.username} [${u.userid}] is not a member of the main chat, skipping birthday wish`);
-                        return Promise.resolve();
+                        return;
                     }
 
                     const wish = await getWish(u.username as string, wishfilename);
@@ -115,7 +115,7 @@ async function getWish(username: string, wishfilename?: string): Promise<string>
     const files = await fs.readdir(baseWishesDir);
     const wishfile = wishfilename ? files.find(f => f === wishfilename) : files[Math.floor(Math.random() * files.length)];
 
-    if (!wishfile) throw Error(`Wish file ${wishfilename} not found`);
+    if (!wishfile) throw new Error(`Wish file ${wishfilename} not found`);
 
     const wishTemplate = await fs.readFile(path.join(baseWishesDir, wishfile), { encoding: "utf8" });
     const persomalizedWish = wishTemplate.replaceAll(/\$username/g, `@${username}`);

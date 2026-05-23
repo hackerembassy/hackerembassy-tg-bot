@@ -47,12 +47,12 @@ export function toDateObject(date: Date): DateObject {
 }
 
 export function durationStringToMs(durationString: string): number | undefined {
-    const duration = RegExp(DURATION_STRING_REGEX).exec(durationString);
+    const duration = new RegExp(DURATION_STRING_REGEX).exec(durationString);
 
     if (!duration) throw new Error(`Invalid duration string: ${durationString}`);
 
-    const hours = duration[1] ? parseInt(duration[1]) : 0;
-    const minutes = duration[2] ? parseInt(duration[2]) : 0;
+    const hours = duration[1] ? Number.parseInt(duration[1]) : 0;
+    const minutes = duration[2] ? Number.parseInt(duration[2]) : 0;
 
     return (hours * 60 + minutes) * MINUTE;
 }
@@ -61,12 +61,12 @@ export function tryDurationStringToMs(durationString: string): number | undefine
     try {
         return durationStringToMs(durationString);
     } catch {
-        return undefined;
+        return;
     }
 }
 
 export function convertMinutesToHours(minutes: number): string | undefined {
-    if (isNaN(minutes) || !isFinite(minutes)) return undefined;
+    if (Number.isNaN(minutes) || !Number.isFinite(minutes)) return;
 
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
@@ -169,7 +169,7 @@ export function hasBithdayThisMonth(date: Nullable<string>) {
     if (!date) return false;
 
     const currentMonth = new Date().getMonth() + 1;
-    const birthdayMonth = parseInt(date.substring(5, 7));
+    const birthdayMonth = Number.parseInt(date.substring(5, 7));
 
     return birthdayMonth === currentMonth;
 }

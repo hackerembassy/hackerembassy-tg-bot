@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import { execSync } from "child_process";
-import { existsSync, mkdirSync, renameSync, writeFileSync } from "fs";
-import { createInterface } from "readline/promises";
+import { execSync } from "node:child_process";
+import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
+import { createInterface } from "node:readline/promises";
 
 import { getOrCreateDb } from "@data/scripts";
 
@@ -25,7 +25,7 @@ void (async function initScript() {
 
     if (!devTgUsername || devTgUsername.length === 0) {
         console.log("! Developer Username was not provided. You will need to add it to db manually to be an admin");
-    } else if (!devTgUserId || isNaN(devTgUserId)) {
+    } else if (!devTgUserId || Number.isNaN(devTgUserId)) {
         console.log("! Developer UserId was not provided. You will need to add it to db manually to be an admin");
     } else {
         UsersRepository.addUser(devTgUserId, devTgUsername, ["admin", "member", "accountant"]);

@@ -1,10 +1,10 @@
-import https from "https";
-import net from "net";
+import https from "node:https";
+import net from "node:net";
 
 // @ts-expect-error LuCI types are broken
 import { LUCI } from "luci-rpc";
 import { connect } from "mqtt";
-import { default as fetch, RequestInit, Response } from "node-fetch";
+import fetch, { RequestInit, Response } from "node-fetch";
 import { NodeSSH } from "node-ssh";
 import { promise } from "ping";
 import wol from "wol";
@@ -96,13 +96,13 @@ export function mqttSendOnce(mqtthost: string, topic: string, message: string, u
 }
 
 export async function arp(ip: string): Promise<string> {
-    if (!net.isIP(ip)) throw Error(`Invalid IP address: ${ip}`);
+    if (!net.isIP(ip)) throw new Error(`Invalid IP address: ${ip}`);
 
     const arpOutput = await execCommand("arp", ["-n", ip]);
     const match = arpOutput.match(MAC_REGEX);
     const mac = match ? match[0] : null;
 
-    if (!mac) throw Error(`MAC not found for IP ${ip}`);
+    if (!mac) throw new Error(`MAC not found for IP ${ip}`);
 
     return mac;
 }
@@ -124,8 +124,8 @@ export function isValidMAC(macAddresses: string): boolean {
     return /^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$/.test(macAddresses);
 }
 
-export class NeworkDevicesLocator {
-    static async getDevicesFromKeenetic(routerip: string, username: string, password: string) {
+export const NeworkDevicesLocator = {
+    async getDevicesFromKeenetic(routerip: string, username: string, password: string) {
         const ssh = new NodeSSH();
 
         await ssh.connect({
@@ -140,10 +140,10 @@ export class NeworkDevicesLocator {
         ssh.dispose();
 
         return macs;
-    }
+    },
 
-    static async getDevicesFromOpenWrt(routerip: string, token?: string) {
-        if (!token) throw Error("Token is required");
+    async getDevicesFromOpenWrt(routerip: string, token?: string) {
+        if (!token) throw new Error("Token is required");
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         const luci = new LUCI(`https://${routerip}`, "bot", token) as {
@@ -186,9 +186,9 @@ export class NeworkDevicesLocator {
         }
 
         return macs;
-    }
+    },
 
-    static async getDevicesFromUnifiController(host: string, username: string, password: string) {
+    async getDevicesFromUnifiController(host: string, username: string, password: string) {
         const loginResponse = await fetch(`${host}/api/login`, {
             method: "POST",
             headers: {
@@ -228,5 +228,5 @@ export class NeworkDevicesLocator {
         const devices = (await devicesResponse.json()) as { data: { mac: string }[] };
 
         return devices.data.map((device: { mac: string }) => device.mac);
-    }
-}
+    },
+};

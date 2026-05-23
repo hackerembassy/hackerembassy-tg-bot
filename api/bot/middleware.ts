@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac } from "node:crypto";
 
 import { RequestHandler } from "express";
 
@@ -88,7 +88,7 @@ export function createOutlineVerificationMiddleware(token?: string): RequestHand
         const [timestamp, signature] = header.split(",").map(part => part.split("=")[1]);
         const parsedTimestamp = Number(timestamp);
 
-        if (isNaN(parsedTimestamp) || parsedTimestamp < Date.now() - MINUTE) {
+        if (Number.isNaN(parsedTimestamp) || parsedTimestamp < Date.now() - MINUTE) {
             logger.error(`Got request with outdated outline signature from ${req.ip}`);
             res.status(401).send({ message: "Request is outdated" });
             return;

@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 
 import { GifFrame, GifCodec, GifUtil, BitmapImage } from "gifwrap";
 import { Jimp, JimpInstance } from "jimp";

@@ -90,7 +90,7 @@ const remainedColor = "rgba(0,0,0,0.025)";
 
 export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
-    if (!fund) throw Error("Fund not found");
+    if (!fund) throw new Error("Fund not found");
 
     const donations = FundsRepository.getDonationsForFundId(fund.id, true, true);
 
@@ -114,7 +114,7 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
 
 export async function exportFundToDonut(fundname: string): Promise<Buffer> {
     const fund = FundsRepository.getFundByName(fundname);
-    if (!fund) throw Error("Fund not found");
+    if (!fund) throw new Error("Fund not found");
 
     const alldonations = FundsRepository.getDonationsForFundId(fund.id, true, true);
     const simplifiedDonations = await Promise.all(

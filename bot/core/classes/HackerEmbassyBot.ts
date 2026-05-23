@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 import { EventEmitter, Stream } from "stream";
 
 import "reflect-metadata";
@@ -266,7 +266,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
 
-        return Promise.resolve(message);
+        return message;
     }
 
     // TODO extract common logic from here sendPhotoExt
@@ -306,7 +306,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
 
-        return Promise.resolve(message);
+        return message;
     }
 
     async sendPhotos(
@@ -333,7 +333,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
         }
 
-        return Promise.resolve(messages);
+        return messages;
     }
 
     editPhoto(
@@ -378,7 +378,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 });
             }
 
-            return Promise.resolve(message);
+            return message;
         });
     }
 
@@ -499,10 +499,10 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             this.botMessageHistory.push(chatId, { messageId: message.message_id, text });
 
-            return Promise.resolve(message);
+            return message;
         }
 
-        return Promise.resolve(null);
+        return null;
     }
 
     async sendTemporaryMessage(
@@ -738,7 +738,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         try {
             await this.answerCallbackQuery(callbackQuery.id);
 
-            if (!msg?.from) throw Error("Callback query missing the sender, aborting...");
+            if (!msg?.from) throw new Error("Callback query missing the sender, aborting...");
 
             await UserRateLimiter.throttled(this.callbackHandler.bind(this), msg.from.id)(callbackQuery, msg);
         } catch (error) {
@@ -752,7 +752,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         // Parse callback data
         msg.from = callbackQuery.from;
         const data = callbackQuery.data ? (JSON.parse(callbackQuery.data) as CallbackData) : undefined;
-        if (!data) throw Error("Missing calback query data");
+        if (!data) throw new Error("Missing calback query data");
 
         // Prepare context
         const user = userService.prepareUser(msg.from);
@@ -768,14 +768,14 @@ export default class HackerEmbassyBot extends TelegramBot {
                 ? context.run(() => this.handleUserVerification(data.vId as number, data.params as string, msg))
                 : null;
 
-        if (!data.cmd) throw Error("Missing calback command");
+        if (!data.cmd) throw new Error("Missing calback command");
 
         // Check restritions
         if (isBanned(user) || !this.isUserAllowed(user, data.cmd)) return;
 
         // Get route handler
         const handler = this.routeMap.get(data.cmd)?.handler;
-        if (!handler) throw Error(`Route handler for ${data.cmd} does not exist`);
+        if (!handler) throw new Error(`Route handler for ${data.cmd} does not exist`);
 
         telemetry.receivedCallbacksCounter.inc({
             command: data.cmd,

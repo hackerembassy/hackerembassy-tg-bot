@@ -1,10 +1,10 @@
-import { execFile } from "child_process";
+import { execFile } from "node:child_process";
 
-const ALLOWED_COMMANDS = ["ping", "arp"];
+const ALLOWED_COMMANDS = new Set(["ping", "arp"]);
 const MAX_BUFFER_SIZE = 1024 * 1024; // 1MB
 
 export function execCommand(command: string, params: string[], timeout: number = 5000): Promise<string> {
-    if (!ALLOWED_COMMANDS.includes(command)) {
+    if (!ALLOWED_COMMANDS.has(command)) {
         throw new Error(`Command ${command} is not allowed`);
     }
 

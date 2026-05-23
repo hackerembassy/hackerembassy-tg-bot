@@ -162,7 +162,7 @@ apiRouter.get("/donations", async (req, res) => {
         } */
 
     const limit = req.query.limit ? Number(req.query.limit) : undefined;
-    if (limit !== undefined && (isNaN(limit) || limit < 0)) return void res.status(400).send({ error: "Invalid limit" });
+    if (limit !== undefined && (Number.isNaN(limit) || limit < 0)) return void res.status(400).send({ error: "Invalid limit" });
 
     const fund = req.query.fund ? FundsRepository.getFundByName(req.query.fund as string) : FundsRepository.getLatestCosts();
     if (!fund) return void res.status(500).send({ error: "Costs fund is not found" });
@@ -207,7 +207,7 @@ apiRouter.get("/funds", allowSpecialEntities, (req, res) => {
 });
 
 apiRouter.get("/funds/:id", allowSpecialEntities, async (req, res) => {
-    if (isNaN(Number(req.params.id))) return void res.status(400).send({ error: "Invalid fund id" });
+    if (Number.isNaN(Number(req.params.id))) return void res.status(400).send({ error: "Invalid fund id" });
 
     const fund = FundsRepository.getFundById(Number(req.params.id));
 
@@ -240,7 +240,7 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
 
         if (!body || (!body.username && !body.userId) || !body.amount)
             return void res.status(400).send({ error: "Missing body parameters" });
-        if (isNaN(fundId)) return void res.status(400).send({ error: "Invalid fund id" });
+        if (Number.isNaN(fundId)) return void res.status(400).send({ error: "Invalid fund id" });
 
         const fund = FundsRepository.getFundById(fundId);
 
@@ -266,7 +266,9 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
         bot.sendAlert(`🗳 ${alertMessage}`).catch(e => logger.error(`Failed to send donation alert: ${(e as Error).message}`));
 
         const bodyChatId = Number(body.postChat);
-        const parsedChatId = isNaN(bodyChatId) ? botConfig.chats[body.postChat as keyof typeof botConfig.chats] : bodyChatId;
+        const parsedChatId = Number.isNaN(bodyChatId)
+            ? botConfig.chats[body.postChat as keyof typeof botConfig.chats]
+            : bodyChatId;
 
         if (parsedChatId) {
             FundsController.sendGratitude(

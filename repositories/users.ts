@@ -28,7 +28,7 @@ class UserRepository extends BaseRepository {
     }
 
     getUserByUserId(userid: number | ChatId | undefined) {
-        if (!userid) return undefined;
+        if (!userid) return;
 
         return this.db
             .select()

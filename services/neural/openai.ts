@@ -46,7 +46,7 @@ export class OpenAI {
     constructor(private apiKey: string) {}
 
     async askChat(prompt: string, context: string) {
-        if (!this.apiKey) throw Error("OpenAI API key is not set");
+        if (!this.apiKey) throw new Error("OpenAI API key is not set");
 
         const myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
@@ -76,11 +76,11 @@ export class OpenAI {
         const response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", requestOptions);
 
         if (!response.ok) {
-            if (response.status >= 500) throw Error(`OpenAI is not avaiable: ${response.statusText}`);
+            if (response.status >= 500) throw new Error(`OpenAI is not avaiable: ${response.statusText}`);
 
             const errorBody = (await response.json()) as ApiErrorResponse;
 
-            throw Error(`${errorBody.error.type} ${errorBody.error.message}`);
+            throw new Error(`${errorBody.error.type} ${errorBody.error.message}`);
         }
 
         const body = (await response.json()) as ChatCompletionResponse;

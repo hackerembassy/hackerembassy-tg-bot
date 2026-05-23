@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import js from "@eslint/js";
 import prettier from "eslint-plugin-prettier";
+import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import importPlugin from "eslint-plugin-import";
 import { configs } from "typescript-eslint";
 
@@ -30,6 +31,7 @@ export default defineConfig([
 
         plugins: {
             prettier,
+            unicorn: eslintPluginUnicorn,
         },
 
         settings: {
@@ -61,6 +63,16 @@ export default defineConfig([
             "prefer-const": "error",
             "no-console": "warn",
             "no-unexpected-multiline": "warn",
+            "unicorn/no-useless-promise-resolve-reject": "error",
+            "unicorn/prevent-abbreviations": "off",
+            "unicorn/prefer-string-slice": "off",
+            "unicorn/escape-case": "off",
+            "unicorn/numeric-separators-style": "off",
+            "unicorn/prefer-string-raw": "off",
+            "unicorn/no-process-exit": "off",
+            "unicorn/filename-case": "off",
+            "unicorn/no-hex-escape": "off",
+            "unicorn/no-null": "off",
             "import/order": [
                 "error",
                 {

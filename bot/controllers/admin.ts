@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 import config from "config";
@@ -382,7 +382,7 @@ export default class AdminController implements BotController {
 
         const chatId =
             botConfig.chats[target as keyof typeof botConfig.chats] || (target === "me" ? msg.from?.id : Number(target));
-        if (!chatId || isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, t("admin.copy.nochat"), msg);
+        if (!chatId || Number.isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, t("admin.copy.nochat"), msg);
 
         await bot.copyMessage(chatId, msg.chat.id, msg.reply_to_message.message_id, {
             reply_markup: msg.reply_to_message.reply_markup,

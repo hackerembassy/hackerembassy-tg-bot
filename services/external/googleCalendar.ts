@@ -44,7 +44,7 @@ async function getEventsJSON(
     const dateMin = fromDate.toISOString();
 
     if (!apiKey) {
-        throw Error("No Google API key is provided");
+        throw new Error("No Google API key is provided");
     }
     const result = await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/${calendarID}/events?key=${apiKey}&maxResults=${numberOfEvents}&singleEvents=true&orderBy=startTime&timeMin=${dateMin}`,
@@ -54,7 +54,7 @@ async function getEventsJSON(
     );
     const json = (await result.json()) as CalendarListResponse | undefined;
     if (!json) {
-        throw Error("Something went wrong when fetching calendar from Google API");
+        throw new Error("Something went wrong when fetching calendar from Google API");
     }
     return json;
 }

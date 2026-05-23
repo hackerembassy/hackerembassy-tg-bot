@@ -44,14 +44,14 @@ router.get("/inside", async (req, res, next) => {
 
         switch (method) {
             case DeviceCheckingMethod.OpenWRT:
-                if (!luciToken) throw Error("Missing Luci token");
+                if (!luciToken) throw new Error("Missing Luci token");
 
                 // We don't use our Xiaomi openWRT device as wifi access point anymore
                 res.json(await NeworkDevicesLocator.getDevicesFromOpenWrt(embassyApiConfig.spacenetwork.routerip, luciToken));
                 break;
             case DeviceCheckingMethod.Unifi:
                 // Use Keenetic method if possible, network scan is very unreliable (especialy for apple devices)
-                if (!unifiUser || !unifiPassword) throw Error("Missing unifi credentials");
+                if (!unifiUser || !unifiPassword) throw new Error("Missing unifi credentials");
 
                 res.json(
                     await NeworkDevicesLocator.getDevicesFromUnifiController(
@@ -64,7 +64,7 @@ router.get("/inside", async (req, res, next) => {
             // Our main wifi access point
             case DeviceCheckingMethod.Keenetic:
             default:
-                if (!wifiUser || !wifiPassword) throw Error("Missing keenetic ssh credentials");
+                if (!wifiUser || !wifiPassword) throw new Error("Missing keenetic ssh credentials");
 
                 res.json(
                     await NeworkDevicesLocator.getDevicesFromKeenetic(
@@ -83,7 +83,7 @@ router.get("/linkmac", async (req, res, next) => {
     try {
         const ip = req.ip;
 
-        if (!ip) throw Error("Missing IP");
+        if (!ip) throw new Error("Missing IP");
 
         const mac = await arp(ip.replace("::ffff:", ""));
 

@@ -113,7 +113,7 @@ export default class FundsController implements BotController {
         const preparedCurrency = await prepareCurrency(currency);
 
         const success =
-            !isNaN(targetValue) &&
+            !Number.isNaN(targetValue) &&
             preparedCurrency &&
             FundsRepository.addFund({
                 name: fundName,
@@ -159,7 +159,7 @@ export default class FundsController implements BotController {
         if (!fund) return bot.sendMessageExt(msg.chat.id, t("funds.updatefund.nofund"), msg);
 
         const success =
-            !isNaN(targetValue) &&
+            !Number.isNaN(targetValue) &&
             preparedCurrency &&
             FundsRepository.updateFund({
                 ...fund,
@@ -349,7 +349,7 @@ export default class FundsController implements BotController {
             const value = parseMoneyValue(valueString);
             const preparedCurrency = await prepareCurrency(currency);
 
-            if (isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
+            if (Number.isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
 
             const user =
                 UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
@@ -448,7 +448,7 @@ export default class FundsController implements BotController {
 
         if (residents.length > 0) {
             for (const resident of residents) {
-                const hasDonated = donations.filter(d => d.user_id === resident.userid).length > 0;
+                const hasDonated = donations.some(d => d.user_id === resident.userid);
                 const shouldInclude = option === "all" || (option === "paid" && hasDonated) || (option === "left" && !hasDonated);
 
                 if (!shouldInclude) continue;
@@ -482,7 +482,7 @@ export default class FundsController implements BotController {
 
         if (residents.length > 0 && donations.length > 0) {
             for (const resident of residents) {
-                const hasDonated = donations.filter(d => d.user_id === resident.userid).length > 0;
+                const hasDonated = donations.some(d => d.user_id === resident.userid);
                 const shouldInclude = option === "all" || (option === "paid" && hasDonated) || (option === "left" && !hasDonated);
 
                 if (!shouldInclude) continue;

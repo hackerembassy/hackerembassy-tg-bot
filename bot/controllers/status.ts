@@ -142,7 +142,7 @@ export default class StatusController implements BotController {
         try {
             switch (cmd) {
                 case "enable":
-                case "ghost":
+                case "ghost": {
                     if (userMacsString.length === 0) {
                         message = t("status.autoinside.nomac");
                     } else {
@@ -151,23 +151,27 @@ export default class StatusController implements BotController {
                         message = TextGenerators.getAutoinsideMessageStatus(mode, userMacsString, userLink);
                     }
                     break;
-                case "disable":
+                }
+                case "disable": {
                     UsersRepository.updateUser(user.userid, { autoinside: AutoInsideMode.Disabled });
                     message = t("status.autoinside.removed", { username: userLink });
                     break;
-                case "status":
+                }
+                case "status": {
                     message = TextGenerators.getAutoinsideMessageStatus(
                         user.autoinside as AutoInsideMode,
                         userMacsString,
                         userLink
                     );
                     break;
+                }
                 case "help":
-                default:
+                default: {
                     inline_keyboard = StatusController.getAutoInsideKeyboard(bot, msg, mode.secret);
 
                     message = t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 });
                     break;
+                }
             }
         } catch (error) {
             logger.error(error);
@@ -214,25 +218,23 @@ export default class StatusController implements BotController {
     }
 
     static getStatusInlineKeyboard(bot: HackerEmbassyBot, msg: Message, state: State, short: boolean) {
-        const inlineKeyboard: InlineKeyboardButton[][] = state.open
-            ? [[InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]]
+        const checkInControls: InlineKeyboardButton[] = state.open
+            ? [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]
             : [];
 
-        inlineKeyboard.push([
+        const goingControls: InlineKeyboardButton[] = [
             InlineButton(t("status.buttons.going"), "going"),
             InlineButton(t("status.buttons.notgoing"), "notgoing"),
-        ]);
+        ];
 
-        inlineKeyboard.push(
-            short
-                ? [InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short })]
-                : [
-                      InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short }),
-                      AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
-                  ]
-        );
+        const bottomControls: InlineKeyboardButton[] = short
+            ? [InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short })]
+            : [
+                  InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short }),
+                  AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+              ];
 
-        return inlineKeyboard;
+        return [checkInControls, goingControls, bottomControls].filter(group => group.length > 0);
     }
 
     static async liveStatusHandler(
@@ -358,8 +360,8 @@ export default class StatusController implements BotController {
 
             const prompt = t("status.shouldigo.prompt", {
                 state: state.open || user.roles?.includes("member") ? t("status.status.opened") : t("status.status.closed"),
-                going: going.length ? going.map(u => u.user.username).join(", ") : 0,
-                inside: inside.length ? inside.map(u => u.user.username).join(", ") : 0,
+                going: going.length > 0 ? going.map(u => u.user.username).join(", ") : 0,
+                inside: inside.length > 0 ? inside.map(u => u.user.username).join(", ") : 0,
             });
 
             const aiResponse = await openAI.askChat(prompt, t("status.shouldigo.context"));
@@ -452,7 +454,7 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
-    @Route(["inforce", "inf", "goin"], RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`), match => [
+    @Route(["inforce", "inf", "goin"], new RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`), match => [
         match[2],
         match[1],
     ])
@@ -461,13 +463,16 @@ export default class StatusController implements BotController {
         void this.inHandler(bot, msg, false, durationString, username);
     }
 
-    @Route(["inghost", "ghost"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [match[1]])
+    @Route(["inghost", "ghost"], OptionalParam(new RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [match[1]])
     @UserRoles(TrustedMembers)
     static inGhostHandler(bot: HackerEmbassyBot, msg: Message, durationString?: string, username?: string) {
         void this.inHandler(bot, msg, true, durationString, username);
     }
 
-    @Route(["in", "iaminside"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [false, match[1]])
+    @Route(["in", "iaminside"], OptionalParam(new RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [
+        false,
+        match[1],
+    ])
     static inHandler(bot: HackerEmbassyBot, msg: Message, ghost: boolean = false, durationString?: string, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
@@ -477,7 +482,7 @@ export default class StatusController implements BotController {
 
         const eventDate = new Date();
 
-        const mention = !context.isButtonResponse ? helpers.getMentions(msg)[0] : undefined;
+        const mention = context.isButtonResponse ? undefined : helpers.getMentions(msg)[0];
         const force = username !== undefined || mention !== undefined;
         const target = mention
             ? UsersRepository.getUserByUserId(mention.id)
@@ -529,7 +534,7 @@ export default class StatusController implements BotController {
         const sender = context.user;
         const eventDate = new Date();
 
-        const mention = !context.isButtonResponse ? helpers.getMentions(msg)[0] : undefined;
+        const mention = context.isButtonResponse ? undefined : helpers.getMentions(msg)[0];
         const force = username !== undefined || mention !== undefined;
         const target = mention
             ? UsersRepository.getUserByUserId(mention.id)
@@ -669,9 +674,9 @@ export default class StatusController implements BotController {
 
             // Get unique users and macs
             const uniqueUsersMap = new Map<number, User>();
-            userStateFilteredDevices
-                .map(ud => ud.user)
-                .forEach(user => !uniqueUsersMap.has(user.userid) && uniqueUsersMap.set(user.userid, user));
+            for (const user of userStateFilteredDevices.map(ud => ud.user))
+                if (!uniqueUsersMap.has(user.userid)) uniqueUsersMap.set(user.userid, user);
+
             const macUsersMap = new Map(userStateFilteredDevices.map(ud => [ud.mac, uniqueUsersMap.get(ud.user_id)]));
 
             // Filter users to update
@@ -748,8 +753,8 @@ export default class StatusController implements BotController {
         if (!target) return bot.sendMessageExt(msg.chat.id, t("status.profile.notfound"), msg);
 
         const donations = fundsRepository.getDonationsOf(target.userid, true, true);
-        const donationList = donations.length ? TextGenerators.generateFundDonationsList(donations) : "";
-        const totalDonated = donations.length ? await sumDonations(donations) : 0;
+        const donationList = donations.length > 0 ? TextGenerators.generateFundDonationsList(donations) : "";
+        const totalDonated = donations.length > 0 ? await sumDonations(donations) : 0;
         const { days, hours, minutes } = userService.getUserTotalTime(target);
 
         const statsText = `${t("status.statsof", {
@@ -763,11 +768,11 @@ export default class StatusController implements BotController {
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
 
-        if (donations.length) {
+        if (donations.length > 0) {
             const filteredDonations = ExportHelper.prepareCostsForExport(donations, COSTS_PREFIX);
             const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, COSTS_PREFIX);
 
-            if (imageBuffer.length !== 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            if (imageBuffer.length > 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
         }
 
         return;
@@ -822,7 +827,7 @@ export default class StatusController implements BotController {
         const toDate = toDateString ? new Date(toDateString) : new Date();
         toDate.setHours(23, 59, 59, 999);
 
-        if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime()))
+        if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime()))
             return bot.sendMessageExt(msg.chat.id, t("status.stats.invaliddates"), msg);
 
         const userTimes = userService.getAllVisits(fromDate, toDate);

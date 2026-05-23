@@ -37,6 +37,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
         } as Message);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async processUpdate(update: TelegramBot.Update) {
         super.processUpdate(update);
         await sleep(100); // Simulating async processing and clearing microtasks

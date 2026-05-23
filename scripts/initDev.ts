@@ -5,7 +5,7 @@ import { createInterface } from "readline/promises";
 
 import { getOrCreateDb } from "@data/scripts";
 
-(async function initScript() {
+void (async function initScript() {
     console.log(
         "[DEV] Preparing bot before the first launch.\n ! You need to have ssh-keygen installed in PATH to succesfully generate keys for embassy API"
     );

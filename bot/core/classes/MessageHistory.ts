@@ -18,7 +18,7 @@ export default class MessageHistory {
         return this.messageLog[chatId]?.findIndex(x => x.messageId === messageId);
     }
 
-    async push(chatId: string | number, entry: Omit<MessageHistoryEntry, "datetime">, order = 0): Promise<void> {
+    push(chatId: string | number, entry: Omit<MessageHistoryEntry, "datetime">, order = 0) {
         if (!this.messageLog[chatId]) this.messageLog[chatId] = [];
 
         const chatHistory = this.messageLog[chatId];
@@ -32,7 +32,7 @@ export default class MessageHistory {
 
         chatHistory.splice(order, 0, fullEntry);
 
-        await this.botState.persistChanges();
+        void this.botState.persistChanges();
     }
 
     pop(chatId: number, from: number = 0): Nullable<MessageHistoryEntry> {

@@ -65,8 +65,7 @@ export default class NeedsController implements BotController {
         const need = NeedsRepository.getOpenNeedByItem(item);
 
         if (!need || need.buyer_id) {
-            bot.sendMessageExt(msg.chat.id, t("needs.bought.notfound"), msg);
-            return;
+            return await bot.sendMessageExt(msg.chat.id, t("needs.bought.notfound"), msg);
         }
 
         NeedsRepository.closeNeed(need.id, buyer.userid, new Date());
@@ -77,7 +76,7 @@ export default class NeedsController implements BotController {
         });
         const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", ButtonFlags.Simple, { params: need.id })]];
 
-        await bot.sendMessageExt(msg.chat.id, successText, msg, {
+        return await bot.sendMessageExt(msg.chat.id, successText, msg, {
             reply_markup: { inline_keyboard },
         });
     }

@@ -22,4 +22,4 @@ async function exportDonations() {
     console.log(`Done, check ./${filePath}`);
 }
 
-exportDonations();
+void exportDonations();

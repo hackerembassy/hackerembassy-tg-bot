@@ -2,8 +2,8 @@ import config from "config";
 
 import { PrintersConfig, CalendarConfig, BotConfig, CurrencyConfig } from "@config";
 
-import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "data/models";
-import { UserStateChangeType, UserStateType, AutoInsideMode } from "data/types";
+import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "@data/models";
+import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
 import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/funds/currency";
 import { HSEvent } from "@services/external/googleCalendar";
@@ -231,8 +231,8 @@ export function getUserBadges(user: User): string {
 
 export function getUserBadgesWithStatus(userStatus: UserStateEx): string {
     const userBadges = getUserBadges(userStatus.user);
-    const autoBadge = userStatus.type === (UserStateChangeType.Auto as number) ? "📲" : "";
-    const ghostBadge = userStatus.status === (UserStateType.InsideSecret as number) ? "👻" : "";
+    const autoBadge = userStatus.type === UserStateChangeType.Auto ? "📲" : "";
+    const ghostBadge = userStatus.status === UserStateType.InsideSecret ? "👻" : "";
 
     return `${ghostBadge}${autoBadge}${userBadges}`;
 }

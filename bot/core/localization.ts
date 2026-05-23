@@ -31,7 +31,7 @@ export function isSupportedLanguage(value?: string | null): value is SupportedLa
 const DEFAULT_LOCALES_PATH_PATTERN = "{{lng}}/{{ns}}.yaml";
 const RESOURCES_PATH = "../../resources/locales/";
 
-use(Backend).init({
+void use(Backend).init({
     returnNull: false,
     backend: {
         loadPath: join(__dirname, RESOURCES_PATH, DEFAULT_LOCALES_PATH_PATTERN),
@@ -46,12 +46,11 @@ use(Backend).init({
         escapeValue: false,
     },
     debug: false,
-    showSupportNotice: false,
 });
 
 const translateWithDetectedLanguage = (key: string, options?: TOptions, lang?: string): string => {
     const state = BotMessageContext.async.getStore();
-    return t<string, TOptions, string>(key, { ...options, lng: lang ?? state?.language ?? DEFAULT_LANGUAGE } as TOptions);
+    return t<string, TOptions, string>(key, { ...options, lng: lang ?? state?.language ?? DEFAULT_LANGUAGE });
 };
 
 export default translateWithDetectedLanguage;

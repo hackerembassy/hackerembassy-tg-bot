@@ -44,7 +44,7 @@ export function createAuthentificationMiddlware(): RequestHandler {
                 if (userkey) {
                     ApiKeyRepository.updateKeyLastUsed(userkey.id);
                     req.entity = "user";
-                    req.user = userkey.user as User;
+                    req.user = userkey.user;
                 }
             }
         }

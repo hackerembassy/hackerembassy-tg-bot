@@ -177,7 +177,7 @@ export default class ServiceController implements BotController {
         } else if (hasRole(bot.context(msg).user, "admin", "member")) {
             await bot.sendMessageExt(msg.chat.id, `chatId: ${msg.chat.id}, topicId: ${msg.message_thread_id}`, msg);
         } else {
-            bot.sendRestrictedMessage(msg);
+            await bot.sendRestrictedMessage(msg);
         }
     }
 
@@ -190,7 +190,7 @@ export default class ServiceController implements BotController {
             t("service.deprecated.notsupported", { command }) +
             (replacement ? "\n" + t("service.deprecated.replaced", { replacement }) : "");
 
-        bot.sendTemporaryMessage(msg.chat.id, text, msg);
+        void bot.sendTemporaryMessage(msg.chat.id, text, msg);
     }
 
     @Route(["superstatus", "ss"])
@@ -249,7 +249,7 @@ export default class ServiceController implements BotController {
             if (!currentUser) {
                 UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
 
-                bot.lockChatMember(chat.id, tgUser.id);
+                void bot.lockChatMember(chat.id, tgUser.id);
 
                 logger.info(
                     `New user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) as restricted`
@@ -263,7 +263,7 @@ export default class ServiceController implements BotController {
 
                 return;
             } else {
-                bot.lockChatMember(chat.id, tgUser.id);
+                void bot.lockChatMember(chat.id, tgUser.id);
 
                 logger.info(
                     `Restricted user [${tgUser.id}](${tgUser.username}) joined the chat [${chat.id}](${chat.title}) again`

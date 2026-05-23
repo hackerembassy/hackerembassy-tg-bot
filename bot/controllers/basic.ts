@@ -449,7 +449,7 @@ export default class BasicController implements BotController {
             messageText = t("basic.events.error");
             logger.error(error);
         } finally {
-            bot.sendOrEditMessage(
+            void bot.sendOrEditMessage(
                 msg.chat.id,
                 messageText,
                 msg,
@@ -481,7 +481,7 @@ export default class BasicController implements BotController {
             messageText = t("basic.events.error");
             logger.error(error);
         } finally {
-            bot.sendOrEditMessage(
+            void bot.sendOrEditMessage(
                 msg.chat.id,
                 messageText,
                 msg,

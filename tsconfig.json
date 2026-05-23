@@ -4,23 +4,20 @@
         "allowJs": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "target": "ES2022",
-        "lib": ["ES2023"],
-        "module": "None",
-        "moduleResolution": "Node",
+        "target": "es2025",
         "noImplicitReturns": true,
         "strict": true,
         "esModuleInterop": true,
         "typeRoots": ["./node_modules/@types", "./typings"],
-        "baseUrl": ".",
+        "types": ["node", "jest"],
         "paths": {
-            "@utils/*": ["utils/*"],
-            "@services/*": ["services/*"],
-            "@data/*": ["data/*"],
-            "@repositories/*": ["repositories/*"],
-            "@config": ["config/schema"],
-            "@hackembot/*": ["bot/*"],
-            "@hackemapi/*": ["api/*"]
+            "@utils/*": ["./utils/*"],
+            "@services/*": ["./services/*"],
+            "@data/*": ["./data/*"],
+            "@repositories/*": ["./repositories/*"],
+            "@config": ["./config/schema"],
+            "@hackembot/*": ["./bot/*"],
+            "@hackemapi/*": ["./api/*"]
         }
     },
     "tsc-alias": {

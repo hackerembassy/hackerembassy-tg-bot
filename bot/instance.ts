@@ -19,7 +19,7 @@ export function StartTelegramBot() {
     addSpecialRoutes(bot);
     addEventHandlers(bot);
     setAutomaticFeatures(bot);
-    setMenu(bot);
+    void setMenu(bot);
 
     bot.start();
 }

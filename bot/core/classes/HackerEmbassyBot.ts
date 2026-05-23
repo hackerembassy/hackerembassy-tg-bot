@@ -109,7 +109,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     private chatMemberHandler: ChatMemberHandler | null = null;
 
     // Context storage for user messages
-    private contextMap = new Map();
+    private contextMap = new Map<TelegramBot.Message, BotMessageContext>();
     private guessIgnoreList = new Set(botConfig.guess.ignoreList);
 
     constructor(token: string) {
@@ -131,9 +131,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             logger.error(error);
         });
 
-        this.startPolling();
-
-        logger.info(`--- Bot ${this.name} started polling ---`);
+        void this.startPolling().then(() => logger.info(`--- Bot ${this.name} started polling ---`));
     }
 
     public get url(): string {
@@ -239,7 +237,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             options = this.prepareOptionsForMarkdown({ ...options });
         }
 
-        this.sendChatAction(chatId, "upload_photo", msg);
+        void this.sendChatAction(chatId, "upload_photo", msg);
 
         const photoHash = photo instanceof Stream ? null : hashMD5(photo);
         const cachedFileId = photoHash ? this.botState.fileIdCache[photoHash] : null;
@@ -287,7 +285,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             options = this.prepareOptionsForMarkdown({ ...options });
         }
 
-        this.sendChatAction(chatId, "upload_photo", msg);
+        void this.sendChatAction(chatId, "upload_photo", msg);
 
         const animationHash = animation instanceof Stream ? null : hashMD5(animation);
         const cachedFileId = animationHash ? this.botState.fileIdCache[animationHash] : null;
@@ -320,7 +318,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         const mode = this.context(msg).mode;
         const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
 
-        this.sendChatAction(chatId, "upload_photo", msg);
+        void this.sendChatAction(chatId, "upload_photo", msg);
 
         const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo as ArrayBuffer)));
         const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
@@ -373,7 +371,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             }
 
             if (options.caption) {
-                super.editMessageCaption(options.caption, {
+                await super.editMessageCaption(options.caption, {
                     chat_id: msg.chat.id,
                     message_id: msg.message_id,
                     reply_markup: { inline_keyboard },
@@ -404,7 +402,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     // TODO: add support for sending plain text and make it less bad
 
     async sendStreamedMessage(chatId: TelegramBot.ChatId, stream: DeltaStream, msg: TelegramBot.Message): Promise<boolean> {
-        this.sendChatAction(chatId, "typing", msg);
+        void this.sendChatAction(chatId, "typing", msg);
 
         let messageToEdit: Nullable<TelegramBot.Message> = null;
         let buffer = "";
@@ -526,11 +524,10 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     tryPinChatMessage(message: TelegramBot.Message, user: User) {
-        try {
-            if (hasRole(user, "admin", "member"))
-                this.pinChatMessage(message.chat.id, message.message_id, { disable_notification: true });
-        } catch (e) {
-            logger.error(e);
+        if (hasRole(user, "admin", "member")) {
+            this.pinChatMessage(message.chat.id, message.message_id, { disable_notification: true }).catch(error =>
+                logger.error(error)
+            );
         }
     }
 
@@ -564,7 +561,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             .map((chunk, index) => `📧 ${index + 1} часть 📧\n\n${chunk}\n📧 Конец части ${index + 1} 📧`)
             .map(chunk => () => this.sendMessageExt(chatId, chunk, msg, options));
 
-        RateLimiter.executeOverTime(messageResponses);
+        void RateLimiter.executeOverTime(messageResponses);
     }
 
     private deleteQueue: number[] = [];
@@ -585,7 +582,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             this.deleteQueue.push(messageId);
             if (!this.deleteTimeout) {
                 this.deleteTimeout = setTimeout(() => {
-                    this.deleteMessages(chatId, this.deleteQueue);
+                    void this.deleteMessages(chatId, this.deleteQueue);
                     this.deleteQueue = [];
                     this.deleteTimeout = null;
                 }, timeout);
@@ -808,8 +805,8 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             if (!success) throw new Error("Failed to verify user");
 
-            botConfig.moderatedChats.forEach(chatId =>
-                this.unlockChatMember(chatId, userChat.id).catch(error => logger.error(error))
+            botConfig.moderatedChats.forEach(
+                chatId => void this.unlockChatMember(chatId, userChat.id).catch(error => logger.error(error))
             );
 
             await this.sendWelcomeMessage(msg.chat, userChat, language);
@@ -838,16 +835,36 @@ export default class HackerEmbassyBot extends TelegramBot {
         );
     }
 
-    reactToMessage(message: TelegramBot.Message) {
+    async reactToMessage(message: TelegramBot.Message) {
         try {
-            if (message.text?.match(/(^|\s)(бот([еуа]|ом)?|bot)(\s|,|\.|$)/giu)) {
-                this.setMessageReactionEx(message.chat.id, message.message_id, "👀");
-            } else if (
-                message.text?.match(
-                    /(^|\s|\/)(\u0063\u006F\u0063\u006B|\u043A\u043E\u043A|\u0434\u0438\u043A|\u0070\u0069\u0073\u006B\u0061)(\s|,|\.|$|@)/giu
-                )
-            ) {
-                this.setMessageReactionEx(message.chat.id, message.message_id, "🌭");
+            const isBotMentioned = message.text?.match(/(^|\s)(бот([еуа]|ом)?|bot)(\s|,|\.|$)/giu);
+
+            if (isBotMentioned) {
+                await this.setMessageReactionEx(message.chat.id, message.message_id, "👀");
+                return;
+            }
+
+            const isSecretMentioned = message.text?.match(
+                /(^|\s|\/)(\u0063\u006F\u0063\u006B|\u043A\u043E\u043A|\u0434\u0438\u043A|\u0070\u0069\u0073\u006B\u0061)(\s|,|\.|$|@)/giu
+            );
+
+            if (isSecretMentioned) {
+                await this.setMessageReactionEx(message.chat.id, message.message_id, "🌭");
+                return;
+            }
+
+            const notTheRightChat = message.text?.match(/(^|\s)не тот чат(\s|,|\.|$)/giu);
+
+            if (notTheRightChat) {
+                await this.setMessageReactionEx(message.chat.id, message.message_id, "🍓");
+                return;
+            }
+
+            const isKitaMentioned = message.text?.match(/(^|\s)(кита|kita)(\s|,|\.|$)/giu);
+
+            if (isKitaMentioned) {
+                await this.setMessageReactionEx(message.chat.id, message.message_id, "🐳");
+                return;
             }
         } catch (error) {
             logger.error(error);
@@ -876,11 +893,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         }
 
         if (this.assets.images[type]) {
-            this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
+            return this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
                 caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
             });
         } else {
-            this.sendMessageExt(
+            return this.sendMessageExt(
                 message.chat.id,
                 t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
                 message
@@ -967,7 +984,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 this.context(msg).isEditing = false;
             }
         } else {
-            return this.sendMessageExt(chatId, text, msg, options as SendMessageOptions);
+            return this.sendMessageExt(chatId, text, msg, options);
         }
 
         return null;
@@ -1013,7 +1030,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     addLiveMessage(
         liveMessage: Message,
         event: BotCustomEvent,
-        handler: (...args: unknown[]) => Promise<void>,
+        handler: (...args: unknown[]) => void,
         serializationData: SerializedFunction
     ) {
         const chatRecordIndex = this.botState.liveChats.findIndex(cr => cr.chatId === liveMessage.chat.id && cr.event === event);
@@ -1110,7 +1127,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     deleteMessages(chatId: ChatId, messageIds: number[]): Promise<boolean> {
         //@ts-expect-error the lib types don't include deleteMessages but it actually works
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
         return super.deleteMessages(chatId, messageIds);
     }
 

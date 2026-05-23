@@ -18,7 +18,7 @@ nock("https://api.telegram.org")
 
 jest.mock("@services/funds/currency", () => {
     return {
-        ...jest.requireActual("@services/funds/currency"),
+        ...jest.requireActual<typeof import("@services/funds/currency")>("@services/funds/currency"),
         convert: jest.fn(),
         initConvert: jest.fn(),
         convertCurrency: jest.fn((amount: number) => amount),
@@ -28,7 +28,7 @@ jest.mock("@services/funds/currency", () => {
 
 jest.mock("@services/funds/export", () => {
     return {
-        ...jest.requireActual("@services/funds/export"),
+        ...jest.requireActual<typeof import("@services/funds/export")>("@services/funds/export"),
         getSponsorshipLevel: jest.fn(() => null),
     };
 });
@@ -43,7 +43,7 @@ jest.mock("@utils/network", () => {
 jest.mock("../data/db", () => {
     const testDb = getOrCreateDb(true, ":memory:");
 
-    seedUsers(SEED_TEST_USERS);
+    void seedUsers(SEED_TEST_USERS);
 
     return testDb;
 });
@@ -57,7 +57,7 @@ jest.mock("@services/external/googleCalendar", () => ({
 
 jest.mock("@services/common/logger", () => {
     return {
-        ...jest.requireActual("@services/common/logger"),
+        ...jest.requireActual<typeof import("@services/common/logger")>("@services/common/logger"),
         log: jest.fn(),
         error: jest.fn().mockImplementation((error: Error | string) => {
             if (error instanceof Error && !error.message.startsWith("Mocked")) {

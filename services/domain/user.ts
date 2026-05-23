@@ -19,19 +19,19 @@ export type UserVisit = { user: User; usertime: ElapsedTimeObject };
 
 // Filters
 function filterPeopleInside(userState: UserState): boolean {
-    return userState.status === (UserStateType.Inside as number);
+    return userState.status === UserStateType.Inside;
 }
 
 function filterAllPeopleInside(userState: UserState): boolean {
-    return userState.status === (UserStateType.Inside as number) || userState.status === (UserStateType.InsideSecret as number);
+    return userState.status === UserStateType.Inside || userState.status === UserStateType.InsideSecret;
 }
 
 function filterPeopleGoing(userState: UserState): boolean {
-    return userState.status === (UserStateType.Going as number) && isToday(new Date(userState.date));
+    return userState.status === UserStateType.Going && isToday(new Date(userState.date));
 }
 
 function filterAutoState(userState: UserState): boolean {
-    return (userState.type as UserStateChangeType) === UserStateChangeType.Auto;
+    return userState.type === UserStateChangeType.Auto;
 }
 
 // helper functions
@@ -258,11 +258,11 @@ class UserService {
         userStates.sort((a, b) => (a.date > b.date ? 1 : -1));
 
         for (const userState of userStates) {
-            if (startTime === -1 && userState.status === (UserStateType.Inside as number)) {
+            if (startTime === -1 && userState.status === UserStateType.Inside) {
                 startTime = Number(userState.date);
             } else if (
                 startTime !== -1 &&
-                (userState.status === (UserStateType.Outside as number) || userState.status === (UserStateType.Going as number))
+                (userState.status === UserStateType.Outside || userState.status === UserStateType.Going)
             ) {
                 totalTime += Number(userState.date) - startTime;
                 startTime = -1;

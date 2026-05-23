@@ -35,7 +35,7 @@ export function getOrCreateDb(
 
         if (isNewDatabase) {
             migrate(drizzleDb, { migrationsFolder: path.join(__dirname, "./migrations") });
-            seedUsers(SEED_SERVICE_USERS);
+            void seedUsers(SEED_SERVICE_USERS);
         }
 
         return drizzleDb;

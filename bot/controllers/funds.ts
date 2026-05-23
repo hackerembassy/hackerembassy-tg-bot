@@ -40,7 +40,7 @@ const botConfig = config.get<BotConfig>("bot");
 const CALLBACK_DATA_RESTRICTION = 21;
 
 // Converter library needs time to initialize all currencies, so we need to init it in advance
-initConvert();
+void initConvert();
 
 export default class FundsController implements BotController {
     @Route(["funds", "fs"])
@@ -293,11 +293,11 @@ export default class FundsController implements BotController {
                 }
             }
 
-            if (msg) bot.sendMessageExt(msg.chat.id, t("funds.refreshsponsorships.success"), msg);
+            if (msg) void bot.sendMessageExt(msg.chat.id, t("funds.refreshsponsorships.success"), msg);
         } catch (error) {
             logger.error(error);
 
-            if (msg) bot.sendMessageExt(msg.chat.id, t("funds.refreshsponsorships.fail"), msg);
+            if (msg) void bot.sendMessageExt(msg.chat.id, t("funds.refreshsponsorships.fail"), msg);
         }
     }
 
@@ -422,8 +422,7 @@ export default class FundsController implements BotController {
         const fundName = FundsRepository.getLatestCosts()?.name;
 
         if (!fundName) {
-            bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
-            return;
+            return await bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
         }
 
         return await FundsController.fundHandler(bot, msg, fundName);
@@ -472,7 +471,7 @@ export default class FundsController implements BotController {
         const fundName = FundsRepository.getLatestCosts()?.name;
 
         if (!fundName) {
-            bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
+            void bot.sendMessageExt(msg.chat.id, t("funds.showcosts.fail"), msg);
             return;
         }
 
@@ -563,7 +562,7 @@ export default class FundsController implements BotController {
     @Route(["debt", "mymoney"], OptionalParam(/(\S+)/), match => [match[1]])
     @UserRoles(Accountants)
     static async debtHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : bot.context(msg).user;
 
@@ -591,7 +590,7 @@ export default class FundsController implements BotController {
     @Route(["topaidall", "paidall"], helpers.OptionalParam(/(.*)/), match => ["paid", match[1]])
     @UserRoles(Accountants)
     static transferAllToHandler(bot: HackerEmbassyBot, msg: Message, username: string, fundName?: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
         const fund = fundName ? FundsRepository.getFundByName(fundName) : undefined;
@@ -608,8 +607,7 @@ export default class FundsController implements BotController {
             const csvBuffer = await ExportHelper.exportFundToCSV(fundName);
 
             if (csvBuffer.length === 0) {
-                bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
-                return;
+                return await bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
             }
 
             const fileOptions = {
@@ -617,10 +615,10 @@ export default class FundsController implements BotController {
                 contentType: "text/csv",
             };
 
-            await bot.sendDocument(msg.chat.id, csvBuffer, {}, fileOptions);
+            return await bot.sendDocument(msg.chat.id, csvBuffer, {}, fileOptions);
         } catch (error) {
             logger.error(error);
-            await bot.sendMessageExt(msg.chat.id, t("funds.export.fail"), msg);
+            return await bot.sendMessageExt(msg.chat.id, t("funds.export.fail"), msg);
         }
     }
 
@@ -641,8 +639,7 @@ export default class FundsController implements BotController {
             imageBuffer = await ExportHelper.exportFundToDonut(fundName);
 
             if (imageBuffer.length === 0) {
-                bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
-                return;
+                return await bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
             }
 
             return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);

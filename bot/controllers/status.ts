@@ -1,11 +1,11 @@
 import config from "config";
 
-import TelegramBot, { InlineKeyboardButton, Message } from "node-telegram-bot-api";
+import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
 
-import { State, StateEx, User } from "data/models";
-import { UserStateChangeType, AutoInsideMode } from "data/types";
+import { State, StateEx, User } from "@data/models";
+import { UserStateChangeType, AutoInsideMode } from "@data/types";
 
 import UsersRepository from "@repositories/users";
 import fundsRepository, { COSTS_PREFIX } from "@repositories/funds";
@@ -148,7 +148,7 @@ export default class StatusController implements BotController {
                     } else {
                         const mode = cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled;
                         UsersRepository.updateUser(user.userid, { autoinside: mode });
-                        message = TextGenerators.getAutoinsideMessageStatus(mode as AutoInsideMode, userMacsString, userLink);
+                        message = TextGenerators.getAutoinsideMessageStatus(mode, userMacsString, userLink);
                     }
                     break;
                 case "disable":
@@ -242,7 +242,7 @@ export default class StatusController implements BotController {
         mode: BotMessageContextMode,
         language: SupportedLanguage
     ) {
-        sleep(1000); // Delay to prevent sending too many requests at once
+        await sleep(1000); // Delay to prevent sending too many requests at once
         const state = spaceService.getState();
 
         const climateInfo: Nullable<SpaceClimate> = botConfig.features.embassy ? await StatusController.queryClimate() : null;
@@ -267,7 +267,7 @@ export default class StatusController implements BotController {
                 reply_markup: {
                     inline_keyboard: mode.static ? [] : inline_keyboard,
                 },
-            } as TelegramBot.EditMessageTextOptions);
+            });
         } catch {
             /* Message was not modified */
         }
@@ -287,7 +287,7 @@ export default class StatusController implements BotController {
     @Route(["shortstatus", "statusshort", "shs"], null, () => [true])
     static async statusHandler(bot: HackerEmbassyBot, msg: Message, short: boolean = false) {
         const context = bot.context(msg);
-        if (!context.isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
+        if (!context.isEditing) void bot.sendChatAction(msg.chat.id, "typing", msg);
         const mode = context.mode;
         const language = context.language;
 
@@ -319,7 +319,7 @@ export default class StatusController implements BotController {
                         withSecrets: msg.chat.id === botConfig.chats.horny,
                     })
                 );
-                bot.editMessageTextExt(statusWithClient, resultMessage, {
+                void bot.editMessageTextExt(statusWithClient, resultMessage, {
                     chat_id: msg.chat.id,
                     message_id: resultMessage.message_id,
                     reply_markup: {
@@ -333,7 +333,7 @@ export default class StatusController implements BotController {
             bot.addLiveMessage(
                 resultMessage,
                 BotCustomEvent.statusLive,
-                () => StatusController.liveStatusHandler(bot, resultMessage, short, mode, language),
+                () => void StatusController.liveStatusHandler(bot, resultMessage, short, mode, language),
                 {
                     functionName: StatusController.liveStatusHandler.name,
                     module: __filename,
@@ -348,7 +348,7 @@ export default class StatusController implements BotController {
     @AllowedChats(PublicChats)
     static async shouldIGoHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
-            bot.sendChatAction(msg.chat.id, "typing", msg);
+            void bot.sendChatAction(msg.chat.id, "typing", msg);
 
             const state = spaceService.getState();
             const inside = userService.getPeopleInside();
@@ -458,13 +458,13 @@ export default class StatusController implements BotController {
     ])
     @UserRoles(TrustedMembers)
     static inForceHandler(bot: HackerEmbassyBot, msg: Message, durationString?: string, username?: string) {
-        this.inHandler(bot, msg, false, durationString, username);
+        void this.inHandler(bot, msg, false, durationString, username);
     }
 
     @Route(["inghost", "ghost"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [match[1]])
     @UserRoles(TrustedMembers)
     static inGhostHandler(bot: HackerEmbassyBot, msg: Message, durationString?: string, username?: string) {
-        this.inHandler(bot, msg, true, durationString, username);
+        void this.inHandler(bot, msg, true, durationString, username);
     }
 
     @Route(["in", "iaminside"], OptionalParam(RegExp(`(?:for )?(${DURATION_STRING_REGEX.source})`)), match => [false, match[1]])
@@ -520,7 +520,7 @@ export default class StatusController implements BotController {
     @Route(["outforce", "outf", "gohome"], /(\S+)/, match => [match[1]])
     @UserRoles(TrustedMembers)
     static outForceHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
-        this.outHandler(bot, msg, username);
+        void this.outHandler(bot, msg, username);
     }
 
     @Route(["out", "iamleaving"])
@@ -649,7 +649,7 @@ export default class StatusController implements BotController {
             return user ? `${mac} - @${user.username ?? user.first_name}` : mac;
         });
 
-        bot.sendMessageExt(msg.chat.id, "#*Detected devices:#*\n" + devicesWithOwners.join("\n"), msg);
+        void bot.sendMessageExt(msg.chat.id, "#*Detected devices:#*\n" + devicesWithOwners.join("\n"), msg);
     }
 
     static async autoinout(bot: HackerEmbassyBot, checkInside: boolean): Promise<void> {
@@ -734,13 +734,13 @@ export default class StatusController implements BotController {
 
     @Route(["me"])
     static meHandler(bot: HackerEmbassyBot, msg: Message) {
-        this.profileHandler(bot, msg);
+        void this.profileHandler(bot, msg);
     }
 
     @Route(["profile"], /(\S+)/, match => [match[1]])
     @UserRoles(Accountants)
     static async profileHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
         const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : sender;
@@ -776,7 +776,7 @@ export default class StatusController implements BotController {
     @Route(["statsof"], /(\S+)/, match => [match[1]])
     @Route(["mystats"])
     static async statsOfHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
         const target = username ? (UsersRepository.getUserByName(username.replace("@", "")) ?? sender) : sender;
@@ -794,7 +794,7 @@ export default class StatusController implements BotController {
     @Route(["month", "statsmonth", "monthstats"])
     @Route(["lastmonth", "statslastmonth", "lastmonthstats"], null, () => [new Date().getMonth() - 1])
     static async statsMonthHandler(bot: HackerEmbassyBot, msg: Message, month?: number) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const currentDate = new Date();
         const resultDate = new Date();
@@ -814,7 +814,7 @@ export default class StatusController implements BotController {
     @Route(["stats"], OptionalParam(/(?:from (\S+) ?)?(?:to (\S+))?/), match => [match[1], match[2]])
     @Route(["statsall", "allstats"], null, () => [botConfig.launchDate])
     static async statsHandler(bot: HackerEmbassyBot, msg: Message, fromDateString?: string, toDateString?: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         if (!fromDateString && !toDateString) return bot.sendMessageExt(msg.chat.id, t("status.stats.help"), msg);
 

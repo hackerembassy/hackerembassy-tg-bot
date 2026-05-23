@@ -1,7 +1,5 @@
 import { Message } from "node-telegram-bot-api";
 
-import { Topic } from "@data/models";
-
 import logger from "@services/common/logger";
 import SubscriptionsService from "@services/domain/subscriptions";
 import { splitArray } from "@utils/common";
@@ -29,14 +27,11 @@ export default class SubscriptionsController implements BotController {
             }
 
             const topics = listTopics(
-                subscriptions.map(
-                    subscription =>
-                        ({
-                            id: subscription.topic_id,
-                            name: subscription.topic.name,
-                            description: subscription.topic.description,
-                        }) as Topic
-                )
+                subscriptions.map(subscription => ({
+                    id: subscription.topic_id,
+                    name: subscription.topic.name,
+                    description: subscription.topic.description,
+                }))
             );
 
             const inline_keyboard = [

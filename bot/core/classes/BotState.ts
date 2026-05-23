@@ -38,7 +38,7 @@ export default class BotState {
                 this.history = persistedState.history;
                 this.messages = persistedState.messages;
                 this.liveChats = persistedState.liveChats;
-                this.initLiveChats();
+                void this.initLiveChats();
                 this.flags = persistedState.flags;
                 this.fileIdCache = persistedState.fileIdCache;
 
@@ -95,7 +95,7 @@ export default class BotState {
 
         this.liveChats = this.liveChats.filter(lc => toRemove.indexOf(lc) === -1);
 
-        this.persistChanges();
+        void this.persistChanges();
     }
 
     clearState() {
@@ -107,7 +107,7 @@ export default class BotState {
         this.messages = {};
         this.flags = { ...DEFAULT_STATE_FLAGS };
         this.fileIdCache = {};
-        this.persistChanges();
+        void this.persistChanges();
     }
 
     debouncedPersistChanges = debounce(async () => {

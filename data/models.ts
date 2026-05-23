@@ -1,4 +1,4 @@
-import { users, donations, funds, needs, subscriptions, topics, userstates, states, apikeys, devices } from "data/schema";
+import { users, donations, funds, needs, subscriptions, topics, userstates, states, apikeys, devices } from "@data/schema";
 
 export type User = typeof users.$inferSelect;
 export type Device = typeof devices.$inferSelect;

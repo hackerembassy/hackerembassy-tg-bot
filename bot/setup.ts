@@ -129,13 +129,10 @@ export function addSpecialRoutes(bot: HackerEmbassyBot): void {
 }
 
 export function addEventHandlers(bot: HackerEmbassyBot) {
-    broadcast.addListener(BroadcastEvents.SpaceOpened, state => {
-        StatusController.openedNotificationHandler(bot, state);
-    });
-    broadcast.addListener(BroadcastEvents.SpaceClosed, state => {
-        StatusController.closedNotificationHandler(bot, state);
-    });
-    broadcast.addListener(BroadcastEvents.SpaceUnlocked, username => {
-        EmbassyController.unlockedNotificationHandler(bot, username);
-    });
+    broadcast.addListener(BroadcastEvents.SpaceOpened, state => void StatusController.openedNotificationHandler(bot, state));
+    broadcast.addListener(BroadcastEvents.SpaceClosed, state => void StatusController.closedNotificationHandler(bot, state));
+    broadcast.addListener(
+        BroadcastEvents.SpaceUnlocked,
+        username => void EmbassyController.unlockedNotificationHandler(bot, username)
+    );
 }

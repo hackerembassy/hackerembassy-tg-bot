@@ -52,7 +52,7 @@ export default class AdminController implements BotController {
                         if (key === "callback_data") {
                             return JSON.stringify(value);
                         }
-                        return value;
+                        return value as unknown;
                     }) as (InlineKeyboardButton & { cmd?: string; bot?: string })[]
             );
 
@@ -326,7 +326,7 @@ export default class AdminController implements BotController {
             }
 
             return setTimeout(
-                () => bot.deleteMessages(banMessage.chat.id, messagesToDelete).catch(logger.error),
+                () => void bot.deleteMessages(banMessage.chat.id, messagesToDelete).catch(logger.error),
                 removeBanMessageTimeout
             );
         } catch (error) {
@@ -337,7 +337,8 @@ export default class AdminController implements BotController {
             if (isPrivate) return;
 
             return setTimeout(
-                () => failedMessage && bot.deleteMessage(failedMessage.chat.id, failedMessage.message_id).catch(logger.error),
+                () =>
+                    failedMessage && void bot.deleteMessage(failedMessage.chat.id, failedMessage.message_id).catch(logger.error),
                 removeBanMessageTimeout
             );
         }
@@ -350,7 +351,7 @@ export default class AdminController implements BotController {
 
         bot.chatBridge.link(Number(target), msg.chat.id);
 
-        bot.sendMessageExt(msg.chat.id, `Chat ${target} is linked to admin ${msg.from?.username}`, msg);
+        void bot.sendMessageExt(msg.chat.id, `Chat ${target} is linked to admin ${msg.from?.username}`, msg);
     }
 
     @Route(["unlinkchat"])
@@ -360,7 +361,7 @@ export default class AdminController implements BotController {
 
         bot.chatBridge.unlink(msg.chat.id);
 
-        bot.sendMessageExt(msg.chat.id, `Chats are unlinked from admin ${msg.from?.username}`, msg);
+        void bot.sendMessageExt(msg.chat.id, `Chats are unlinked from admin ${msg.from?.username}`, msg);
     }
 
     @Route(["getlinkedchat"])
@@ -370,11 +371,7 @@ export default class AdminController implements BotController {
 
         const linkedChats = bot.chatBridge.getLinkedChat(msg.chat.id);
 
-        if (linkedChats) {
-            bot.sendMessageExt(msg.chat.id, `Linked chat: ${linkedChats}`, msg);
-        } else {
-            bot.sendMessageExt(msg.chat.id, "No linked chats", msg);
-        }
+        void bot.sendMessageExt(msg.chat.id, linkedChats ? `Linked chat: ${linkedChats}` : "No linked chats", msg);
     }
 
     @Route(["copy"], OptionalParam(/(\S+?)/), match => [match[1]])
@@ -405,7 +402,7 @@ export default class AdminController implements BotController {
         if (!messageIdToCopy || !targetChatId) return bot.sendMessageExt(msg.chat.id, t("admin.save.help"), msg);
 
         if (!isButtonResponse && replyMessage?.message_id) {
-            bot.sendMessageExt(msg.chat.id, t("admin.save.success"), msg, {
+            void bot.sendMessageExt(msg.chat.id, t("admin.save.success"), msg, {
                 reply_to_message_id: replyMessage.message_id,
                 message_thread_id: replyMessage.message_thread_id,
                 allow_sending_without_reply: true,
@@ -431,9 +428,6 @@ export default class AdminController implements BotController {
     static async dieHandler(bot: HackerEmbassyBot, msg: Message) {
         await bot.sendMessageExt(msg.chat.id, "☠️ Oh no, im ded (docker pls save me)", msg);
         logger.info(`Bot is shutting down by admin command from ${msg.from?.username} (${msg.from?.id})`);
-        setTimeout(async () => {
-            await bot.stopPolling();
-            process.exit(0);
-        }, 5000);
+        setTimeout(() => void bot.stopPolling().then(() => process.exit(0)), 5000);
     }
 }

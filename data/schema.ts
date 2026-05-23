@@ -1,6 +1,8 @@
 import { sqliteTable, integer, text, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
+import { UserStateChangeType, UserStateType } from "./types";
+
 export const states = sqliteTable("states", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
     open: integer("open").notNull(),
@@ -104,10 +106,10 @@ export const needs = sqliteTable("needs", {
 
 export const userstates = sqliteTable("userstates", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    status: integer("status").notNull(),
+    status: integer("status").notNull().$type<UserStateType>(),
     date: integer("date").notNull(),
     until: integer("until").default(sql`(NULL)`),
-    type: integer("type").default(0).notNull(),
+    type: integer("type").default(0).notNull().$type<UserStateChangeType>(),
     note: text("note").default(sql`(NULL)`),
     user_id: integer("user_id")
         .notNull()

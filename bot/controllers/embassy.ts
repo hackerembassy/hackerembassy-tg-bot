@@ -95,7 +95,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(Members)
     static async allCamsHandler(bot: HackerEmbassyBot, msg: Message) {
-        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
+        void bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
             const images = await embassyService.getAllCameras();
@@ -140,7 +140,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(Members)
     static async webcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string) {
-        bot.sendChatAction(msg.chat.id, "upload_photo", msg);
+        void bot.sendChatAction(msg.chat.id, "upload_photo", msg);
 
         try {
             const context = bot.context(msg);
@@ -177,7 +177,7 @@ export default class EmbassyController implements BotController {
                 bot.addLiveMessage(
                     resultMessage,
                     BotCustomEvent.camLive,
-                    () => EmbassyController.liveWebcamHandler(bot, resultMessage, camName, mode),
+                    () => void EmbassyController.liveWebcamHandler(bot, resultMessage, camName, mode),
                     {
                         functionName: EmbassyController.liveWebcamHandler.name,
                         module: __filename,
@@ -218,7 +218,7 @@ export default class EmbassyController implements BotController {
     @Route(["climate", "temp"])
     @FeatureFlag("embassy")
     static async climateHandler(bot: HackerEmbassyBot, msg: Message) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             const climateInfo = await embassyService.getSpaceClimate();
@@ -237,7 +237,7 @@ export default class EmbassyController implements BotController {
     @Route(["printerstatus"], /(.*\S)/, match => [match[1]])
     @FeatureFlag("embassy")
     static async printerStatusHandler(bot: HackerEmbassyBot, msg: Message, printername: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             const { status, thumbnailBuffer, cam } = await embassyService.getPrinterStatus(printername);
@@ -280,7 +280,7 @@ export default class EmbassyController implements BotController {
     }
 
     static async wakeHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             await embassyService.wakeDevice(deviceName);
@@ -327,7 +327,7 @@ export default class EmbassyController implements BotController {
     }
 
     static async shutdownHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             await embassyService.shutdownDevice(deviceName);
@@ -345,7 +345,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(Members)
     static async pingHandler(bot: HackerEmbassyBot, msg: Message, deviceName: string, raw: boolean = false) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             const body = await embassyService.pingDevice(deviceName);
@@ -397,7 +397,7 @@ export default class EmbassyController implements BotController {
     @Route(["sayinspace", "say", "announce"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("embassy")
     static async sayinspaceHandler(bot: HackerEmbassyBot, msg: Message, text: string) {
-        bot.sendChatAction(msg.chat.id, "upload_voice", msg);
+        void bot.sendChatAction(msg.chat.id, "upload_voice", msg);
 
         try {
             if (!text) return bot.sendMessageExt(msg.chat.id, t("embassy.say.help"), msg);
@@ -414,7 +414,7 @@ export default class EmbassyController implements BotController {
     @Route(["textinspace", "text"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("embassy")
     static async textinspaceHandler(bot: HackerEmbassyBot, msg: Message, text?: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             if (!text || text.length === 0) return bot.sendMessageExt(msg.chat.id, t("embassy.text.help"), msg);
@@ -441,7 +441,7 @@ export default class EmbassyController implements BotController {
     @Route(["htmlinspace", "html"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("embassy")
     static async htmlinspaceHandler(bot: HackerEmbassyBot, msg: Message, html?: string) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             if (!html || html.length === 0) return bot.sendMessageExt(msg.chat.id, t("embassy.html.help"), msg);
@@ -487,7 +487,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
     static async stopMediaHandler(bot: HackerEmbassyBot, msg: Message, silentMessage: boolean = false) {
-        bot.sendChatAction(msg.chat.id, "upload_document", msg);
+        void bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {
             await embassyService.stopMedia();
@@ -503,7 +503,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
     static async availableSoundsHandler(bot: HackerEmbassyBot, msg: Message) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             const availableSounds = await embassyService.getSounds();
@@ -544,7 +544,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
     static async playinspaceHandler(bot: HackerEmbassyBot, msg: Message, linkOrName: string, silentMessage: boolean = false) {
-        bot.sendChatAction(msg.chat.id, "upload_document", msg);
+        void bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
         try {
             if (!linkOrName) return bot.sendMessageExt(msg.chat.id, t("embassy.play.help"), msg);
@@ -563,7 +563,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @UserRoles(TrustedMembers)
     static async conditionerHandler(bot: HackerEmbassyBot, msg: Message, name: AvailableConditioner) {
-        if (!bot.context(msg).isEditing) bot.sendChatAction(msg.chat.id, "typing", msg);
+        if (!bot.context(msg).isEditing) void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         let text = t("embassy.conditioner.unavailable");
         const buttonFlags = ButtonFlags.Silent | ButtonFlags.Editing;
@@ -703,7 +703,7 @@ export default class EmbassyController implements BotController {
         action: ConditionerActions,
         body: unknown
     ) {
-        bot.sendChatAction(msg.chat.id, "typing", msg);
+        void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         try {
             await embassyService.controlConditioner(name, action, body);
@@ -727,7 +727,7 @@ export default class EmbassyController implements BotController {
         if (!prompt && !photoId) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.help"), msg);
 
         try {
-            bot.sendChatAction(msg.chat.id, "upload_document", msg);
+            void bot.sendChatAction(msg.chat.id, "upload_document", msg);
 
             const [positive_prompt, negative_prompt] = prompt ? prompt.split("!=", 2).map(pr => pr.trim()) : ["", ""];
             const imageBuffer = await (photoId
@@ -770,19 +770,27 @@ export default class EmbassyController implements BotController {
 
         if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help") + t("embassy.neural.ask.usage"), msg);
 
-        const loading = setInterval(() => bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
+        const loading = setInterval(() => void bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
         try {
-            bot.sendChatAction(msg.chat.id, "typing", msg);
+            void bot.sendChatAction(msg.chat.id, "typing", msg);
 
             if (model === "burivuh26" || model === "burivuh") {
-                return bot.sendMessageExt(msg.chat.id, `@burivuh26, ${combined}`, msg);
+                return await bot.sendMessageExt(msg.chat.id, `@burivuh26, ${combined}`, msg);
             }
 
             if (model === "gpt" || model === neuralConfig.openai.model)
-                return bot.sendMessageExt(msg.chat.id, await openAI.askChat(combined, t("embassy.neural.contexts.default")), msg);
+                return await bot.sendMessageExt(
+                    msg.chat.id,
+                    await openAI.askChat(combined, t("embassy.neural.contexts.default")),
+                    msg
+                );
 
-            await bot.sendStreamedMessage(msg.chat.id, await openwebui.generateOpenAiStream(combined, imageBase64, model), msg);
+            return await bot.sendStreamedMessage(
+                msg.chat.id,
+                await openwebui.generateOpenAiStream(combined, imageBase64, model),
+                msg
+            );
         } catch (error) {
             if (error instanceof MessageStreamingError && error.message === MODEL_NOT_FOUND_ERROR) {
                 return bot.sendMessageExt(
@@ -791,8 +799,9 @@ export default class EmbassyController implements BotController {
                     msg
                 );
             }
-            bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
             logger.error(error);
+
+            return await bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.error"), msg);
         } finally {
             clearInterval(loading);
         }

@@ -8,6 +8,12 @@ import { SEED_TEST_USERS } from "@data/seed";
 
 fetchMock.enableMocks();
 
+jest.mock("@utils/meta", () => {
+    return {
+        rootDir: process.cwd(),
+    };
+});
+
 nock("https://api.telegram.org")
     .post(() => true)
     .reply(200, {

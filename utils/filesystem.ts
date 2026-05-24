@@ -1,11 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import url from "node:url";
 
 import fetch from "node-fetch";
 import { file } from "tmp-promise";
-
-export const PROJECT_ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..");
 
 export function lastModifiedFilePath(logfolderpath: string): string | undefined {
     const files = fs.readdirSync(logfolderpath);
@@ -58,3 +55,5 @@ export function readFirstExistingFile(...files: string[]): string | null {
     }
     return null;
 }
+
+export { rootDir as PROJECT_ROOT } from "./meta";

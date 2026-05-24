@@ -6,17 +6,12 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import Database from "better-sqlite3";
 
-import { PROJECT_ROOT } from "@utils/filesystem";
-
 import * as schema from "./schema";
 import * as relations from "./relations";
 import { SEED_SERVICE_USERS } from "./seed";
 import { User } from "./models";
 
-export function getOrCreateDb(
-    shouldInit = process.env.NODE_ENV === "production",
-    location: string = path.join(PROJECT_ROOT, "data/db/data.db")
-) {
+export function getOrCreateDb(shouldInit = process.env.NODE_ENV === "production", location: string) {
     try {
         let isNewDatabase = false;
 
@@ -36,7 +31,7 @@ export function getOrCreateDb(
         const drizzleDb = drizzle(db, { schema: { ...schema, ...relations } });
 
         if (isNewDatabase) {
-            migrate(drizzleDb, { migrationsFolder: path.join(PROJECT_ROOT, "data/migrations") });
+            migrate(drizzleDb, { migrationsFolder: path.join(process.cwd(), "data/migrations") });
             void seedUsers(SEED_SERVICE_USERS);
         }
 

@@ -1,15 +1,17 @@
 /* eslint-disable no-console */
 import { execSync } from "node:child_process";
+import path from "node:path";
 import { existsSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 
 import { getOrCreateDb } from "@data/scripts";
+import { PROJECT_ROOT } from "@utils/filesystem";
 
 console.log(
     "[DEV] Preparing bot before the first launch.\n ! You need to have ssh-keygen installed in PATH to succesfully generate keys for embassy API"
 );
 
-getOrCreateDb(true);
+getOrCreateDb(true, path.join(PROJECT_ROOT, "db/data.db"));
 
 const UsersRepository = (await import("@repositories/users")).default;
 

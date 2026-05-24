@@ -11,13 +11,14 @@
         "typeRoots": ["./node_modules/@types", "./typings"],
         "types": ["node", "jest"],
         "paths": {
-            "@utils/*": ["./utils/*"],
-            "@services/*": ["./services/*"],
-            "@data/*": ["./data/*"],
-            "@repositories/*": ["./repositories/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@services/*": ["./src/services/*"],
+            "@data/*": ["./src/data/*"],
+            "@constants/*": ["./src/constants/*"],
             "@config": ["./config/schema"],
-            "@hackembot/*": ["./bot/*"],
-            "@hackemapi/*": ["./api/*"]
+            "@hackembot/*": ["./src/bot/*"],
+            "@hackemapi/*": ["./src/api/*"],
+            "@resources/*": ["./resources/*"]
         }
     },
     "tsc-alias": {

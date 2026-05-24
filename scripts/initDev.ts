@@ -13,7 +13,7 @@ console.log(
 
 getOrCreateDb(true, path.join(PROJECT_ROOT, "db/data.db"));
 
-const UsersRepository = (await import("@repositories/users")).default;
+const UsersRepository = (await import("@data/repositories/users")).default;
 
 // Read dev telegram username
 const rl = createInterface({

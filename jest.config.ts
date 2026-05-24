@@ -8,12 +8,12 @@ const jestConfig: JestConfigWithTsJest = {
     testLocationInResults: true,
     testPathIgnorePatterns: ["<rootDir>/dist/"],
     moduleNameMapper: {
-        "^@utils/(.*)$": "<rootDir>/utils/$1",
-        "^@services/(.*)$": "<rootDir>/services/$1",
-        "^@data/(.*)$": "<rootDir>/data/$1",
-        "^@repositories/(.*)$": "<rootDir>/repositories/$1",
-        "^@hackembot/(.*)$": "<rootDir>/bot/$1",
-        "^@hackemapi/(.*)$": "<rootDir>/api/$1",
+        "^@utils/(.*)$": "<rootDir>/src/utils/$1",
+        "^@services/(.*)$": "<rootDir>/src/services/$1",
+        "^@data/(.*)$": "<rootDir>/src/data/$1",
+        "^@constants/(.*)$": "<rootDir>/src/constants/$1",
+        "^@hackembot/(.*)$": "<rootDir>/src/bot/$1",
+        "^@hackemapi/(.*)$": "<rootDir>/src/api/$1",
         "^@config$": "<rootDir>/config/schema",
     },
 };

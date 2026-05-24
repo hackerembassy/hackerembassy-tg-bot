@@ -4,9 +4,9 @@ import { copy, ensureDir } from "fs-extra";
 async function postbuild() {
     try {
         await copy("./resources", "./dist/resources");
-        await copy("./data", "./dist/data");
+        await copy("./db", "./dist/db");
         await copy("./config", "./dist/config");
-        await copy("./api/bot/swagger-schema.json", "./dist/api/bot/swagger-schema.json");
+        await copy("./src/api/bot/swagger-schema.json", "./dist/src/api/bot/swagger-schema.json");
         await copy("./package.json", "./dist/package.json");
 
         await ensureDir("./dist/log");

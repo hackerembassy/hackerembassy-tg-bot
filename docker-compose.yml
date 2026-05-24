@@ -5,8 +5,8 @@ services:
             context: "."
             dockerfile: ./deploy/Containerfile
         volumes:
-            - config:/app/config/sec
-            - db:/app/data/db
+            - config:/app/config
+            - db:/app/db
             - logs:/app/log
         environment:
             - NODE_ENV=production

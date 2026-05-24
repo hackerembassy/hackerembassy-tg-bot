@@ -46,7 +46,7 @@ jest.mock("@utils/network", () => {
     };
 });
 
-jest.mock("../data/db", () => {
+jest.mock("@data/db", () => {
     const testDb = getOrCreateDb(true, ":memory:");
 
     void seedUsers(SEED_TEST_USERS);

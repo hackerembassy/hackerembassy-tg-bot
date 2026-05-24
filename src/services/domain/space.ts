@@ -1,0 +1,46 @@
+import statusRepository from "@data/repositories/status";
+
+import { User } from "@data/models";
+import { UserStateChangeType } from "@data/types";
+
+import broadcast, { BroadcastEvents } from "../common/broadcast";
+import { userService } from "./user";
+
+export class SpaceService {
+    public getState() {
+        return statusRepository.getSpaceLastState();
+    }
+
+    public openSpace(opener: User, checkOpener: boolean = false): void {
+        const opendate = new Date();
+        const state = {
+            open: 1,
+            date: opendate.getTime(),
+            changer_id: opener.userid,
+            changer: opener,
+        };
+
+        statusRepository.pushSpaceState(state);
+
+        broadcast.emit(BroadcastEvents.SpaceOpened, state);
+
+        if (!checkOpener) return;
+
+        userService.letIn(opener, UserStateChangeType.Opened, opendate);
+    }
+
+    public closeSpace(closer: User): void {
+        const state = {
+            open: 0,
+            date: Date.now(),
+            changer_id: closer.userid,
+            changer: closer,
+        };
+
+        statusRepository.pushSpaceState(state);
+
+        broadcast.emit(BroadcastEvents.SpaceClosed, state);
+    }
+}
+
+export const spaceService = new SpaceService();

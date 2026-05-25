@@ -597,7 +597,7 @@ funds:
             🧾 Accountant {{username}} has the following donations:
 
             {{donationList}}
-            💰 Total {{total}} {{currency}} day
+            💰 Total {{total}} {{currency}}
 
             🛂 You can transfer a donation using the following commands:
             #`/tosafe id#` - Transfer donation to safe by id (or several ids, separated by commas)

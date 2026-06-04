@@ -392,7 +392,16 @@ embassy:
             Վեբ ինտերֆեյսը հասանելի է space-ի ցանցում՝ {{anetteApi}} հասցեով
             Տպիչի կարգավիճակը կարող ես գտնել /anette հրամանով։
 
+            😈 Shaytan-ը krikun98-ից
+            Փաստաթղթերը հասանելի են այստեղ.
+            https://lore.hackem.cc/s/main/doc/shaytan-creality-k2-pTxj87AK9d
+            Վեբ ինտերֆեյսը հասանելի է space-ի ցանցում՝ {{shaytanApi}} հասցեով
+            Տպիչի կարգավիճակը կարող ես գտնել /shaytan հրամանով։
+
+            Եթե 3D տպագրության հետ կապված հարցեր ունես, ազատ զգա հարցնել stripped_edie-ին և krikun98-ին
+
         anettestatus: Անետի կարգավիճակը
+        shaytanstatus: Շայթանի կարգավիճակը
     printerstatus:
         statusheader: "💤 Տպիչի կարգավիճակը՝ {{state}}"
         status: |

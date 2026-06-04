@@ -198,7 +198,10 @@ export default class EmbassyController implements BotController {
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
         const inline_keyboard = [
-            [InlineButton(t("embassy.printers.anettestatus"), "printerstatus", ButtonFlags.Simple, { params: "anette" })],
+            [
+                InlineButton(t("embassy.printers.anettestatus"), "printerstatus", ButtonFlags.Simple, { params: "anette" }),
+                InlineButton(t("embassy.printers.shaytanstatus"), "printerstatus", ButtonFlags.Simple, { params: "shaytan" }),
+            ],
             [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 
@@ -233,6 +236,7 @@ export default class EmbassyController implements BotController {
         }
     }
 
+    @Route(["shaytan", "shaytanstatus"], null, () => ["shaytan"])
     @Route(["anette", "anettestatus", "anetta", "anettastatus"], null, () => ["anette"])
     @Route(["printerstatus"], /(.*\S)/, match => [match[1]])
     @FeatureFlag("embassy")

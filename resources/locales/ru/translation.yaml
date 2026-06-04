@@ -395,7 +395,16 @@ embassy:
             Веб интерфейс доступен внутри сети спейса по адресу {{anetteApi}}
             Статус принтера можно узнать по команде /anette
 
+            😈 Shaytan от krikun98
+            Документация доступна тут:
+            https://lore.hackem.cc/s/main/doc/shaytan-creality-k2-pTxj87AK9d
+            Веб интерфейс доступен внутри сети спейса по адресу {{shaytanApi}}
+            Статус принтера можно узнать по команде /shaytan
+
+            Если у тебя возникнут вопросы по 3D печати, не стесняйся спрашивать stripped_edie и krikun98
+
         anettestatus: Статус Anette
+        shaytanstatus: Статус Shaytan
     printerstatus:
         statusheader: "💤 Статус принтера: {{state}}"
         status: |

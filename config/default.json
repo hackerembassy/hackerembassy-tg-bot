@@ -121,6 +121,10 @@
         "anette": {
             "apibase": "http://printer-anette.lan",
             "camport": 8080
+        },
+        "shaytan": {
+            "apibase": "http://printer-shaytan.lan",
+            "camport": 4408
         }
     },
     "embassy-api": {

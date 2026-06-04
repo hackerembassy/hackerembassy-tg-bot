@@ -28,6 +28,7 @@ export const GeneralCommandsList: string = `[Команды гостей]
 Принтеры:
 /printers - О наших 3D принтерах
 /anette - Статус 3D принтера Anette
+/shaytan - Статус 3D принтера Shaytan
 
 Сборы:
 /funds (fs) - Наши открытые сборы

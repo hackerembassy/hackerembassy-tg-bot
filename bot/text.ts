@@ -358,7 +358,10 @@ export function getBirthdaysList(birthdayUsers: Nullable<User[]> | undefined, mo
 }
 
 export function getPrintersInfo(): string {
-    return t("embassy.printers.help", { anetteApi: printersConfig.anette.apibase });
+    return t("embassy.printers.help", { 
+        anetteApi: printersConfig.anette.apibase,
+        shaytanApi: printersConfig.shaytan.apibase
+     });
 }
 
 export function getPrinterStatusText(status: PrinterStatus): string {

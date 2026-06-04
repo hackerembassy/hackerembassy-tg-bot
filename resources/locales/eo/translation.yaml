@@ -395,7 +395,16 @@ embassy:
             La reta interfaco estas havebla ene de la spaca reto ĉe {{anetteApi}}
             La presila statuso povas esti trovita uzante la komandon /anette.
 
+            😈 Shaytan estas de krikun98
+            Dokumentado estas havebla ĉi tie:
+            https://lore.hackem.cc/s/main/doc/shaytan-creality-k2-pTxj87AK9d
+            La reta interfaco estas havebla ene de la spaca reto ĉe {{shaytanApi}}
+            La presila statuso povas esti trovita uzante la komandon /shaytan.
+
+            Se vi havas demandojn pri 3D-presado, ne hezitu demandi stripped_edie kaj krikun98
+
         anettestatus: Statuso de Anette
+        shaytanstatus: Statuso de Shaytan
     printerstatus:
         statusheader: "💤 Presila statuso: {{state}}"
         status: |

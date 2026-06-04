@@ -392,11 +392,20 @@ embassy:
 
             🚺 Anette from ubershy and cake64
             Documentation for it is available here:
-            https://lore.hackem.cc/s/main/doc/anette-xVZmu2XQSl
+            https://lore.hackem.cc/s/main/doc/instrukciya-k-primeneniyu-anneta-OA1qb3yQxU 
             The web interface is available within the space network at {{anetteApi}}
             The printer status can be found using the /anette command.
 
+            😈 Shaytan is from krikun98
+            Documentation is available here: 
+            https://lore.hackem.cc/s/main/doc/shaytan-creality-k2-pTxj87AK9d
+            The web interface is available within the space network at {{shaytanApi}}
+            The printer status can be found using the /shaytan command. 
+
+            If you have any questions about 3D printing do not hesitate to ask stripped_edie and krikun98
+
         anettestatus: Anette status
+        shaytanstatus: Shaytan status
     printerstatus:
         statusheader: "💤 Printer status: {{state}}"
         status: |

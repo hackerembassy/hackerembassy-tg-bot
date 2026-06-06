@@ -793,7 +793,7 @@ status:
         🔑 Space #*open#* for guests by {{username}}. A great reason to come!
     open-alert: 🔑 Space was opened by user {{user}}
     close: |
-        🔒 Space #*closed#* {{username}}. All those who checked in were sent home.
+        🔒 Space was #*closed#* by {{username}}. All those who checked in were sent home.
     close-alert: 🔒 Space was closed by user {{user}}
     evict: 🔒 The check-in list has been cleared.
     in:

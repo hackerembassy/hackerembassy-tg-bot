@@ -1,4 +1,4 @@
-import fundsRepository from "@repositories/funds";
+import fundsRepository from "@data/repositories/funds";
 import { TEST_USERS } from "@data/seed";
 
 import { createMockBot, createMockMessage } from "../mocks/bot";

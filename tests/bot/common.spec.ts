@@ -1,6 +1,6 @@
 import { IGNORE_UPDATE_TIMEOUT } from "@hackembot/core/constants";
 
-import fundsRepository from "@repositories/funds";
+import fundsRepository from "@data/repositories/funds";
 import { TEST_USERS } from "@data/seed";
 
 import { createMockBot, createMockMessage } from "../mocks/bot";
@@ -113,7 +113,7 @@ describe("Bot behavior shared for all commands:", () => {
         }
 
         await jest.runAllTimersAsync();
-        const expectedForbiddenResponses = Array(protectedCommands.length).fill("general\\.errors\\.restricted");
+        const expectedForbiddenResponses = Array.from({ length: protectedCommands.length }).fill("general\\.errors\\.restricted");
 
         expect(mockBot.popResults()).toEqual(expectedForbiddenResponses);
     });

@@ -35,7 +35,7 @@ describe("Basic commands:", () => {
             })
         );
 
-        expect(mockBot.popResults()).toEqual(Array(cryptoCommands.length).fill("basic\\.donateCoin"));
+        expect(mockBot.popResults()).toEqual(Array.from({ length: cryptoCommands.length }).fill("basic\\.donateCoin"));
     });
 
     test("should return correct donate responses", async () => {

@@ -82,7 +82,7 @@ describe("utils/date", () => {
             expect(isIsoDateString("2024-1-1")).toBe(false);
             expect(isIsoDateString("not-a-date")).toBe(false);
             expect(isIsoDateString("")).toBe(false);
-            expect(isIsoDateString(undefined)).toBe(false);
+            expect(isIsoDateString()).toBe(false);
         });
     });
 });

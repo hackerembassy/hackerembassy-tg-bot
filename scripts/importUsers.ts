@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-import fs from "fs";
+import fs from "node:fs";
 
-import usersRepository from "@repositories/users";
+import usersRepository from "@data/repositories/users";
 
 function importUsers(fromFile: string) {
-    console.log("Importing users from: ", fromFile);
+    console.log("Importing users from:", fromFile);
     console.log("=======================");
     if (!fromFile) {
         console.log("Please provide a file to import from");

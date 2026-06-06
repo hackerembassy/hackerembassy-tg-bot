@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Stream } from "stream";
+import { Stream } from "node:stream";
 
 import TelegramBot, { ChatId, Message, SendMessageOptions, SendPhotoOptions } from "node-telegram-bot-api";
 
@@ -18,7 +18,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
     override async sendMessage(chatId: ChatId, text: string, options: SendMessageOptions): Promise<Message> {
         this.results.push(text);
         await sleep(0);
-        return Promise.resolve({ message_id: 1, date: 0, chat: { id: chatId, type: "private" }, text } as Message);
+        return { message_id: 1, date: 0, chat: { id: chatId, type: "private" }, text } as Message;
     }
 
     override async sendPhoto(
@@ -29,14 +29,15 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
     ): Promise<Message> {
         this.results.push(options.caption ?? "");
         await sleep(0);
-        return Promise.resolve({
+        return {
             message_id: 1,
             date: 0,
             chat: { id: chatId, type: "private" },
             caption: options.caption,
-        } as Message);
+        } as Message;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async processUpdate(update: TelegramBot.Update) {
         super.processUpdate(update);
         await sleep(100); // Simulating async processing and clearing microtasks

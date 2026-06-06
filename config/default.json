@@ -28,7 +28,7 @@
             "notifications": 5000
         },
         "autoWish": true,
-        "persistedfolderpath": "data/db",
+        "persistedfolderpath": "db",
         "history": {
             "commandsLimit": 50,
             "messagesLimit": 1000,
@@ -69,29 +69,12 @@
             "greetings": true,
             "voice": true
         },
-        "moderatedChats": [
-            -1001605898533
-        ],
+        "moderatedChats": [-1001605898533],
         "guess": {
-            "ignoreList": [
-                "q",
-                "qs",
-                "qrand",
-                "qdrand",
-                "qd",
-                "qtop",
-                "patternify",
-                "piska",
-                "leaders"
-            ]
+            "ignoreList": ["q", "qs", "qrand", "qdrand", "qd", "qtop", "patternify", "piska", "leaders"]
         },
         "funds": {
-            "alternativeUsernames": [
-                "dipierro",
-                "keimoger",
-                "MrPhoenix",
-                "thronglet"
-            ],
+            "alternativeUsernames": ["dipierro", "keimoger", "MrPhoenix", "thronglet"],
             "sponsorship": {
                 "levels": {
                     "platinum": 262144,

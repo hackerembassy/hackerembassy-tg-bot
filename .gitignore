@@ -8,7 +8,10 @@ config/spaceapi.local.json
 translation.local.yaml
 node_modules
 data.db
-data/db/*
+data.db-journal
+data.db-shm
+data.db-wal
+db
 *.log
 sec
 tmp.jpg

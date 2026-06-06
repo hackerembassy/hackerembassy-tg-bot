@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import js from "@eslint/js";
 import prettier from "eslint-plugin-prettier";
+import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import importPlugin from "eslint-plugin-import";
 import { configs } from "typescript-eslint";
 
@@ -11,6 +12,7 @@ export default defineConfig([
     js.configs.recommended,
     importPlugin.flatConfigs.recommended,
     importPlugin.flatConfigs.typescript,
+    eslintPluginUnicorn.configs.recommended,
     configs.recommendedTypeChecked,
 
     {
@@ -30,6 +32,7 @@ export default defineConfig([
 
         plugins: {
             prettier,
+            unicorn: eslintPluginUnicorn,
         },
 
         settings: {
@@ -49,10 +52,10 @@ export default defineConfig([
             "@typescript-eslint/no-var-requires": "error",
             "@typescript-eslint/no-this-alias": "error",
             "@typescript-eslint/no-explicit-any": "error",
-            "@typescript-eslint/no-misused-promises": "off",
-            "@typescript-eslint/no-floating-promises": "off",
+            "@typescript-eslint/no-misused-promises": "error",
+            "@typescript-eslint/no-floating-promises": "error",
             "@typescript-eslint/unbound-method": "off",
-            "@typescript-eslint/no-unsafe-return": "off",
+            "@typescript-eslint/no-unsafe-return": "error",
             "no-duplicate-imports": "error",
             "require-await": "error",
             eqeqeq: "error",
@@ -61,6 +64,26 @@ export default defineConfig([
             "prefer-const": "error",
             "no-console": "warn",
             "no-unexpected-multiline": "warn",
+            "unicorn/no-useless-promise-resolve-reject": "error",
+            "unicorn/prefer-module": "off",
+            "unicorn/prefer-spread": "off",
+            "unicorn/no-await-expression-member": "off",
+            "unicorn/no-nested-ternary": "off",
+            "unicorn/no-array-sort": "off",
+            "unicorn/prefer-event-target": "off",
+            "unicorn/no-array-reduce": "off",
+            "unicorn/no-array-callback-reference": "off",
+            "unicorn/prevent-abbreviations": "off",
+            "unicorn/prefer-string-slice": "off",
+            "unicorn/escape-case": "off",
+            "unicorn/numeric-separators-style": "off",
+            "unicorn/prefer-string-raw": "off",
+            "unicorn/no-process-exit": "off",
+            "unicorn/filename-case": "off",
+            "unicorn/no-hex-escape": "off",
+            "unicorn/no-null": "off",
+            "unicorn/no-useless-switch-case": "off",
+            "unicorn/prefer-math-trunc": "off",
             "import/order": [
                 "error",
                 {

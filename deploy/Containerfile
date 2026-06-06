@@ -1,5 +1,5 @@
 # Build stage
-FROM docker.io/library/node:lts-alpine AS build
+FROM docker.io/library/node:26.2-alpine AS build
 WORKDIR /app
 
 RUN apk add --update --no-cache g++ make python3 &&\
@@ -14,7 +14,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM docker.io/library/node:lts-alpine
+FROM docker.io/library/node:26.2-alpine
 WORKDIR /app
 
 COPY --from=build /app/node_modules ./node_modules

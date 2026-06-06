@@ -5,7 +5,7 @@ services:
             context: "."
             dockerfile: ./deploy/Containerfile
         volumes:
-            - config:/app/config
+            - config:/app/config/sec
             - db:/app/db
             - logs:/app/log
         environment:

@@ -19,7 +19,7 @@
         "stop-embassy-api": "skill -c 'nohup node dist/src/embassy.js &'",
         "start-api-https": "sudo caddy start --config ./deploy/api/Caddyfile 2>/dev/null",
         "kill": "skill -c nohup node dist/src/bot.js &",
-        "backup": "mkdir ./data/backup -p && cp ./data/db/data.db ./data/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
+        "backup": "mkdir ./db/backup -p && cp ./db/data.db ./db/backup/data`date +\"%H%M%S%m%d%Y\"`.db 2>/dev/null",
         "prepare": "husky install",
         "lint": "eslint '**/*.{ts,js}'",
         "lint-fix": "eslint '--fix **/*.{ts,js}'",

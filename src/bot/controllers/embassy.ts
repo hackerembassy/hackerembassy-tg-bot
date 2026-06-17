@@ -260,7 +260,10 @@ export default class EmbassyController implements BotController {
         try {
             const { status, thumbnailBuffer, cam } = await embassyService.getPrinterStatus(printername);
 
-            if (cam) await bot.sendPhotoExt(msg.chat.id, Buffer.from(cam), msg);
+            if (cam)
+                await bot
+                    .sendPhotoExt(msg.chat.id, Buffer.from(cam), msg)
+                    .catch(error => logger.error("Failed to send printer cam image", error));
 
             const caption = TextGenerators.getPrinterStatusText(status);
             const inline_keyboard = [

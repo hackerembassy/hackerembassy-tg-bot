@@ -119,11 +119,13 @@
     },
     "printers": {
         "anette": {
-            "apibase": "http://printer-anette.lan",
+            "host": "http://printer-anette.lan",
+            "apiport": 80,
             "camport": 8080
         },
         "shaytan": {
-            "apibase": "http://printer-shaytan.lan",
+            "host": "http://printer-shaytan.lan",
+            "apiport": 4408,
             "camport": 4408
         }
     },

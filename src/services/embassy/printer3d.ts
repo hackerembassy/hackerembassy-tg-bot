@@ -42,6 +42,9 @@ export type FileMetadataResult = {
 };
 
 export type Thumbnail = {
+    width: number;
+    height: number;
+    size: number;
     relative_path: string;
 };
 
@@ -53,35 +56,45 @@ const printersConfig = config.get<PrintersConfig>("printers");
 // Classes
 export class Printer3d {
     private config: PrinterEndpoint;
+    private apiBase: string;
+    private camBase: string;
 
     constructor(private name: keyof typeof printersConfig) {
         this.config = printersConfig[this.name];
+        this.apiBase = `${this.config.host}:${this.config.apiport}`;
+        this.camBase = `${this.config.host}:${this.config.camport}`;
+    }
+
+    private fetchApi(endpoint: string) {
+        return fetchWithTimeout(`${this.apiBase}${endpoint}`);
+    }
+
+    private fetchCam(endpoint: string) {
+        return fetchWithTimeout(`${this.camBase}${endpoint}`);
     }
 
     async getPrinterStatus() {
-        const response = await fetchWithTimeout(
-            `${this.config.apibase}/printer/objects/query?print_stats&display_status&heater_bed&extruder`
-        );
+        const response = await this.fetchApi(`/printer/objects/query?print_stats&display_status&heater_bed&extruder`);
         const responseBody = (await response.json()) as { result: PrinterStatusResult };
 
         return responseBody.result;
     }
 
     async getFileMetadata(filename: string) {
-        const response = await fetchWithTimeout(`${this.config.apibase}/server/files/metadata?filename=${filename}`);
+        const response = await this.fetchApi(`/server/files/metadata?filename=${filename}`);
         const responseBody = (await response.json()) as { result?: FileMetadataResult };
 
         return responseBody.result;
     }
 
     async getFile(path: string): Promise<Nullable<Buffer>> {
-        const response = await fetchWithTimeout(`${this.config.apibase}/server/files/gcodes/${path}`);
+        const response = await this.fetchApi(`/server/files/gcodes/${path}`);
 
         return response.ok ? response.buffer() : null;
     }
 
     async getCam(): Promise<Nullable<Buffer>> {
-        const response = await fetchWithTimeout(`${this.config.apibase}:${this.config.camport}/snapshot`);
+        const response = await fetchWithTimeout(`${this.camBase}/snapshot`);
 
         return response.ok ? response.buffer() : null;
     }

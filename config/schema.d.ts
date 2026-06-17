@@ -176,8 +176,9 @@ export interface PrintersConfig {
 }
 
 export interface PrinterEndpoint {
-    apibase: string;
-    camport: number;
+    host: string;
+    apiport: number;
+    camport: number | null;
 }
 
 export interface EmbassyApiConfig {

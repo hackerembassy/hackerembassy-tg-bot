@@ -16,6 +16,24 @@ const jestConfig: JestConfigWithTsJest = {
         "^@hackemapi/(.*)$": "<rootDir>/src/api/$1",
         "^@config$": "<rootDir>/config/schema",
     },
+    transform: {
+        "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+                diagnostics: {
+                    ignoreCodes: [1343],
+                },
+                astTransformers: {
+                    before: [
+                        {
+                            path: "ts-jest-mock-import-meta",
+                            options: { metaObjectReplacement: { url: "https://www.url.com" } },
+                        },
+                    ],
+                },
+            },
+        ],
+    },
 };
 
 export default jestConfig;

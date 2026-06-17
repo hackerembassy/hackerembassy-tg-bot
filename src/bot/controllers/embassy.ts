@@ -15,6 +15,8 @@ import { MODEL_NOT_FOUND_ERROR, openwebui } from "@services/neural/openwebui";
 import { openAI } from "@services/neural/openai";
 
 import { sleep } from "@utils/common";
+import { getFilename } from "@utils/meta";
+
 import { fullScreenImagePage } from "@utils/html";
 import {
     AllowedChats,
@@ -29,7 +31,7 @@ import {
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
-import t from "../core/localization";
+import t, { SupportedLanguage } from "../core/localization";
 import { MessageStreamingError } from "../core/errors";
 import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
 import * as helpers from "../core/helpers";
@@ -109,7 +111,13 @@ export default class EmbassyController implements BotController {
         }
     }
 
-    static async liveWebcamHandler(bot: HackerEmbassyBot, msg: Message, camName: string, mode: BotMessageContextMode) {
+    static async liveWebcamHandler(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        camName: string,
+        mode: BotMessageContextMode,
+        language: SupportedLanguage
+    ) {
         await sleep(1000); // Delay to prevent sending too many requests at once. TODO rework
 
         try {
@@ -117,7 +125,13 @@ export default class EmbassyController implements BotController {
 
             const inline_keyboard = mode.static
                 ? []
-                : [[InlineButton(t("status.buttons.refresh"), `webcam`, ButtonFlags.Editing, { params: camName })]];
+                : [
+                      [
+                          InlineButton(t("status.buttons.refresh", undefined, language), `webcam`, ButtonFlags.Editing, {
+                              params: camName,
+                          }),
+                      ],
+                  ];
 
             await bot.editPhoto(webcamImage, msg, {
                 reply_markup: {
@@ -177,11 +191,11 @@ export default class EmbassyController implements BotController {
                 bot.addLiveMessage(
                     resultMessage,
                     BotCustomEvent.camLive,
-                    () => void EmbassyController.liveWebcamHandler(bot, resultMessage, camName, mode),
+                    () => void EmbassyController.liveWebcamHandler(bot, resultMessage, camName, mode, context.language),
                     {
                         functionName: EmbassyController.liveWebcamHandler.name,
-                        module: __filename,
-                        params: [resultMessage, camName, mode],
+                        module: getFilename(import.meta.url),
+                        params: [resultMessage, camName, mode, context.language],
                     }
                 );
             }

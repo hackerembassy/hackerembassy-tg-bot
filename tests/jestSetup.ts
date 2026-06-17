@@ -11,6 +11,8 @@ fetchMock.enableMocks();
 jest.mock("@utils/meta", () => {
     return {
         rootDir: process.cwd(),
+        getFilename: jest.fn((metaUrl: string) => metaUrl),
+        getDirname: jest.fn((metaUrl: string) => metaUrl),
     };
 });
 

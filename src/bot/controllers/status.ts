@@ -25,6 +25,8 @@ import telemetry from "@services/common/telemetry";
 import { sleep } from "@utils/common";
 import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
+import { getFilename } from "@utils/meta";
+
 import {
     Accountants,
     Admins,
@@ -338,7 +340,7 @@ export default class StatusController implements BotController {
                 () => void StatusController.liveStatusHandler(bot, resultMessage, short, mode, language),
                 {
                     functionName: StatusController.liveStatusHandler.name,
-                    module: __filename,
+                    module: getFilename(import.meta.url),
                     params: [resultMessage, short, mode, language],
                 }
             );

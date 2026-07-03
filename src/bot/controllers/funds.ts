@@ -28,7 +28,6 @@ import { Accountants, CaptureListOfIds, Members, Route, UserRoles } from "@hacke
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
-import { executeOverTime } from "../core/classes/RateLimit";
 import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
@@ -248,12 +247,18 @@ export default class FundsController implements BotController {
                           fund: donation.fund,
                           donation,
                       })
-                    : t("funds.transferdonation.fail", { id: donations });
+                    : t("funds.transferdonation.fail", { id: donationId }) + "\n";
+
+            logger.info(`Transfer donation ${donationId} to ${accountant.username}: ${success ? "success" : "fail"}`);
 
             messages.push(text);
         }
 
-        return executeOverTime(messages.map(m => () => bot.sendMessageExt(msg.chat.id, m, msg)));
+        const joinedMessages = messages.join("\n");
+
+        return bot.sendLongMessage(msg.chat.id, joinedMessages, msg).catch(error => {
+            logger.error(`Failed to send transfer donation message: ${error}`);
+        });
     }
 
     @Route(["getsponsors", "sponsors"])

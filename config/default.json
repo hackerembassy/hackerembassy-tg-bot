@@ -24,7 +24,7 @@
         },
         "rateLimits": {
             "user": 500,
-            "api": 750,
+            "api": 1000,
             "notifications": 5000
         },
         "autoWish": true,

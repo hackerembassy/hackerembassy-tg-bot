@@ -279,6 +279,7 @@ admin:
             - Get the current chat id: /chatid
         nochat: Specified chat not found
         success: Message was copied to {{target}}
+        fail: ⚠️ Failed to copy the message to {{target}}
     save:
         help: |
             📷 Save the message you are replying to to your PMs with the bot

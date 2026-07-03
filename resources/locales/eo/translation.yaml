@@ -278,6 +278,7 @@ admin:
             - Ricevi la nunan babilan identigilon: /chatid
         nochat: Specifita babilo ne trovita
         success: Mesaĝo estis kopiita al {{target}}
+        fail: ⚠️ Malsukcesis kopii la mesaĝon al {{target}}
     save:
         help: |
             📷 Konservu la mesaĝon al kiu vi respondas en babilo kun la roboto

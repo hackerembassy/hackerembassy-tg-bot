@@ -276,8 +276,9 @@ admin:
             Подсказки:
             - Доступные именованные чаты: {{chatsList}}
             - Узнать id текущего чата: /chatid
-        nochat: Specified chat not found
-        success: Message was copied to {{target}}
+        nochat: Указанный чат не найден
+        success: Сообщение было скопировано в {{target}}
+        fail: ⚠️ Не удалось скопировать сообщение в {{target}}
     save:
         help: |
             📷 Сохранить сообщение, на которое вы отвечаете, в чат с ботом

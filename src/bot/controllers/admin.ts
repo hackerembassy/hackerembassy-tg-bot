@@ -307,10 +307,7 @@ export default class AdminController implements BotController {
 
             if (!canBeBanned) return bot.sendMessageExt(msg.chat.id, "🙅 User cannot be banned", msg);
 
-            // Just ban from the bot if the chat is private
-            const wasBanned =
-                (!isPrivate || (await bot.banChatMember(msg.chat.id, user.userid))) &&
-                UsersRepository.updateRoles(user.userid, ["banned"]);
+            const wasBanned = UsersRepository.updateRoles(user.userid, ["banned"]);
 
             const banMessage = await bot.sendMessageExt(
                 msg.chat.id,
@@ -321,6 +318,8 @@ export default class AdminController implements BotController {
             if (!banMessage) throw new Error("Failed to send ban message");
 
             if (isPrivate) return;
+
+            await bot.banChatMember(msg.chat.id, user.userid).catch(logger.error);
 
             // Remove ban messages from public chats
             const messagesToDelete = [banMessage.message_id];
@@ -385,22 +384,33 @@ export default class AdminController implements BotController {
     @Route(["copy"], OptionalParam(/(\S+?)/), match => [match[1]])
     @UserRoles(Members)
     static async copyMessageHandler(bot: HackerEmbassyBot, msg: Message, target: string) {
-        const chatsList = TextGenerators.getCopyableList([...Object.keys(botConfig.chats), "me"], ", ");
-        if (!msg.reply_to_message || !target) return bot.sendMessageExt(msg.chat.id, t("admin.copy.help", { chatsList }), msg);
+        try {
+            if (!msg.reply_to_message || !target) {
+                const chatsList = TextGenerators.getCopyableList([...Object.keys(botConfig.chats), "me"], ", ");
 
-        const chatId =
-            botConfig.chats[target as keyof typeof botConfig.chats] || (target === "me" ? msg.from?.id : Number(target));
-        if (!chatId || Number.isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, t("admin.copy.nochat"), msg);
+                return bot.sendMessageExt(msg.chat.id, t("admin.copy.help", { chatsList }), msg);
+            }
 
-        await bot.copyMessage(chatId, msg.chat.id, msg.reply_to_message.message_id, {
-            reply_markup: msg.reply_to_message.reply_markup,
-            caption: msg.reply_to_message.caption,
-        });
-        return bot.sendMessageExt(msg.chat.id, t("admin.copy.success", { target }), msg);
+            const chatId =
+                botConfig.chats[target as keyof typeof botConfig.chats] || (target === "me" ? msg.from?.id : Number(target));
+
+            if (!chatId || Number.isNaN(chatId)) return bot.sendMessageExt(msg.chat.id, t("admin.copy.nochat"), msg);
+
+            await bot.copyMessage(chatId, msg.chat.id, msg.reply_to_message.message_id, {
+                reply_markup: msg.reply_to_message.reply_markup,
+                caption: msg.reply_to_message.caption,
+            });
+
+            return bot.sendMessageExt(msg.chat.id, t("admin.copy.success", { target }), msg);
+        } catch (error) {
+            logger.error(error);
+            return bot.sendMessageExt(msg.chat.id, t("admin.copy.fail"), msg);
+        }
     }
 
     @Route(["save"], OptionalParam(/(\S+?)/), match => [match[1]])
     @AllowedChats(ClosedChats)
+    @UserRoles(Members)
     static saveMessageHandler(bot: HackerEmbassyBot, msg: Message, messageId?: number) {
         const isButtonResponse = bot.context(msg).isButtonResponse;
         const replyMessage = msg.reply_to_message;

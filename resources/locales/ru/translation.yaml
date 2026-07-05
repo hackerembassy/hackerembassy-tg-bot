@@ -388,7 +388,7 @@ embassy:
             dry: ♨️ Dry
     printers:
         help: |
-            🖨 У нас есть два 3D принтера:
+            🖨 У нас есть три 3D принтера:
 
             🚺 Anette от ubershy и cake64
             Документация по нему доступна тут:
@@ -402,10 +402,17 @@ embassy:
             Веб интерфейс доступен внутри сети спейса по адресу {{shaytanApi}}
             Статус принтера можно узнать по команде /shaytan
 
+            🎶 Oda от Виталика, починен Эди
+            Документация доступна тут:
+            https://lore.hackem.cc/s/main/doc/oda-sovol-sv07-840DfvCDbZ
+            интерфейс доступен внутри сети спейса по адресу http://printer-oda.lan
+            Статус принтера можно узнать по команде /oda
+
             Если у тебя возникнут вопросы по 3D печати, не стесняйся спрашивать stripped_edie и krikun98
 
         anettestatus: Статус Anette
         shaytanstatus: Статус Shaytan
+        odastatus: Статус Oda
     printerstatus:
         statusheader: "💤 Статус принтера: {{state}}"
         status: |

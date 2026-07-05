@@ -365,6 +365,7 @@ export function getPrintersInfo(): string {
     return t("embassy.printers.help", {
         anetteApi: printersConfig.anette.host,
         shaytanApi: printersConfig.shaytan.host,
+        odaApi: printersConfig.oda.host,
     });
 }
 

@@ -127,6 +127,11 @@
             "host": "http://printer-shaytan.lan",
             "apiport": 4408,
             "camport": 4408
+        },
+        "oda": {
+            "host": "http://printer-oda.lan",
+            "apiport": 7125,
+            "camport": 81
         }
     },
     "embassy-api": {

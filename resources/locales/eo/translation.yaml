@@ -388,7 +388,7 @@ embassy:
             dry: ♨️ Sekigo
     printers:
         help: |
-            🖨 Ni havas du 3D-presilojn:
+            🖨 Ni havas tri 3D-presilojn:
 
             🚺 Anette de ubershy kaj cake64
             Dokumentado por ĝi estas havebla ĉi tie:
@@ -402,10 +402,17 @@ embassy:
             La reta interfaco estas havebla ene de la spaca reto ĉe {{shaytanApi}}
             La presila statuso povas esti trovita uzante la komandon /shaytan.
 
+            🎶 Oda de Vitalik, riparita de Edie
+            Dokumentado estas havebla ĉi tie:
+            https://lore.hackem.cc/s/main/doc/oda-sovol-sv07-840DfvCDbZ
+            La interfaco disponeblas ene de la reto de la spaco ĉe http://printer-oda.lan
+            Vi povas kontroli la staton de la presilo per la komando /oda
+
             Se vi havas demandojn pri 3D-presado, ne hezitu demandi stripped_edie kaj krikun98
 
         anettestatus: Statuso de Anette
         shaytanstatus: Statuso de Shaytan
+        odastatus: Statuso de Oda
     printerstatus:
         statusheader: "💤 Presila statuso: {{state}}"
         status: |

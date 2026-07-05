@@ -89,6 +89,7 @@ const residentCommands = [
     },
     { command: "anette", description: "Статус Anette" },
     { command: "shaytan", description: "Статус Shaytan" },
+    { command: "oda", description: "Статус Oda" },
     { command: "stats", description: "Статистика по времени в спейсе" },
     { command: "topics", description: "Топики для подписки на уведомления" },
 ];

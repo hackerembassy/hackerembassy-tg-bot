@@ -173,6 +173,7 @@ export interface AutoinsideTimeouts {
 export interface PrintersConfig {
     anette: PrinterEndpoint;
     shaytan: PrinterEndpoint;
+    oda: PrinterEndpoint;
 }
 
 export interface PrinterEndpoint {

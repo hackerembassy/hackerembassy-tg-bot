@@ -389,7 +389,7 @@ embassy:
             dry: ♨️ Dry
     printers:
         help: |
-            🖨 We have two 3D printers:
+            🖨 We have three 3D printers:
 
             🚺 Anette from ubershy and cake64
             Documentation for it is available here:
@@ -403,10 +403,17 @@ embassy:
             The web interface is available within the space network at {{shaytanApi}}
             The printer status can be found using the /shaytan command. 
 
+            🎶 Oda from Vitalik, fixed by Edie
+            Documentation is available here:
+            https://lore.hackem.cc/s/main/doc/oda-sovol-sv07-840DfvCDbZ
+            The interface is available inside the space network at http://printer-oda.lan
+            You can check the printer's status with the command /oda
+
             If you have any questions about 3D printing do not hesitate to ask stripped_edie and krikun98
 
         anettestatus: Anette status
         shaytanstatus: Shaytan status
+        odastatus: Oda status
     printerstatus:
         statusheader: "💤 Printer status: {{state}}"
         status: |

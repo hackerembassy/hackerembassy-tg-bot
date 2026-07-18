@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Stream } from "node:stream";
 
-import TelegramBot, { ChatId, Message, SendMessageOptions, SendPhotoOptions } from "node-telegram-bot-api";
+import { ChatId, Message, Update } from "node-telegram-bot-api";
 
 import { addControllers } from "@hackembot/setup";
 import { TEST_USERS } from "@data/seed";
 import HackerEmbassyBot from "@hackembot/core/classes/HackerEmbassyBot";
 import { sleep } from "@utils/common";
+import { SendMessageOptions, SendPhotoOptions } from "@hackembot/core/types";
 
 export class HackerEmbassyBotMock extends HackerEmbassyBot {
     constructor(token: string) {
@@ -22,7 +23,7 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
     }
 
     override async sendPhoto(
-        chatId: TelegramBot.ChatId,
+        chatId: number,
         photo: string | Stream | Buffer,
         options: SendPhotoOptions,
         fileOptions = {}
@@ -34,11 +35,11 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
             date: 0,
             chat: { id: chatId, type: "private" },
             caption: options.caption,
-        } as Message;
+        };
     }
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    async processUpdate(update: TelegramBot.Update) {
+    async processUpdate(update: Update) {
         super.processUpdate(update);
         await sleep(100); // Simulating async processing and clearing microtasks
     }
@@ -59,7 +60,7 @@ export function createMockBot() {
     return botMock;
 }
 
-export function createMockMessage(text: string, fromUser = TEST_USERS.guest, timestamp: number = Date.now()): TelegramBot.Update {
+export function createMockMessage(text: string, fromUser = TEST_USERS.guest, timestamp: number = Date.now()): Update {
     return {
         update_id: 0,
         message: {

@@ -5,10 +5,6 @@ import { createMockBot, createMockMessage } from "../mocks/bot";
 describe("Bot Status commands:", () => {
     const mockBot = createMockBot();
 
-    beforeAll(() => {
-        fetchMock.mockReject(new Error("Mocked rejected embassyApi response"));
-    });
-
     test("/open should change the /status of space to opened", async () => {
         await mockBot.processUpdate(createMockMessage("/open", TEST_USERS.admin));
         await mockBot.processUpdate(createMockMessage("/status"));

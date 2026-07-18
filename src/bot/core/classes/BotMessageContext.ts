@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import TelegramBot from "node-telegram-bot-api";
+import { Message } from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 
@@ -29,7 +29,7 @@ export default class BotMessageContext {
 
     constructor(
         public user: User,
-        private msg: TelegramBot.Message,
+        private msg: Message,
         public command?: string
     ) {}
 

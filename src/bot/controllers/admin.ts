@@ -421,9 +421,8 @@ export default class AdminController implements BotController {
 
         if (!isButtonResponse && replyMessage?.message_id) {
             void bot.sendMessageExt(msg.chat.id, t("admin.save.success"), msg, {
-                reply_to_message_id: replyMessage.message_id,
+                reply_parameters: { message_id: replyMessage.message_id, allow_sending_without_reply: true },
                 message_thread_id: replyMessage.message_thread_id,
-                allow_sending_without_reply: true,
                 reply_markup: {
                     inline_keyboard: [
                         [InlineButton(t("admin.save.button"), `save`, ButtonFlags.Simple, { params: replyMessage.message_id })],

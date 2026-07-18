@@ -1,5 +1,3 @@
-import TelegramBot from "node-telegram-bot-api";
-
 import { UserRole, UserStateChangeType, UserStateType } from "@data/types";
 import { User, UserState, UserStateEx } from "@data/models";
 import { DefaultUser } from "@data/seed";
@@ -71,7 +69,7 @@ class UserService {
         return usersRepository.updateUser(user.userid, { ...user, roles: "default", language });
     }
 
-    public prepareUser(tgUser: TelegramBot.User): User {
+    public prepareUser(tgUser: { id: number; username?: string; first_name?: string }): User {
         const dbuser = usersRepository.getUserByUserId(tgUser.id) ?? { ...DefaultUser };
 
         if (dbuser.userid === DefaultUser.userid) {

@@ -1,6 +1,6 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
-import TelegramBot, { PhotoSize } from "node-telegram-bot-api";
+import { Message, PhotoSize } from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 
@@ -35,7 +35,7 @@ export function effectiveName(user?: ITelegramUser | User) {
     return user ? (user.username ?? user.first_name ?? undefined) : undefined;
 }
 
-export function getMentions(msg: TelegramBot.Message) {
+export function getMentions(msg: Message) {
     return msg.entities?.filter(e => e.type === "text_mention").map(e => e.user) ?? [];
 }
 

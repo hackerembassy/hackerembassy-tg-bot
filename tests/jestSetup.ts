@@ -1,12 +1,31 @@
 /* eslint-disable no-console */
 import fetchMock from "jest-fetch-mock";
-import nock from "nock";
 
 import { sleep } from "@utils/common";
 import { getOrCreateDb, seedUsers } from "@data/scripts";
 import { SEED_TEST_USERS } from "@data/seed";
 
 fetchMock.enableMocks();
+
+fetchMock.mockIf(/^https:\/\/api\.telegram\.org/, req => {
+    if (req.url.includes("getUpdates")) {
+        return Promise.resolve({
+            status: 200,
+            body: JSON.stringify({
+                ok: true,
+                result: [],
+            }),
+        });
+    }
+
+    return Promise.resolve({
+        status: 200,
+        body: JSON.stringify({
+            ok: true,
+            result: "{}",
+        }),
+    });
+});
 
 jest.mock("@utils/meta", () => {
     return {
@@ -15,14 +34,6 @@ jest.mock("@utils/meta", () => {
         getDirname: jest.fn((metaUrl: string) => metaUrl),
     };
 });
-
-nock("https://api.telegram.org")
-    .post(() => true)
-    .reply(200, {
-        ok: true,
-        result: [],
-    })
-    .persist();
 
 jest.mock("@services/funds/currency", () => {
     return {
@@ -68,7 +79,7 @@ jest.mock("@services/common/logger", () => {
         ...jest.requireActual<typeof import("@services/common/logger")>("@services/common/logger"),
         log: jest.fn(),
         error: jest.fn().mockImplementation((error: Error | string) => {
-            if (error instanceof Error && !error.message.startsWith("Mocked")) {
+            if (error instanceof Error && !error.message.startsWith("Mocked") && !error.message.startsWith("request to")) {
                 console.log(error.message);
             }
         }),

@@ -1,7 +1,6 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import js from "@eslint/js";
-import prettier from "eslint-plugin-prettier";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import importPlugin from "eslint-plugin-import";
 import { configs } from "typescript-eslint";
@@ -31,7 +30,6 @@ export default defineConfig([
         },
 
         plugins: {
-            prettier,
             unicorn: eslintPluginUnicorn,
         },
 
@@ -43,7 +41,6 @@ export default defineConfig([
         },
 
         rules: {
-            "prettier/prettier": ["warn"],
             "@typescript-eslint/no-unnecessary-condition": "error",
             "@typescript-eslint/no-unsafe-argument": "warn",
             "@typescript-eslint/no-unsafe-assignment": "warn",

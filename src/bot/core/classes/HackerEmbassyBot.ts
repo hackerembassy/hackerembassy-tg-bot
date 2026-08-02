@@ -212,8 +212,8 @@ export default class HackerEmbassyBot extends TelegramBot {
         options =
             options.parse_mode === undefined
                 ? (this.prepareOptionsForMarkdown({
-                    ...options,
-                }) as EditMessageTextOptions)
+                      ...options,
+                  }) as EditMessageTextOptions)
                 : options;
 
         return super.editMessageText(text, options);
@@ -516,9 +516,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (message) {
             setTimeout(() => {
-                this.deleteMessage(msg.chat.id, message.message_id).catch(() => { });
+                this.deleteMessage(msg.chat.id, message.message_id).catch(() => {});
                 // try deleting the initial message if the bot has admin rights
-                this.deleteMessage(msg.chat.id, msg.message_id).catch(() => { });
+                this.deleteMessage(msg.chat.id, msg.message_id).catch(() => {});
             }, timeout);
         }
     }
@@ -676,11 +676,11 @@ export default class HackerEmbassyBot extends TelegramBot {
             if (!route) {
                 return !this.guessIgnoreList.has(command) && this.canUserGuess(user, message.chat)
                     ? await messageContext.run(() =>
-                        openAI
-                            .askChat(text, t("embassy.neural.contexts.guess"))
-                            .then(guess => this.sendMessageExt(message.chat.id, "[ai generated] " + guess, message))
-                            .catch(error => logger.error(error))
-                    )
+                          openAI
+                              .askChat(text, t("embassy.neural.contexts.guess"))
+                              .then(guess => this.sendMessageExt(message.chat.id, "[ai generated] " + guess, message))
+                              .catch(error => logger.error(error))
+                      )
                     : null;
             }
 
@@ -858,7 +858,6 @@ export default class HackerEmbassyBot extends TelegramBot {
                 await this.setMessageReactionEx(message.chat.id, message.message_id, "🍓");
                 return;
             }
-
         } catch (error) {
             logger.error(error);
         }
@@ -887,13 +886,13 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         return this.assets.images[type]
             ? this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {
-                caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
-            })
+                  caption: t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
+              })
             : this.sendMessageExt(
-                message.chat.id,
-                t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
-                message
-            );
+                  message.chat.id,
+                  t(`general.errors.${type}`, { required: route ? route.userRoles.join(", ") : "someone else" }),
+                  message
+              );
     }
 
     addEventRoutes(voiceHandler: BotHandler, chatMemberHandler: ChatMemberHandler) {

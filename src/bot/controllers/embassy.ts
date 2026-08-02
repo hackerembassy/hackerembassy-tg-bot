@@ -797,9 +797,6 @@ export default class EmbassyController implements BotController {
 
         if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help") + t("embassy.neural.ask.usage"), msg);
 
-        const isKitaMentioned = /(^|\s|\/|_)(кита|kita)(\s|,|\.|_|$)/giu.test(combined);
-        if (isKitaMentioned) return;
-
         const loading = setInterval(() => void bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
         try {

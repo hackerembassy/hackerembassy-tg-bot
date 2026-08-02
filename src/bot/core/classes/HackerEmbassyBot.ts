@@ -858,13 +858,6 @@ export default class HackerEmbassyBot extends TelegramBot {
                 await this.setMessageReactionEx(message.chat.id, message.message_id, "🍓");
                 return;
             }
-
-            const isKitaMentioned = message.text?.match(/(^|\s)(кита|kita)(\s|,|\.|$)/giu);
-
-            if (isKitaMentioned) {
-                await this.setMessageReactionEx(message.chat.id, message.message_id, "🐳");
-                return;
-            }
         } catch (error) {
             logger.error(error);
         }

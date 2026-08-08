@@ -954,3 +954,23 @@ topics:
             📟 My subscriptions - /subscriptions
         started: 📯 Mailing list to {{topic}} subscribers has begun. Private messages will receive {{count}} followers within {{eta}} seconds
         finished: ✅ Distribution to {{topic}} subscribers has been completed. Private messages successfully received {{received}}/{{count}} subscribers
+wiki:
+    general:
+        errors:
+            generic: ⚠️ Something went wrong
+    help: |
+        📚 Space wiki pages are available right here in the chat.
+
+        📟 Commands:
+        View a page - #`/wiki path#`
+        Browse all pages as a tree - #`/wikitree#`
+    list:
+        text: |
+            📚 Available wiki pages:
+            {{pages}}
+        empty: 🗿 There are no pages yet
+    page:
+        notfound: |
+            ⚠️ Page "{{pagename}}" not found
+
+            📟 Browse all pages - #`/wikitree#`

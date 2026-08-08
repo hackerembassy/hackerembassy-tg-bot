@@ -20,6 +20,7 @@ import NeedsController from "./controllers/needs";
 import ServiceController from "./controllers/service";
 import StatusController from "./controllers/status";
 import SubscriptionsController from "./controllers/subscriptions";
+import WikiController from "./controllers/wiki";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -62,6 +63,7 @@ const defaultCommands = [
     },
     { command: "stats", description: "Статистика по времени в спейсе" },
     { command: "topics", description: "Топики для подписки на уведомления" },
+    { command: "wiki", description: "Страницы вики спейса" },
 ];
 
 const residentCommands = [
@@ -124,6 +126,7 @@ export function addControllers(bot: HackerEmbassyBot): void {
     bot.addController(ServiceController);
     bot.addController(StatusController);
     bot.addController(SubscriptionsController);
+    bot.addController(WikiController);
 }
 
 export function addSpecialRoutes(bot: HackerEmbassyBot): void {

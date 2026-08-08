@@ -228,8 +228,8 @@ class OutlineWiki {
         return data[0].children;
     }
 
-    async getPageContent(pageId: string) {
-        return (await this.wikiRequest("documents.export", { id: pageId })) as PageResponse;
+    async getPageContent(pageId: string): Promise<string> {
+        return (await this.wikiRequest("documents.export", { id: pageId })) as string;
     }
 
     private setSegmentRecursive(node: PageListTreeNode) {

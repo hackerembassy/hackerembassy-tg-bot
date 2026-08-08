@@ -29,14 +29,14 @@ function wikiPageGroupLines(node: PageListTreeNode, parentPath: string, depth = 
     ];
 }
 
-function listWikiPagePaths(nodes: PageListTreeNode[]): string[] {
+function listWikiPagePaths(nodes: PageListTreeNode[], basePath = ""): string[] {
     return leavesFirst(nodes).flatMap((node, index) =>
-        index === 0 ? wikiPageGroupLines(node, "") : ["", ...wikiPageGroupLines(node, "")]
+        index === 0 ? wikiPageGroupLines(node, basePath) : ["", ...wikiPageGroupLines(node, basePath)]
     );
 }
 
 export default class WikiController implements BotController {
-    @Route(["wiki", "w"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["wiki", "w", "wcat"], OptionalParam(/(\S+)/), match => [match[1]])
     static async wikiHandler(bot: HackerEmbassyBot, msg: Message, pagename?: string) {
         try {
             if (!pagename) {
@@ -68,11 +68,27 @@ export default class WikiController implements BotController {
         }
     }
 
-    @Route(["wikitree", "wikilist"])
-    static async wikiTreeHandler(bot: HackerEmbassyBot, msg: Message) {
+    @Route(["wikitree", "wikilist", "wls"], OptionalParam(/(\S+)/), match => [match[1]])
+    static async wikiTreeHandler(bot: HackerEmbassyBot, msg: Message, parentPath?: string) {
         try {
-            const tree = await wiki.listPagesAsTree();
-            const lines = listWikiPagePaths(tree);
+            let nodes: PageListTreeNode[];
+            let basePath = "";
+
+            if (parentPath) {
+                const found = await wiki.findTreeNode(parentPath);
+
+                if (!found) {
+                    await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename: parentPath }), msg);
+                    return;
+                }
+
+                nodes = found.node.children;
+                basePath = found.path;
+            } else {
+                nodes = await wiki.listPagesAsTree();
+            }
+
+            const lines = listWikiPagePaths(nodes, basePath);
 
             if (lines.length === 0) {
                 await bot.sendMessageExt(msg.chat.id, t("wiki.list.empty"), msg);

@@ -959,12 +959,11 @@ wiki:
         📚 Սփեյսի վիքի էջերը հասանելի են հենց այստեղ, չաթում։
 
         📟 Հրամաններ.
-        Դիտել էջը - #`/wiki ուղի#`
-        Դիտել բոլոր էջերը ծառի տեսքով - #`/wikitree#`
+        Դիտել էջը - #`/wiki full_page_path#`
+        Դիտել բոլոր էջերը - #`/wikitree#`
+        Դիտել բաժինը - #`/wikitree full_section_path#`
     list:
-        text: |
-            📚 Հասանելի վիքի էջեր.
-            {{pages}}
+        text: "{{pages}}"
         empty: 🗿 Դեռ էջեր չկան
     page:
         notfound: |

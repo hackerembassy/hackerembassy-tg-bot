@@ -962,12 +962,11 @@ wiki:
         📚 Space wiki pages are available right here in the chat.
 
         📟 Commands:
-        View a page - #`/wiki path#`
+        View a page - #`/wiki full_page_path#`
         Browse all pages as a tree - #`/wikitree#`
+        Browse a section as a tree - #`/wikitree full_section_path#`
     list:
-        text: |
-            📚 Available wiki pages:
-            {{pages}}
+        text: "{{pages}}"
         empty: 🗿 There are no pages yet
     page:
         notfound: |

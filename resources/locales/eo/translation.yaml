@@ -961,12 +961,11 @@ wiki:
         📚 Vikipaĝoj de la spaco estas disponeblaj ĝuste ĉi tie, en la babilejo.
 
         📟 Komandoj:
-        Vidi paĝon - #`/wiki vojo#`
-        Foliumi ĉiujn paĝojn kiel arbon - #`/wikitree#`
+        Vidi paĝon - #`/wiki full_page_path#`
+        Foliumi ĉiujn paĝojn - #`/wikitree#`
+        Foliumi sekcion - #`/wikitree full_section_path#`
     list:
-        text: |
-            📚 Disponeblaj vikipaĝoj:
-            {{pages}}
+        text: "{{pages}}"
         empty: 🗿 Ankoraŭ ne estas paĝoj
     page:
         notfound: |

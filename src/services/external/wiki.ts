@@ -254,6 +254,15 @@ class OutlineWiki {
         return this.findWikiPage(this.flattenWikiTree(tree), query);
     }
 
+    // Same tolerant matching as findPage (exact path, path suffix, or title), but also returns the
+    // live tree node (with its .children), for callers that need to walk a page's own sub-tree.
+    public async findTreeNode(query: string): Promise<Optional<{ node: PageListTreeNode; path: string }>> {
+        const tree = await this.listPagesAsTree();
+        const page = this.findWikiPage(this.flattenWikiTree(tree), query);
+
+        return page ? this.findNodeById(tree, page.id, "") : undefined;
+    }
+
     private async isInPublicCollection(pageId: string): Promise<boolean> {
         const documentInfo = (await this.wikiRequest("documents.info", { id: pageId })) as { collectionId?: string };
 
@@ -291,6 +300,24 @@ class OutlineWiki {
             pages.find(page => page.path.toLowerCase().endsWith(`/${normalized}`)) ??
             pages.find(page => page.title.toLowerCase() === normalized)
         );
+    }
+
+    private findNodeById(
+        nodes: PageListTreeNode[],
+        id: string,
+        parentPath: string
+    ): Optional<{ node: PageListTreeNode; path: string }> {
+        for (const node of nodes) {
+            const path = this.nodePath(node, parentPath);
+
+            if (String(node.id) === id) return { node, path };
+
+            const found = this.findNodeById(node.children, id, path);
+
+            if (found) return found;
+        }
+
+        return undefined;
     }
 
     private setSegmentRecursive(node: PageListTreeNode) {

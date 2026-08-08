@@ -953,3 +953,22 @@ topics:
             📟 Miaj abonoj - /subscriptions
         started: 📯 Novaĵletero al {{topic}} abonantoj komenciĝis. Privataj mesaĝoj ricevos {{count}} sekvantojn ene de {{eta}} sekundoj
         finished: ✅ Distribuado al {{topic}} abonantoj estis kompletigita. Privataj mesaĝoj sukcese ricevis {{received}}/{{count}} abonantojn
+wiki:
+    general:
+        errors:
+            generic: ⚠️ Io misokazis
+    help: |
+        📚 Vikipaĝoj de la spaco estas disponeblaj ĝuste ĉi tie, en la babilejo.
+
+        📟 Komandoj:
+        Vidi paĝon - #`/wiki full_page_path#`
+        Foliumi ĉiujn paĝojn - #`/wikitree#`
+        Foliumi sekcion - #`/wikitree full_section_path#`
+    list:
+        text: "{{pages}}"
+        empty: 🗿 Ankoraŭ ne estas paĝoj
+    page:
+        notfound: |
+            ⚠️ Paĝo "{{pagename}}" ne trovita
+
+            📟 Foliumi ĉiujn paĝojn - #`/wikitree#`

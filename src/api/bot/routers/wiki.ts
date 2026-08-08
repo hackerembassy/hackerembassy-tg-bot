@@ -28,6 +28,8 @@ router.get("/page/:id", async (req, res, next) => {
 
         const content = await wiki.getPageContent(req.params.id);
 
+        if (!content) return void res.status(404).send({ error: "Page not found" });
+
         res.set("Cache-Control", "public, max-age=60").json({ id: req.params.id, content });
     } catch (error) {
         next(error);

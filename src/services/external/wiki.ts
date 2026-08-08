@@ -31,6 +31,12 @@ export type PageListTreeNode = {
     children: PageListTreeNode[];
 };
 
+export type WikiPage = {
+    id: string;
+    path: string;
+    title: string;
+};
+
 export type PageListResponse = {
     pages: {
         list: PageListItem[];
@@ -209,16 +215,22 @@ class WikiJs {
 
 class OutlineWiki {
     private apiEndpoint: string;
+    private wikiBaseUrl: string;
     private token: string;
     private publicCollectionId: string;
 
     constructor(baseUrl: string, publicCollectionId: string, token: string) {
         this.apiEndpoint = `${baseUrl}/api/`;
+        this.wikiBaseUrl = baseUrl;
         this.token = token;
         this.publicCollectionId = publicCollectionId;
     }
 
-    async listPagesAsTree(): Promise<PageListTreeNode[]> {
+    public get baseUrl(): string {
+        return this.wikiBaseUrl;
+    }
+
+    public async listPagesAsTree(): Promise<PageListTreeNode[]> {
         const data = (await this.wikiRequest("collections.documents", {
             id: this.publicCollectionId,
         })) as PageListTreeNode[];
@@ -228,8 +240,84 @@ class OutlineWiki {
         return data[0].children;
     }
 
-    async getPageContent(pageId: string) {
-        return (await this.wikiRequest("documents.export", { id: pageId })) as PageResponse;
+    public async getPageContent(pageId: string): Promise<Optional<string>> {
+        const isPublic = await this.isInPublicCollection(pageId);
+
+        if (!isPublic) return null;
+
+        return (await this.wikiRequest("documents.export", { id: pageId })) as string;
+    }
+
+    public async findPage(query: string): Promise<Optional<WikiPage>> {
+        const tree = await this.listPagesAsTree();
+
+        return this.findWikiPage(this.flattenWikiTree(tree), query);
+    }
+
+    // Same tolerant matching as findPage (exact path, path suffix, or title), but also returns the
+    // live tree node (with its .children), for callers that need to walk a page's own sub-tree.
+    public async findTreeNode(query: string): Promise<Optional<{ node: PageListTreeNode; path: string }>> {
+        const tree = await this.listPagesAsTree();
+        const page = this.findWikiPage(this.flattenWikiTree(tree), query);
+
+        return page ? this.findNodeById(tree, page.id, "") : undefined;
+    }
+
+    private async isInPublicCollection(pageId: string): Promise<boolean> {
+        const documentInfo = (await this.wikiRequest("documents.info", { id: pageId })) as { collectionId?: string };
+
+        return documentInfo.collectionId === this.publicCollectionId;
+    }
+
+    public nodePath(node: PageListTreeNode, parentPath: string): string {
+        const segment = node.segment ?? String(node.id ?? "");
+
+        return parentPath ? `${parentPath}/${segment}` : segment;
+    }
+
+    private flattenWikiTree(nodes: PageListTreeNode[], parentPath = ""): WikiPage[] {
+        const pages: WikiPage[] = [];
+
+        for (const node of nodes) {
+            const path = this.nodePath(node, parentPath);
+
+            if (node.id && node.title) pages.push({ id: String(node.id), path, title: node.title });
+
+            pages.push(...this.flattenWikiTree(node.children, path));
+        }
+
+        return pages;
+    }
+
+    private findWikiPage(pages: WikiPage[], query: string): Optional<WikiPage> {
+        const normalized = query
+            .trim()
+            .replaceAll(/^\/+|\/+$/g, "")
+            .toLowerCase();
+
+        return (
+            pages.find(page => page.path.toLowerCase() === normalized) ??
+            pages.find(page => page.path.toLowerCase().endsWith(`/${normalized}`)) ??
+            pages.find(page => page.title.toLowerCase() === normalized)
+        );
+    }
+
+    private findNodeById(
+        nodes: PageListTreeNode[],
+        id: string,
+        parentPath: string
+    ): Optional<{ node: PageListTreeNode; path: string }> {
+        for (const node of nodes) {
+            const path = this.nodePath(node, parentPath);
+
+            if (String(node.id) === id) return { node, path };
+
+            const found = this.findNodeById(node.children, id, path);
+
+            if (found) return found;
+        }
+
+        return undefined;
     }
 
     private setSegmentRecursive(node: PageListTreeNode) {

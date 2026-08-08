@@ -10,45 +10,6 @@ import { formatMonospaced, OptionalParam } from "../core/helpers";
 import t from "../core/localization";
 import { BotController } from "../core/types";
 
-type WikiPage = {
-    id: string;
-    path: string;
-    title: string;
-};
-
-function nodePath(node: PageListTreeNode, parentPath: string): string {
-    const segment = node.segment ?? String(node.id ?? "");
-
-    return parentPath ? `${parentPath}/${segment}` : segment;
-}
-
-function flattenWikiTree(nodes: PageListTreeNode[], parentPath = ""): WikiPage[] {
-    const pages: WikiPage[] = [];
-
-    for (const node of nodes) {
-        const path = nodePath(node, parentPath);
-
-        if (node.id && node.title) pages.push({ id: String(node.id), path, title: node.title });
-
-        pages.push(...flattenWikiTree(node.children, path));
-    }
-
-    return pages;
-}
-
-function findWikiPage(pages: WikiPage[], query: string): Optional<WikiPage> {
-    const normalized = query
-        .trim()
-        .replaceAll(/^\/+|\/+$/g, "")
-        .toLowerCase();
-
-    return (
-        pages.find(page => page.path.toLowerCase() === normalized) ??
-        pages.find(page => page.path.toLowerCase().endsWith(`/${normalized}`)) ??
-        pages.find(page => page.title.toLowerCase() === normalized)
-    );
-}
-
 function renderWikiTree(nodes: PageListTreeNode[], parentPath = "", prefix = ""): string[] {
     const lines: string[] = [];
 
@@ -56,7 +17,7 @@ function renderWikiTree(nodes: PageListTreeNode[], parentPath = "", prefix = "")
         const isLast = index === nodes.length - 1;
         const branch = isLast ? "└─ " : "├─ ";
         const childPrefix = prefix + (isLast ? "    " : "│   ");
-        const path = nodePath(node, parentPath);
+        const path = wiki.nodePath(node, parentPath);
 
         lines.push(`${prefix}${branch}${formatMonospaced(path)}`);
         if (node.title) lines.push(`${childPrefix}— ${node.title}`);
@@ -76,17 +37,24 @@ export default class WikiController implements BotController {
                 return;
             }
 
-            const tree = await wiki.listPagesAsTree();
-            const page = findWikiPage(flattenWikiTree(tree), pagename);
+            const page = await wiki.findPage(pagename);
 
             if (!page) {
                 await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename }), msg);
                 return;
             }
 
-            const content = await wiki.getPageContent(page.id);
+            const content = await wiki.getPageContent(page.id, "telegram");
 
-            await bot.sendLongMessage(msg.chat.id, content, msg, { parse_mode: "" });
+            if (!content) {
+                await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename }), msg);
+                return;
+            }
+
+            await bot.sendLongMessage(msg.chat.id, content, msg, {
+                parse_mode: "Markdown",
+                link_preview_options: { is_disabled: true },
+            });
         } catch (error) {
             await bot.sendMessageExt(msg.chat.id, t("wiki.general.errors.generic"), msg);
             logger.error(error);

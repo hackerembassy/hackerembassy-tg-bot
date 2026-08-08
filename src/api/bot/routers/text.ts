@@ -2,7 +2,7 @@ import { Router } from "express";
 import config from "config";
 
 import * as TextGenerators from "@hackembot/text";
-import { stripCustomMarkup } from "@hackembot/core/helpers";
+import { stripCustomMarkup } from "@hackembot/core/converters";
 
 import UsersRepository from "@data/repositories/users";
 import FundsRepository from "@data/repositories/funds";

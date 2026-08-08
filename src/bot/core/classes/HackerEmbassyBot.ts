@@ -40,7 +40,8 @@ import { openAI } from "@services/neural/openai";
 import telemetry from "@services/common/telemetry";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../localization";
-import { effectiveName, OptionalRegExp, prepareMessageForMarkdown, tgUserLink } from "../helpers";
+import { GFMToTelegramMarkdown, taggedMarkdownToTelegramMarkdownV2 } from "../converters";
+import { effectiveName, OptionalRegExp, tgUserLink } from "../helpers";
 import BotMessageContext, { DefaultModes } from "./BotMessageContext";
 import BotState from "./BotState";
 import {
@@ -217,12 +218,11 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     editMessageTextExt(text: string, msg: Message, options: EditMessageTextOptions): Promise<boolean | Message> {
-        const parsedText = options.parse_mode === undefined ? prepareMessageForMarkdown(text) : text;
-        const preparedOptions = options.parse_mode === undefined ? this.prepareOptionsForMarkdown({ ...options }) : options;
+        const { text: preparedText, options: preparedOptions } = this.prepareTextAndOptions(text, options);
         const preparedOptionsWithThreadId = preparedOptions as WithMessageThreadId<EditMessageTextOptions>;
         preparedOptionsWithThreadId.message_thread_id = msg.message_thread_id;
 
-        return super.editMessageText(parsedText, preparedOptionsWithThreadId);
+        return super.editMessageText(preparedText, preparedOptionsWithThreadId);
     }
 
     async sendPhotoExt(
@@ -239,7 +239,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             mode.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
 
         if (options.caption) {
-            options.caption = prepareMessageForMarkdown(options.caption);
+            options.caption = taggedMarkdownToTelegramMarkdownV2(options.caption);
             options = this.prepareOptionsForMarkdown({ ...options });
         }
 
@@ -283,7 +283,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
 
         if (options?.caption) {
-            options.caption = prepareMessageForMarkdown(options.caption);
+            options.caption = taggedMarkdownToTelegramMarkdownV2(options.caption);
             options = this.prepareOptionsForMarkdown({ ...options });
         }
 
@@ -463,14 +463,42 @@ export default class HackerEmbassyBot extends TelegramBot {
         }
     }
 
+    // "GFM" is a custom parse_mode for text written in GitHub Flavored Markdown - it's converted to
+    // real Telegram Markdown here, using options.baseUrl (if given) to resolve relative links/images.
+    // With no parse_mode at all, text is assumed to use the bot's own #-escaped MarkdownV2 dialect.
+    // Shared by sendMessageExt and editMessageTextExt, so neither loses this handling.
+    private prepareTextAndOptions<T extends SendMessageOptions | EditMessageTextOptions>(
+        text: string,
+        options: T
+    ): { text: string; options: T } {
+        if (options.parse_mode === "GFM") {
+            return {
+                text: GFMToTelegramMarkdown(text, options.baseUrl),
+                options: {
+                    ...options,
+                    parse_mode: "Markdown",
+                    link_preview_options: options.link_preview_options ?? { is_disabled: true },
+                },
+            };
+        }
+
+        if (options.parse_mode === undefined) {
+            return {
+                text: taggedMarkdownToTelegramMarkdownV2(text),
+                options: this.prepareOptionsForMarkdown({ ...options }) as T,
+            };
+        }
+
+        return { text, options };
+    }
+
     async sendMessageExt(
         chatId: ChatId,
         text: string,
         msg: Nullable<Message>,
         options: SendMessageOptions = {}
     ): Promise<Nullable<Message>> {
-        const preparedText = options.parse_mode === undefined ? prepareMessageForMarkdown(text) : text;
-        options = options.parse_mode === undefined ? this.prepareOptionsForMarkdown({ ...options }) : options;
+        const { text: preparedText, options: preparedOptions } = this.prepareTextAndOptions(text, options);
 
         const context = msg && this.context(msg);
         const mode = context?.mode;
@@ -478,13 +506,13 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         const reply_markup = mode?.static
             ? undefined
-            : (options.reply_markup as InlineKeyboardMarkup | ReplyKeyboardMarkup | undefined);
+            : (preparedOptions.reply_markup as InlineKeyboardMarkup | ReplyKeyboardMarkup | undefined);
 
         const message_thread_id = msg ? this.context(msg).messageThreadId : undefined;
 
         if (!msg || !mode?.silent) {
             const message = await this.sendMessage(chatIdToUse, preparedText, {
-                ...options,
+                ...preparedOptions,
                 reply_markup,
                 message_thread_id,
             });
@@ -897,8 +925,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         for (const methodName of decoratedMethods) {
             const featureFlag = Reflect.getMetadata(MetadataKeys.FeatureFlag, controller, methodName) as
-                | BotFeatureFlag
-                | undefined;
+                BotFeatureFlag | undefined;
 
             if (featureFlag && !botConfig.features[featureFlag]) continue;
 

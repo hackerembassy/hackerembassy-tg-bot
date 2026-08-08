@@ -32,7 +32,8 @@ import {
 
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
-import { effectiveName, formatDateTime, formatUsername, toEscapedTelegramMarkdown, userLink } from "./core/helpers";
+import { toEscapedTelegramMarkdown } from "./core/converters";
+import { effectiveName, formatDateTime, formatUsername, userLink } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
 const calendarConfig = config.get<CalendarConfig>("calendar");

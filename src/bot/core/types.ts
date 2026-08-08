@@ -111,7 +111,10 @@ export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: Callback
 
 export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: ChatMemberUpdated) => unknown;
 
-export type EditMessageTextOptions = Omit<EditMessageTextParams, "text">;
+export type EditMessageTextOptions = Omit<EditMessageTextParams, "text"> & {
+    // Used to resolve relative links/images when parse_mode is "GFM" (see core/converters.ts)
+    baseUrl?: string;
+};
 
 export type SendChatActionOptions = Omit<SendChatActionParams, "chat_id" | "action">;
 
@@ -119,7 +122,10 @@ export type SendPhotoOptions = Omit<SendPhotoParams, "chat_id" | "photo">;
 
 export type SendAnimationOptions = Omit<SendAnimationParams, "chat_id" | "animation">;
 
-export type SendMessageOptions = Omit<SendMessageParams, "chat_id" | "text">;
+export type SendMessageOptions = Omit<SendMessageParams, "chat_id" | "text"> & {
+    // Used to resolve relative links/images when parse_mode is "GFM" (see core/converters.ts)
+    baseUrl?: string;
+};
 
 export type SendMediaGroupOptions = Omit<SendMediaGroupParams, "chat_id" | "media">;
 

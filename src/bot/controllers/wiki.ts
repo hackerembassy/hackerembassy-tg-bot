@@ -51,7 +51,7 @@ export default class WikiController implements BotController {
                 return;
             }
 
-            const content = await wiki.getPageContent(page.id, "telegram");
+            const content = await wiki.getPageContent(page.id);
 
             if (!content) {
                 await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename }), msg);
@@ -59,8 +59,8 @@ export default class WikiController implements BotController {
             }
 
             await bot.sendLongMessage(msg.chat.id, content, msg, {
-                parse_mode: "Markdown",
-                link_preview_options: { is_disabled: true },
+                parse_mode: "GFM",
+                baseUrl: wiki.baseUrl,
             });
         } catch (error) {
             await bot.sendMessageExt(msg.chat.id, t("wiki.general.errors.generic"), msg);

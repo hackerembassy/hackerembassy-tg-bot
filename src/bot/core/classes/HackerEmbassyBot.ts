@@ -476,7 +476,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 text: GFMToTelegramMarkdown(text, options.baseUrl),
                 options: {
                     ...options,
-                    parse_mode: "Markdown",
+                    parse_mode: "MarkdownV2",
                     link_preview_options: options.link_preview_options ?? { is_disabled: true },
                 },
             };

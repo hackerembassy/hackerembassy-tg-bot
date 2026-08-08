@@ -10,26 +10,33 @@ import { formatMonospaced, OptionalParam } from "../core/helpers";
 import t from "../core/localization";
 import { BotController } from "../core/types";
 
-function renderWikiTree(nodes: PageListTreeNode[], parentPath = "", prefix = ""): string[] {
-    const lines: string[] = [];
+// Leaf pages (no children of their own) are listed before sub-sections, within each parent's children.
+function leavesFirst(nodes: PageListTreeNode[]): PageListTreeNode[] {
+    return [...nodes].sort((a, b) => Number(a.children.length > 0) - Number(b.children.length > 0));
+}
 
-    for (const [index, node] of nodes.entries()) {
-        const isLast = index === nodes.length - 1;
-        const branch = isLast ? "└─ " : "├─ ";
-        const childPrefix = prefix + (isLast ? "    " : "│   ");
-        const path = wiki.nodePath(node, parentPath);
+// Each path already includes its parents (e.g. "getting-started/setup"), so this doesn't draw a full
+// tree - just a 2-space indent per depth level, plus a blank line between top-level groups, so pages
+// belonging to different sections are still easy to tell apart.
+function wikiPageGroupLines(node: PageListTreeNode, parentPath: string, depth = 0): string[] {
+    const path = wiki.nodePath(node, parentPath);
+    const icon = node.children.length > 0 ? "📁" : "📄";
+    const indent = "  ".repeat(depth);
 
-        lines.push(`${prefix}${branch}${formatMonospaced(path)}`);
-        if (node.title) lines.push(`${childPrefix}— ${node.title}`);
+    return [
+        `${indent}${icon} ${formatMonospaced(path)}`,
+        ...leavesFirst(node.children).flatMap(child => wikiPageGroupLines(child, path, depth + 1)),
+    ];
+}
 
-        lines.push(...renderWikiTree(node.children, path, childPrefix));
-    }
-
-    return lines;
+function listWikiPagePaths(nodes: PageListTreeNode[]): string[] {
+    return leavesFirst(nodes).flatMap((node, index) =>
+        index === 0 ? wikiPageGroupLines(node, "") : ["", ...wikiPageGroupLines(node, "")]
+    );
 }
 
 export default class WikiController implements BotController {
-    @Route(["wiki"], OptionalParam(/(\S+)/), match => [match[1]])
+    @Route(["wiki", "w"], OptionalParam(/(\S+)/), match => [match[1]])
     static async wikiHandler(bot: HackerEmbassyBot, msg: Message, pagename?: string) {
         try {
             if (!pagename) {
@@ -65,7 +72,7 @@ export default class WikiController implements BotController {
     static async wikiTreeHandler(bot: HackerEmbassyBot, msg: Message) {
         try {
             const tree = await wiki.listPagesAsTree();
-            const lines = renderWikiTree(tree);
+            const lines = listWikiPagePaths(tree);
 
             if (lines.length === 0) {
                 await bot.sendMessageExt(msg.chat.id, t("wiki.list.empty"), msg);

@@ -59,9 +59,10 @@ export default class WikiController implements BotController {
             }
 
             const sourceUrl = await wiki.getSourceUrl(page.id);
-            const sourceLink = sourceUrl ? `\n\n> 🔗 [${sourceUrl}](${sourceUrl})` : "";
+            const sourceLine = sourceUrl ? `> 🔗 ${t("wiki.page.source")}: [${sourceUrl}](${sourceUrl})` : "";
+            const fullMessage = sourceLine ? `${content.trimEnd()}\n\n${sourceLine}` : content;
 
-            await bot.sendLongMessage(msg.chat.id, `${content}${sourceLink}`, msg, {
+            await bot.sendLongMessage(msg.chat.id, fullMessage, msg, {
                 parse_mode: "GFM",
                 baseUrl: wiki.baseUrl,
             });

@@ -116,6 +116,19 @@ export const userstates = sqliteTable("userstates", {
         .references(() => users.userid),
 });
 
+export const aliases = sqliteTable(
+    "aliases",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+        alias: text("alias").notNull().unique(),
+        target: text("target").notNull(),
+        created_by: integer("created_by")
+            .notNull()
+            .references(() => users.userid),
+    },
+    table => [index("alias_idx").on(table.alias)]
+);
+
 export const apikeys = sqliteTable(
     "apikeys",
     {

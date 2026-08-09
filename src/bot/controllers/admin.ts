@@ -6,6 +6,7 @@ import config from "config";
 import { BotConfig } from "@config";
 
 import { User } from "@data/models";
+import AliasesRepository from "@data/repositories/aliases";
 import UsersRepository from "@data/repositories/users";
 import logger, { getLatestLogFilePath } from "@services/common/logger";
 import { hasRole } from "@services/domain/user";
@@ -446,5 +447,50 @@ export default class AdminController implements BotController {
         await bot.sendMessageExt(msg.chat.id, "☠️ Oh no, im ded (docker pls save me)", msg);
         logger.info(`Bot is shutting down by admin command from ${msg.from?.username} (${msg.from?.id})`);
         setTimeout(() => void bot.stopPolling().then(() => process.exit(0)), 5000);
+    }
+
+    @Route(["alias"], OptionalParam(/(\/\S+) (\/.+)/s), match => [match[1], match[2]])
+    @UserRoles(Admins)
+    static aliasAddHandler(bot: HackerEmbassyBot, msg: Message, aliasName?: string, target?: string) {
+        if (!aliasName || !target) return AdminController.sendAliasHelp(bot, msg);
+
+        const alias = aliasName.toLowerCase();
+        const targetCommandToken = target.split(" ")[0];
+        const bareAlias = alias.slice(1);
+        const bareTargetCommand = targetCommandToken.slice(1).toLowerCase();
+
+        if (bot.hasRoute(bareAlias)) return bot.sendMessageExt(msg.chat.id, t("admin.alias.add.exists"), msg);
+
+        if (!bot.hasRoute(bareTargetCommand))
+            return bot.sendMessageExt(msg.chat.id, t("admin.alias.add.badTarget", { command: targetCommandToken }), msg);
+
+        AliasesRepository.upsertAlias(alias, target.trim(), msg.from?.id ?? 0);
+
+        return bot.sendMessageExt(msg.chat.id, t("admin.alias.add.success", { alias, target }), msg);
+    }
+
+    @Route(["unalias", "removealias"], /(\/?\S+)/, match => [match[1]])
+    @UserRoles(Admins)
+    static aliasRemoveHandler(bot: HackerEmbassyBot, msg: Message, aliasName: string) {
+        const alias = aliasName.toLowerCase();
+        const removed = AliasesRepository.removeAlias(alias.startsWith("/") ? alias : `/${alias}`).changes > 0;
+
+        return bot.sendMessageExt(msg.chat.id, t(removed ? "admin.alias.remove.success" : "admin.alias.remove.fail"), msg);
+    }
+
+    @Route(["aliases", "listaliases"])
+    @UserRoles(Admins)
+    static aliasListHandler(bot: HackerEmbassyBot, msg: Message) {
+        return AdminController.sendAliasHelp(bot, msg);
+    }
+
+    private static sendAliasHelp(bot: HackerEmbassyBot, msg: Message) {
+        const list = AliasesRepository.getAliases();
+        const listText =
+            list.length > 0
+                ? t("admin.alias.list.text", { list: list.map(a => `#\`${a.alias}#\` → #\`${a.target}#\``).join("\n") })
+                : t("admin.alias.list.empty");
+
+        return bot.sendMessageExt(msg.chat.id, `${t("admin.alias.help").trimEnd()}\n\n${listText}`, msg);
     }
 }

@@ -301,6 +301,26 @@ admin:
             Подсказки:
             - Для отправки изображения нужно добавить команду в подпись к прикрепленному изображению
             - Результат можно скопировать в любой чат через reply с помощью #`/copy chatname_or_id#`
+    alias:
+        help: |
+            🔗 Управление алиасами команд:
+            #`/alias /name /full_command_with_parameters#`
+
+            Примеры:
+            #`/alias /principles /wiki o-nas/principy-spejsa#`
+            #`/unalias /name#`
+        add:
+            success: ✅ Алиас {{alias}} теперь указывает на {{target}}
+            exists: ⚠️ Такое имя уже занято командой бота
+            badTarget: ⚠️ {{command}} не является известной командой бота
+        remove:
+            success: 🗑 Алиас удалён
+            fail: ⚠️ Алиас не найден
+        list:
+            empty: Алиасы не заданы
+            text: |
+                📋 Текущие алиасы:
+                {{list}}
 birthday:
     nextbirthdays: |
         🎂 В этом месяце празднуют свои днюхи:

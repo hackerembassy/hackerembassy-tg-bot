@@ -301,6 +301,26 @@ admin:
             Notoj:
             - Por sendi bildon, aldonu ĉi tiun komandon al la bilda subskribo dum aldono
             - Ĉi tiu mesaĝo povas esti kopiita al alia babilo uzante la komandon #`/copy chatname_or_id#` kiel respondo al la mesaĝo
+    alias:
+        help: |
+            🔗 Administri komandajn kaŝnomojn:
+            #`/alias /name /full_command_with_parameters#`
+
+            Ekzemploj:
+            #`/alias /principles /wiki o-nas/principy-spejsa#`
+            #`/unalias /name#`
+        add:
+            success: ✅ Kaŝnomo {{alias}} nun montras al {{target}}
+            exists: ⚠️ Tiu nomo jam estas komando de la roboto
+            badTarget: ⚠️ {{command}} ne estas konata komando de la roboto
+        remove:
+            success: 🗑 Kaŝnomo forigita
+            fail: ⚠️ Kaŝnomo ne trovita
+        list:
+            empty: Neniuj kaŝnomoj difinitaj
+            text: |
+                📋 Nunaj kaŝnomoj:
+                {{list}}
 birthday:
     nextbirthdays: |
         🎂 Ĉi-monate ili festas siajn naskiĝtagojn:

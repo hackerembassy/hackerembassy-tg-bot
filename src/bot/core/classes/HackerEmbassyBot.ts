@@ -26,7 +26,8 @@ import { withDir, withFile } from "tmp-promise";
 
 import { BotConfig, BotFeatureFlag } from "@config";
 
-import { User } from "@data/models";
+import { Alias, User } from "@data/models";
+import aliasesRepository from "@data/repositories/aliases";
 import { UserRole } from "@data/types";
 
 import logger from "@services/common/logger";
@@ -173,6 +174,17 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (savedRestrictions.includes(chatId)) return true;
 
         return false;
+    }
+
+    hasRoute(command: string): boolean {
+        return this.routeMap.has(command.toLowerCase());
+    }
+
+    private parseCommand(text: string) {
+        const fullCommand = text.split(" ")[0];
+        const commandWithCase = fullCommand.split("@")[0].slice(1);
+
+        return { fullCommand, commandWithCase, command: commandWithCase.toLowerCase() };
     }
 
     canUserGuess(user: Nullable<User>, chat: Chat): boolean {
@@ -646,7 +658,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Get command from message text or a deeplink
             const deeplink = message.text?.match(/\/start (.*)/)?.[1].replaceAll("__", " ");
-            const text = deeplink ? `/${deeplink}` : ((message.text ?? message.caption) as string);
+            let text = deeplink ? `/${deeplink}` : ((message.text ?? message.caption) as string);
             const isCommand = this.isBotCommand(text);
 
             // If the message is not a command, we can skip or save it to history
@@ -670,10 +682,33 @@ export default class HackerEmbassyBot extends TelegramBot {
                 return;
             }
 
-            const fullCommand = text.split(" ")[0];
-            const commandWithCase = fullCommand.split("@")[0].slice(1);
-            const command = commandWithCase.toLowerCase();
-            const route = this.routeMap.get(command);
+            let { fullCommand, commandWithCase, command } = this.parseCommand(text);
+            let route = this.routeMap.get(command);
+
+            // Resolve a user-defined alias if no real command matched
+            if (!route) {
+                let alias: Optional<Alias>;
+
+                try {
+                    alias = aliasesRepository.getAliasByName(`/${command}`);
+                } catch (error) {
+                    logger.error(error);
+                }
+
+                if (alias) {
+                    // Just replacing one command with another: swap the leading "/command[@bot]"
+                    // token for the alias's stored target, keep the rest of the text.
+                    const aliasedText = text.replace(fullCommand, () => alias.target);
+                    const parsed = this.parseCommand(aliasedText);
+                    const aliasedRoute = this.routeMap.get(parsed.command);
+
+                    if (aliasedRoute) {
+                        text = aliasedText;
+                        ({ fullCommand, commandWithCase, command } = parsed);
+                        route = aliasedRoute;
+                    }
+                }
+            }
 
             // Prepare context
             if (!message.from) throw new Error("Message missing the sender, aborting...");

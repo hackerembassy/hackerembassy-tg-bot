@@ -302,6 +302,26 @@ admin:
             Notes:
             - For sending an image, add this command to the image caption during attachment
             - This message can be copied to another chat using the #`/copy chatname_or_id#` command as a reply to the message
+    alias:
+        help: |
+            🔗 Manage command aliases:
+            #`/alias /name /full_command_with_parameters#`
+
+            Examples:
+            #`/alias /principles /wiki o-nas/principy-spejsa#`
+            #`/unalias /name#`
+        add:
+            success: ✅ Alias {{alias}} now points to {{target}}
+            exists: ⚠️ That name is already a bot command
+            badTarget: ⚠️ {{command}} is not a known bot command
+        remove:
+            success: 🗑 Alias removed
+            fail: ⚠️ Alias not found
+        list:
+            empty: No aliases defined
+            text: |
+                📋 Current aliases:
+                {{list}}
 birthday:
     nextbirthdays: |
         🎂 This month they celebrate their birthdays:

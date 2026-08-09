@@ -1,9 +1,15 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 import config from "config";
 import fetch from "node-fetch";
+import memoize from "memoizee";
 
-import { WikiConfig } from "@config";
+import { BotApiConfig, WikiConfig } from "@config";
+
+import { MINUTE } from "@utils/date";
 
 const wikiConfig = config.get<WikiConfig>("wiki");
+const apiConfig = config.get<BotApiConfig>("api");
 
 export type PageResponse = {
     pages: {
@@ -218,12 +224,14 @@ class OutlineWiki {
     private wikiBaseUrl: string;
     private token: string;
     private publicCollectionId: string;
+    private publicUrl: string;
 
-    constructor(baseUrl: string, publicCollectionId: string, token: string) {
+    constructor(baseUrl: string, publicCollectionId: string, token: string, publicUrl: string) {
         this.apiEndpoint = `${baseUrl}/api/`;
         this.wikiBaseUrl = baseUrl;
         this.token = token;
         this.publicCollectionId = publicCollectionId;
+        this.publicUrl = publicUrl;
     }
 
     public get baseUrl(): string {
@@ -245,7 +253,27 @@ class OutlineWiki {
 
         if (!isPublic) return null;
 
-        return (await this.wikiRequest("documents.export", { id: pageId })) as string;
+        const markdown = (await this.wikiRequest("documents.export", { id: pageId })) as string;
+
+        return this.rewriteAttachmentUrls(markdown);
+    }
+
+    // Outline's exported markdown embeds images as relative "/api/attachments.redirect?id=<GUID>"
+    // links, which redirect to a signed storage URL that eventually expires. Rewriting them to our
+    // own proxy (see resolveAttachmentUrl) means the link Telegram users see never goes stale, since
+    // it's re-resolved fresh on every click instead of being baked in at export time.
+    // The "sig" param proves this id was signed by rewriteAttachmentUrls for a page that already
+    // passed isInPublicCollection - Outline has no "attachments.info" API to re-check this by id
+    // alone, so we verify our own signature instead of asking Outline.
+    public async resolveAttachmentUrl(attachmentId: string, signature: string): Promise<Optional<string>> {
+        if (!this.isValidAttachmentSignature(attachmentId, signature)) return undefined;
+
+        const response = await fetch(`${this.apiEndpoint}attachments.redirect?id=${attachmentId}`, {
+            redirect: "manual",
+            headers: { Authorization: `Bearer ${this.token}` },
+        });
+
+        return response.headers.get("location") ?? undefined;
     }
 
     public async findPage(query: string): Promise<Optional<WikiPage>> {
@@ -263,10 +291,32 @@ class OutlineWiki {
         return page ? this.findNodeById(tree, page.id, "") : undefined;
     }
 
-    private async isInPublicCollection(pageId: string): Promise<boolean> {
-        const documentInfo = (await this.wikiRequest("documents.info", { id: pageId })) as { collectionId?: string };
+    // Collection membership rarely changes, so this is memoized to avoid redoing the work
+    private isInPublicCollection = memoize(
+        async (pageId: string): Promise<boolean> => {
+            const documentInfo = (await this.wikiRequest("documents.info", { id: pageId })) as { collectionId?: string };
 
-        return documentInfo.collectionId === this.publicCollectionId;
+            return documentInfo.collectionId === this.publicCollectionId;
+        },
+        { maxAge: MINUTE, promise: true }
+    );
+
+    private signAttachmentId(attachmentId: string): string {
+        return createHmac("sha256", this.token).update(attachmentId).digest("hex").slice(0, 16);
+    }
+
+    private isValidAttachmentSignature(attachmentId: string, signature: string): boolean {
+        const expected = Buffer.from(this.signAttachmentId(attachmentId));
+        const actual = Buffer.from(signature);
+
+        return expected.length === actual.length && timingSafeEqual(expected, actual);
+    }
+
+    private rewriteAttachmentUrls(markdown: string): string {
+        return markdown.replaceAll(
+            /\/api\/attachments\.redirect\?id=([0-9a-f-]{36})/gi,
+            (_, id: string) => `${this.publicUrl}/api/wiki/attachment/${id}?sig=${this.signAttachmentId(id)}`
+        );
     }
 
     public nodePath(node: PageListTreeNode, parentPath: string): string {
@@ -343,4 +393,9 @@ class OutlineWiki {
     }
 }
 
-export default new OutlineWiki(wikiConfig.baseUrl, wikiConfig.publicCollectionId, process.env["WIKIAPIKEY"] ?? "");
+export default new OutlineWiki(
+    wikiConfig.baseUrl,
+    wikiConfig.publicCollectionId,
+    process.env["WIKIAPIKEY"] ?? "",
+    apiConfig.publicUrl
+);

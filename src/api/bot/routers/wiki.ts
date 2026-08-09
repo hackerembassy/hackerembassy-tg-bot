@@ -36,6 +36,23 @@ router.get("/page/:id", async (req, res, next) => {
     }
 });
 
+router.get("/attachment/:id", async (req, res, next) => {
+    try {
+        const signature = req.query.sig;
+
+        if (!req.params.id) return void res.status(400).send({ error: "Missing attachment id" });
+        if (typeof signature !== "string") return void res.status(400).send({ error: "Missing signature" });
+
+        const location = await wiki.resolveAttachmentUrl(req.params.id, signature);
+
+        if (!location) return void res.status(404).send({ error: "Attachment not found" });
+
+        res.redirect(302, location);
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Outline spams webhook with multiple requests for the same page quite often
 const debounceTimers = new Map<string, NodeJS.Timeout>();
 const WEBHOOK_DEBOUNCE = MINUTE;

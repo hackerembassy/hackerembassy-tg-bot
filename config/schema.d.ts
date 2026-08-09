@@ -47,6 +47,7 @@ export interface BotHistoryConfig {
 
 export interface BotApiConfig {
     port: number;
+    publicUrl: string;
     static: string;
     features: ApiFeaturesConfig;
 }

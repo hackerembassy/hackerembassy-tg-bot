@@ -1,4 +1,9 @@
 import swaggerAutogen from "swagger-autogen";
+import config from "config";
+
+import { BotApiConfig } from "@config";
+
+const apiConfig = config.get<BotApiConfig>("api");
 
 const doc = {
     info: {
@@ -7,11 +12,11 @@ const doc = {
     },
     servers: [
         {
-            url: "https://gateway.hackem.cc:9000/",
+            url: `${apiConfig.publicUrl}/`,
             description: "Gateway",
         },
         {
-            url: "http://localhost:3000/",
+            url: `http://localhost:${apiConfig.port}/`,
             description: "Local server",
         },
     ],

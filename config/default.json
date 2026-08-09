@@ -101,6 +101,7 @@
     },
     "api": {
         "port": 3000,
+        "publicUrl": "https://gateway.hackem.cc",
         "static": "resources/static",
         "features": {
             "calendar": true

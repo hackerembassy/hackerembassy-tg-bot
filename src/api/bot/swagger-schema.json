@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://gateway.hackem.cc:9000/",
+      "url": "https://gateway.hackem.cc/",
       "description": "Gateway"
     },
     {
@@ -419,6 +419,36 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/wiki/attachment/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sig",
+            "in": "query",
             "schema": {
               "type": "string"
             }

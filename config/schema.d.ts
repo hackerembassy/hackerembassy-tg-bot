@@ -14,6 +14,7 @@ export interface Config {
 export interface WikiConfig {
     baseUrl: string;
     publicCollectionId: string;
+    shareSlug: string;
     defaultLocale: string;
 }
 

@@ -234,13 +234,15 @@ class OutlineWiki {
     private token: string;
     private publicCollectionId: string;
     private publicUrl: string;
+    private shareSlug: string;
 
-    constructor(baseUrl: string, publicCollectionId: string, token: string, publicUrl: string) {
+    constructor(baseUrl: string, publicCollectionId: string, token: string, publicUrl: string, shareSlug: string) {
         this.apiEndpoint = `${baseUrl}/api/`;
         this.wikiBaseUrl = baseUrl;
         this.token = token;
         this.publicCollectionId = publicCollectionId;
         this.publicUrl = publicUrl;
+        this.shareSlug = shareSlug;
     }
 
     public get baseUrl(): string {
@@ -298,6 +300,16 @@ class OutlineWiki {
         const page = this.findWikiPage(this.flattenWikiTree(tree), query);
 
         return page ? this.findNodeById(tree, page.id, "") : undefined;
+    }
+
+    // The tree's own node.url is Outline's internal "/doc/..." route, which forces a login. The
+    // public, no-login link just inserts the public collection's share slug ("/s/<slug>") before
+    // that same path - e.g. "/doc/foo" -> "/s/main/doc/foo".
+    public async getSourceUrl(pageId: string): Promise<Optional<string>> {
+        const tree = await this.listPagesAsTree();
+        const found = this.findNodeById(tree, pageId, "");
+
+        return found?.node.url ? `${this.wikiBaseUrl}/s/${this.shareSlug}${found.node.url}` : undefined;
     }
 
     // Collection membership rarely changes, so this is memoized to avoid redoing the work
@@ -421,5 +433,6 @@ export default new OutlineWiki(
     wikiConfig.baseUrl,
     wikiConfig.publicCollectionId,
     process.env["WIKIAPIKEY"] ?? "",
-    apiConfig.publicUrl
+    apiConfig.publicUrl,
+    wikiConfig.shareSlug
 );

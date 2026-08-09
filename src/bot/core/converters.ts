@@ -85,6 +85,11 @@ export function GFMToTelegramMarkdown(markdown: string, baseUrl: string = ""): s
         // specials (e.g. a real "_" in example code) are meant to stay literal, not get escaped
         .replaceAll(/```[a-zA-Z0-9]*\n([\s\S]*?)```/g, (_, code: string) => protect(`\`\`\`\n${code}\`\`\``))
         .replaceAll(/`([^`\n]+)`/g, (_, code: string) => protect(`\`${code}\``))
+        // Some sources (e.g. Outline's export) contain multiple consecutive blank lines between
+        // blocks that aren't visible as extra gaps in their own rendered UI, since HTML collapses
+        // that whitespace - Telegram doesn't, so left alone they'd show as visible extra gaps. Code
+        // is already protected above, so this can't touch intentional blank lines inside a fence.
+        .replaceAll(/\n{3,}/g, "\n\n")
         // CommonMark's "<scheme:...>" autolink syntax has no Telegram entity of its own either, so
         // turn it into a real link instead of leaving the angle brackets as escaped literal text
         .replaceAll(/<([a-z][a-z0-9+.-]*:[^\s<>]+)>/gi, (_, url: string) =>

@@ -128,7 +128,12 @@ export function GFMToTelegramMarkdown(markdown: string, baseUrl: string = ""): s
         // those, italicizing arbitrary word fragments instead of leaving them alone.
         .replaceAll(/\*([^*\n]+)\*/g, (_, italic: string) => protect(`_${escapeTelegramMarkdownV2Specials(italic)}_`))
         // MarkdownV2 has real strikethrough support, unlike legacy Markdown
-        .replaceAll(/~~([^~\n]+)~~/g, (_, strike: string) => protect(`~${escapeTelegramMarkdownV2Specials(strike)}~`));
+        .replaceAll(/~~([^~\n]+)~~/g, (_, strike: string) => protect(`~${escapeTelegramMarkdownV2Specials(strike)}~`))
+        // CommonMark blockquote lines ("> ...") map directly to Telegram's own blockquote entity,
+        // which uses the same ">" prefix - only the marker itself needs protecting from the final
+        // escape below, since any inline formatting on the line was already converted to protected
+        // entities above.
+        .replaceAll(/^>/gm, () => protect(">"));
 
     // Everything left at this point is plain prose - escape any stray entity-delimiter characters
     // in it (see escapeTelegramMarkdownV2Specials), then restore the protected entities from above.

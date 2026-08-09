@@ -220,6 +220,15 @@ class WikiJs {
 }
 
 class OutlineWiki {
+    private static readonly CALLOUT_EMOJI: Record<string, string> = {
+        warning: "⚠️",
+        info: "ℹ️",
+        note: "ℹ️",
+        tip: "💡",
+        danger: "🚫",
+        error: "🚫",
+    };
+
     private apiEndpoint: string;
     private wikiBaseUrl: string;
     private token: string;
@@ -255,7 +264,7 @@ class OutlineWiki {
 
         const markdown = (await this.wikiRequest("documents.export", { id: pageId })) as string;
 
-        return this.rewriteAttachmentUrls(markdown);
+        return this.rewriteAttachmentUrls(this.rewriteCallouts(markdown));
     }
 
     // Outline's exported markdown embeds images as relative "/api/attachments.redirect?id=<GUID>"
@@ -317,6 +326,21 @@ class OutlineWiki {
             /\/api\/attachments\.redirect\?id=([0-9a-f-]{36})/gi,
             (_, id: string) => `${this.publicUrl}/api/wiki/attachment/${id}?sig=${this.signAttachmentId(id)}`
         );
+    }
+
+    // Outline's ":::type ... :::" callout containers aren't CommonMark, so GFMToTelegramMarkdown
+    // doesn't know about them - normalize them here into plain "> "-prefixed blockquote lines (with
+    // a type emoji standing in for the coloring/icon Telegram can't render), which the generic
+    // converter already turns into a real Telegram blockquote entity.
+    private rewriteCallouts(markdown: string): string {
+        return markdown.replaceAll(/^:::(\w+)\n([\s\S]*?)\n:::$/gm, (_, type: string, body: string) => {
+            const emoji = OutlineWiki.CALLOUT_EMOJI[type.toLowerCase()] ?? "📌";
+
+            return body
+                .split("\n")
+                .map((line, i) => `> ${i === 0 ? `${emoji} ` : ""}${line}`)
+                .join("\n");
+        });
     }
 
     public nodePath(node: PageListTreeNode, parentPath: string): string {

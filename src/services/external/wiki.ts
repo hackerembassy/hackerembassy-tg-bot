@@ -294,10 +294,12 @@ class OutlineWiki {
         return this.findWikiPage(this.flattenWikiTree(tree), query);
     }
 
-    // Same tolerant matching as findPage (exact path, path suffix, or title), but also returns the
-    // live tree node (with its .children), for callers that need to walk a page's own sub-tree.
     public async findTreeNode(query: string): Promise<Optional<{ node: PageListTreeNode; path: string }>> {
         const tree = await this.listPagesAsTree();
+        const byId = this.findNodeById(tree, query, "");
+
+        if (byId) return byId;
+
         const page = this.findWikiPage(this.flattenWikiTree(tree), query);
 
         return page ? this.findNodeById(tree, page.id, "") : undefined;

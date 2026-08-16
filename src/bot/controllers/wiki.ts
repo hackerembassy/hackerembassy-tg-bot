@@ -2,7 +2,8 @@ import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import logger from "@services/common/logger";
 import wiki, { PageListTreeNode } from "@services/external/wiki";
-import { cropStringAtSpace } from "@utils/text";
+import { isDefined } from "@utils/filters";
+import { chunkSubstr, cropStringAtSpace } from "@utils/text";
 
 import { Route } from "@hackembot/core/decorators";
 
@@ -38,26 +39,27 @@ function listWikiPagePaths(nodes: PageListTreeNode[], basePath = ""): string[] {
     );
 }
 
-function WikiPageButton(title: string, path?: string): InlineKeyboardButton | undefined {
-    const button = InlineButton(
-        cropStringAtSpace(title, 24),
-        "wiki",
-        ButtonFlags.Editing,
-        path === undefined ? {} : { params: path }
-    );
+// Telegram rejects the whole send/edit call if any button's callback_data exceeds 64 bytes. Addressing
+// pages by their (short, depth-independent) id rather than their full path keeps every button - even
+// pagination, which also has to carry a page number - comfortably under that limit; "w" (an alias of
+// "wiki") and dropping the redundant edit flag (wikiHandler forces edit mode itself, see below) buy back
+// a few more bytes of headroom. A button whose data would still overflow just isn't rendered, rather
+// than breaking navigation for every other button on the same keyboard.
+function WikiPageButton(text: string, params?: string | [string, number]): InlineKeyboardButton | undefined {
+    const button = InlineButton(cropStringAtSpace(text, 24), "w", undefined, params === undefined ? {} : { params });
 
     return Buffer.byteLength(button.callback_data) <= 64 ? button : undefined;
 }
 
 export default class WikiController implements BotController {
     @Route(["wiki", "w", "wcat"], OptionalParam(/(\S+)/), match => [match[1]])
-    static async wikiHandler(bot: HackerEmbassyBot, msg: Message, path?: string) {
+    static async wikiHandler(bot: HackerEmbassyBot, msg: Message, path?: string, page = 0) {
         try {
+            if (bot.context(msg).isButtonResponse) bot.context(msg).isEditing = true;
+
             if (!path) {
                 const topNodes = await wiki.listPagesAsTree();
-                const buttons = topNodes
-                    .map(node => WikiPageButton(node.label ?? "?", wiki.nodePath(node, "")))
-                    .filter((button): button is InlineKeyboardButton => button !== undefined);
+                const buttons = topNodes.map(node => WikiPageButton(node.label ?? "?", String(node.id))).filter(isDefined);
 
                 const inline_keyboard = [
                     ...chunkButtonsForMobile(buttons),
@@ -95,38 +97,41 @@ export default class WikiController implements BotController {
 
             const sourceUrl = await wiki.getSourceUrl(pageId);
             const sourceLine = sourceUrl ? `> 🔗 ${t("wiki.page.source")}: [${sourceUrl}](${sourceUrl})` : "";
-            const fullMessage = sourceLine ? `${content.trimEnd()}\n\n${sourceLine}` : content;
+
+            const contentBudget = MAX_MESSAGE_LENGTH - (sourceLine ? sourceLine.length + 2 : 0);
+            const contentPages = chunkSubstr(content, contentBudget).map(chunk =>
+                sourceLine ? `${chunk.trimEnd()}\n\n${sourceLine}` : chunk
+            );
+            const currentPage = Math.min(Math.max(page, 0), contentPages.length - 1);
 
             const childButtons = node.children
-                .map(child => WikiPageButton(child.label ?? "?", wiki.nodePath(child, resolvedPath)))
-                .filter((button): button is InlineKeyboardButton => button !== undefined);
+                .map(child => WikiPageButton(child.label ?? "?", String(child.id)))
+                .filter(isDefined);
             const parentPath = resolvedPath.includes("/") ? resolvedPath.slice(0, resolvedPath.lastIndexOf("/")) : undefined;
             const backButton =
-                WikiPageButton(t("general.buttons.back"), parentPath) ??
-                InlineButton(t("general.buttons.back"), "wiki", ButtonFlags.Editing);
+                WikiPageButton(t("general.buttons.back"), parentPath) ?? InlineButton(t("general.buttons.back"), "w");
 
-            const inline_keyboard = [
-                ...chunkButtonsForMobile(childButtons),
-                [backButton, InlineButton(t("wiki.buttons.hide"), "wikihide")],
-            ];
+            const inline_keyboard = [...chunkButtonsForMobile(childButtons)];
 
-            if (fullMessage.length <= MAX_MESSAGE_LENGTH) {
-                await bot.sendOrEditMessage(
-                    msg.chat.id,
-                    fullMessage,
-                    msg,
-                    { parse_mode: "GFM", baseUrl: wiki.baseUrl, reply_markup: { inline_keyboard } },
-                    msg.message_id
-                );
-                return;
+            if (contentPages.length > 1) {
+                const navButtons = [
+                    currentPage > 0 ? WikiPageButton("◀️", [pageId, currentPage - 1]) : undefined,
+                    WikiPageButton(`${currentPage + 1}/${contentPages.length}`, [pageId, currentPage]),
+                    currentPage < contentPages.length - 1 ? WikiPageButton("▶️", [pageId, currentPage + 1]) : undefined,
+                ].filter(isDefined);
+
+                if (navButtons.length > 0) inline_keyboard.push(navButtons);
             }
 
-            // Chunked messages can't carry a single coherent keyboard, so the content goes out as today
-            // and the navigation buttons follow as one short trailer message instead.
-            await bot.sendLongMessage(msg.chat.id, fullMessage, msg, { parse_mode: "GFM", baseUrl: wiki.baseUrl });
-            await bot.sendMessageExt(msg.chat.id, t("wiki.page.navigation", { path: resolvedPath }), msg, {
-                reply_markup: { inline_keyboard },
-            });
+            inline_keyboard.push([backButton, InlineButton(t("wiki.buttons.hide"), "wikihide")]);
+
+            await bot.sendOrEditMessage(
+                msg.chat.id,
+                contentPages[currentPage],
+                msg,
+                { parse_mode: "GFM", baseUrl: wiki.baseUrl, reply_markup: { inline_keyboard } },
+                msg.message_id
+            );
         } catch (error) {
             await bot.sendMessageExt(msg.chat.id, t("wiki.general.errors.generic"), msg);
             logger.error(error);

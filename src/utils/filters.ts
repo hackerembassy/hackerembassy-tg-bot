@@ -13,3 +13,7 @@ export function onlyUniqueInsFilter(value: string, index: number, array: string[
 export function filterFulfilled<T>(results: PromiseSettledResult<T>[]): PromiseFulfilledResult<T>[] {
     return results.filter(result => result.status === "fulfilled");
 }
+
+export function isDefined<T>(value: T | undefined): value is T {
+    return value !== undefined;
+}

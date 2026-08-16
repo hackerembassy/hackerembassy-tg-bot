@@ -782,7 +782,7 @@ export default class EmbassyController implements BotController {
     @Route(["ask"], OptionalParam(/(\S+?)(?: (.*))?/ims), match => [match[2], match[1]])
     @Route(["gpt"], OptionalParam(/(.*)/ims), match => [match[1], "gpt"])
     @Route(["glados"], OptionalParam(/(.*)/ims), match => [match[1], "glados"])
-    @Route(["ollama", "llama", "lama", "openwebui", "ai", "llm"], OptionalParam(/(.*)/ims), match => [match[1]])
+    @Route(["ollama", "llama", "lama", "openwebui", "ai", "llm", "owo"], OptionalParam(/(.*)/ims), match => [match[1]])
     @FeatureFlag("ai")
     @AllowedChats(PublicChats)
     static async askHandler(bot: HackerEmbassyBot, msg: Message, prompt?: string, model?: string) {
@@ -790,33 +790,40 @@ export default class EmbassyController implements BotController {
 
         if (msg.chat.id !== botConfig.chats.horny && !hasRole(user, "trusted", "member")) return bot.sendRestrictedMessage(msg);
 
+        const isBurivuhModel = model === "burivuh26" || model === "burivuh";
+        const isOpenAiModel = model === "gpt" || model === neuralConfig.openai.model;
+        const canUseImages = !isBurivuhModel && !isOpenAiModel;
+
         const replyPrompt = msg.reply_to_message?.text ?? msg.reply_to_message?.caption;
         const combined = prompt && replyPrompt ? `${replyPrompt}\n ${prompt}`.trim() : (prompt ?? replyPrompt);
-        const photoId = extractPhotoId(msg.reply_to_message?.photo) ?? extractPhotoId(msg.photo);
+        const photoId = canUseImages ? (extractPhotoId(msg.reply_to_message?.photo) ?? extractPhotoId(msg.photo)) : undefined;
         const imageBase64 = photoId ? await bot.fetchFileAsBase64(photoId) : undefined;
 
-        if (!combined) return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help") + t("embassy.neural.ask.usage"), msg);
+        const isEmptyPrompt = (canUseImages && !combined && !imageBase64) || (!canUseImages && !combined);
+
+        if (isEmptyPrompt)
+            return bot.sendMessageExt(msg.chat.id, t("embassy.neural.ask.help") + t("embassy.neural.ask.usage"), msg);
 
         const loading = setInterval(() => void bot.sendChatAction(msg.chat.id, "typing", msg), 5000);
 
         try {
             void bot.sendChatAction(msg.chat.id, "typing", msg);
 
-            if (model === "burivuh26" || model === "burivuh") {
+            if (isBurivuhModel) {
                 return await bot.sendMessageExt(msg.chat.id, `@burivuh26, ${combined}`, msg);
             }
 
-            if (model === "gpt" || model === neuralConfig.openai.model)
+            if (isOpenAiModel)
                 return await bot.sendMessageExt(
                     msg.chat.id,
-                    await openAI.askChat(combined, t("embassy.neural.contexts.default")),
+                    await openAI.askChat(combined ?? "", t("embassy.neural.contexts.default")),
                     msg,
                     { parse_mode: "GFM" }
                 );
 
             return await bot.sendStreamedMessage(
                 msg.chat.id,
-                await openwebui.generateOpenAiStream(combined, imageBase64, model),
+                await openwebui.generateOpenAiStream(combined ?? "", imageBase64, model),
                 msg,
                 "GFM"
             );

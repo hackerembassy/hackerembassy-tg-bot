@@ -84,10 +84,14 @@ function wrapOpenAiChunk() {
 
             if (line.startsWith(OPENAI_LINE_PREFIX)) {
                 const trimmedLine = line.slice(OPENAI_LINE_PREFIX.length).trim();
+
+                if (trimmedLine === OPEN_AI_DONE_MARK) {
+                    this.push({ response: null, done: true });
+                    return void this.push(null);
+                }
+
                 const parsedLine = JSON.parse(trimmedLine) as
-                    | ChatCompletionResponse
-                    | SelectedModelResponse
-                    | OllamaErrorResponse;
+                    ChatCompletionResponse | SelectedModelResponse | OllamaErrorResponse;
 
                 if ("selected_model_id" in parsedLine) return callback();
                 if ("detail" in parsedLine) {
@@ -108,9 +112,6 @@ function wrapOpenAiChunk() {
                         scope: reasoningContent === undefined ? undefined : "thinking",
                     });
                 }
-            } else if (line === OPEN_AI_DONE_MARK) {
-                this.push({ response: null, done: true });
-                return void this.push(null);
             } else if (line === OPEN_AI_NOT_FOUND) {
                 this.push({ response: null, done: true, error: MODEL_NOT_FOUND_ERROR });
                 return void this.push(null);

@@ -85,7 +85,8 @@ export default class ServiceController implements BotController {
         return bot.sendStreamedMessage(
             msg.chat.id,
             await openwebui.generateOpenAiStream(prompt, undefined, botConfig.history.summaryModel),
-            msg
+            msg,
+            "GFM"
         );
     }
 

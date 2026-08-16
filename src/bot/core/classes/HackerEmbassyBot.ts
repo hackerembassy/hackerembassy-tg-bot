@@ -411,7 +411,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     // TODO: add support for sending plain text and make it less bad
 
-    async sendStreamedMessage(chatId: ChatId, stream: DeltaStream, msg: Message): Promise<boolean> {
+    async sendStreamedMessage(chatId: ChatId, stream: DeltaStream, msg: Message, parseMode: "GFM" | "" = ""): Promise<boolean> {
         void this.sendChatAction(chatId, "typing", msg);
 
         let messageToEdit: Nullable<Message> = null;
@@ -446,19 +446,39 @@ export default class HackerEmbassyBot extends TelegramBot {
                 if (buffer.length === 0) continue;
 
                 if (!messageToEdit) {
-                    messageToEdit = await this.sendMessageExt(chatId, buffer, msg, {
-                        parse_mode: "",
-                    });
+                    messageToEdit = await this.withPlainTextFallback(chunk.done ? parseMode : "", pm =>
+                        this.sendMessageExt(chatId, buffer, msg, { parse_mode: pm })
+                    );
                 } else if (chunk.done || window >= MAX_STREAMING_WINDOW) {
-                    await this.editMessageTextExt(buffer, messageToEdit, {
-                        chat_id: chatId,
-                        message_id: messageToEdit.message_id,
-                        parse_mode: "",
-                    });
+                    // A length-driven cut can (and for long code-bearing replies, will) sever an open
+                    // "**bold" or an unclosed code fence if done at an arbitrary character offset - so it's
+                    // aligned to the last newline within budget instead, via the same chunkSubstr used for
+                    // long non-streamed messages. GFMToTelegramMarkdown confines every entity except fenced
+                    // code blocks to a single line, so that's enough to safely format the segment being
+                    // closed out, not just the true final one (chunk.done). Splitting applies on chunk.done
+                    // too - a final flush can itself land over the limit, and unlike a mid-stream rollover
+                    // there's no next iteration to send the rest, so every leftover segment is flushed here.
+                    const overLength = buffer.length > MAX_MESSAGE_LENGTH;
+                    const [segment, ...rest] = overLength ? chunkSubstr(buffer, MAX_MESSAGE_LENGTH) : [buffer];
+                    const editTarget = messageToEdit;
 
-                    if (buffer.length > MAX_MESSAGE_LENGTH) {
+                    await this.withPlainTextFallback(chunk.done || overLength ? parseMode : "", pm =>
+                        this.editMessageTextExt(segment, editTarget, {
+                            chat_id: chatId,
+                            message_id: editTarget.message_id,
+                            parse_mode: pm,
+                        })
+                    );
+
+                    if (chunk.done) {
+                        for (const trailingSegment of rest) {
+                            await this.withPlainTextFallback(parseMode, pm =>
+                                this.sendMessageExt(chatId, trailingSegment, msg, { parse_mode: pm })
+                            );
+                        }
+                    } else if (overLength) {
                         messageToEdit = null;
-                        buffer = "";
+                        buffer = rest.join("");
                     }
 
                     window = 0;
@@ -472,6 +492,21 @@ export default class HackerEmbassyBot extends TelegramBot {
             }
             logger.error(error);
             return false;
+        }
+    }
+
+    // Telegram's MarkdownV2 parser is strict and will reject the whole send/edit if the converted
+    // entities are malformed - rare given how defensive GFMToTelegramMarkdown is, but streamed AI output
+    // is unpredictable enough that it shouldn't be allowed to abort an otherwise-working response. Retries
+    // once as plain text instead of letting the error propagate; a plain-text failure is a real problem
+    // (network, bad chat id, etc.) and still propagates to the caller as before.
+    private async withPlainTextFallback<T>(parseMode: "GFM" | "", attempt: (parseMode: "GFM" | "") => Promise<T>): Promise<T> {
+        try {
+            return await attempt(parseMode);
+        } catch (error) {
+            if (parseMode !== "GFM") throw error;
+            logger.warn(error);
+            return await attempt("");
         }
     }
 

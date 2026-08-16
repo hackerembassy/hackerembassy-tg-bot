@@ -368,7 +368,7 @@ export default class StatusController implements BotController {
 
             const aiResponse = await openAI.askChat(prompt, t("status.shouldigo.context"));
 
-            await bot.sendMessageExt(msg.chat.id, aiResponse, msg);
+            await bot.sendMessageExt(msg.chat.id, aiResponse, msg, { parse_mode: "GFM" });
         } catch (error) {
             logger.error(error);
             await bot.sendMessageExt(msg.chat.id, t("status.shouldigo.fail"), msg);

@@ -810,13 +810,15 @@ export default class EmbassyController implements BotController {
                 return await bot.sendMessageExt(
                     msg.chat.id,
                     await openAI.askChat(combined, t("embassy.neural.contexts.default")),
-                    msg
+                    msg,
+                    { parse_mode: "GFM" }
                 );
 
             return await bot.sendStreamedMessage(
                 msg.chat.id,
                 await openwebui.generateOpenAiStream(combined, imageBase64, model),
-                msg
+                msg,
+                "GFM"
             );
         } catch (error) {
             if (error instanceof MessageStreamingError && error.message === MODEL_NOT_FOUND_ERROR) {

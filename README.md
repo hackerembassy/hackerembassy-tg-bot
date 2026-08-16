@@ -16,12 +16,14 @@ This bot is built to handle various tasks related to managing our hackerspace. I
 -   Providing information about the space, its residents, location, and how to donate
 -   Managing arrivals, departures, and attendance of participants
 -   Handling finances, including donations and generating financial reports, it also converts currencies (fiat and crypto)
+-   Automatically tracking donor sponsorship tiers based on donation history
 -   Creating and maintaining a shopping list for the shared space
 -   Managing users and roles within the space
 -   Providing real-time status updates on the 3D printer, such as printing percent done, time left, temperatures, and material consumption
 -   Access to security cameras
 -   Reporting climate data for all floors of the space
 -   Remote door lock access - if someone knocks when no one is around, the bot will alert the chat group and snap a photo
+-   Remote control of the space's air conditioners - turning them on/off, setting temperature and mode, and preheating before arrival
 -   Offering an API for some commands for the space's website, Home Assistant, and SpaceApi
 -   Quick inline response buttons
 -   Automatically recording participant entry and exit via the wifi network
@@ -31,12 +33,14 @@ This bot is built to handle various tasks related to managing our hackerspace. I
 -   The ability to send sounds and text messages to the speakers in the space
 -   Generating space attendance stats with infographics
 -   Waking up, shutting down and probing internal devices
--   Integration with Stable Diffusion (local) and GPT-3.5 Turbo
+-   Integration with Stable Diffusion (local), OpenAI, and local LLMs via Ollama/OpenWebUI, with several selectable chat personas (GPT, GLaDOS, etc.)
+-   AI-powered chat summarization and history squashing
 -   Topics and Subscriptions for a DM newsletter
 -   Antispam in our public chats
+-   Access to the space's wiki pages
 -   English, Russian, Armenian, Ukrainian and Esperanto languages
 
-An sqlite database is used to store data in the file ./data/db/data.db.
+An sqlite database is used to store data in the file ./db/data.db.
 To edit the database manually, I recommend https://sqlitebrowser.org/
 
 User roles:
@@ -83,24 +87,24 @@ All main dependencies in the cloud and internal service are installed using npm 
 
 ## Main files
 
-bot/core/classes/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality
-bot/instance.ts - initialization of a singleton for working with a bot
-bot/setup.ts - adding controllers, events and menus to the bot
-bot/cron.ts - setting up actions that the bot performs automatically according to a timer
-bot/controllers/\*.ts - user command handlers
+src/bot/core/classes/HackerEmbassyBot.ts - class with extensions of the original tgbot library for additional functionality
+src/bot/instance.ts - initialization of a singleton for working with a bot
+src/bot/setup.ts - adding controllers, events and menus to the bot
+src/bot/cron.ts - setting up actions that the bot performs automatically according to a timer
+src/bot/controllers/\*.ts - user command handlers
 
-data/db.ts - instance of the database
-data/scripts.ts - scripts for database operations
+src/data/db.ts - instance of the database
+src/data/scripts.ts - scripts for database operations
 
-repositories - repositories on top of the database service
+src/data/repositories - repositories on top of the database service
 resources - all sorts of additional resources, pictures, texts, etc.
-service - modules with functionality for various needs (communication via mqtt, receiving media, text generation, logging export, etc.)
-utils - common reusable utilities
+src/services - modules with functionality for various needs (communication via mqtt, receiving media, text generation, logging export, etc.)
+src/utils - common reusable utilities
 deploy - auxiliary files for deploying the bot and service
 scripts - scripts for automating some dev manipulations
 
-bot.ts - bot start file
-embassy.ts - start file of the internal space service
+src/bot.ts - bot start file
+src/embassy.ts - start file of the internal space service
 
 ## Configuration
 
@@ -116,6 +120,8 @@ If you want this bot to serve SpaceApi, you can create your own spaceapi templat
 
 ### Environment variables needed
 HACKERBOTTOKEN - Telegram API token
+BOTDEBUG - Enables debug logging/behavior when set
+LUCITOKEN - Token for Luci (router) API access
 UNLOCKKEY - Key for secure integrations between Bot and embassy API
 MQTTUSER - Broker username
 MQTTPASSWORD - Broker password
@@ -126,18 +132,22 @@ UNIFIPASSWORD - Unifi AP password
 GAMINGUSER - Gaming server username
 GAMINGPASSWORD - Gaming server user password
 HASSTOKEN - Home Assistant API token
+HASSAPIKEY - Home Assistant webhook/API key used by the bot API middleware
 HACKERGOOGLEAPIKEY - Google Calendar API token
 OPENAIAPIKEY - OpenAI API token
 OLLAMAAPIKEY - Ollama API token
 SONAR_TOKEN - Sonar Cloud analysis token
 WIKIAPIKEY - Outline Wiki API token
 OUTLINE_SIGNING_SECRET - Outline API signing secret for webhooks
+DOOR_ENDPOINT - Door lock service endpoint
+DOOR_TOKEN - Door lock service auth token
+TERMINALAPIKEY - Terminal API key used by the bot API middleware
 
 You can use a .env file in the root folder for development. Check the .env.example file for reference.
 
 ### Additional notes
 
-To interact between the bot and the service, you will need to have "sec" folder with rsa keys in the pub.key and priv.key files.
+To interact between the bot and the service, you will need to have a "config/sec" folder with rsa keys in the pub.key and priv.key files.
 Also, the UNLOCKKEY environment variable must be the same on the bot and on the service.
 Check the port settings in the config folder.
 For local development, it is better to create your own configuration in the config/local.json file

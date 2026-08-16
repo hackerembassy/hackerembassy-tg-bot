@@ -232,7 +232,7 @@
         },
         "openwebui": {
             "base": "https://owo.hackem.cc",
-            "model": "gemma3:27b"
+            "model": "ollama-default"
         },
         "openai": {
             "model": "gpt-5-mini",

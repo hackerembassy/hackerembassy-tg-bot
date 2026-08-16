@@ -33,6 +33,7 @@ export type PageListTreeNode = {
     id?: number;
     segment?: string;
     title?: string;
+    label?: string;
     url?: string;
     children: PageListTreeNode[];
 };
@@ -408,6 +409,7 @@ class OutlineWiki {
 
     private setSegmentRecursive(node: PageListTreeNode) {
         node.segment = node.url?.slice(node.url.lastIndexOf("/") + 1, node.url.lastIndexOf("-"));
+        node.label = node.title ?? node.segment ?? String(node.id ?? "?");
         for (const child of node.children) this.setSegmentRecursive(child);
     }
 

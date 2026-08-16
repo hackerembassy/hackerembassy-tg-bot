@@ -587,7 +587,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             .map((chunk, index) => `📧 ${index + 1} часть 📧\n\n${chunk}\n📧 Конец части ${index + 1} 📧`)
             .map(chunk => () => this.sendMessageExt(chatId, chunk, msg, options));
 
-        void executeOverTime(messageResponses);
+        await executeOverTime(messageResponses);
     }
 
     private deleteQueue: number[] = [];

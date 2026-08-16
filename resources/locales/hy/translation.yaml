@@ -227,6 +227,7 @@ basic:
             donate: 🎁 Ինչպես նվիրաբերել
             residents: 👩‍💻 Մեր ռեզիդենտները
             sponsors: 🫶 Մեր հովանավորները
+            wiki: 📚 Դիտել վիքին
             back: ↩️ Հետ
     meme:
         text: |
@@ -975,6 +976,8 @@ wiki:
     general:
         errors:
             generic: ⚠️ Մի բան այն չէ
+    buttons:
+        hide: 🙈 Թաքցնել կոճակները
     help: |
         📚 Սփեյսի վիքի էջերը հասանելի են հենց այստեղ, չաթում։
 
@@ -991,3 +994,4 @@ wiki:
 
             📟 Դիտել բոլոր էջերը - #`/wikitree#`
         source: Աղբյուր
+        navigation: "🧭 {{path}}"

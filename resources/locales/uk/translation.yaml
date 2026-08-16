@@ -228,6 +228,7 @@ basic:
             donate: 🎁 Як задонатити
             residents: 👩‍💻 Наші резиденти
             sponsors: 🫶 Наші спонсори
+            wiki: 📚 Вікі спейсу
             back: ↩️ Назад
     meme:
         text: |
@@ -978,6 +979,8 @@ wiki:
     general:
         errors:
             generic: ⚠️ Щось пішло не так
+    buttons:
+        hide: 🙈 Приховати кнопки
     help: |
         📚 Сторінки вікі спейсу доступні прямо тут, у чаті.
 
@@ -994,3 +997,4 @@ wiki:
 
             📟 Переглянути всі сторінки - #`/wikitree#`
         source: Джерело
+        navigation: "🧭 {{path}}"

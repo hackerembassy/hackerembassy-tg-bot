@@ -228,6 +228,7 @@ basic:
             donate: 🎁 Kiel donaci
             residents: 👩‍💻 Niaj loĝantoj
             sponsors: 🫶 Niaj sponsoroj
+            wiki: 📚 Foliumi la vikion
             back: ↩️ Reen
     meme:
         text: |
@@ -977,6 +978,8 @@ wiki:
     general:
         errors:
             generic: ⚠️ Io misokazis
+    buttons:
+        hide: 🙈 Kaŝi butonojn
     help: |
         📚 Vikipaĝoj de la spaco estas disponeblaj ĝuste ĉi tie, en la babilejo.
 
@@ -993,3 +996,4 @@ wiki:
 
             📟 Foliumi ĉiujn paĝojn - #`/wikitree#`
         source: Fonto
+        navigation: "🧭 {{path}}"

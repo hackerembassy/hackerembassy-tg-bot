@@ -1,12 +1,15 @@
-import { Message } from "node-telegram-bot-api";
+import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import logger from "@services/common/logger";
 import wiki, { PageListTreeNode } from "@services/external/wiki";
+import { cropStringAtSpace } from "@utils/text";
 
 import { Route } from "@hackembot/core/decorators";
 
+import { MAX_MESSAGE_LENGTH } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { formatMonospaced, OptionalParam } from "../core/helpers";
+import { ButtonFlags, chunkButtonsForMobile, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
 import { BotController } from "../core/types";
 
@@ -35,41 +38,114 @@ function listWikiPagePaths(nodes: PageListTreeNode[], basePath = ""): string[] {
     );
 }
 
+function WikiPageButton(title: string, path?: string): InlineKeyboardButton | undefined {
+    const button = InlineButton(
+        cropStringAtSpace(title, 24),
+        "wiki",
+        ButtonFlags.Editing,
+        path === undefined ? {} : { params: path }
+    );
+
+    return Buffer.byteLength(button.callback_data) <= 64 ? button : undefined;
+}
+
 export default class WikiController implements BotController {
     @Route(["wiki", "w", "wcat"], OptionalParam(/(\S+)/), match => [match[1]])
-    static async wikiHandler(bot: HackerEmbassyBot, msg: Message, pagename?: string) {
+    static async wikiHandler(bot: HackerEmbassyBot, msg: Message, path?: string) {
         try {
-            if (!pagename) {
-                await bot.sendMessageExt(msg.chat.id, t("wiki.help"), msg);
+            if (!path) {
+                const topNodes = await wiki.listPagesAsTree();
+                const buttons = topNodes
+                    .map(node => WikiPageButton(node.label ?? "?", wiki.nodePath(node, "")))
+                    .filter((button): button is InlineKeyboardButton => button !== undefined);
+
+                const inline_keyboard = [
+                    ...chunkButtonsForMobile(buttons),
+                    [
+                        InlineButton(t("general.buttons.back"), "infopanel", ButtonFlags.Editing),
+                        InlineButton(t("wiki.buttons.hide"), "wikihide"),
+                    ],
+                ];
+
+                await bot.sendOrEditMessage(
+                    msg.chat.id,
+                    t("wiki.help"),
+                    msg,
+                    { reply_markup: { inline_keyboard } },
+                    msg.message_id
+                );
                 return;
             }
 
-            const page = await wiki.findPage(pagename);
+            const found = await wiki.findTreeNode(path);
 
-            if (!page) {
-                await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename }), msg);
+            if (!found) {
+                await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename: path }), msg);
                 return;
             }
 
-            const content = await wiki.getPageContent(page.id);
+            const { node, path: resolvedPath } = found;
+            const pageId = String(node.id);
+            const content = await wiki.getPageContent(pageId);
 
             if (!content) {
-                await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename }), msg);
+                await bot.sendMessageExt(msg.chat.id, t("wiki.page.notfound", { pagename: path }), msg);
                 return;
             }
 
-            const sourceUrl = await wiki.getSourceUrl(page.id);
+            const sourceUrl = await wiki.getSourceUrl(pageId);
             const sourceLine = sourceUrl ? `> 🔗 ${t("wiki.page.source")}: [${sourceUrl}](${sourceUrl})` : "";
             const fullMessage = sourceLine ? `${content.trimEnd()}\n\n${sourceLine}` : content;
 
-            await bot.sendLongMessage(msg.chat.id, fullMessage, msg, {
-                parse_mode: "GFM",
-                baseUrl: wiki.baseUrl,
+            const childButtons = node.children
+                .map(child => WikiPageButton(child.label ?? "?", wiki.nodePath(child, resolvedPath)))
+                .filter((button): button is InlineKeyboardButton => button !== undefined);
+            const parentPath = resolvedPath.includes("/") ? resolvedPath.slice(0, resolvedPath.lastIndexOf("/")) : undefined;
+            const backButton =
+                WikiPageButton(t("general.buttons.back"), parentPath) ??
+                InlineButton(t("general.buttons.back"), "wiki", ButtonFlags.Editing);
+
+            const inline_keyboard = [
+                ...chunkButtonsForMobile(childButtons),
+                [backButton, InlineButton(t("wiki.buttons.hide"), "wikihide")],
+            ];
+
+            if (fullMessage.length <= MAX_MESSAGE_LENGTH) {
+                await bot.sendOrEditMessage(
+                    msg.chat.id,
+                    fullMessage,
+                    msg,
+                    { parse_mode: "GFM", baseUrl: wiki.baseUrl, reply_markup: { inline_keyboard } },
+                    msg.message_id
+                );
+                return;
+            }
+
+            // Chunked messages can't carry a single coherent keyboard, so the content goes out as today
+            // and the navigation buttons follow as one short trailer message instead.
+            await bot.sendLongMessage(msg.chat.id, fullMessage, msg, { parse_mode: "GFM", baseUrl: wiki.baseUrl });
+            await bot.sendMessageExt(msg.chat.id, t("wiki.page.navigation", { path: resolvedPath }), msg, {
+                reply_markup: { inline_keyboard },
             });
         } catch (error) {
             await bot.sendMessageExt(msg.chat.id, t("wiki.general.errors.generic"), msg);
             logger.error(error);
         }
+    }
+
+    @Route(["wikihide"])
+    static async wikiHideHandler(bot: HackerEmbassyBot, msg: Message) {
+        if (!msg.message_id) {
+            logger.warn("wikiHideHandler: message_id is undefined");
+            return;
+        }
+
+        if (!bot.context(msg).isButtonResponse) {
+            logger.warn("wikiHideHandler: not a button response");
+            return;
+        }
+
+        await bot.editMessageReplyMarkup({ inline_keyboard: [] }, { chat_id: msg.chat.id, message_id: msg.message_id });
     }
 
     @Route(["wikitree", "wikilist", "wls"], OptionalParam(/(\S+)/), match => [match[1]])

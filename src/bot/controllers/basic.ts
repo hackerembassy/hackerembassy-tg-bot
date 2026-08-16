@@ -362,6 +362,7 @@ export default class BasicController implements BotController {
                 InlineButton(t("basic.info.buttons.residents"), "getresidents", ButtonFlags.Editing),
                 InlineButton(t("basic.info.buttons.sponsors"), "getsponsors", ButtonFlags.Editing),
             ],
+            [InlineButton(t("basic.info.buttons.wiki"), "wiki", ButtonFlags.Editing)],
             [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
         ];
 

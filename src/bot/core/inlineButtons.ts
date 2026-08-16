@@ -14,6 +14,35 @@ export enum ButtonFlags {
     Silent = 1 << 1, // 10
 }
 
+// Rough mobile-width budget per row - Telegram wraps inline buttons at a pixel width, not a
+// character count, but this keeps rows of short labels multi-column while long labels drop to one per row.
+const MAX_BUTTON_ROW_CHARS = 30;
+
+export function chunkButtonsForMobile<T extends { text: string }>(buttons: T[], maxPerRow = 3): T[][] {
+    const rows: T[][] = [];
+    let currentRow: T[] = [];
+    let currentRowChars = 0;
+
+    for (const button of buttons) {
+        const wouldOverflow =
+            currentRow.length >= maxPerRow ||
+            (currentRow.length > 0 && currentRowChars + button.text.length > MAX_BUTTON_ROW_CHARS);
+
+        if (wouldOverflow) {
+            rows.push(currentRow);
+            currentRow = [];
+            currentRowChars = 0;
+        }
+
+        currentRow.push(button);
+        currentRowChars += button.text.length;
+    }
+
+    if (currentRow.length > 0) rows.push(currentRow);
+
+    return rows;
+}
+
 export function InlineButton(text: string, command?: string, flags?: ButtonFlags, options?: object) {
     return {
         text,

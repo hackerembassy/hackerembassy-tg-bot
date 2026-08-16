@@ -229,6 +229,7 @@ basic:
             donate: 🎁 How to donate
             residents: 👩‍💻 Our residents
             sponsors: 🫶 Our sponsors
+            wiki: 📚 Browse wiki
             back: ↩️ Back
     meme:
         text: |
@@ -985,6 +986,8 @@ wiki:
         View a page - #`/wiki full_page_path#`
         Browse all pages as a tree - #`/wikitree#`
         Browse a section as a tree - #`/wikitree full_section_path#`
+    buttons:
+        hide: 🙈 Hide buttons
     list:
         text: "{{pages}}"
         empty: 🗿 There are no pages yet
@@ -994,3 +997,4 @@ wiki:
 
             📟 Browse all pages - #`/wikitree#`
         source: Source
+        navigation: "🧭 {{path}}"

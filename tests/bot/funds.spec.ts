@@ -47,6 +47,24 @@ describe("Bot Funds commands:", () => {
         ]);
     });
 
+    test("/closefund and /removefund manage a fund's lifecycle, restricted for non-accountants", async () => {
+        await mockBot.processUpdate(createMockMessage("/addfund Lifecycle_Fund with target 100 USD", TEST_USERS.admin));
+        await mockBot.processUpdate(createMockMessage("/closefund Lifecycle_Fund", TEST_USERS.guest));
+        await mockBot.processUpdate(createMockMessage("/closefund Lifecycle_Fund", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/removefund Lifecycle_Fund", TEST_USERS.guest));
+        await mockBot.processUpdate(createMockMessage("/removefund Lifecycle_Fund", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/funds"));
+
+        expect(mockBot.popResults()).toEqual([
+            "funds\\.addfund\\.success",
+            "general\\.errors\\.restricted",
+            "funds\\.closefund\\.success",
+            "general\\.errors\\.restricted",
+            "funds\\.removefund\\.success",
+            "funds\\.funds",
+        ]);
+    });
+
     test("/costs should allow only accountants to add costs", async () => {
         fundsRepository.addFund(mockRentFund);
 

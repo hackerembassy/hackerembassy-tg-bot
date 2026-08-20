@@ -7,6 +7,7 @@ import { SEED_TEST_USERS } from "@data/seed";
 
 import { createEmbassyMock as mockCreateEmbassyMock } from "./mocks/embassy";
 import * as mockBotStateModule from "./mocks/botState";
+import { createWikiMock as mockCreateWikiMock } from "./mocks/wiki";
 
 fetchMock.enableMocks();
 
@@ -77,9 +78,10 @@ jest.mock("@services/external/googleCalendar", () => ({
     getEventsJSON: jest.fn().mockReturnValue([]),
 }));
 
-// See tests/mocks/embassy.ts and tests/mocks/botState.ts for why these are mocked.
+// See tests/mocks/embassy.ts, tests/mocks/botState.ts, and tests/mocks/wiki.ts for why these are mocked.
 jest.mock("@services/embassy/embassy", () => mockCreateEmbassyMock());
 jest.mock("@hackembot/core/classes/BotState", () => mockBotStateModule);
+jest.mock("@services/external/wiki", () => mockCreateWikiMock());
 
 jest.mock("@services/common/logger", () => {
     return {

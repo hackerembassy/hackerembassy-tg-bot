@@ -6,7 +6,7 @@ import { ChatId, Message, Update } from "node-telegram-bot-api";
 import { addControllers } from "@hackembot/setup";
 import { TEST_USERS } from "@data/seed";
 import HackerEmbassyBot from "@hackembot/core/classes/HackerEmbassyBot";
-import { SendMessageOptions, SendPhotoOptions } from "@hackembot/core/types";
+import { FileInput, SendAnimationOptions, SendMessageOptions, SendPhotoOptions } from "@hackembot/core/types";
 
 export class HackerEmbassyBotMock extends HackerEmbassyBot {
     constructor(token: string) {
@@ -33,6 +33,16 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
             date: 0,
             chat: { id: chatId, type: "private" },
             caption: options.caption,
+        } as Message);
+    }
+
+    override sendAnimation(chatId: ChatId, animation: FileInput, options?: SendAnimationOptions): Promise<Message> {
+        this.results.push(options?.caption ?? "");
+        return Promise.resolve({
+            message_id: 1,
+            date: 0,
+            chat: { id: chatId, type: "private" },
+            caption: options?.caption,
         } as Message);
     }
 

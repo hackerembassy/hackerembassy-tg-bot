@@ -38,6 +38,13 @@ describe("Basic commands:", () => {
         expect(mockBot.popResults()).toEqual(Array.from({ length: cryptoCommands.length }).fill("basic\\.donateCoin"));
     });
 
+    test("/help and /about return info text", async () => {
+        await mockBot.processUpdate(createMockMessage(`/help`));
+        await mockBot.processUpdate(createMockMessage(`/about`));
+
+        expect(mockBot.popResults()).toEqual(["basic\\.help", "basic\\.about"]);
+    });
+
     test("should return correct donate responses", async () => {
         await mockBot.processUpdate(createMockMessage(`/donate`));
         await mockBot.processUpdate(createMockMessage(`/donatecash`));

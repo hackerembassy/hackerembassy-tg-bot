@@ -14,6 +14,7 @@ export function createWikiMock() {
             findTreeNode: jest.fn(async () => {}),
             getPageContent: jest.fn(async () => {}),
             getSourceUrl: jest.fn(async () => {}),
+            resolveAttachmentUrl: jest.fn(async () => {}),
         },
     };
 }

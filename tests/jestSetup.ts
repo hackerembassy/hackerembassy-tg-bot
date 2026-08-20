@@ -9,6 +9,12 @@ import { createEmbassyMock as mockCreateEmbassyMock } from "./mocks/embassy";
 import * as mockBotStateModule from "./mocks/botState";
 import { createWikiMock as mockCreateWikiMock } from "./mocks/wiki";
 
+// Fixed values so tests/api specs can authenticate as the hass/terminal special entities
+// (src/api/bot/middleware.ts reads these once at module load) without touching real secrets.
+process.env["HASSAPIKEY"] = "test-hass-api-key";
+process.env["TERMINALAPIKEY"] = "test-terminal-api-key";
+process.env["OUTLINE_SIGNING_SECRET"] = "test-outline-signing-secret";
+
 fetchMock.enableMocks();
 
 fetchMock.mockIf(/^https:\/\/api\.telegram\.org/, req => {
@@ -82,6 +88,14 @@ jest.mock("@services/external/googleCalendar", () => ({
 jest.mock("@services/embassy/embassy", () => mockCreateEmbassyMock());
 jest.mock("@hackembot/core/classes/BotState", () => mockBotStateModule);
 jest.mock("@services/external/wiki", () => mockCreateWikiMock());
+
+// The real module reads HACKERBOTTOKEN and calls process.exit(1) if it's unset (never the case in
+// tests), and constructs a real HackerEmbassyBot singleton besides. The bot/api routers only ever
+// use it to fire off `sendAlert`, so a minimal stand-in is enough.
+jest.mock("@hackembot/instance", () => ({
+    __esModule: true,
+    default: { sendAlert: jest.fn(async () => {}) },
+}));
 
 jest.mock("@services/common/logger", () => {
     return {

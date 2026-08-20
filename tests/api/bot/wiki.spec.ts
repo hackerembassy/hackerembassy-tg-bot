@@ -6,12 +6,11 @@ import wiki from "@services/external/wiki";
 
 import wikiRouter from "@hackemapi/bot/routers/wiki";
 
-import { appWith } from "../helpers";
+import { appWith, OUTLINE_SIGNING_SECRET } from "../helpers";
 
-function outlineSignature(body: unknown) {
-    const timestamp = Date.now();
+function outlineSignature(body: unknown, timestamp = Date.now()) {
     const bodyString = JSON.stringify(body);
-    const signature = createHmac("sha256", "test-outline-signing-secret").update(`${timestamp}.${bodyString}`).digest("hex");
+    const signature = createHmac("sha256", OUTLINE_SIGNING_SECRET).update(`${timestamp}.${bodyString}`).digest("hex");
 
     return `t=${timestamp},s=${signature}`;
 }
@@ -19,7 +18,32 @@ function outlineSignature(body: unknown) {
 describe("Bot HTTP API /api/wiki router:", () => {
     const app = appWith(wikiRouter, "/wiki");
 
-    afterEach(() => jest.clearAllMocks());
+    // The webhook handler schedules a real (debounced, minute-long) setTimeout, and the stale-
+    // signature check compares against Date.now() - faking both (but leaving the timer/microtask
+    // APIs supertest/express rely on alone) lets tests fast-forward through both deterministically,
+    // and beforeEach/afterEach restores real timers even if an assertion throws mid-test.
+    beforeEach(() => {
+        jest.useFakeTimers({
+            doNotFake: [
+                "hrtime",
+                "nextTick",
+                "performance",
+                "queueMicrotask",
+                "requestAnimationFrame",
+                "cancelAnimationFrame",
+                "requestIdleCallback",
+                "cancelIdleCallback",
+                "setImmediate",
+                "clearImmediate",
+                "setInterval",
+                "clearInterval",
+            ],
+        });
+    });
+    afterEach(() => {
+        jest.useRealTimers();
+        jest.clearAllMocks();
+    });
 
     test("/tree lists the wiki page tree", async () => {
         (wiki.listPagesAsTree as jest.Mock).mockResolvedValueOnce([{ id: 1, children: [] }]);
@@ -53,7 +77,7 @@ describe("Bot HTTP API /api/wiki router:", () => {
         expect(withSignature.headers.location).toBe("https://wiki.test/files/file-1");
     });
 
-    test("the Outline webhook rejects requests without a valid signature", async () => {
+    test("the Outline webhook rejects requests without a valid or fresh signature", async () => {
         const body = {
             event: "documents.update",
             payload: { model: { title: "Test", url: "/doc/test", updatedBy: { name: "Someone" } } },
@@ -65,22 +89,26 @@ describe("Bot HTTP API /api/wiki router:", () => {
             .set("outline-signature", `t=${Date.now()},s=deadbeef`)
             .send(body);
 
-        // A valid signature schedules a real (debounced, minute-long) setTimeout before responding.
-        // Make it fire immediately instead of leaving a dangling timer that keeps the process alive.
-        const setTimeoutSpy = jest.spyOn(globalThis, "setTimeout").mockImplementation(((fn: () => void) => {
-            fn();
-            return 0 as unknown as NodeJS.Timeout;
-        }) as typeof setTimeout);
+        // A signature that was valid a minute ago must be rejected - otherwise a captured
+        // signature+body could be replayed indefinitely.
+        const staleTimestamp = outlineSignature(body);
+        jest.advanceTimersByTime(61_000);
+        const staleSignature = await request(app)
+            .post("/wiki/hooks/documents.update")
+            .set("outline-signature", staleTimestamp)
+            .send(body);
 
         const validSignature = await request(app)
             .post("/wiki/hooks/documents.update")
             .set("outline-signature", outlineSignature(body))
             .send(body);
-
-        setTimeoutSpy.mockRestore();
+        // The valid request above scheduled the debounced alert timer; flush it instead of
+        // leaving it dangling.
+        jest.runAllTimers();
 
         expect(noSignature.status).toBe(401);
         expect(badSignature.status).toBe(403);
+        expect(staleSignature.status).toBe(401);
         expect(validSignature.status).toBe(200);
     });
 });

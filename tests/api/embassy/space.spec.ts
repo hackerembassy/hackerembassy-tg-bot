@@ -50,6 +50,18 @@ describe("Embassy HTTP API /space router:", () => {
         expect(DoorLock.unlock).toHaveBeenCalledWith(UnlockMethod.MQTT);
     });
 
+    test("/unlock fails safely (not hanging/crashing) when the token isn't valid RSA ciphertext", async () => {
+        // decrypt() throws on a garbage/malformed token in production. The middleware has no
+        // try/catch of its own; Express 5 (used here) forwards a rejected async middleware to the
+        // error handler automatically, so this should 500 rather than hang or take the process down.
+        (decrypt as jest.Mock).mockRejectedValueOnce(new Error("Invalid RSA ciphertext"));
+
+        const response = await request(app).post("/space/unlock").set("Authorization", "Bearer not-valid-ciphertext").send({});
+
+        expect(response.status).toBe(500);
+        expect(DoorLock.unlock).not.toHaveBeenCalled();
+    });
+
     test("/alarm only disarms with a valid token and a 'disarm' state", async () => {
         (decrypt as jest.Mock).mockResolvedValue("the-real-unlock-key");
 

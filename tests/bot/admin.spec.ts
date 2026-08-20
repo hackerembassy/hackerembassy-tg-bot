@@ -100,7 +100,11 @@ describe("Bot Admin commands:", () => {
         ]);
     });
 
-    test("/updateroles actually grants permissions, /removeuser actually revokes them", async () => {
+    test("/updateroles actually grants permissions, /removeuser actually revokes them, both restricted to admins", async () => {
+        // A non-admin (even one with other elevated roles) can't grant roles or delete users.
+        await mockBot.processUpdate(createMockMessage("/updateroles of guest to member", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/removeuser guest", TEST_USERS.accountant));
+
         await mockBot.processUpdate(createMockMessage("/addtopic probe", TEST_USERS.guest));
         await mockBot.processUpdate(createMockMessage("/updateroles of guest to member", TEST_USERS.admin));
         await mockBot.processUpdate(createMockMessage("/addtopic probe", TEST_USERS.guest));
@@ -108,6 +112,8 @@ describe("Bot Admin commands:", () => {
         await mockBot.processUpdate(createMockMessage("/addtopic probe", TEST_USERS.guest));
 
         expect(mockBot.popResults()).toEqual([
+            "general\\.errors\\.restricted",
+            "general\\.errors\\.restricted",
             "general\\.errors\\.restricted",
             "admin\\.updateRoles\\.success",
             "topics\\.add\\.success",

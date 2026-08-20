@@ -4,7 +4,7 @@ import { AvailablePrinters } from "@services/embassy/printer3d";
 
 import printersRouter from "@hackemapi/embassy/routers/printers";
 
-import { appWith } from "../helpers";
+import { appWith, mockedMapValue } from "../helpers";
 
 // Real Printer3d instances talk to printer hardware over HTTP.
 jest.mock("@services/embassy/printer3d", () => ({
@@ -24,12 +24,7 @@ jest.mock("@services/embassy/printer3d", () => ({
 
 describe("Embassy HTTP API /printers router:", () => {
     const app = appWith(printersRouter, "/printers");
-    const mockPrinter = AvailablePrinters.get("anette") as unknown as {
-        getPrinterStatus: jest.Mock;
-        getFileMetadata: jest.Mock;
-        getCam: jest.Mock;
-        getThumbnail: jest.Mock;
-    };
+    const mockPrinter = mockedMapValue(AvailablePrinters, "anette");
 
     afterEach(() => jest.clearAllMocks());
 

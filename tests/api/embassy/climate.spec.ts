@@ -4,7 +4,7 @@ import { sensors, AvailableConditioners } from "@services/embassy/hass";
 
 import climateRouter from "@hackemapi/embassy/routers/climate";
 
-import { appWith } from "../helpers";
+import { appWith, mockedMapValue } from "../helpers";
 
 // Real Conditioner/Sensors instances talk to Home Assistant over HTTP. Each power/mode/temperature
 // change also does a real 5s sleep before re-checking state - fake that out so tests stay fast.
@@ -32,14 +32,7 @@ jest.mock("@utils/common", () => ({
 
 describe("Embassy HTTP API /climate router:", () => {
     const app = appWith(climateRouter, "/climate");
-    const conditioner = AvailableConditioners.get("private") as unknown as {
-        getState: jest.Mock;
-        turnOn: jest.Mock;
-        turnOff: jest.Mock;
-        setMode: jest.Mock;
-        setTemperature: jest.Mock;
-        preheat: jest.Mock;
-    };
+    const conditioner = mockedMapValue(AvailableConditioners, "private");
 
     afterEach(() => jest.clearAllMocks());
 

@@ -11,6 +11,10 @@ import { createWikiMock as mockCreateWikiMock } from "./mocks/wiki";
 
 // Fixed values so tests/api specs can authenticate as the hass/terminal special entities
 // (src/api/bot/middleware.ts reads these once at module load) without touching real secrets.
+// Must match HASS_TOKEN/TERMINAL_TOKEN/OUTLINE_SIGNING_SECRET in tests/api/helpers.ts (that file
+// is the source of truth spec files should import from; it can't be imported here since it
+// eagerly pulls in @data/repositories - see tests/mocks/embassy.ts for the same node-fetch/ESM
+// eager-import trap this would otherwise hit).
 process.env["HASSAPIKEY"] = "test-hass-api-key";
 process.env["TERMINALAPIKEY"] = "test-terminal-api-key";
 process.env["OUTLINE_SIGNING_SECRET"] = "test-outline-signing-secret";

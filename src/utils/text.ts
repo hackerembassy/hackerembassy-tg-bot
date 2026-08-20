@@ -2,8 +2,13 @@ export const REPLACE_MARKER = "\x1a";
 export const ZERO_WIDTH_SPACE = "\u200b";
 const ELLIPSIS = "...";
 
+// Anchored so the whole input has to be emoji (optionally more than one codepoint, e.g. flags,
+// or with a trailing variation selector/ZWJ) rather than merely containing one somewhere -
+// otherwise setemojiHandler would happily store an entire sentence as someone's status emoji.
 export function isEmoji(message: string): boolean {
-    return /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/u.test(
+    // The variation selector/ZWJ are kept out of the character class (as a separate alternative
+    // instead) since combining marks inside a class trip eslint's no-misleading-character-class.
+    return /^(?:[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1fa00}-\u{1faff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]|\u{fe0f}|\u{200d})+$/u.test(
         message
     );
 }

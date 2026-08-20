@@ -28,6 +28,15 @@ describe("Bot Funds commands:", () => {
         ]);
     });
 
+    test("/addfund and /adddonation are restricted to accountants", async () => {
+        await mockBot.processUpdate(createMockMessage("/addfund Guest_Fund with target 500 USD", TEST_USERS.guest));
+        await mockBot.processUpdate(
+            createMockMessage(`/adddonation 100 USD from @${TEST_USERS.guest.username} to Guest_Fund`, TEST_USERS.guest)
+        );
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.restricted", "general\\.errors\\.restricted"]);
+    });
+
     test("/adddonation should properly add a donation to an added fund to a list returned by /funds", async () => {
         await mockBot.processUpdate(createMockMessage("/addfund Test_Fund_With_Donations with target 500 USD", TEST_USERS.admin));
 
@@ -63,6 +72,37 @@ describe("Bot Funds commands:", () => {
             "funds\\.removefund\\.success",
             "funds\\.funds",
         ]);
+    });
+
+    test("/removedonation and /changedonation are restricted to accountants and mutate donation records", async () => {
+        await mockBot.processUpdate(createMockMessage("/addfund Donation_Edit_Fund with target 500 USD", TEST_USERS.admin));
+        await mockBot.processUpdate(
+            createMockMessage(`/adddonation 100 USD from @${TEST_USERS.guest.username} to Donation_Edit_Fund`, TEST_USERS.admin)
+        );
+
+        const donationId = fundsRepository.getDonationsForName("Donation_Edit_Fund")[0].id;
+
+        await mockBot.processUpdate(createMockMessage(`/changedonation ${donationId} to 50 USD`, TEST_USERS.guest));
+        await mockBot.processUpdate(createMockMessage(`/changedonation ${donationId} to 50 USD`, TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage(`/removedonation ${donationId}`, TEST_USERS.guest));
+        await mockBot.processUpdate(createMockMessage(`/removedonation ${donationId}`, TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual([
+            "funds\\.addfund\\.success",
+            "funds\\.adddonation\\.success",
+            "general\\.errors\\.restricted",
+            "funds\\.changedonation\\.success",
+            "general\\.errors\\.restricted",
+            "funds\\.removedonation\\.success",
+        ]);
+        expect(fundsRepository.getDonationById(donationId)).toBeUndefined();
+    });
+
+    test("/debt exposes a user's donation history and is restricted to accountants", async () => {
+        await mockBot.processUpdate(createMockMessage("/debt", TEST_USERS.guest));
+        await mockBot.processUpdate(createMockMessage("/debt", TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.restricted", "funds\\.debt\\.empty"]);
     });
 
     test("/costs should allow only accountants to add costs", async () => {

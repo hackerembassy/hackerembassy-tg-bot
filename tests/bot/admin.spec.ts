@@ -45,6 +45,61 @@ describe("Bot Admin commands:", () => {
         ]);
     });
 
+    test("/ban is restricted to members and refuses to ban privileged users", async () => {
+        // Guests can't invoke it at all.
+        await mockBot.processUpdate(createMockMessage("/ban guest", TEST_USERS.guest));
+
+        // A plain member can't use it to ban another admin/accountant/member - only unprivileged users.
+        await mockBot.processUpdate(createMockMessage("/ban admin", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/ban accountant", TEST_USERS.accountant));
+
+        // It does work against an unprivileged (guest) target.
+        await mockBot.processUpdate(createMockMessage("/ban guest", TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual([
+            "general\\.errors\\.restricted",
+            "🙅 User cannot be banned",
+            "🙅 User cannot be banned",
+            "🔨 User is banned guest",
+        ]);
+
+        // Restore guest to its default role so later tests aren't affected by this one.
+        await mockBot.processUpdate(createMockMessage("/unblock guest", TEST_USERS.admin));
+        expect(mockBot.popResults()).toEqual(["admin\\.updateRoles\\.success"]);
+    });
+
+    test("/die is restricted to members", async () => {
+        // Only checks the permission gate - never invoke this as an allowed user, since a
+        // successful call schedules a real process.exit() a few seconds later via a real
+        // (non-faked) setTimeout, which would kill the test worker.
+        await mockBot.processUpdate(createMockMessage("/die", TEST_USERS.guest));
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.restricted"]);
+    });
+
+    test("/copy is restricted to members", async () => {
+        await mockBot.processUpdate(createMockMessage("/copy main", TEST_USERS.guest));
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.restricted"]);
+    });
+
+    test("/getlogs, /cleanstate, and /stoplive (state/log access) are restricted to admins", async () => {
+        await mockBot.processUpdate(createMockMessage("/getlogs", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/cleanstate", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/stoplive", TEST_USERS.accountant));
+
+        await mockBot.processUpdate(createMockMessage("/cleanstate", TEST_USERS.admin));
+        await mockBot.processUpdate(createMockMessage("/stoplive", TEST_USERS.admin));
+
+        expect(mockBot.popResults()).toEqual([
+            "general\\.errors\\.restricted",
+            "general\\.errors\\.restricted",
+            "general\\.errors\\.restricted",
+            "Cleared the bot persisted state\\. Message history and Live handlers are removed",
+            "Live handlers are removed from this chat",
+        ]);
+    });
+
     test("/updateroles actually grants permissions, /removeuser actually revokes them", async () => {
         await mockBot.processUpdate(createMockMessage("/addtopic probe", TEST_USERS.guest));
         await mockBot.processUpdate(createMockMessage("/updateroles of guest to member", TEST_USERS.admin));

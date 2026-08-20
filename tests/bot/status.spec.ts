@@ -17,6 +17,13 @@ describe("Bot Status commands:", () => {
         ]);
     });
 
+    test("/open and /close are restricted to members", async () => {
+        await mockBot.processUpdate(createMockMessage("/open", TEST_USERS.guest));
+        await mockBot.processUpdate(createMockMessage("/close", TEST_USERS.guest));
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.restricted", "general\\.errors\\.restricted"]);
+    });
+
     test("/out and /outforce should allow to leave anyone no matter if the space is opened or closed ", async () => {
         await mockBot.processUpdate(createMockMessage("/close", TEST_USERS.admin));
         await mockBot.processUpdate(createMockMessage("/in", TEST_USERS.admin));

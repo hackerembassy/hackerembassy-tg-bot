@@ -5,6 +5,9 @@ import { sleep } from "@utils/common";
 import { getOrCreateDb, seedUsers } from "@data/scripts";
 import { SEED_TEST_USERS } from "@data/seed";
 
+import { createEmbassyMock as mockCreateEmbassyMock } from "./mocks/embassy";
+import * as mockBotStateModule from "./mocks/botState";
+
 fetchMock.enableMocks();
 
 fetchMock.mockIf(/^https:\/\/api\.telegram\.org/, req => {
@@ -73,6 +76,10 @@ jest.mock("@services/external/googleCalendar", () => ({
     getTodayEventsCached: jest.fn().mockReturnValue([]),
     getEventsJSON: jest.fn().mockReturnValue([]),
 }));
+
+// See tests/mocks/embassy.ts and tests/mocks/botState.ts for why these are mocked.
+jest.mock("@services/embassy/embassy", () => mockCreateEmbassyMock());
+jest.mock("@hackembot/core/classes/BotState", () => mockBotStateModule);
 
 jest.mock("@services/common/logger", () => {
     return {

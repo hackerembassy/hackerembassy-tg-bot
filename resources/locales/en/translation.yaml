@@ -839,9 +839,11 @@ status:
         gotin: 🤝 {{username}} is checked-in
         until: " until {{until}}"
         tryautoinside: 📲 Try the /autoinside command to check-in to Space automatically.
+        alreadyin: 🤝 {{username}}, you're already in — nothing changed, breathe easy.
     out:
         shouldnot: 🔐 And you are not on the list of marked people anyway (when the space is closed, it is cleared)
         gotout: 👋 {{username}} is no longer in Space. We hope they will visit us again...
+        alreadyout: 👋 {{username}}, you're already out there somewhere. No need to leave twice.
     inforce:
         notready: 🔐 Sorry, you can’t bring this person now.
         gotin: 🟢 {{memberusername}} brought {{username}} to space

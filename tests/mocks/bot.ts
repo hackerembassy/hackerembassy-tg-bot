@@ -86,7 +86,12 @@ export function createMockBot() {
     return botMock;
 }
 
-export function createMockMessage(text: string, fromUser = TEST_USERS.guest, timestamp: number = Date.now()): Update {
+export function createMockMessage(
+    text: string,
+    fromUser = TEST_USERS.guest,
+    timestamp: number = Date.now(),
+    chatId: number = fromUser.userid
+): Update {
     return {
         update_id: 0,
         message: {
@@ -99,7 +104,7 @@ export function createMockMessage(text: string, fromUser = TEST_USERS.guest, tim
                 language_code: "ru-RU",
             },
             chat: {
-                id: fromUser.userid,
+                id: chatId,
                 first_name: "First Name",
                 username: fromUser.username,
                 type: "private",

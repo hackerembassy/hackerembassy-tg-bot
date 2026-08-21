@@ -55,7 +55,7 @@ describe("Bot Status commands:", () => {
 
         expect(results).toEqual([
             "status\\.open",
-            "status\\.out\\.gotout",
+            "status\\.out\\.alreadyout",
             "status\\.inforce\\.gotin",
             "status\\.outforce\\.gotout",
             "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n\x1astatus\\.status\\.updated",
@@ -117,5 +117,27 @@ describe("Bot Status commands:", () => {
             "status\\.close",
             "status\\.status\\.state\nstatus\\.status\\.nooneinside\n\n\x1astatus\\.status\\.updated",
         ]);
+    });
+
+    test("/in after /inghost converts the secret check-in to public instead of reporting 'already in'", async () => {
+        await mockBot.processUpdate(createMockMessage("/out", TEST_USERS.accountant));
+        mockBot.popResults();
+
+        await mockBot.processUpdate(createMockMessage("/inghost", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/in", TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual([
+            "status\\.in\\.gotin\n\nstatus\\.in\\.tryautoinside",
+            "status\\.in\\.gotin\n\nstatus\\.in\\.tryautoinside",
+        ]);
+    });
+
+    test("/going and /notgoing can be repeated to update the note instead of being blocked as a no-op", async () => {
+        await mockBot.processUpdate(createMockMessage("/going first note", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/going second note", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/notgoing first reason", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/notgoing second reason", TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual(["status\\.going", "status\\.going", "status\\.notgoing", "status\\.notgoing"]);
     });
 });

@@ -4,8 +4,8 @@ import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
 
-import { State, StateEx, User } from "@data/models";
-import { UserStateChangeType, AutoInsideMode } from "@data/types";
+import { State, StateEx, User, UserStateEx } from "@data/models";
+import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
 import UsersRepository from "@data/repositories/users";
 import fundsRepository, { COSTS_PREFIX } from "@data/repositories/funds";
@@ -26,6 +26,7 @@ import { sleep } from "@utils/common";
 import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
 import { isEmoji, REPLACE_MARKER } from "@utils/text";
 import { getFilename } from "@utils/meta";
+import { getImageFromPath } from "@utils/filesystem";
 
 import {
     Accountants,
@@ -494,6 +495,22 @@ export default class StatusController implements BotController {
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
+        const previousState = userService.getUserState(target);
+        const alreadyIn = ghost
+            ? previousState?.status === UserStateType.InsideSecret
+            : previousState?.status === UserStateType.Inside;
+
+        if (alreadyIn) {
+            return bot.sendMessageExt(msg.chat.id, t("status.in.alreadyin", { username: helpers.userLink(target) }), msg, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [InlineButton(t("status.buttons.inandin"), "in"), InlineButton(t("status.buttons.inandout"), "out")],
+                        [AnnoyingInlineButton(bot, msg, t("status.buttons.whoinside"), "status")],
+                    ],
+                },
+            });
+        }
+
         const inviterName = force ? helpers.effectiveName(sender) : undefined;
         const durationMs = durationString ? tryDurationStringToMs(durationString) : undefined;
         const until = durationMs ? new Date(eventDate.getTime() + durationMs) : undefined;
@@ -531,7 +548,7 @@ export default class StatusController implements BotController {
     }
 
     @Route(["out", "iamleaving"])
-    static outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
+    static async outHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const context = bot.context(msg);
         const sender = context.user;
         const eventDate = new Date();
@@ -545,6 +562,24 @@ export default class StatusController implements BotController {
               : sender;
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
+
+        const previousState = userService.getUserState(target);
+        const alreadyOut = previousState === undefined || previousState.status === UserStateType.Outside;
+
+        if (alreadyOut) {
+            return bot.sendMessageExt(msg.chat.id, t("status.out.alreadyout", { username: helpers.userLink(target) }), msg, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [InlineButton(t("status.buttons.outandout"), "out"), InlineButton(t("status.buttons.outandin"), "in")],
+                        [
+                            msg.chat.id === botConfig.chats.main
+                                ? InlineDeepLinkButton(t("status.buttons.whoinside"), bot.name, "status")
+                                : InlineButton(t("status.buttons.whoinside"), "status"),
+                        ],
+                    ],
+                },
+            });
+        }
 
         const gotOut = userService.letOut(target, force ? UserStateChangeType.Force : UserStateChangeType.Manual, eventDate);
         let message: string;
@@ -570,11 +605,17 @@ export default class StatusController implements BotController {
               ]
             : [[InlineButton(t("status.buttons.repeat"), "out"), InlineButton(t("status.buttons.open"), "open")]];
 
-        return bot.sendMessageExt(msg.chat.id, message, msg, {
+        const sentMessage = await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
                 inline_keyboard,
             },
         });
+
+        if (!force && gotOut) {
+            await StatusController.maybeSendFlipFlopGif(bot, msg, previousState, UserStateType.Inside);
+        }
+
+        return sentMessage;
     }
 
     @Route(["going", "coming", "cuming", "g"], OptionalParam(/(.*)/), match => [match[1]])
@@ -601,11 +642,13 @@ export default class StatusController implements BotController {
                 inline_keyboard,
             },
         });
+        return;
     }
 
     @Route(["notgoing", "notcoming", "notcuming", "ng"], OptionalParam(/(.*)/), match => [match[1]])
     static async notGoingHandler(bot: HackerEmbassyBot, msg: Message, note?: string) {
         const sender = bot.context(msg).user;
+        const previousState = userService.getUserState(sender);
 
         userService.setGoingState(sender, false, note);
         bot.customEmitter.emit(BotCustomEvent.statusLive);
@@ -616,6 +659,7 @@ export default class StatusController implements BotController {
         });
 
         await bot.sendMessageExt(msg.chat.id, message, msg);
+        await StatusController.maybeSendFlipFlopGif(bot, msg, previousState, UserStateType.Going);
     }
 
     @Route(["setemoji", "emoji", "myemoji"], OptionalParam(/(.*)/), match => [match[1]])
@@ -657,6 +701,28 @@ export default class StatusController implements BotController {
         });
 
         void bot.sendMessageExt(msg.chat.id, "#*Detected devices:#*\n" + devicesWithOwners.join("\n"), msg);
+    }
+
+    static async maybeSendFlipFlopGif(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        previousState: UserStateEx | undefined,
+        expectedStatus: UserStateType
+    ): Promise<void> {
+        const FLIP_FLOP_WINDOW_MS = 10_000;
+        const FLIP_FLOP_GIF_PATH = "./resources/images/animations/leaving.gif";
+
+        if (!PublicChats.includes(msg.chat.id)) return;
+
+        const isFlipFlop =
+            previousState !== undefined &&
+            previousState.status === expectedStatus &&
+            Date.now() - previousState.date <= FLIP_FLOP_WINDOW_MS;
+
+        if (!isFlipFlop) return;
+
+        const gif = await getImageFromPath(FLIP_FLOP_GIF_PATH).catch(() => null);
+        if (gif) await bot.sendAnimationExt(msg.chat.id, gif, msg);
     }
 
     static async autoinout(bot: HackerEmbassyBot, checkInside: boolean): Promise<void> {

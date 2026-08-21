@@ -108,6 +108,12 @@ class UserService {
         return usersRepository.updateUser(user.userid, user);
     }
 
+    public getUserState(user: User): UserStateEx | undefined {
+        this.getRecentUserStates(); // ensure lastUserStateCache is hydrated
+
+        return this.lastUserStateCache.get(user.userid);
+    }
+
     public getPeopleInside(includeSecret = false): UserStateEx[] {
         return this.getRecentUserStates().filter(includeSecret ? filterAllPeopleInside : filterPeopleInside);
     }

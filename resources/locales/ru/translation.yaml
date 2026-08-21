@@ -839,9 +839,11 @@ status:
         gotin: 🤝 {{username}} теперь в спейсе
         until: " до {{until}}"
         tryautoinside: 📲 Попробуй команду /autoinside чтобы отмечаться в спейсе автоматически.
+        alreadyin: 🤝 {{username}}, ты все еще в спейсе, ничего не изменилось
     out:
         shouldnot: 🔐 А тебя и так нет в списке отмеченных (когда спейс закрывают, он очищается)
         gotout: 👋 {{username}} теперь не в спейсе. Надеемся, что еще вернется...
+        alreadyout: 👋 {{username}}, так ты и так уже не в спейсе
     inforce:
         notready: 🔐 Сорян, ты не можешь сейчас привести этого человека.
         gotin: 🟢 {{memberusername}} привел(а) {{username}} в спейс

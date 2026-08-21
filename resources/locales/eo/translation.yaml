@@ -838,9 +838,11 @@ status:
         gotin: 🤝 {{username}} nun estas en la spaco
         until: " ĝis {{until}}"
         tryautoinside: 📲 Provu la komandon /autoinside por enskribiĝi en la spacon aŭtomate.
+        alreadyin: 🤝 {{username}}, vi jam estas en la spaco — nenio ŝanĝiĝis, trankviliĝu.
     out:
         shouldnot: 🔐 Kaj vi ne estas en la listo de markitaj personoj ĉiuokaze (kiam la spaco estas fermita, ĝi estas malplenigita)
         gotout: 👋 {{username}} ne plu estas en la spaco. Ni esperas ke li revenos denove...
+        alreadyout: 👋 {{username}}, vi jam estas ie ekster la spaco. Ne necesas eliri dufoje.
     inforce:
         notready: 🔐 Pardonu, vi ne povas enkonduki ĉi tiun personon nun.
         gotin: 🟢 {{memberusername}} enkondukis {{username}} en la spacon

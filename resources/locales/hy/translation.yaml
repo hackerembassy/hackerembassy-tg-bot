@@ -836,9 +836,11 @@ status:
         gotin: 🤝 {{username}}-ն այժմ space-ում է
         until: " մինչև {{until}}"
         tryautoinside: 📲 Փորձիր /autoinside հրամանը՝ ավտոմատ կերպով space մուտք գործելու համար։
+        alreadyin: 🤝 {{username}}, դու արդեն space-ում ես — ոչինչ չի փոխվել, հանգստացիր։
     out:
         shouldnot: 🔐 Դու առանց դրա էլ ներկաների ցուցակում չես (երբ space-ը փակ է, ցուցակը մաքրվում է)
         gotout: 👋 {{username}}-ն այլևս space-ում չէ։ Հուսով ենք շուտափույթ վերադարձի...
+        alreadyout: 👋 {{username}}, դու արդեն space-ում չես։ Երկու անգամ դուրս գալու կարիք չկա։
     inforce:
         notready: 🔐 Կներես, այդ մարդուն հիմա չես կարող բերել։
         gotin: 🟢 {{memberusername}}-ը {{username}}-ին բերեց space

@@ -44,6 +44,9 @@ describe("Bot behavior shared for all commands:", () => {
     });
 
     test("bot should respond to commands as impersonated user only when requested by admin", async () => {
+        await mockBot.processUpdate(createMockMessage("/out", TEST_USERS.guest));
+        mockBot.popResults();
+
         await mockBot.processUpdate(createMockMessage(`/in ~~${TEST_USERS.accountant.username}`, TEST_USERS.admin));
         await mockBot.processUpdate(createMockMessage(`/in ~~${TEST_USERS.accountant.username}`, TEST_USERS.guest));
 

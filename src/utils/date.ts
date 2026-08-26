@@ -146,6 +146,13 @@ const LOCALE_ISO_DATE_FORMAT = "sv";
 const DATE_SUBSTRING_INDICES: [number, number] = [5, 10];
 
 /**
+ * Renders an absolute instant as a wall-clock ISO-like string ("YYYY-MM-DDTHH:mm:ss") in the given IANA timezone
+ */
+export function toLocalIsoString(date: Date, timeZone: string): string {
+    return date.toLocaleString(LOCALE_ISO_DATE_FORMAT, { timeZone }).replace(" ", "T");
+}
+
+/**
  * Checks if the given date string has the same day and month as the current date
  * Ignores the year, so it can be used for checking birthdays
  * @param date Date string in ISO format (YYYY-MM-DD)

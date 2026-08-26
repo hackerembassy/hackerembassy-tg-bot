@@ -2,7 +2,7 @@ import config from "config";
 import fetch from "node-fetch";
 import memoize from "memoizee";
 
-import { getToday, MINUTE } from "@utils/date";
+import { getToday, MINUTE, toLocalIsoString } from "@utils/date";
 import { CalendarConfig } from "@config";
 
 const calendarConfig = config.get<CalendarConfig>("calendar");
@@ -18,6 +18,8 @@ export type HSEvent = {
     end?: Date;
     allDay: boolean;
     timezone: string;
+    startLocal?: string;
+    endLocal?: string;
 };
 
 type CalendarListResponse = { items: HSEventFromJSON[] };
@@ -69,14 +71,19 @@ export async function getClosestEventsFromCalendar(
     return eventsJson.items.map((event: HSEventFromJSON) => {
         const startString = event.start.dateTime ?? event.start.date;
         const endString = event.end.dateTime ?? event.end.date;
+        const timezone = event.start.timeZone ?? event.end.timeZone ?? calendarConfig.defaultTimezone;
+        const start = startString ? new Date(startString) : undefined;
+        const end = endString ? new Date(endString) : undefined;
 
         return {
             summary: event.summary,
             description: event.description,
             allDay: !event.start.dateTime,
-            start: startString ? new Date(startString) : undefined,
-            end: endString ? new Date(endString) : undefined,
-            timezone: event.start.timeZone ?? event.end.timeZone ?? calendarConfig.defaultTimezone,
+            start,
+            end,
+            timezone,
+            startLocal: start ? toLocalIsoString(start, timezone) : undefined,
+            endLocal: end ? toLocalIsoString(end, timezone) : undefined,
         };
     });
 }

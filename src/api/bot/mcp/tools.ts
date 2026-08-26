@@ -6,16 +6,21 @@ import type { CallToolResult, McpServer } from "@modelcontextprotocol/server";
 import FundsRepository from "@data/repositories/funds";
 import UsersRepository from "@data/repositories/users";
 
-import { BotApiConfig } from "@config";
+import { BotApiConfig, CalendarConfig } from "@config";
 import { spaceService } from "@services/domain/space";
 import { userService } from "@services/domain/user";
 import { getFundDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/funds/export";
-import { getClosestEventsFromCalendar, getTodayEventsCached } from "@services/external/googleCalendar";
+import { getClosestEventsFromCalendar, getTodayEventsCached, HSEvent } from "@services/external/googleCalendar";
 import { getAboutText, getJoinText } from "@hackembot/text";
 
 import { spaceApiTemplate } from "../templates";
 
 const apiConfig = config.get<BotApiConfig>("api");
+const calendarConfig = config.get<CalendarConfig>("calendar");
+
+function eventsResult(events: HSEvent[]): CallToolResult {
+    return jsonResult({ timezone: calendarConfig.defaultTimezone, events });
+}
 
 interface SpaceApiLocation {
     address: string;
@@ -157,26 +162,25 @@ export function registerMcpTools(server: McpServer): void {
             "get_upcoming_events",
             {
                 description:
-                    "Get the closest upcoming events on the Hacker Embassy calendar. Event start/end times are absolute " +
-                    "instants (UTC ISO strings); each event also carries the IANA timezone it was scheduled in (e.g. " +
-                    "'Asia/Yerevan') in its 'timezone' field - use it as the source of truth when converting event " +
-                    "times to the user's local time zone",
+                    "Get the closest upcoming events on the Hacker Embassy calendar. All event times are in the " +
+                    "space's local timezone (see the response's 'timezone' field, and each event's 'startLocal'/" +
+                    "'endLocal') - mention this timezone when telling the user when an event happens.",
                 inputSchema: z.object({
                     count: z.number().int().positive().optional().describe("Number of events to return"),
                 }),
             },
-            async ({ count }) => jsonResult(await getClosestEventsFromCalendar(count))
+            async ({ count }) => eventsResult(await getClosestEventsFromCalendar(count))
         );
 
         server.registerTool(
             "get_today_events",
             {
                 description:
-                    "Get events happening today at the Hacker Embassy. Event start/end times are absolute instants " +
-                    "(UTC); each event also carries the IANA timezone it was created in (e.g. 'Asia/Yerevan') in its " +
-                    "'timezone' field - use it to show times in the space's local time rather than the user's",
+                    "Get events happening today at the Hacker Embassy. All event times are in the space's local " +
+                    "timezone (see the response's 'timezone' field, and each event's 'startLocal'/'endLocal') - " +
+                    "mention this timezone when telling the user when an event happens.",
             },
-            async () => jsonResult(await getTodayEventsCached())
+            async () => eventsResult(await getTodayEventsCached())
         );
     }
 }

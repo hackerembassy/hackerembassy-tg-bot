@@ -74,6 +74,10 @@ export type OllamaErrorResponse = {
     detail: string;
 };
 
+export type ToolResultResponse = {
+    sources: unknown[];
+};
+
 function wrapOpenAiChunk() {
     return new Transform({
         readableObjectMode: true,
@@ -91,9 +95,10 @@ function wrapOpenAiChunk() {
                 }
 
                 const parsedLine = JSON.parse(trimmedLine) as
-                    ChatCompletionResponse | SelectedModelResponse | OllamaErrorResponse;
+                    ChatCompletionResponse | SelectedModelResponse | OllamaErrorResponse | ToolResultResponse;
 
                 if ("selected_model_id" in parsedLine) return callback();
+                if ("sources" in parsedLine) return callback();
                 if ("detail" in parsedLine) {
                     this.push({ response: parsedLine.detail, done: true });
                     return void this.push(null);
@@ -208,6 +213,7 @@ export class OpenWebUI {
             model,
             messages: [{ role: "user", content }],
             stream: true,
+            tool_ids: neuralConfig.openwebui.toolIds,
         };
 
         const response = await fetch(`${this.base}/api/chat/completions`, {

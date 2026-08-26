@@ -322,6 +322,7 @@ export interface StableDiffusionConfig {
 export interface OpenWebUIConfig {
     base: string;
     model: string;
+    toolIds?: string[];
 }
 
 export interface OpenAiConfig {

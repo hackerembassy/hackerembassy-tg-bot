@@ -18,6 +18,8 @@ import { PROJECT_ROOT } from "@utils/filesystem";
 
 import apiRouter from "./routers/api";
 import textRouter from "./routers/text";
+import mcpRouter from "./routers/mcp";
+import { authentificate } from "./middleware";
 
 const apiConfig = config.get<BotApiConfig>("api");
 const app = express();
@@ -51,6 +53,7 @@ app.use(
 // Routes
 app.use("/text", textRouter);
 app.use("/api", apiRouter);
+if (apiConfig.features.mcp) app.use("/mcp", authentificate, mcpRouter);
 
 app.get("/healthcheck", (_, res, next) => {
     try {
@@ -69,4 +72,5 @@ app.get("/{*splat}", (_, res) => {
 export function StartSpaceApi() {
     app.listen(port);
     logger.info(`Bot Api is ready to accept requests on port ${port}`);
+    if (apiConfig.features.mcp) logger.info(`MCP API is enabled`);
 }

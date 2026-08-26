@@ -104,7 +104,8 @@
         "publicUrl": "https://gateway.hackem.cc",
         "static": "resources/static",
         "features": {
-            "calendar": true
+            "calendar": true,
+            "mcp": true
         }
     },
     "calendar": {

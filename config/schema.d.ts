@@ -151,6 +151,7 @@ export type BotFeatureFlag = keyof BotFeaturesConfig;
 
 export interface ApiFeaturesConfig {
     calendar: boolean;
+    mcp: boolean;
 }
 
 export interface CalendarConfig {

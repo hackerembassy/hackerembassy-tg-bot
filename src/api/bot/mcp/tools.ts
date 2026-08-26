@@ -11,11 +11,25 @@ import { spaceService } from "@services/domain/space";
 import { userService } from "@services/domain/user";
 import { getFundDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/funds/export";
 import { getClosestEventsFromCalendar, getTodayEventsCached } from "@services/external/googleCalendar";
+import { getAboutText, getJoinText } from "@hackembot/text";
+
+import { spaceApiTemplate } from "../templates";
 
 const apiConfig = config.get<BotApiConfig>("api");
 
+interface SpaceApiLocation {
+    address: string;
+    lat: number;
+    lon: number;
+    timezone: string;
+}
+
 function jsonResult(data: unknown): CallToolResult {
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+}
+
+function textResult(text: string): CallToolResult {
+    return { content: [{ type: "text", text }] };
 }
 
 function errorResult(message: string): CallToolResult {
@@ -27,6 +41,43 @@ function effectiveName(person: { username?: string | null; first_name?: string |
 }
 
 export function registerMcpTools(server: McpServer): void {
+    server.registerTool(
+        "get_space_info",
+        {
+            description:
+                "Get general information about the Hacker Embassy hackerspace: what it is, its website, wiki, source code and bot creator",
+        },
+        () => textResult(getAboutText("en"))
+    );
+
+    server.registerTool(
+        "get_join_info",
+        {
+            description:
+                "Get information on how to join or visit the Hacker Embassy hackerspace: regular open days/events and " +
+                "whether visits are free",
+        },
+        () => textResult(getJoinText(true, "en"))
+    );
+
+    server.registerTool(
+        "get_location",
+        { description: "Get the physical address and geographic coordinates of the Hacker Embassy hackerspace" },
+        () => {
+            const location = (spaceApiTemplate as { location?: SpaceApiLocation } | undefined)?.location;
+
+            if (!location) return errorResult("Space location is not configured");
+
+            return jsonResult({
+                address: location.address,
+                latitude: location.lat,
+                longitude: location.lon,
+                timezone: location.timezone,
+                mapsUrl: `https://www.google.com/maps?q=${location.lat},${location.lon}`,
+            });
+        }
+    );
+
     server.registerTool(
         "get_space_status",
         {
@@ -105,7 +156,11 @@ export function registerMcpTools(server: McpServer): void {
         server.registerTool(
             "get_upcoming_events",
             {
-                description: "Get the closest upcoming events on the Hacker Embassy calendar",
+                description:
+                    "Get the closest upcoming events on the Hacker Embassy calendar. Event start/end times are absolute " +
+                    "instants (UTC ISO strings); each event also carries the IANA timezone it was scheduled in (e.g. " +
+                    "'Asia/Yerevan') in its 'timezone' field - use it as the source of truth when converting event " +
+                    "times to the user's local time zone",
                 inputSchema: z.object({
                     count: z.number().int().positive().optional().describe("Number of events to return"),
                 }),
@@ -113,8 +168,15 @@ export function registerMcpTools(server: McpServer): void {
             async ({ count }) => jsonResult(await getClosestEventsFromCalendar(count))
         );
 
-        server.registerTool("get_today_events", { description: "Get events happening today at the Hacker Embassy" }, async () =>
-            jsonResult(await getTodayEventsCached())
+        server.registerTool(
+            "get_today_events",
+            {
+                description:
+                    "Get events happening today at the Hacker Embassy. Event start/end times are absolute instants " +
+                    "(UTC); each event also carries the IANA timezone it was created in (e.g. 'Asia/Yerevan') in its " +
+                    "'timezone' field - use it to show times in the space's local time rather than the user's",
+            },
+            async () => jsonResult(await getTodayEventsCached())
         );
     }
 }

@@ -111,7 +111,8 @@
     "calendar": {
         "url": "https://calendar.google.com/calendar/embed?src=9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e%40group.calendar.google.com&ctz=Asia%2FYerevan&hl=en",
         "ical": "https://calendar.google.com/calendar/ical/9cdc565d78854a899cbbc7cb6dfcb8fa411001437ae0f66bce0a82b5e7679d5e@group.calendar.google.com/public/basic.ics",
-        "defaultRequestAmount": 5
+        "defaultRequestAmount": 5,
+        "defaultTimezone": "Asia/Yerevan"
     },
     "logger": {
         "level": "info",

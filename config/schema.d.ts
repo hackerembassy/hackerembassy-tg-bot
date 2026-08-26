@@ -158,6 +158,7 @@ export interface CalendarConfig {
     url: string;
     ical: string;
     defaultRequestAmount: number;
+    defaultTimezone: string;
 }
 
 export interface ChatsConfig {

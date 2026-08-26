@@ -17,6 +17,7 @@ export type HSEvent = {
     start?: Date;
     end?: Date;
     allDay: boolean;
+    timezone: string;
 };
 
 type CalendarListResponse = { items: HSEventFromJSON[] };
@@ -24,7 +25,7 @@ type CalendarListResponse = { items: HSEventFromJSON[] };
 type JsonDate = {
     dateTime?: string;
     date?: string;
-    timeZone: string;
+    timeZone?: string;
 };
 
 type HSEventFromJSON = {
@@ -75,6 +76,7 @@ export async function getClosestEventsFromCalendar(
             allDay: !event.start.dateTime,
             start: startString ? new Date(startString) : undefined,
             end: endString ? new Date(endString) : undefined,
+            timezone: event.start.timeZone ?? event.end.timeZone ?? calendarConfig.defaultTimezone,
         };
     });
 }

@@ -303,12 +303,20 @@ export function getDonateText(accountants: Nullable<User[]>, isApi: boolean = fa
     });
 }
 
-export function getJoinText(isApi: boolean = false): string {
-    return t("basic.join", {
-        statusCommand: `${isApi ? "" : "/"}status`,
-        donateCommand: `${isApi ? "" : "/"}donate`,
-        locationCommand: `${isApi ? "" : "/"}location`,
-    });
+export function getAboutText(lang?: string): string {
+    return t("basic.about", undefined, lang);
+}
+
+export function getJoinText(isApi: boolean = false, lang?: string): string {
+    return t(
+        "basic.join",
+        {
+            statusCommand: `${isApi ? "" : "/"}status`,
+            donateCommand: `${isApi ? "" : "/"}donate`,
+            locationCommand: `${isApi ? "" : "/"}location`,
+        },
+        lang
+    );
 }
 
 export function getEventsText(includeCalendar: boolean, calendarAppLink?: string, isApi: boolean = false): string {

@@ -55,10 +55,11 @@ export default class BasicController implements BotController {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
         ];
+        const text = TextGenerators.getAboutText();
 
         await bot.sendOrEditMessage(
             msg.chat.id,
-            t("basic.about"),
+            text,
             msg,
             {
                 reply_markup: {
@@ -74,11 +75,11 @@ export default class BasicController implements BotController {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
         ];
-        const message = TextGenerators.getJoinText();
+        const text = TextGenerators.getJoinText();
 
         await bot.sendOrEditMessage(
             msg.chat.id,
-            message,
+            text,
             msg,
             {
                 reply_markup: {
@@ -91,7 +92,7 @@ export default class BasicController implements BotController {
 
     @Route(["events"])
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const message = TextGenerators.getEventsText(botConfig.features.calendar, `${bot.url}/calendar`);
+        const text = TextGenerators.getEventsText(botConfig.features.calendar, `${bot.url}/calendar`);
 
         const defaultInlineKeyboard = [
             botConfig.features.calendar
@@ -120,7 +121,7 @@ export default class BasicController implements BotController {
 
         await bot.sendOrEditMessage(
             msg.chat.id,
-            message,
+            text,
             msg,
             {
                 reply_markup: {

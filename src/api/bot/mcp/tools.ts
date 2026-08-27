@@ -4,11 +4,13 @@ import { z } from "zod";
 import type { CallToolResult, McpServer } from "@modelcontextprotocol/server";
 
 import FundsRepository from "@data/repositories/funds";
+import NeedsRepository from "@data/repositories/needs";
 import UsersRepository from "@data/repositories/users";
 
-import { BotApiConfig, CalendarConfig } from "@config";
+import { BotApiConfig, BotConfig, CalendarConfig, PrintersConfig } from "@config";
 import { spaceService } from "@services/domain/space";
 import { userService } from "@services/domain/user";
+import embassyService from "@services/embassy/embassy";
 import { getFundDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/funds/export";
 import { getClosestEventsFromCalendar, getTodayEventsCached, HSEvent } from "@services/external/googleCalendar";
 import { getAboutText, getJoinText } from "@hackembot/text";
@@ -16,7 +18,9 @@ import { getAboutText, getJoinText } from "@hackembot/text";
 import { spaceApiTemplate } from "../templates";
 
 const apiConfig = config.get<BotApiConfig>("api");
+const botConfig = config.get<BotConfig>("bot");
 const calendarConfig = config.get<CalendarConfig>("calendar");
+const printersConfig = config.get<PrintersConfig>("printers");
 
 function eventsResult(events: HSEvent[]): CallToolResult {
     return jsonResult({ timezone: calendarConfig.defaultTimezone, events });
@@ -156,6 +160,45 @@ export function registerMcpTools(server: McpServer): void {
             }))
         );
     });
+
+    server.registerTool(
+        "get_needs_list",
+        { description: "Get the list of things people need to buy for the Hacker Embassy hackerspace" },
+        () => {
+            const needs = NeedsRepository.getOpenNeeds();
+
+            return jsonResult(needs.map(n => ({ item: n.item, requestedBy: effectiveName(n.requester) })));
+        }
+    );
+
+    if (botConfig.features.embassy) {
+        server.registerTool(
+            "list_printers",
+            { description: "List the names of the 3D printers available at the Hacker Embassy hackerspace" },
+            () => jsonResult(Object.keys(printersConfig))
+        );
+
+        server.registerTool(
+            "get_printer_status",
+            {
+                description: "Get the current status of a specific 3D printer: printing state, progress, temperatures",
+                inputSchema: z.object({
+                    printername: z
+                        .enum(Object.keys(printersConfig) as [string, ...string[]])
+                        .describe("Name of the printer to check, from list_printers"),
+                }),
+            },
+            async ({ printername }) => {
+                try {
+                    const { status } = await embassyService.getPrinterStatus(printername);
+
+                    return jsonResult(status);
+                } catch {
+                    return errorResult(`Failed to get status for printer: ${printername}`);
+                }
+            }
+        );
+    }
 
     if (apiConfig.features.calendar) {
         server.registerTool(

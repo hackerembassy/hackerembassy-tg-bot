@@ -190,6 +190,7 @@ export interface MessageHistoryEntry {
     text?: string;
     from?: string;
     datetime: number;
+    replyToMessageId?: number;
 }
 
 export interface BotMessageContextMode {

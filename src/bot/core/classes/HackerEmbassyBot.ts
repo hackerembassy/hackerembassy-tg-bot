@@ -414,11 +414,20 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     // TODO: add support for sending plain text and make it less bad
 
-    async sendStreamedMessage(chatId: ChatId, stream: DeltaStream, msg: Message, parseMode: "GFM" | "" = ""): Promise<boolean> {
+    async sendStreamedMessage(
+        chatId: ChatId,
+        stream: DeltaStream,
+        msg: Message,
+        options: SendMessageOptions = {}
+    ): Promise<Nullable<{ message: Message; text: string }>> {
         void this.sendChatAction(chatId, "typing", msg);
 
+        const parseMode = options.parse_mode === "GFM" ? "GFM" : "";
+
         let messageToEdit: Nullable<Message> = null;
+        let lastMessage: Nullable<Message> = null;
         let buffer = "";
+        let fullText = "";
         let window = 0;
         let currentScope: string | null = null;
 
@@ -432,16 +441,19 @@ export default class HackerEmbassyBot extends TelegramBot {
                     currentScope = chunk.scope;
                     const startScopeHeader = `[${chunk.scope}]\n`;
                     buffer += startScopeHeader;
+                    fullText += startScopeHeader;
                     window += startScopeHeader.length;
                 } else if (!chunk.scope && currentScope) {
                     const endScopeHeader = `\n[/${ZERO_WIDTH_SPACE}${currentScope}]\n\n`;
                     currentScope = null;
                     buffer += endScopeHeader;
+                    fullText += endScopeHeader;
                     window += endScopeHeader.length;
                 }
 
                 if (chunk.response) {
                     buffer += chunk.response;
+                    fullText += chunk.response;
                     window += chunk.response.length;
                 }
 
@@ -450,8 +462,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
                 if (!messageToEdit) {
                     messageToEdit = await this.withPlainTextFallback(chunk.done ? parseMode : "", pm =>
-                        this.sendMessageExt(chatId, buffer, msg, { parse_mode: pm })
+                        this.sendMessageExt(chatId, buffer, msg, { ...options, parse_mode: pm })
                     );
+                    lastMessage = messageToEdit;
                 } else if (chunk.done || window >= MAX_STREAMING_WINDOW) {
                     // A length-driven cut can (and for long code-bearing replies, will) sever an open
                     // "**bold" or an unclosed code fence if done at an arbitrary character offset - so it's
@@ -475,8 +488,8 @@ export default class HackerEmbassyBot extends TelegramBot {
 
                     if (chunk.done) {
                         for (const trailingSegment of rest) {
-                            await this.withPlainTextFallback(parseMode, pm =>
-                                this.sendMessageExt(chatId, trailingSegment, msg, { parse_mode: pm })
+                            lastMessage = await this.withPlainTextFallback(parseMode, pm =>
+                                this.sendMessageExt(chatId, trailingSegment, msg, { ...options, parse_mode: pm })
                             );
                         }
                     } else if (overLength) {
@@ -488,13 +501,13 @@ export default class HackerEmbassyBot extends TelegramBot {
                 }
             }
 
-            return true;
+            return lastMessage ? { message: lastMessage, text: fullText } : null;
         } catch (error) {
             if (error instanceof MessageStreamingError) {
                 throw error;
             }
             logger.error(error);
-            return false;
+            return null;
         }
     }
 
@@ -714,6 +727,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                         messageId: message.message_id,
                         text: messageText,
                         from: effectiveName(message.from),
+                        replyToMessageId: message.reply_to_message?.message_id,
                     });
                 }
 

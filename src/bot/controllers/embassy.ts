@@ -773,10 +773,24 @@ export default class EmbassyController implements BotController {
     @AllowedChats(PublicChats)
     static async availableModelsHandler(bot: HackerEmbassyBot, msg: Message) {
         const openwebuiModels = await openwebui.getModels();
-        const models = [neuralConfig.openai.model, ...openwebuiModels, "burivuh26"];
+        const models = [neuralConfig.openai.model, ...openwebuiModels];
         const modelsList = TextGenerators.getModelsList(models, neuralConfig.openwebui.model);
 
         return bot.sendMessageExt(msg.chat.id, t("embassy.neural.models", { modelsList }), msg);
+    }
+
+    private static async sendOpenAiAnswer(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        combined: Optional<string>
+    ): Promise<Nullable<{ message: Message; text: string }>> {
+        const text = await openAI.askChat(combined ?? "", t("embassy.neural.contexts.default"));
+        const message = await bot.sendMessageExt(msg.chat.id, text, msg, {
+            parse_mode: "GFM",
+            reply_parameters: { message_id: msg.message_id },
+        });
+
+        return message ? { message, text } : null;
     }
 
     @Route(["ask"], OptionalParam(/(\S+?)(?: (.*))?/ims), match => [match[2], match[1]])
@@ -790,11 +804,11 @@ export default class EmbassyController implements BotController {
 
         if (msg.chat.id !== botConfig.chats.horny && !hasRole(user, "trusted", "member")) return bot.sendRestrictedMessage(msg);
 
-        const isBurivuhModel = model === "burivuh26" || model === "burivuh";
         const isOpenAiModel = model === "gpt" || model === neuralConfig.openai.model;
-        const canUseImages = !isBurivuhModel && !isOpenAiModel;
+        const canUseImages = !isOpenAiModel;
+        const maxReplyChainDepth = isOpenAiModel ? 5 : 100;
 
-        const replyPrompt = msg.reply_to_message?.text ?? msg.reply_to_message?.caption;
+        const replyPrompt = bot.messageHistory.getReplyChainPrompt(msg, maxReplyChainDepth);
         const combined = prompt && replyPrompt ? `${replyPrompt}\n ${prompt}`.trim() : (prompt ?? replyPrompt);
         const photoId = canUseImages ? (extractPhotoId(msg.reply_to_message?.photo) ?? extractPhotoId(msg.photo)) : undefined;
         const imageBase64 = photoId ? await bot.fetchFileAsBase64(photoId) : undefined;
@@ -809,24 +823,33 @@ export default class EmbassyController implements BotController {
         try {
             void bot.sendChatAction(msg.chat.id, "typing", msg);
 
-            if (isBurivuhModel) {
-                return await bot.sendMessageExt(msg.chat.id, `@burivuh26, ${combined}`, msg);
+            const result = isOpenAiModel
+                ? await EmbassyController.sendOpenAiAnswer(bot, msg, combined)
+                : await bot.sendStreamedMessage(
+                      msg.chat.id,
+                      await openwebui.generateOpenAiStream(combined ?? "", imageBase64, model),
+                      msg,
+                      { parse_mode: "GFM", reply_parameters: { message_id: msg.message_id } }
+                  );
+
+            if (result) {
+                if (prompt)
+                    bot.messageHistory.push(msg.chat.id, {
+                        messageId: msg.message_id,
+                        text: prompt,
+                        from: msg.from ? effectiveName(msg.from) : undefined,
+                        replyToMessageId: msg.reply_to_message?.message_id,
+                    });
+
+                bot.messageHistory.push(msg.chat.id, {
+                    messageId: result.message.message_id,
+                    text: result.text,
+                    from: bot.name,
+                    replyToMessageId: msg.message_id,
+                });
             }
 
-            if (isOpenAiModel)
-                return await bot.sendMessageExt(
-                    msg.chat.id,
-                    await openAI.askChat(combined ?? "", t("embassy.neural.contexts.default")),
-                    msg,
-                    { parse_mode: "GFM" }
-                );
-
-            return await bot.sendStreamedMessage(
-                msg.chat.id,
-                await openwebui.generateOpenAiStream(combined ?? "", imageBase64, model),
-                msg,
-                "GFM"
-            );
+            return result?.message ?? null;
         } catch (error) {
             if (error instanceof MessageStreamingError && error.message === MODEL_NOT_FOUND_ERROR) {
                 return bot.sendMessageExt(

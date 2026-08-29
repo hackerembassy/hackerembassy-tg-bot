@@ -11,6 +11,7 @@ export default class BotStateMock {
     messages: Record<string, unknown> = {};
     flags = { ...DEFAULT_STATE_FLAGS };
     fileIdCache: Record<string, string> = {};
+    contentHashCache: Record<string, string> = {};
 
     async initLiveChats() {}
 
@@ -24,6 +25,7 @@ export default class BotStateMock {
         this.messages = {};
         this.flags = { ...DEFAULT_STATE_FLAGS };
         this.fileIdCache = {};
+        this.contentHashCache = {};
     }
 
     debouncedPersistChanges = () => {};

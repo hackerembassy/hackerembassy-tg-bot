@@ -95,10 +95,10 @@ jest.mock("@services/external/wiki", () => mockCreateWikiMock());
 
 // The real module reads HACKERBOTTOKEN and calls process.exit(1) if it's unset (never the case in
 // tests), and constructs a real HackerEmbassyBot singleton besides. The bot/api routers only ever
-// use it to fire off `sendAlert`, so a minimal stand-in is enough.
+// use it to fire off `sendAlert` and read/write `botState`, so a minimal stand-in is enough.
 jest.mock("@hackembot/instance", () => ({
     __esModule: true,
-    default: { sendAlert: jest.fn(async () => {}) },
+    default: { sendAlert: jest.fn(async () => {}), botState: new mockBotStateModule.default() },
 }));
 
 jest.mock("@services/common/logger", () => {

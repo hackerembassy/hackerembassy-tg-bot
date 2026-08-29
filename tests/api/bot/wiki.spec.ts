@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import request from "supertest";
 
 import wiki from "@services/external/wiki";
+import bot from "@hackembot/instance";
 
 import wikiRouter from "@hackemapi/bot/routers/wiki";
 
@@ -13,6 +14,13 @@ function outlineSignature(body: unknown, timestamp = Date.now()) {
     const signature = createHmac("sha256", OUTLINE_SIGNING_SECRET).update(`${timestamp}.${bodyString}`).digest("hex");
 
     return `t=${timestamp},s=${signature}`;
+}
+
+function updateBodyFor(url: string, text: string) {
+    return {
+        event: "documents.update",
+        payload: { model: { title: "Test", url, updatedBy: { name: "Someone" }, text } },
+    };
 }
 
 describe("Bot HTTP API /api/wiki router:", () => {
@@ -78,10 +86,7 @@ describe("Bot HTTP API /api/wiki router:", () => {
     });
 
     test("the Outline webhook rejects requests without a valid or fresh signature", async () => {
-        const body = {
-            event: "documents.update",
-            payload: { model: { title: "Test", url: "/doc/test", updatedBy: { name: "Someone" } } },
-        };
+        const body = updateBodyFor("/doc/test", "hello");
 
         const noSignature = await request(app).post("/wiki/hooks/documents.update").send(body);
         const badSignature = await request(app)
@@ -110,5 +115,23 @@ describe("Bot HTTP API /api/wiki router:", () => {
         expect(badSignature.status).toBe(403);
         expect(staleSignature.status).toBe(401);
         expect(validSignature.status).toBe(200);
+    });
+
+    test("the Outline webhook ignores content-less updates (e.g. a document just opened/closed)", async () => {
+        const firstEdit = await request(app)
+            .post("/wiki/hooks/documents.update")
+            .set("outline-signature", outlineSignature(updateBodyFor("/doc/no-op-test", "hello")))
+            .send(updateBodyFor("/doc/no-op-test", "hello"));
+        // Outline re-fires documents.update with unchanged text when the doc is merely opened/closed
+        const reopenedWithNoEdit = await request(app)
+            .post("/wiki/hooks/documents.update")
+            .set("outline-signature", outlineSignature(updateBodyFor("/doc/no-op-test", "hello")))
+            .send(updateBodyFor("/doc/no-op-test", "hello"));
+        jest.runAllTimers();
+
+        expect(firstEdit.status).toBe(200);
+        expect(reopenedWithNoEdit.status).toBe(200);
+        // Only the first, content-changing update should have scheduled an alert
+        expect(bot.sendAlert).toHaveBeenCalledTimes(1);
     });
 });

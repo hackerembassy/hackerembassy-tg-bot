@@ -41,6 +41,7 @@ export default class BotState {
                 void this.initLiveChats();
                 this.flags = persistedState.flags;
                 this.fileIdCache = persistedState.fileIdCache;
+                this.contentHashCache = persistedState.contentHashCache;
 
                 return;
             } catch (error) {
@@ -63,12 +64,10 @@ export default class BotState {
         for (const liveChat of this.liveChats) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             const importedModule = (await import(liveChat.serializationData.module)).default as
-                | typeof Module
-                | { default: Module };
+                typeof Module | { default: Module };
             const module = typeof importedModule === "function" ? importedModule : importedModule.default;
             const restoredHandler = module[liveChat.serializationData.functionName as keyof BotController] as
-                | AnyFunction
-                | undefined;
+                AnyFunction | undefined;
 
             if (!restoredHandler) {
                 logger.error(`Could not restore handler for ${liveChat.event}, Live handlers are not loaded for this event.`);
@@ -85,6 +84,7 @@ export default class BotState {
     public messages: { [chatId: string]: Optional<MessageHistoryEntry[]> };
     public flags: StateFlags;
     public fileIdCache: { [key: string]: string } = {};
+    public contentHashCache: { [key: string]: string } = {};
 
     clearLiveHandlers(chatId: number, event?: BotCustomEvent) {
         const toRemove = this.liveChats.filter(lc => lc.chatId === chatId).filter(lc => !event || lc.event === event);
@@ -107,6 +107,7 @@ export default class BotState {
         this.messages = {};
         this.flags = { ...DEFAULT_STATE_FLAGS };
         this.fileIdCache = {};
+        this.contentHashCache = {};
         void this.persistChanges();
     }
 

@@ -5,6 +5,7 @@ import bot from "@hackembot/instance";
 import wiki, { OutlineWebhookPayload } from "@services/external/wiki";
 import { WikiConfig } from "@config";
 import { MINUTE } from "@utils/date";
+import { sha256 } from "@utils/security";
 
 import { createOutlineVerificationMiddleware } from "../middleware";
 
@@ -57,13 +58,25 @@ router.get("/attachment/:id", async (req, res, next) => {
 const debounceTimers = new Map<string, NodeJS.Timeout>();
 const WEBHOOK_DEBOUNCE = MINUTE;
 
-// Webhook for Outline
+// Outline fires documents.update even when a document is merely opened/closed in the editor with no
+// actual edits (it creates a no-op revision on entering/leaving the collaborative session). Track a
+// hash of the last seen content per document (rather than the full text, which could be sizeable) in
+// the bot's persisted state, so those content-less updates are filtered out from the ones that
+// actually changed something, and the filter survives a bot redeployment/restart.
 router.post("/hooks/documents.update", outlineSignedMiddleware, (req, res, next) => {
     try {
         const body = req.body as Optional<OutlineWebhookPayload>;
         if (body?.event !== "documents.update") return void res.sendStatus(400);
 
-        const { title, url, updatedBy } = body.payload.model;
+        const { title, url, updatedBy, text } = body.payload.model;
+
+        const contentHash = sha256(text);
+        const previousHash = bot.botState.contentHashCache[url];
+
+        if (previousHash === contentHash) return void res.sendStatus(200);
+
+        bot.botState.contentHashCache[url] = contentHash;
+        bot.botState.debouncedPersistChanges();
 
         if (debounceTimers.has(url)) {
             clearTimeout(debounceTimers.get(url));

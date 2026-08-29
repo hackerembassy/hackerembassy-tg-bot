@@ -150,6 +150,20 @@ export function registerMcpTools(server: McpServer): void {
         }
     );
 
+    server.registerTool(
+        "get_residents",
+        {
+            description:
+                "List the residents (members) of the Hacker Embassy hackerspace, who can be contacted about " +
+                "space-related questions. Residents can also open/close the space and let visitors in",
+        },
+        () => {
+            const residents = UsersRepository.getUsersByRole("member");
+
+            return jsonResult(residents.map(r => effectiveName(r)));
+        }
+    );
+
     server.registerTool("get_sponsors", { description: "List the Hacker Embassy's sponsors and their sponsorship level" }, () => {
         const sponsors = UsersRepository.getSponsors();
 

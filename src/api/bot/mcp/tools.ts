@@ -123,13 +123,27 @@ export function registerMcpTools(server: McpServer): void {
     );
 
     server.registerTool(
+        "list_funds",
+        {
+            description:
+                "List currently open funds/fundraisers at the Hacker Embassy hackerspace, with their target amount. " +
+                "Use this to find a fund name before calling get_donations for a non-rent fund.",
+        },
+        () => {
+            const funds = FundsRepository.getFundsByStatus("open");
+
+            return jsonResult(funds.map(f => ({ name: f.name, target: f.target_value, currency: f.target_currency })));
+        }
+    );
+
+    server.registerTool(
         "get_donations",
         {
             description:
                 "Get donation/payment summary for a fund. Call with no arguments to get the hackerspace's recurring " +
                 "monthly rent fund, internally called 'costs' (e.g. fund name 'Аренда Декабрь 2025' - Russian for " +
                 "'Rent'): who paid, how much, and progress toward the target for the current month. Pass a specific " +
-                "fund name only if asked about a different, non-rent fund.",
+                "fund name only if asked about a different, non-rent fund - use list_funds to find valid names.",
             inputSchema: z.object({
                 fund: z
                     .string()

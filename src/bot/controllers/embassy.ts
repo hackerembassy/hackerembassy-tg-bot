@@ -33,7 +33,7 @@ import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { MessageStreamingError } from "../core/errors";
-import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
+import { BotCustomEvent, BotController, BotMessageContextMode, MessageHistoryEntry } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 import { effectiveName, extractPhotoId, OptionalParam } from "../core/helpers";
@@ -793,6 +793,16 @@ export default class EmbassyController implements BotController {
         return message ? { message, text } : null;
     }
 
+    // Lets a plain reply to one of our own LLM answers continue that conversation with the same
+    // model, without the user having to type /ask again. Only called for replies to messages the
+    // bot itself sent (core checks that before invoking this).
+    static buildAskContinuation(bot: HackerEmbassyBot, msg: Message, parentEntry: MessageHistoryEntry): Optional<string> {
+        const text = msg.text ?? msg.caption;
+        if (!text) return undefined;
+
+        return parentEntry.model ? `/ask ${parentEntry.model} ${text}` : `/ollama ${text}`;
+    }
+
     @Route(["ask"], OptionalParam(/(\S+?)(?: (.*))?/ims), match => [match[2], match[1]])
     @Route(["gpt"], OptionalParam(/(.*)/ims), match => [match[1], "gpt"])
     @Route(["glados"], OptionalParam(/(.*)/ims), match => [match[1], "glados"])
@@ -846,6 +856,7 @@ export default class EmbassyController implements BotController {
                     text: result.text,
                     from: bot.name,
                     replyToMessageId: msg.message_id,
+                    model,
                 });
             }
 

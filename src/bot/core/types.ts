@@ -111,6 +111,11 @@ export type BotCallbackHandler = (bot: HackerEmbassyBot, callbackQuery: Callback
 
 export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: ChatMemberUpdated) => unknown;
 
+// Given a plain (non-command) reply and the history entry of the message it replied to, returns
+// command text to route it as instead (e.g. continuing an LLM conversation), or undefined to
+// leave it as a regular non-command message.
+export type AskContinuationHandler = (bot: HackerEmbassyBot, msg: Message, parentEntry: MessageHistoryEntry) => Optional<string>;
+
 export type EditMessageTextOptions = Omit<EditMessageTextParams, "text"> & {
     // Used to resolve relative links/images when parse_mode is "GFM" (see core/converters.ts)
     baseUrl?: string;
@@ -191,6 +196,7 @@ export interface MessageHistoryEntry {
     from?: string;
     datetime: number;
     replyToMessageId?: number;
+    model?: string;
 }
 
 export interface BotMessageContextMode {

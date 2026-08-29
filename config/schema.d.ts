@@ -145,6 +145,8 @@ export interface BotFeaturesConfig {
     greetings: boolean;
     /** Allow voice messages */
     voice: boolean;
+    /** Let a plain reply to an LLM answer continue that conversation without typing /ask again */
+    askContinuation: boolean;
 }
 
 export type BotFeatureFlag = keyof BotFeaturesConfig;

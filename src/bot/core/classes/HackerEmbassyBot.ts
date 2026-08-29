@@ -68,6 +68,7 @@ import {
     BotRoute,
     CallbackData,
     ChatMemberHandler,
+    AskContinuationHandler,
     EditMessageMediaOptionsExt,
     ITelegramUser,
     MatchMapperFunction,
@@ -125,6 +126,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     private routeMap = new Map<string, BotRoute>();
     private voiceHandler: BotHandler | null = null;
     private chatMemberHandler: ChatMemberHandler | null = null;
+    private askContinuationHandler: AskContinuationHandler | null = null;
 
     // Context storage for user messages
     private contextMap = new Map<Message, BotMessageContext>();
@@ -710,6 +712,24 @@ export default class HackerEmbassyBot extends TelegramBot {
             // Get command from message text or a deeplink
             const deeplink = message.text?.match(/\/start (.*)/)?.[1].replaceAll("__", " ");
             let text = deeplink ? `/${deeplink}` : ((message.text ?? message.caption) as string);
+
+            // A plain reply to one of our own tracked messages (e.g. an LLM answer) can be rewritten
+            // into proper command text, so it's routed - and permission/feature/locale-checked -
+            // through the exact same dispatch path as any other command, with nothing duplicated here.
+            if (
+                botConfig.features.askContinuation &&
+                text &&
+                !this.isBotCommand(text) &&
+                message.reply_to_message &&
+                this.askContinuationHandler
+            ) {
+                const parentEntry = this.messageHistory.findByMessageId(message.chat.id, message.reply_to_message.message_id);
+                const continuationText =
+                    parentEntry?.from === this.name ? this.askContinuationHandler(this, message, parentEntry) : undefined;
+
+                if (continuationText) text = continuationText;
+            }
+
             const isCommand = this.isBotCommand(text);
 
             // If the message is not a command, we can skip or save it to history
@@ -994,9 +1014,14 @@ export default class HackerEmbassyBot extends TelegramBot {
               );
     }
 
-    addEventRoutes(voiceHandler: BotHandler, chatMemberHandler: ChatMemberHandler) {
+    addEventRoutes(
+        voiceHandler: BotHandler,
+        chatMemberHandler: ChatMemberHandler,
+        askContinuationHandler: AskContinuationHandler
+    ) {
         this.voiceHandler = voiceHandler;
         this.chatMemberHandler = chatMemberHandler;
+        this.askContinuationHandler = askContinuationHandler;
     }
 
     addController(controller: BotController) {

@@ -67,7 +67,8 @@
             "chatbridge": true,
             "history": true,
             "greetings": true,
-            "voice": true
+            "voice": true,
+            "askContinuation": true
         },
         "moderatedChats": [-1001605898533],
         "guess": {

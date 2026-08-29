@@ -164,7 +164,6 @@ export const AdminCommandsList: string = `
 
 /forcebirthdaywishes
 /getlogs
-/getstate
 /cleanstate
 /stoplive
 /setflag flag_name flag_value

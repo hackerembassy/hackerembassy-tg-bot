@@ -4,6 +4,8 @@ import path from "node:path";
 import fetch from "node-fetch";
 import { file } from "tmp-promise";
 
+import logger from "@services/common/logger";
+
 export function lastModifiedFilePath(logfolderpath: string): string | undefined {
     const files = fs.readdirSync(logfolderpath);
 
@@ -54,6 +56,27 @@ export function readFirstExistingFile(...files: string[]): string | null {
         }
     }
     return null;
+}
+
+export function readJsonFile<T>(filePath: string): T | undefined {
+    if (!fs.existsSync(filePath)) return undefined;
+
+    try {
+        return JSON.parse(fs.readFileSync(filePath, "utf8")) as T;
+    } catch (error) {
+        logger.error(`Failed to read json file ${filePath}`);
+        logger.error(error);
+        return undefined;
+    }
+}
+
+export async function writeJsonFileAtomic(filePath: string, data: unknown): Promise<void> {
+    await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+
+    const tmpPath = path.join(path.dirname(filePath), `.${path.basename(filePath)}.${process.pid}.${Date.now()}.tmp`);
+
+    await fs.promises.writeFile(tmpPath, JSON.stringify(data));
+    await fs.promises.rename(tmpPath, filePath);
 }
 
 export { rootDir as PROJECT_ROOT } from "./meta";

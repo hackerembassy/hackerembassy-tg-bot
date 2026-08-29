@@ -29,6 +29,7 @@
         "test:ci": "jest --collectCoverage",
         "swagger": "tsx ./src/api/bot/swagger.ts",
         "init": "tsx ./scripts/initDev.ts",
+        "migrate-state": "tsx ./scripts/migrateState.ts",
         "migrations": "npx drizzle-kit generate"
     },
     "author": "Nick Kiselev",

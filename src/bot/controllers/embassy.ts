@@ -859,7 +859,7 @@ export default class EmbassyController implements BotController {
 
             if (!msg) {
                 bot.botState.flags.electricityOutageMentioned = isElectricityOutage;
-                await bot.botState.persistChanges();
+                await bot.botState.persistFlags();
             }
 
             await bot.sendMessageExt(

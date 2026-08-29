@@ -6,17 +6,25 @@ export function sleep(ms: number) {
 
 // @typescript-eslint/no-unsafe-function-type
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-export function debounce(func: Function, delay: number): (...args: unknown[]) => void {
-    let timeoutId: string | number | NodeJS.Timeout;
+export function debounce(func: Function, delay: number): ((...args: unknown[]) => void) & { cancel: () => void } {
+    let timeoutId: string | number | NodeJS.Timeout | undefined;
 
-    return function (...args) {
+    const debounced = (...args: unknown[]) => {
         clearTimeout(timeoutId);
 
         timeoutId = setTimeout(() => {
+            timeoutId = undefined;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             func(...args);
         }, delay);
     };
+
+    debounced.cancel = () => {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+    };
+
+    return debounced;
 }
 
 export function randomInteger(min: number, max: number) {

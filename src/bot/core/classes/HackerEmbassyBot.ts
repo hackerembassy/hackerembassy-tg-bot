@@ -105,8 +105,11 @@ export default class HackerEmbassyBot extends TelegramBot {
     public name: string = botConfig.name;
     public customEmitter = new EventEmitter();
     public botState = new BotState(this);
-    public botMessageHistory = new MessageHistory(this.botState, this.botState.history, botConfig.history.commandsLimit);
-    public messageHistory = new MessageHistory(this.botState, this.botState.messages, botConfig.history.messagesLimit);
+    public botMessageHistory = new MessageHistory(
+        this.botState.createMessageLogStore("history"),
+        botConfig.history.commandsLimit
+    );
+    public messageHistory = new MessageHistory(this.botState.createMessageLogStore("messages"), botConfig.history.messagesLimit);
     public assets: BotAssets = {
         images: {
             restricted: null,
@@ -276,7 +279,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (!cachedFileId && photoHash && message.photo) {
             this.botState.fileIdCache[photoHash] = message.photo[0].file_id;
-            this.botState.debouncedPersistChanges();
+            this.botState.persistFileIdCache();
         }
 
         if (mode.pin) {
@@ -312,7 +315,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         if (!cachedFileId && animationHash && message.animation) {
             this.botState.fileIdCache[animationHash] = message.animation.file_id;
-            this.botState.debouncedPersistChanges();
+            this.botState.persistFileIdCache();
         }
 
         if (mode.pin) {
@@ -1122,7 +1125,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             this.botState.liveChats[chatRecordIndex] = newChatRecord;
         }
 
-        this.botState.debouncedPersistChanges();
+        this.botState.persistLiveChats();
     }
 
     //#region Chat member management extensions

@@ -1,5 +1,3 @@
-import fs from "node:fs";
-
 import { InlineKeyboardButton, KeyboardButton, Message } from "node-telegram-bot-api";
 import config from "config";
 
@@ -105,14 +103,6 @@ export default class AdminController implements BotController {
         await (lastLogFilePath
             ? bot.sendDocument(msg.chat.id, lastLogFilePath)
             : bot.sendMessageExt(msg.chat.id, "Log file not found", msg));
-    }
-
-    @Route(["getstate", "state"])
-    @UserRoles(Admins)
-    static async getStateHandler(bot: HackerEmbassyBot, msg: Message) {
-        const statepath = bot.botState.statepath;
-
-        if (statepath && fs.existsSync(statepath)) await bot.sendDocument(msg.chat.id, statepath);
     }
 
     @Route(["cleanstate", "clearstate"])
@@ -236,7 +226,7 @@ export default class AdminController implements BotController {
         }
 
         flags[flag as keyof StateFlags] = value === "true" || value === "1";
-        await bot.botState.persistChanges();
+        await bot.botState.persistFlags();
 
         bot.customEmitter.emit(BotCustomEvent.statusLive);
 

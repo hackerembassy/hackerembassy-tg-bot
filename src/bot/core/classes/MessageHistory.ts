@@ -1,17 +1,15 @@
-import BotState from "./BotState";
+import { ChatMessageLog, MessageLogStore } from "./MessageLogStore";
 import { MessageHistoryEntry } from "../types";
 
-type ChatMessageLog = { [chatId: string]: Optional<MessageHistoryEntry[]> };
-
 export default class MessageHistory {
-    botState: BotState;
+    store: MessageLogStore;
     messageLog: ChatMessageLog;
     limit: number;
 
-    constructor(botState: BotState, messageLog: ChatMessageLog, limit: number) {
-        this.botState = botState;
-        this.messageLog = messageLog;
+    constructor(store: MessageLogStore, limit: number) {
+        this.store = store;
         this.limit = limit;
+        this.messageLog = store.loadAll();
     }
 
     orderOf(chatId: number, messageId: number): Optional<number> {
@@ -32,7 +30,7 @@ export default class MessageHistory {
 
         chatHistory.splice(order, 0, fullEntry);
 
-        void this.botState.persistChanges();
+        this.store.persist(chatId, chatHistory);
     }
 
     pop(chatId: number, from: number = 0): Nullable<MessageHistoryEntry> {
@@ -41,7 +39,7 @@ export default class MessageHistory {
         if (!chatHistory || chatHistory.length === 0) return null;
 
         const removed = chatHistory.splice(from, 1)[0];
-        this.botState.debouncedPersistChanges();
+        this.store.persist(chatId, chatHistory);
 
         return removed;
     }
@@ -52,6 +50,11 @@ export default class MessageHistory {
 
     getAll(chatId: number): MessageHistoryEntry[] {
         return this.messageLog[chatId] ?? [];
+    }
+
+    clearAll() {
+        this.messageLog = {};
+        this.store.clearAll();
     }
 
     // TODO update history entry for EditMessage

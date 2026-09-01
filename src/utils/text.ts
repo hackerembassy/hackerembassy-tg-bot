@@ -1,5 +1,3 @@
-export const REPLACE_MARKER = "\x1a";
-export const ZERO_WIDTH_SPACE = "\u200b";
 const ELLIPSIS = "...";
 
 // Anchored so the whole input has to be emoji (optionally more than one codepoint, e.g. flags,

@@ -24,7 +24,7 @@ import telemetry from "@services/common/telemetry";
 
 import { sleep } from "@utils/common";
 import { DURATION_STRING_REGEX, getMonthBoundaries, toDateObject, tryDurationStringToMs } from "@utils/date";
-import { isEmoji, REPLACE_MARKER } from "@utils/text";
+import { isEmoji } from "@utils/text";
 import { getFilename } from "@utils/meta";
 import { getImageFromPath } from "@utils/filesystem";
 
@@ -44,6 +44,7 @@ import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/inlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
+import { REPLACE_MARKER } from "../core/constants";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 import { OptionalParam } from "../core/helpers";

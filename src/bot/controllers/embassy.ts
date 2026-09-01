@@ -33,6 +33,7 @@ import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { MessageStreamingError } from "../core/errors";
+import { stripThinkingScope } from "../core/converters";
 import { BotCustomEvent, BotController, BotMessageContextMode, MessageHistoryEntry } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
@@ -853,7 +854,7 @@ export default class EmbassyController implements BotController {
 
                 bot.messageHistory.push(msg.chat.id, {
                     messageId: result.message.message_id,
-                    text: result.text,
+                    text: stripThinkingScope(result.text),
                     from: bot.name,
                     replyToMessageId: msg.message_id,
                     model,

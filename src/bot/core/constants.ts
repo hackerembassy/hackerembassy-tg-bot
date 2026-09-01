@@ -1,3 +1,4 @@
+// Numbers
 export const MAX_MESSAGE_LENGTH = 3500;
 export const MAX_STREAMING_WINDOW = 600;
 export const MAX_MESSAGE_LENGTH_WITH_TAGS = 3200;
@@ -6,8 +7,13 @@ export const IGNORE_UPDATE_TIMEOUT = 15; // Seconds from bot api
 export const DEFAULT_TEMPORARY_MESSAGE_TIMEOUT = 8000; // Milliseconds
 export const DEFAULT_CLEAR_QUEUE_TIMEOUT = 5000;
 export const DEFAULT_CLEAR_QUEUE_LENGTH = 10;
-export const IMPERSONATION_MARKER = "~~";
 
+// Strings
+export const IMPERSONATION_MARKER = "~~";
+export const REPLACE_MARKER = "\x1a";
+export const ZERO_WIDTH_SPACE = "\u200b";
+
+// Objects
 export const RESTRICTED_PERMISSIONS = {
     can_send_messages: false,
     can_send_audios: false,

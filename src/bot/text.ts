@@ -19,7 +19,6 @@ import { UserVisit } from "@services/domain/user";
 import { DonationResult } from "@services/funds/donation";
 
 import { splitArray } from "@utils/common";
-import { REPLACE_MARKER } from "@utils/text";
 import {
     convertMinutesToHours,
     DateBoundary,
@@ -30,6 +29,7 @@ import {
     shortDateTimeOptions,
 } from "@utils/date";
 
+import { REPLACE_MARKER } from "./core/constants";
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
 import { toEscapedTelegramMarkdown } from "./core/converters";

@@ -1,5 +1,7 @@
 import { NodeHtmlMarkdown } from "node-html-markdown";
 
+import { ZERO_WIDTH_SPACE } from "./constants";
+
 /**
  * Bot uses MarkdownV2 by default, because it's needed for almost every command.
  * But we still want to be able to use markdown special symbols as regular symbols in some cases.
@@ -36,35 +38,15 @@ export function stripCustomMarkup(text: string): string {
     return text.replaceAll(/#./g, "");
 }
 
-// MarkdownV2 reserves these 18 characters as entity delimiters and requires literal occurrences to
-// be escaped - unlike Telegram's legacy "Markdown" mode (which only documents 4, and turned out not
-// to reliably support escaping a delimiter *inside* an entity of that same type, e.g. an escaped
-// "\*" inside a "*bold*" span - see GFMToTelegramMarkdown's heading handling below). MarkdownV2's
-// escape model is well-specified and two-phase (escapes are resolved before entities are scanned),
-// so it doesn't have that failure mode.
-function escapeTelegramMarkdownV2Specials(text: string): string {
-    return text.replaceAll(/[_*[\]()~`>#+=|{}.!\\-]/g, "\\$&");
-}
-
-// Inside the (...) part of a link/image definition, MarkdownV2 only requires ')' and '\' to be
-// escaped - anything else (including '.', '-', '_', '~', which commonly appear in real URLs) must
-// stay untouched, or the escaped backslash would become part of the URL itself and break the link.
-function escapeTelegramMarkdownV2Url(url: string): string {
-    return url.replaceAll(/[)\\]/g, "\\$&");
-}
-
 // Marks text that's already a finished Telegram entity (or is otherwise safe/literal, like code) so
 // later passes - including the final blanket escape - don't touch it again. Uses a Private Use Area
 // character, which can't appear in real content and won't collide with plain digits in prose.
 const ENTITY_PLACEHOLDER_MARK = "";
 const ENTITY_PLACEHOLDER_REGEX = new RegExp(`${ENTITY_PLACEHOLDER_MARK}(\\d+)${ENTITY_PLACEHOLDER_MARK}`, "g");
+const THINKING_SCOPE_REGEX = new RegExp(`\\[thinking\\]\\n([\\s\\S]*?)\\n\\[/${ZERO_WIDTH_SPACE}thinking\\]\\n\\n`, "g");
 
-function resolveRelativeUrl(url: string, baseUrl: string = ""): string {
-    if (!baseUrl) return url;
-
-    if (/^[a-z][a-z0-9+.-]*:/i.test(url)) return url;
-
-    return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
+export function stripThinkingScope(text: string): string {
+    return text.replaceAll(THINKING_SCOPE_REGEX, "");
 }
 
 // Converts CommonMark/GFM into Telegram MarkdownV2, resolving any relative links/images against
@@ -138,7 +120,15 @@ export function GFMToTelegramMarkdown(markdown: string, baseUrl: string = ""): s
         // which uses the same ">" prefix - only the marker itself needs protecting from the final
         // escape below, since any inline formatting on the line was already converted to protected
         // entities above.
-        .replaceAll(/^>/gm, () => protect(">"));
+        .replaceAll(/^>/gm, () => protect(">"))
+        // Renders a thinking block as an expandable_blockquote ("**>"/">"/"||"). Must run last so
+        // lines were already converted by their normal line-start anchors before the quote marker
+        // lands on them.
+        .replaceAll(THINKING_SCOPE_REGEX, (_, content: string) => {
+            if (!content.trim()) return "";
+
+            return `${protect("**>")}${content.split("\n").join(`\n${protect(">")}`)}${protect("||")}\n\n`;
+        });
 
     // Everything left at this point is plain prose - escape any stray entity-delimiter characters
     // in it (see escapeTelegramMarkdownV2Specials), then restore the protected entities from above.
@@ -146,4 +136,29 @@ export function GFMToTelegramMarkdown(markdown: string, baseUrl: string = ""): s
         ENTITY_PLACEHOLDER_REGEX,
         (_, i: string) => protectedEntities[Number(i)]
     );
+}
+
+// MarkdownV2 reserves these 18 characters as entity delimiters and requires literal occurrences to
+// be escaped - unlike Telegram's legacy "Markdown" mode (which only documents 4, and turned out not
+// to reliably support escaping a delimiter *inside* an entity of that same type, e.g. an escaped
+// "\*" inside a "*bold*" span - see GFMToTelegramMarkdown's heading handling below). MarkdownV2's
+// escape model is well-specified and two-phase (escapes are resolved before entities are scanned),
+// so it doesn't have that failure mode.
+function escapeTelegramMarkdownV2Specials(text: string): string {
+    return text.replaceAll(/[_*[\]()~`>#+=|{}.!\\-]/g, "\\$&");
+}
+
+// Inside the (...) part of a link/image definition, MarkdownV2 only requires ')' and '\' to be
+// escaped - anything else (including '.', '-', '_', '~', which commonly appear in real URLs) must
+// stay untouched, or the escaped backslash would become part of the URL itself and break the link.
+function escapeTelegramMarkdownV2Url(url: string): string {
+    return url.replaceAll(/[)\\]/g, "\\$&");
+}
+
+function resolveRelativeUrl(url: string, baseUrl: string = ""): string {
+    if (!baseUrl) return url;
+
+    if (/^[a-z][a-z0-9+.-]*:/i.test(url)) return url;
+
+    return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
 }

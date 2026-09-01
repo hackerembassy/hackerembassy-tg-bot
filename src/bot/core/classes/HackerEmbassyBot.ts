@@ -33,7 +33,7 @@ import { UserRole } from "@data/types";
 import logger from "@services/common/logger";
 import { hasRole, isBanned, userService } from "@services/domain/user";
 
-import { chunkSubstr, ZERO_WIDTH_SPACE } from "@utils/text";
+import { chunkSubstr } from "@utils/text";
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { DeltaStream } from "@services/neural/openwebui";
@@ -56,6 +56,7 @@ import {
     MAX_STREAMING_WINDOW,
     POLLING_OPTIONS,
     RESTRICTED_PERMISSIONS,
+    ZERO_WIDTH_SPACE,
 } from "../constants";
 import MessageHistory from "./MessageHistory";
 import { executeOverTime, UserRateLimiter } from "./RateLimit";
@@ -480,8 +481,13 @@ export default class HackerEmbassyBot extends TelegramBot {
                     const [segment, ...rest] = overLength ? chunkSubstr(buffer, MAX_MESSAGE_LENGTH) : [buffer];
                     const editTarget = messageToEdit;
 
+                    // Close an open scope here and reopen it below, so a cut mid-scope never leaves
+                    // one message with no closing tag and the next with no opening tag.
+                    const closedSegment =
+                        overLength && currentScope ? `${segment}\n[/${ZERO_WIDTH_SPACE}${currentScope}]\n\n` : segment;
+
                     await this.withPlainTextFallback(chunk.done || overLength ? parseMode : "", pm =>
-                        this.editMessageTextExt(segment, editTarget, {
+                        this.editMessageTextExt(closedSegment, editTarget, {
                             chat_id: chatId,
                             message_id: editTarget.message_id,
                             parse_mode: pm,
@@ -496,7 +502,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                         }
                     } else if (overLength) {
                         messageToEdit = null;
-                        buffer = rest.join("");
+                        buffer = (currentScope ? `[${currentScope}]\n` : "") + rest.join("");
                     }
 
                     window = 0;

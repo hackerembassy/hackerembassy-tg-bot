@@ -236,7 +236,7 @@
         "openwebui": {
             "base": "https://owo.hackem.cc",
             "model": "ollama-default",
-            "toolIds": ["server:mcp:67"]
+            "toolIds": ["server:mcp:bot", "server:mcp:wiki"]
         },
         "openai": {
             "model": "gpt-5-mini",

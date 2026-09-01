@@ -36,7 +36,7 @@ runs:
                 docker run --rm \
                   -v /var/run/docker.sock:/var/run/docker.sock \
                   -v /home/ansible/.docker/config.json:/config.json \
-                  containrrr/watchtower \
+                  nickfedor/watchtower:v1.21.2 \
                   --run-once \
                   hackem-bot
               '

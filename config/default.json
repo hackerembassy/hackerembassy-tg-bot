@@ -32,7 +32,8 @@
         "history": {
             "commandsLimit": 50,
             "messagesLimit": 3000,
-            "summaryModel": "summary"
+            "summaryModel": "summary",
+            "digestModel": "digest"
         },
         "live": {
             "camRefreshInterval": 10000,
@@ -68,7 +69,8 @@
             "history": true,
             "greetings": true,
             "voice": true,
-            "askContinuation": true
+            "askContinuation": true,
+            "dailydigest": true
         },
         "moderatedChats": [-1001605898533],
         "guess": {

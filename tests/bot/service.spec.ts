@@ -2,6 +2,7 @@ import config from "config";
 
 import { BotConfig } from "@config";
 import { TEST_USERS } from "@data/seed";
+import ServiceController from "@hackembot/controllers/service";
 
 import { createMockBot, createMockMessage } from "../mocks/bot";
 
@@ -65,5 +66,29 @@ describe("Bot Service commands:", () => {
         }
 
         expect(mockBot.popResults()).toEqual(tokens.map(() => "service\\.tldr\\.empty"));
+    });
+
+    test("/digest is restricted for guests", async () => {
+        await mockBot.processUpdate(createMockMessage("/digest", TEST_USERS.guest));
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.restricted"]);
+    });
+
+    test("/digest is not ready outside NonTopicChats", async () => {
+        await mockBot.processUpdate(createMockMessage("/digest", TEST_USERS.accountant, Date.now(), botConfig.chats.offtopic));
+
+        expect(mockBot.popResults()).toEqual(["service\\.tldr\\.notready"]);
+    });
+
+    test("/digest run by a trusted member reports emptiness for its own chat's history", async () => {
+        await mockBot.processUpdate(createMockMessage("/digest", TEST_USERS.accountant, Date.now(), TLDR_CHAT_ID));
+
+        expect(mockBot.popResults()).toEqual(["service\\.tldr\\.empty"]);
+    });
+
+    test("/digest run from cron (msg = null) stays silent when main chat has no history for yesterday", async () => {
+        await ServiceController.sendDailyDigestHandler(mockBot, null);
+
+        expect(mockBot.popResults()).toEqual([]);
     });
 });

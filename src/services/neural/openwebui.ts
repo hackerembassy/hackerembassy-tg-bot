@@ -192,7 +192,7 @@ export class OpenWebUI {
         return response.body.pipe(split2()).pipe(wrapOllamaChunk()) as DeltaStream;
     }
 
-    async generateOpenAiStream(prompt: string, image?: string, model: string = OpenWebUI.defaultModel) {
+    private async generateOpenAiChatBase(prompt: string, image: string | undefined, model: string, stream: boolean) {
         const headers = {
             Authorization: `Bearer ${this.apiKey}`,
             "Content-Type": "application/json",
@@ -212,7 +212,7 @@ export class OpenWebUI {
         const data = {
             model,
             messages: [{ role: "user", content }],
-            stream: true,
+            stream,
             tool_ids: neuralConfig.openwebui.toolIds,
         };
 
@@ -227,11 +227,24 @@ export class OpenWebUI {
             throw new Error(`${this.base} is not available: ${response.statusText} - ${errorText}`);
         }
 
+        return response;
+    }
+
+    async generateOpenAiStream(prompt: string, image?: string, model: string = OpenWebUI.defaultModel) {
+        const response = await this.generateOpenAiChatBase(prompt, image, model, true);
+
         if (!response.body) {
             throw new Error("Streaming not supported: no response body.");
         }
 
         return response.body.pipe(split2()).pipe(wrapOpenAiChunk()) as DeltaStream;
+    }
+
+    async generateOpenAi(prompt: string, image?: string, model: string = OpenWebUI.defaultModel): Promise<string> {
+        const response = await this.generateOpenAiChatBase(prompt, image, model, false);
+        const body = (await response.json()) as ChatCompletionResponse;
+
+        return body.choices[0].message.content;
     }
 
     async getModels() {

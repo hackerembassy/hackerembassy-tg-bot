@@ -715,6 +715,8 @@ service:
             #`/tldr 2h|30m|2h30m optional_prompt#` - summarize messages from the last given duration
         notready: This feature currently works in test mode for chats without topics
         empty: ⚠️ No messages found for the selected period
+    digest:
+        header: 📝 What was discussed yesterday
     token:
         help: |
             🤖 This command can be used to manage the token for API access (currently just one)

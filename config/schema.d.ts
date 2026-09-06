@@ -44,6 +44,7 @@ export interface BotHistoryConfig {
     commandsLimit: number;
     messagesLimit: number;
     summaryModel: string;
+    digestModel: string;
 }
 
 export interface BotApiConfig {
@@ -147,6 +148,8 @@ export interface BotFeaturesConfig {
     voice: boolean;
     /** Let a plain reply to an LLM answer continue that conversation without typing /ask again */
     askContinuation: boolean;
+    /** Automated daily "what was discussed yesterday" summary posted to the main chat */
+    dailydigest: boolean;
 }
 
 export type BotFeatureFlag = keyof BotFeaturesConfig;

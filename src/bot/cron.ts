@@ -9,6 +9,7 @@ import { BotCustomEvent } from "./core/types";
 import BirthdayController from "./controllers/birthday";
 import EmbassyController from "./controllers/embassy";
 import MemeController from "./controllers/meme";
+import ServiceController from "./controllers/service";
 import StatusController from "./controllers/status";
 import FundsController from "./controllers/funds";
 
@@ -70,6 +71,9 @@ function setupCronJobs(bot: HackerEmbassyBot): void {
 
     if (botConfig.features.wednesday)
         runningJobs.push(new CronJob("1 0 * * 3", () => MemeController.remindItIsWednesdayHandler(bot)));
+
+    if (botConfig.features.dailydigest)
+        runningJobs.push(new CronJob("1 0 * * *", () => void ServiceController.sendDailyDigestHandler(bot, null)));
 
     // START THESE JOBS!!!
     for (const job of runningJobs) job.start();

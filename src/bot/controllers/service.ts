@@ -115,6 +115,44 @@ export default class ServiceController implements BotController {
         );
     }
 
+    @Route(["digest"])
+    @UserRoles(TrustedMembers)
+    @AllowedChats(PublicChats)
+    @FeatureFlag("dailydigest")
+    static async sendDailyDigestHandler(bot: HackerEmbassyBot, msg: Nullable<Message>) {
+        // Pass null, not msg, to sendMessageExt below - a "-forward" modifier on msg would redirect the reply elsewhere.
+        if (msg && !NonTopicChats.includes(msg.chat.id)) {
+            return bot.sendMessageExt(msg.chat.id, t("service.tldr.notready"), null);
+        }
+
+        // Interactive calls summarize the chat they were run in; the cron job (msg === null) always targets main.
+        const chatId = msg?.chat.id ?? botConfig.chats.main;
+        const notifyEmpty = () => (msg ? bot.sendMessageExt(chatId, t("service.tldr.empty"), null) : undefined);
+
+        try {
+            const { fromMs, toMs } = getTimeRange("yesterday");
+            const selectedMessages = bot.messageHistory.getInRange(chatId, fromMs, toMs);
+
+            if (selectedMessages.length === 0) return notifyEmpty();
+
+            let prompt = "";
+            for (const message of selectedMessages) {
+                if (message.text) prompt += `${message.from}: ${message.text}\n`;
+            }
+
+            const summary = await openwebui.generateOpenAi(prompt, undefined, botConfig.history.digestModel);
+
+            if (!summary.trim()) return notifyEmpty();
+
+            const text = `${t("service.digest.header")}\n\n${summary}`;
+
+            return await bot.sendMessageExt(chatId, text, null, { parse_mode: "GFM" });
+        } catch (error) {
+            logger.error(`Failed to send daily digest: ${(error as Error).message}`);
+            return;
+        }
+    }
+
     @Route(["combine", "squash", "sq"], OptionalParam(/(\d*)/), match => [match[1]])
     @UserRoles(Members)
     static async combineHandler(bot: HackerEmbassyBot, msg: Message, count: string) {

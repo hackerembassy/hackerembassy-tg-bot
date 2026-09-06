@@ -714,6 +714,8 @@ service:
             #`/tldr 2h|30m|2h30m optional_prompt#` - resumu mesaĝojn de la lasta donita daŭro
         notready: Ĉi tiu funkcio nuntempe funkcias en testa reĝimo por babilejoj sen temoj
         empty: ⚠️ Neniuj mesaĝoj trovitaj por la elektita periodo
+    digest:
+        header: 📝 Pri kio oni parolis hieraŭ
     token:
         help: |
             🤖 Ĉi tiu komando povas esti uzata por administri la tokenon por API-aliro (nuntempe nur unu)

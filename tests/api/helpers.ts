@@ -2,7 +2,7 @@ import express, { RequestHandler, Router } from "express";
 
 import { User } from "@data/models";
 import apikeyRepository from "@data/repositories/apikeys";
-import { generateRandomKey, sha256 } from "@utils/security";
+import { generateRandomKey, sha256 } from "@utils/common";
 
 // Each router is tiny and self-contained, so tests mount just the router under test on a fresh
 // express app instead of pulling in the real app (which imports the bot singleton, swagger,

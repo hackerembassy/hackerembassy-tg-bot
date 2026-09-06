@@ -43,6 +43,15 @@ export function splitArray<T>(array: T[], size: number): T[][] {
 
 export function hashMD5(data: BinaryLike) {
     const hash = crypto.createHash("md5");
-    hash.update(data);
+    hash.update(typeof data === "string" || ArrayBuffer.isView(data) ? data : Buffer.from(data));
+
     return hash.digest("hex");
+}
+
+export function sha256(data: string) {
+    return crypto.createHash("sha256").update(data).digest("hex");
+}
+
+export function generateRandomKey(size = 32): string {
+    return crypto.randomBytes(size).toString("hex");
 }

@@ -6,7 +6,6 @@ import { BotConfig } from "@config";
 import UsersRepository from "@data/repositories/users";
 import ApiKeysRepository from "@data/repositories/apikeys";
 import logger from "@services/common/logger";
-import { generateRandomKey, sha256 } from "@utils/security";
 import {
     AllowedChats,
     FeatureFlag,
@@ -21,7 +20,7 @@ import {
 
 import { openwebui } from "@services/neural/openwebui";
 import { hasRole } from "@services/domain/user";
-import { splitArray } from "@utils/common";
+import { generateRandomKey, sha256, splitArray } from "@utils/common";
 import {
     COMPACT_DURATION_REGEX,
     TIME_RANGE_KEYWORDS,

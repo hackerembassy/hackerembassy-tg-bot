@@ -1,4 +1,4 @@
-import { UserRole, UserStateChangeType, UserStateType } from "@data/types";
+import { AutoInsideMode, UserRole, UserStateChangeType, UserStateType } from "@data/types";
 import { User, UserState, UserStateEx } from "@data/models";
 import { DefaultUser } from "@data/seed";
 
@@ -101,6 +101,14 @@ class UserService {
         const fulldate = date?.length === 5 ? "0000-" + date : date;
 
         return usersRepository.updateUser(user.userid, { birthday: fulldate });
+    }
+
+    public setAutoinside(user: User, mode: AutoInsideMode) {
+        return usersRepository.updateUser(user.userid, { autoinside: mode });
+    }
+
+    public setEmoji(user: User, emoji: string | null) {
+        return usersRepository.updateUser(user.userid, { emoji });
     }
 
     public saveUser(user: User) {

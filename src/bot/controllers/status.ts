@@ -151,13 +151,13 @@ export default class StatusController implements BotController {
                         message = t("status.autoinside.nomac");
                     } else {
                         const mode = cmd === "ghost" ? AutoInsideMode.Ghost : AutoInsideMode.Enabled;
-                        UsersRepository.updateUser(user.userid, { autoinside: mode });
+                        userService.setAutoinside(user, mode);
                         message = TextGenerators.getAutoinsideMessageStatus(mode, userMacsString, userLink);
                     }
                     break;
                 }
                 case "disable": {
-                    UsersRepository.updateUser(user.userid, { autoinside: AutoInsideMode.Disabled });
+                    userService.setAutoinside(user, AutoInsideMode.Disabled);
                     message = t("status.autoinside.removed", { username: userLink });
                     break;
                 }
@@ -673,10 +673,10 @@ export default class StatusController implements BotController {
 
         if (!emoji || emoji === "help") {
             message = t("status.emoji.help");
-        } else if (emoji && isEmoji(emoji) && UsersRepository.updateUser(sender.userid, { emoji })) {
+        } else if (emoji && isEmoji(emoji) && userService.setEmoji(sender, emoji)) {
             message = t("status.emoji.set", { emoji, username: userLink });
         } else if (emoji === "remove") {
-            UsersRepository.updateUser(sender.userid, { emoji: null });
+            userService.setEmoji(sender, null);
             message = t("status.emoji.removed", { username: userLink });
         } else if (emoji === "status" && sender.emoji) {
             message = t("status.emoji.isset", {

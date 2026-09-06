@@ -4,12 +4,12 @@ import { RequestInit } from "node-fetch";
 import { EmbassyApiConfig } from "@config";
 import { Device, User } from "@data/models";
 import { fetchWithTimeout, successOrThrow } from "@utils/network";
-import { encrypt } from "@utils/security";
 import { anyItemIsInList, filterFulfilled } from "@utils/filters";
 
 import { AvailableConditioner, ConditionerActions, ConditionerStatus, SpaceClimate } from "./hass";
 import { PrinterStatusResult } from "./printer3d";
 import { UnlockMethod } from "./door";
+import rsa from "./rsa";
 import logger from "../common/logger";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
@@ -220,6 +220,8 @@ class EmbassyService {
 
     // Private
 
+    private readonly unlockKey = process.env["UNLOCKKEY"];
+
     private isMacInside(mac: string, devices: string[]): boolean {
         return anyItemIsInList(mac.split(","), devices);
     }
@@ -257,7 +259,7 @@ class EmbassyService {
         timeout: number = 15000,
         secure = true
     ) {
-        const authorization = secure && process.env["UNLOCKKEY"] ? await encrypt(process.env["UNLOCKKEY"]) : undefined;
+        const authorization = secure && this.unlockKey ? await rsa.encrypt(this.unlockKey) : undefined;
 
         const options = {
             headers: {

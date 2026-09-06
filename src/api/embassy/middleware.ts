@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { Request } from "express-serve-static-core";
 
-import { decrypt } from "@utils/security";
+import rsa from "@services/embassy/rsa";
 import logger from "@services/common/logger";
 
 // Because we are too lazy to setup https on the embassy service
@@ -21,7 +21,7 @@ export function createEncryptedAuthMiddleware(): RequestHandler {
             return;
         }
 
-        const decrypted = await decrypt(auth);
+        const decrypted = await rsa.decrypt(auth);
 
         if (decrypted !== process.env["UNLOCKKEY"]) {
             logger.info(`Got request with invalid token`);

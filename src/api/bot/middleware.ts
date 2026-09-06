@@ -7,7 +7,7 @@ import { UserRole } from "@data/types";
 import { SERVICE_USERS } from "@data/seed";
 import ApiKeyRepository from "@data/repositories/apikeys";
 import logger from "@services/common/logger";
-import { sha256 } from "@utils/security";
+import { sha256 } from "@utils/common";
 import { extractToken, RequestWithOptionalTokenBody } from "@utils/express";
 import { MINUTE } from "@utils/date";
 import { safeJsonStringify } from "@utils/text";

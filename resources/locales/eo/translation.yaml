@@ -709,8 +709,11 @@ service:
         help: |
             📝 Per ĉi tiu komando, vi povas ricevi resumon de la ĉefaj temoj diskutitaj en la babilejo. La roboto analizos la lastajn n mesaĝojn kaj provos resumi ilin.
 
-            #`/tldr n optional_prompt#` - kie n estas la nombro da mesaĝoj por analizi (max 1000)
+            #`/tldr n optional_prompt#` - kie n estas la nombro da mesaĝoj por analizi (max 3000)
+            #`/tldr today|yesterday|day|week optional_prompt#` - resumu mesaĝojn de tiu periodo
+            #`/tldr 2h|30m|2h30m optional_prompt#` - resumu mesaĝojn de la lasta donita daŭro
         notready: Ĉi tiu funkcio nuntempe funkcias en testa reĝimo por babilejoj sen temoj
+        empty: ⚠️ Neniuj mesaĝoj trovitaj por la elektita periodo
     token:
         help: |
             🤖 Ĉi tiu komando povas esti uzata por administri la tokenon por API-aliro (nuntempe nur unu)

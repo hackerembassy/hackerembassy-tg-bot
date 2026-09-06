@@ -1,6 +1,12 @@
+import config from "config";
+
+import { BotConfig } from "@config";
 import { TEST_USERS } from "@data/seed";
 
 import { createMockBot, createMockMessage } from "../mocks/bot";
+
+const botConfig = config.get<BotConfig>("bot");
+const TLDR_CHAT_ID = botConfig.chats.test; // in both PublicChats and NonTopicChats
 
 describe("Bot Service commands:", () => {
     const mockBot = createMockBot();
@@ -36,5 +42,28 @@ describe("Bot Service commands:", () => {
         await mockBot.processUpdate(createMockMessage("/chatid", TEST_USERS.guest));
 
         expect(mockBot.popResults()).toEqual([`chatId: ${TEST_USERS.guest.userid}`]);
+    });
+
+    test("/tldr is not ready outside NonTopicChats", async () => {
+        await mockBot.processUpdate(createMockMessage("/tldr today", TEST_USERS.admin));
+
+        expect(mockBot.popResults()).toEqual(["service\\.tldr\\.notready"]);
+    });
+
+    test("/tldr shows help for a bare command and for a count over the limit", async () => {
+        await mockBot.processUpdate(createMockMessage("/tldr", TEST_USERS.admin, Date.now(), TLDR_CHAT_ID));
+        await mockBot.processUpdate(createMockMessage("/tldr 5000", TEST_USERS.admin, Date.now(), TLDR_CHAT_ID));
+
+        expect(mockBot.popResults()).toEqual(["service\\.tldr\\.help", "service\\.tldr\\.help"]);
+    });
+
+    test("/tldr reports emptiness for time-window tokens when there is no history", async () => {
+        const tokens = ["today", "yesterday", "day", "week", "2h", "30m", "2h30m"];
+
+        for (const token of tokens) {
+            await mockBot.processUpdate(createMockMessage(`/tldr ${token}`, TEST_USERS.admin, Date.now(), TLDR_CHAT_ID));
+        }
+
+        expect(mockBot.popResults()).toEqual(tokens.map(() => "service\\.tldr\\.empty"));
     });
 });

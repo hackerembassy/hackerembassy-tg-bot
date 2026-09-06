@@ -710,8 +710,11 @@ service:
         help: |
             📝 Using this command, you can get a summary of the main topics discussed in the chat. The bot will analyze the last n messages and try to summarize them.
 
-            #`/tldr n optional_prompt#` - where n is the number of messages to analyze (max 1000)
+            #`/tldr n optional_prompt#` - where n is the number of messages to analyze (max 3000)
+            #`/tldr today|yesterday|day|week optional_prompt#` - summarize messages from that period
+            #`/tldr 2h|30m|2h30m optional_prompt#` - summarize messages from the last given duration
         notready: This feature currently works in test mode for chats without topics
+        empty: ⚠️ No messages found for the selected period
     token:
         help: |
             🤖 This command can be used to manage the token for API access (currently just one)

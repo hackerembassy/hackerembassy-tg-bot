@@ -31,7 +31,7 @@
         "persistedfolderpath": "db",
         "history": {
             "commandsLimit": 50,
-            "messagesLimit": 1000,
+            "messagesLimit": 3000,
             "summaryModel": "summary"
         },
         "live": {

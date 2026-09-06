@@ -111,6 +111,46 @@ export function getToday(): Date {
     return date;
 }
 
+export function getYesterday(): Date {
+    const date = getToday();
+    date.setDate(date.getDate() - 1);
+    return date;
+}
+
+// A single-token duration shape ("2h", "30m", "2h30m") with no internal space, unlike
+// DURATION_STRING_REGEX - suited to contexts where the duration must stay one whitespace-delimited word.
+export const COMPACT_DURATION_REGEX = /\d+h(?:\d+m)?|\d+m/;
+const COMPACT_DURATION_REGEX_EXACT = new RegExp(`^(?:${COMPACT_DURATION_REGEX.source})$`);
+
+export function isCompactDurationToken(value: string): boolean {
+    return COMPACT_DURATION_REGEX_EXACT.test(value);
+}
+
+export const TIME_RANGE_KEYWORDS = ["today", "yesterday", "day", "week"] as const;
+export type TimeRangeKeyword = (typeof TIME_RANGE_KEYWORDS)[number];
+
+export function isTimeRangeKeyword(value: string): value is TimeRangeKeyword {
+    return (TIME_RANGE_KEYWORDS as readonly string[]).includes(value);
+}
+
+export function getTimeRange(keyword: TimeRangeKeyword): { fromMs: number; toMs: number } {
+    switch (keyword) {
+        case "today": {
+            return { fromMs: getToday().getTime(), toMs: Date.now() };
+        }
+        case "yesterday": {
+            const startOfYesterday = getYesterday().getTime();
+            return { fromMs: startOfYesterday, toMs: startOfYesterday + DAY };
+        }
+        case "day": {
+            return { fromMs: Date.now() - DAY, toMs: Date.now() };
+        }
+        case "week": {
+            return { fromMs: Date.now() - WEEK, toMs: Date.now() };
+        }
+    }
+}
+
 export function shiftedToUTC4(date: Date): Date {
     const utcDate = new Date(date);
     utcDate.setHours(utcDate.getHours() + 4 + utcDate.getTimezoneOffset() / 60);

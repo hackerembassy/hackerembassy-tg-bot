@@ -59,6 +59,14 @@ export default class MessageHistory {
         return this.messageLog[chatId] ?? [];
     }
 
+    // The chat history cap (limit) evicts the oldest entries regardless of age, so a wide range
+    // can silently return a partial window once eviction has happened - same as slicing by count.
+    getInRange(chatId: number, fromMs: number, toMs: number = Date.now()): MessageHistoryEntry[] {
+        return this.getAll(chatId)
+            .filter(entry => entry.datetime >= fromMs && entry.datetime < toMs)
+            .toReversed();
+    }
+
     clearAll() {
         this.messageLog = {};
         this.store.clearAll();

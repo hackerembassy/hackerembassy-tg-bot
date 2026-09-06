@@ -1,6 +1,30 @@
-import { hasBirthdayToday, hasBithdayThisMonth, isIsoDateString } from "@utils/date";
+import { getYesterday, hasBirthdayToday, hasBithdayThisMonth, isIsoDateString } from "@utils/date";
 
 describe("utils/date", () => {
+    describe("getYesterday", () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it("returns local midnight of the previous day", () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2024, 7, 15, 12, 30, 0)); // local: 2024-08-15 12:30
+
+            const yesterday = getYesterday();
+
+            expect(yesterday).toEqual(new Date(2024, 7, 14, 0, 0, 0, 0));
+        });
+
+        it("handles a month/year boundary", () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(2024, 0, 1, 0, 30, 0)); // local: 2024-01-01 00:30
+
+            const yesterday = getYesterday();
+
+            expect(yesterday).toEqual(new Date(2023, 11, 31, 0, 0, 0, 0));
+        });
+    });
+
     describe("hasBirthdayToday", () => {
         beforeEach(() => {
             jest.useFakeTimers();

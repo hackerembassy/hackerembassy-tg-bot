@@ -22,6 +22,14 @@ import {
 import { openwebui } from "@services/neural/openwebui";
 import { hasRole } from "@services/domain/user";
 import { splitArray } from "@utils/common";
+import {
+    COMPACT_DURATION_REGEX,
+    TIME_RANGE_KEYWORDS,
+    getTimeRange,
+    isCompactDurationToken,
+    isTimeRangeKeyword,
+    tryDurationStringToMs,
+} from "@utils/date";
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
@@ -58,24 +66,41 @@ export default class ServiceController implements BotController {
         }
     }
 
-    @Route(["tldr"], OptionalParam(/(\d*)(?: (.+))?/), match => [match[1], match[2]])
+    @Route(
+        ["tldr"],
+        OptionalParam(new RegExp(`(${TIME_RANGE_KEYWORDS.join("|")}|${COMPACT_DURATION_REGEX.source}|\\d*)(?: (.+))?`)),
+        match => [match[1], match[2]]
+    )
     @UserRoles(TrustedMembers)
     @AllowedChats(PublicChats)
     @FeatureFlag("ai")
     @FeatureFlag("history")
-    static async tldrHandler(bot: HackerEmbassyBot, msg: Message, count: string, promptOverride?: string) {
+    static async tldrHandler(bot: HackerEmbassyBot, msg: Message, token: string, promptOverride?: string) {
         if (!NonTopicChats.includes(msg.chat.id)) {
             return bot.sendMessageExt(msg.chat.id, t("service.tldr.notready"), msg);
         }
 
-        const countToSummarize = Number(count);
+        let selectedMessages: MessageHistoryEntry[];
 
-        if (Number.isNaN(countToSummarize) || countToSummarize < 0 || countToSummarize > 1000) {
-            return bot.sendMessageExt(msg.chat.id, t("service.tldr.help"), msg);
+        if (token && isTimeRangeKeyword(token)) {
+            const { fromMs, toMs } = getTimeRange(token);
+            selectedMessages = bot.messageHistory.getInRange(msg.chat.id, fromMs, toMs);
+        } else if (token && isCompactDurationToken(token)) {
+            selectedMessages = bot.messageHistory.getInRange(msg.chat.id, Date.now() - (tryDurationStringToMs(token) ?? 0));
+        } else {
+            const countToSummarize = Number(token);
+
+            if (Number.isNaN(countToSummarize) || countToSummarize < 0 || countToSummarize > botConfig.history.messagesLimit) {
+                return bot.sendMessageExt(msg.chat.id, t("service.tldr.help"), msg);
+            }
+
+            const chatHistory = bot.messageHistory.getAll(msg.chat.id).toReversed();
+            selectedMessages = countToSummarize > 0 ? chatHistory.slice(-countToSummarize) : chatHistory;
         }
 
-        const chatHistory = bot.messageHistory.getAll(msg.chat.id).toReversed();
-        const selectedMessages = countToSummarize > 0 ? chatHistory.slice(-countToSummarize) : chatHistory;
+        if (selectedMessages.length === 0) {
+            return bot.sendMessageExt(msg.chat.id, t("service.tldr.empty"), msg);
+        }
 
         let prompt = promptOverride ?? t("service.tldr.prompt") + "\n\n";
         for (const message of selectedMessages) {

@@ -3,7 +3,6 @@ import config from "config";
 
 import { User } from "@data/models";
 import FundsRepository from "@data/repositories/funds";
-import UsersRepository from "@data/repositories/users";
 
 import { getFundDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/funds/export";
 import { spaceService } from "@services/domain/space";
@@ -171,7 +170,7 @@ apiRouter.get("/donations", async (req, res) => {
 });
 
 apiRouter.get("/sponsors", (req, res) => {
-    const sponsors = UsersRepository.getSponsors();
+    const sponsors = userService.getSponsors();
     res.json(
         sponsors.map(s => {
             return {
@@ -185,7 +184,7 @@ apiRouter.get("/sponsors", (req, res) => {
 });
 
 apiRouter.get("/usernames", allowSpecialEntities, (_, res) => {
-    const users = UsersRepository.getUsers();
+    const users = userService.getUsers();
 
     res.json(users.filter(u => u.username).map(u => u.username));
 });
@@ -249,15 +248,12 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
 
         if (!fund) return void res.status(400).send({ error: "Fund not found" });
 
-        const user = body.userId
-            ? UsersRepository.getUserByUserId(body.userId)
-            : body.username
-              ? UsersRepository.getUserByName(body.username)
-              : undefined;
+        const identifier = body.userId ?? body.username;
+        const user = identifier ? userService.getUser(identifier) : undefined;
 
         if (!user) return void res.status(400).send({ error: "User not found" });
 
-        const accountant = body.accountant ? UsersRepository.getUserByName(body.accountant) : SERVICE_USERS.terminal;
+        const accountant = body.accountant ? userService.getUser(body.accountant) : SERVICE_USERS.terminal;
 
         if (!accountant) return void res.status(400).send({ error: "Accountant user not found" });
 

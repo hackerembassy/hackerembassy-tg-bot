@@ -93,26 +93,92 @@ class UserService {
             : usersRepository.getUserByUserId(identifier);
     }
 
+    // For an identifier of uncertain shape (e.g. free-text admin input) - tries it as a user id
+    // first, then falls back to a username lookup. Telegram usernames can never be purely
+    // numeric, so a numeric-looking string only ever matches the id branch anyway; the order
+    // just avoids a wasted query rather than changing which user (if any) is found.
+    public resolveUser(identifier: number | string) {
+        return this.getUser(Number(identifier)) ?? this.getUser(identifier);
+    }
+
+    public getUsers() {
+        return usersRepository.getUsers();
+    }
+
+    public getUsersByRole(role: string) {
+        return usersRepository.getUsersByRole(role);
+    }
+
     public getUsersWithBirthdays() {
         return usersRepository.getUsersWithBirthdays();
     }
 
+    public getSponsors() {
+        return usersRepository.getSponsors();
+    }
+
+    public addUser(userid: number, username: Optional<string>, roles?: string[]) {
+        return usersRepository.addUser(userid, username, roles);
+    }
+
+    public setRoles(userid: number, roles: string[]) {
+        const success = usersRepository.updateRoles(userid, roles);
+
+        if (success) this.refreshCachedUserFields(userid, { roles: roles.join("|") });
+
+        return success;
+    }
+
+    public setLanguage(user: User, language: string) {
+        const success = usersRepository.updateUser(user.userid, { language });
+
+        if (success) this.refreshCachedUserFields(user.userid, { language });
+
+        return success;
+    }
+
+    // Removing a user leaves their last known presence state (if any) behind in the cache -
+    // without this it would keep surfacing as a phantom entry in getPeopleInside/getUserState
+    // until the cache naturally rebuilds (see getRecentUserStates).
+    public removeUser(identifier: number | string) {
+        const userid = typeof identifier === "number" ? identifier : this.getUser(identifier)?.userid;
+        const success =
+            typeof identifier === "string"
+                ? usersRepository.removeUserByUsername(sanitizeUsername(identifier))
+                : usersRepository.removeUserById(identifier);
+
+        if (success && userid !== undefined) this.lastUserStateCache.delete(userid);
+
+        return success;
+    }
+
     public setBithday(user: User, date: string | null) {
         const fulldate = date?.length === 5 ? "0000-" + date : date;
+        const success = usersRepository.updateUser(user.userid, { birthday: fulldate });
 
-        return usersRepository.updateUser(user.userid, { birthday: fulldate });
+        if (success) this.refreshCachedUserFields(user.userid, { birthday: fulldate });
+
+        return success;
     }
 
     public setAutoinside(user: User, mode: AutoInsideMode) {
-        return usersRepository.updateUser(user.userid, { autoinside: mode });
+        const success = usersRepository.updateUser(user.userid, { autoinside: mode });
+
+        if (success) this.refreshCachedUserFields(user.userid, { autoinside: mode });
+
+        return success;
     }
 
     public setEmoji(user: User, emoji: string | null) {
-        return usersRepository.updateUser(user.userid, { emoji });
+        const success = usersRepository.updateUser(user.userid, { emoji });
+
+        if (success) this.refreshCachedUserFields(user.userid, { emoji });
+
+        return success;
     }
 
     public saveUser(user: User) {
-        this.refreshCachedUser(user);
+        this.refreshCachedUserFields(user.userid, user);
         return usersRepository.updateUser(user.userid, user);
     }
 
@@ -299,12 +365,12 @@ class UserService {
         return [...this.lastUserStateCache.values()];
     }
 
-    private refreshCachedUser(user: User): void {
-        const userState = this.lastUserStateCache.get(user.userid);
+    private refreshCachedUserFields(userid: number, fields: Partial<User>): void {
+        const userState = this.lastUserStateCache.get(userid);
 
         if (!userState) return;
 
-        this.lastUserStateCache.set(user.userid, { ...userState, user });
+        this.lastUserStateCache.set(userid, { ...userState, user: { ...userState.user, ...fields } });
     }
 
     private pushPeopleState(state: Omit<UserStateEx, "id">): void {

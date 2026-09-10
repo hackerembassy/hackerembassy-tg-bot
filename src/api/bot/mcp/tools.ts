@@ -5,7 +5,6 @@ import type { CallToolResult, McpServer } from "@modelcontextprotocol/server";
 
 import FundsRepository from "@data/repositories/funds";
 import NeedsRepository from "@data/repositories/needs";
-import UsersRepository from "@data/repositories/users";
 
 import { BotApiConfig, BotConfig, CalendarConfig, PrintersConfig } from "@config";
 import { spaceService } from "@services/domain/space";
@@ -172,14 +171,14 @@ export function registerMcpTools(server: McpServer): void {
                 "space-related questions. Residents can also open/close the space and let visitors in",
         },
         () => {
-            const residents = UsersRepository.getUsersByRole("member");
+            const residents = userService.getUsersByRole("member");
 
             return jsonResult(residents.map(r => effectiveName(r)));
         }
     );
 
     server.registerTool("get_sponsors", { description: "List the Hacker Embassy's sponsors and their sponsorship level" }, () => {
-        const sponsors = UsersRepository.getSponsors();
+        const sponsors = userService.getSponsors();
 
         return jsonResult(
             sponsors.map(s => ({

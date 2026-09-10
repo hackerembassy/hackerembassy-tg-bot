@@ -67,8 +67,7 @@ export default class MemeController implements BotController {
     @Route(["slapp", "slapa", "slapavatar", "slapava", "slapface"], OptionalParam(/(\S+)/), match => [match[1]])
     static async slapAvatarHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         const sender = bot.context(msg).user;
-        const targetUser =
-            getMentions(msg)[0] ?? (username ? userService.getUser(username.replace("@", "")) : msg.reply_to_message?.from);
+        const targetUser = getMentions(msg)[0] ?? (username ? userService.getUser(username) : msg.reply_to_message?.from);
 
         if (!targetUser) return bot.sendMessageExt(msg.chat.id, t("meme.slap.help"), msg);
 

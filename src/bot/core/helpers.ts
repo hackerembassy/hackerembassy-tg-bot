@@ -2,6 +2,8 @@ import { Message, PhotoSize } from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 
+import { sanitizeUsername } from "@services/domain/user";
+
 import { ITelegramUser } from "./types";
 
 export class OptionalRegExp extends RegExp {}
@@ -13,7 +15,7 @@ export function OptionalParam(paramregex: RegExp) {
 export function formatUsername(username: Optional<string>, mention = false, isApi = false): string {
     if (!username) return "[No username provided]";
 
-    username = username.replace("@", "");
+    username = sanitizeUsername(username);
 
     if (isApi) return `@${username}`;
 

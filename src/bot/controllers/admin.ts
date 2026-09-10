@@ -5,9 +5,8 @@ import { BotConfig } from "@config";
 
 import { User } from "@data/models";
 import AliasesRepository from "@data/repositories/aliases";
-import UsersRepository from "@data/repositories/users";
 import logger, { getLatestLogFilePath } from "@services/common/logger";
-import { hasRole } from "@services/domain/user";
+import { hasRole, userService } from "@services/domain/user";
 import { Admins, AllowedChats, CaptureInteger, ClosedChats, Members, Route, UserRoles } from "@hackembot/core/decorators";
 import { ButtonFlags, InlineButton } from "@hackembot/core/inlineButtons";
 
@@ -126,7 +125,7 @@ export default class AdminController implements BotController {
     @Route(["getrestrictedusers", "restricted"], null, null)
     @UserRoles(Admins)
     static async getRestrictedUsersHandler(bot: HackerEmbassyBot, msg: Message) {
-        const users = UsersRepository.getUsers().filter(u => u.roles?.includes("restricted"));
+        const users = userService.getUsersByRole("restricted");
         let userList = "";
 
         for (const user of users) {
@@ -141,7 +140,7 @@ export default class AdminController implements BotController {
     static getUserHandler(bot: HackerEmbassyBot, msg: Message, query: string) {
         if (!query) return bot.sendMessageExt(msg.chat.id, "Please provide a username or user id", msg);
 
-        const user = UsersRepository.getUserByName(query.replace("@", "")) ?? UsersRepository.getUserByUserId(query);
+        const user = userService.resolveUser(query);
 
         if (!user) return bot.sendMessageExt(msg.chat.id, "User not found", msg);
 
@@ -155,7 +154,7 @@ export default class AdminController implements BotController {
 
         try {
             const updatedUser = JSON.parse(json) as User;
-            UsersRepository.updateUser(updatedUser.userid, updatedUser);
+            userService.saveUser(updatedUser);
 
             return bot.sendMessageExt(msg.chat.id, `User ${updatedUser.userid} was updated`, msg);
         } catch (error) {
@@ -170,11 +169,11 @@ export default class AdminController implements BotController {
     @UserRoles(Admins)
     static updateRolesHandler(bot: HackerEmbassyBot, msg: Message, username: string, rolesString: string) {
         const roles = rolesString.split("|");
-        const user = UsersRepository.getUserByName(username.replace("@", ""));
+        const user = userService.getUser(username);
 
         if (!user) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
-        const success = UsersRepository.updateRoles(user.userid, roles);
+        const success = userService.setRoles(user.userid, roles);
         const text = success
             ? t("admin.updateRoles.success", { username: helpers.formatUsername(username), roles })
             : t("admin.updateRoles.fail");
@@ -188,7 +187,7 @@ export default class AdminController implements BotController {
     static async updateRolesByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number, rolesString: string) {
         const roles = rolesString.split("|");
 
-        const success = UsersRepository.updateRoles(userid, roles);
+        const success = userService.setRoles(userid, roles);
         const text = success ? t("admin.updateRoles.success", { username: `[${userid}]`, roles }) : t("admin.updateRoles.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
@@ -197,9 +196,7 @@ export default class AdminController implements BotController {
     @Route(["removeuser"], /(\S+)/, match => [match[1]])
     @UserRoles(Admins)
     static async removeUserHandler(bot: HackerEmbassyBot, msg: Message, username: string) {
-        username = username.replace("@", "");
-
-        const success = UsersRepository.removeUserByUsername(username);
+        const success = userService.removeUser(username);
         const text = success
             ? t("admin.removeUser.success", { username: helpers.formatUsername(username) })
             : t("admin.removeUser.fail");
@@ -210,7 +207,7 @@ export default class AdminController implements BotController {
     @Route(["removeuserbyid"], /(\d+)/, match => [match[1]])
     @UserRoles(Admins)
     static async removeUserByIdHandler(bot: HackerEmbassyBot, msg: Message, userid: number) {
-        const success = UsersRepository.removeUserById(userid);
+        const success = userService.removeUser(userid);
         const text = success ? t("admin.removeUser.success", { username: `[${userid}]` }) : t("admin.removeUser.fail");
 
         await bot.sendMessageExt(msg.chat.id, text, msg);
@@ -288,17 +285,13 @@ export default class AdminController implements BotController {
 
             if (!effectiveTarget) return;
 
-            const user =
-                typeof effectiveTarget === "number"
-                    ? UsersRepository.getUserByUserId(effectiveTarget)
-                    : (UsersRepository.getUserByUserId(Number(effectiveTarget)) ??
-                      UsersRepository.getUserByName(effectiveTarget.replace("@", "")));
+            const user = userService.resolveUser(effectiveTarget);
 
             const canBeBanned = user && !hasRole(user, "admin", "accountant", "member");
 
             if (!canBeBanned) return bot.sendMessageExt(msg.chat.id, "🙅 User cannot be banned", msg);
 
-            const wasBanned = UsersRepository.updateRoles(user.userid, ["banned"]);
+            const wasBanned = userService.setRoles(user.userid, ["banned"]);
 
             const banMessage = await bot.sendMessageExt(
                 msg.chat.id,

@@ -4,7 +4,6 @@ import config from "config";
 import * as TextGenerators from "@hackembot/text";
 import { stripCustomMarkup } from "@hackembot/core/converters";
 
-import UsersRepository from "@data/repositories/users";
 import FundsRepository from "@data/repositories/funds";
 import embassyService from "@services/embassy/embassy";
 
@@ -108,13 +107,13 @@ router.get("/funds", async (_, res) => {
 });
 
 router.get("/donate", (_, res) => {
-    const accountants = UsersRepository.getUsersByRole("accountant");
+    const accountants = userService.getUsersByRole("accountant");
     const message = TextGenerators.getDonateText(accountants, true);
     res.send(message);
 });
 
 router.get("/sponsors", (_, res) => {
-    const sponsors = UsersRepository.getSponsors();
+    const sponsors = userService.getSponsors();
     const message = TextGenerators.getSponsorsList(sponsors, true);
     res.send(message);
 });

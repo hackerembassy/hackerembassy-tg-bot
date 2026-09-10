@@ -3,7 +3,6 @@ import config from "config";
 import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import UsersRepository from "@data/repositories/users";
 import ApiKeysRepository from "@data/repositories/apikeys";
 import logger from "@services/common/logger";
 import {
@@ -19,7 +18,7 @@ import {
 } from "@hackembot/core/decorators";
 
 import { openwebui } from "@services/neural/openwebui";
-import { hasRole } from "@services/domain/user";
+import { hasRole, userService } from "@services/domain/user";
 import { generateRandomKey, sha256, splitArray } from "@utils/common";
 import {
     COMPACT_DURATION_REGEX,
@@ -300,7 +299,7 @@ export default class ServiceController implements BotController {
                 return;
             }
 
-            const currentUser = UsersRepository.getUserByUserId(tgUser.id);
+            const currentUser = userService.getUser(tgUser.id);
 
             if (!botConfig.features.antispam || !botConfig.moderatedChats.includes(chat.id)) {
                 if (botConfig.features.welcome)
@@ -310,7 +309,7 @@ export default class ServiceController implements BotController {
             }
 
             if (!currentUser) {
-                UsersRepository.addUser(tgUser.id, tgUser.username, ["restricted"]);
+                userService.addUser(tgUser.id, tgUser.username, ["restricted"]);
 
                 void bot.lockChatMember(chat.id, tgUser.id);
 
@@ -397,7 +396,7 @@ export default class ServiceController implements BotController {
 
         const user = bot.context(msg).user;
 
-        if (UsersRepository.updateUser(user.userid, { language: lang })) {
+        if (userService.setLanguage(user, lang)) {
             bot.context(msg).language = lang;
             return await bot.sendMessageExt(msg.chat.id, t("service.setlanguage.success", { language: lang }), msg);
         }

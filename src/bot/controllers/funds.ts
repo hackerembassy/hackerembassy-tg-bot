@@ -4,7 +4,6 @@ import config from "config";
 
 import { BotConfig } from "@config";
 import { User } from "@data/models";
-import UsersRepository from "@data/repositories/users";
 import FundsRepository, { COSTS_PREFIX } from "@data/repositories/funds";
 import {
     convertCurrency,
@@ -226,7 +225,7 @@ export default class FundsController implements BotController {
     @Route(["tohimura", "givehimura", "th"], CaptureListOfIds, match => [match[1], "himura_kazuto"])
     @UserRoles(Accountants)
     static transferDonationHandler(bot: HackerEmbassyBot, msg: Message, donations: string, accountantName: string) {
-        const accountant = UsersRepository.getUserByName(accountantName.replace("@", ""));
+        const accountant = userService.getUser(accountantName);
 
         if (!accountant) return bot.sendMessageExt(msg.chat.id, t("funds.transferdonation.fail"), msg);
 
@@ -263,7 +262,7 @@ export default class FundsController implements BotController {
 
     @Route(["getsponsors", "sponsors"])
     static async sponsorsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const sponsors = UsersRepository.getSponsors();
+        const sponsors = userService.getSponsors();
         const sponsorsList = TextGenerators.getSponsorsList(sponsors);
 
         const inline_keyboard = [
@@ -366,9 +365,8 @@ export default class FundsController implements BotController {
 
             if (Number.isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
 
-            const user =
-                UsersRepository.getUserByName(sponsorName.replace("@", "")) ??
-                UsersRepository.getUserByUserId(helpers.getMentions(msg)[0]?.id);
+            const mentionId = helpers.getMentions(msg)[0]?.id;
+            const user = userService.getUser(sponsorName) ?? (mentionId ? userService.getUser(mentionId) : undefined);
             const accountant = bot.context(msg).user;
 
             if (!user) throw new Error("User not found");
@@ -457,7 +455,7 @@ export default class FundsController implements BotController {
 
         const startMonthDate = getMonthBoundaries(getToday()).startMonthDate;
         const donations = FundsRepository.getAllDonations(true, true, startMonthDate);
-        const residents = UsersRepository.getUsersByRole("member");
+        const residents = userService.getUsersByRole("member");
 
         if (residents.length > 0) {
             for (const resident of residents) {
@@ -491,7 +489,7 @@ export default class FundsController implements BotController {
         let resdientsDonatedList = `${t("funds.residentsdonated")}\n`;
 
         const donations = FundsRepository.getDonationsForName(fundName);
-        const residents = UsersRepository.getUsersByRole("member");
+        const residents = userService.getUsersByRole("member");
 
         if (residents.length > 0 && donations.length > 0) {
             for (const resident of residents) {
@@ -514,7 +512,7 @@ export default class FundsController implements BotController {
     @UserRoles(Members)
     static async resdientsHistoryHandler(bot: HackerEmbassyBot, msg: Message, year: number = getToday().getFullYear()) {
         const donations = FundsRepository.getCostsFundDonations(year);
-        const residentIds = UsersRepository.getUsersByRole("member").map(u => u.userid);
+        const residentIds = userService.getUsersByRole("member").map(u => u.userid);
 
         if (residentIds.length > 0 && donations.length > 0) {
             const residentsDonations = donations.filter(d => residentIds.includes(d.user_id));
@@ -577,7 +575,7 @@ export default class FundsController implements BotController {
     static async debtHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
         void bot.sendChatAction(msg.chat.id, "typing", msg);
 
-        const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : bot.context(msg).user;
+        const target = username ? userService.getUser(username) : bot.context(msg).user;
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 

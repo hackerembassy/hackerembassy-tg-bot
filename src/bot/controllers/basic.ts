@@ -6,9 +6,8 @@ import { CommandsMap, GlobalModifiers } from "@constants/commands";
 import { UserRole } from "@data/types";
 
 import { BotConfig } from "@config";
-import UsersRepository from "@data/repositories/users";
 import { getCoinDefinition, getCoinQR } from "@services/funds/currency";
-import { splitRoles } from "@services/domain/user";
+import { splitRoles, userService } from "@services/domain/user";
 import * as GitHub from "@services/external/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/external/googleCalendar";
 import logger from "@services/common/logger";
@@ -168,7 +167,7 @@ export default class BasicController implements BotController {
             ],
         ];
 
-        const accountants = UsersRepository.getUsersByRole("accountant");
+        const accountants = userService.getUsersByRole("accountant");
         const message = TextGenerators.getDonateText(accountants);
         await bot.sendOrEditMessage(
             msg.chat.id,
@@ -213,20 +212,14 @@ export default class BasicController implements BotController {
 
     @Route(["donatecash", "cash"])
     static async donateCashHandler(bot: HackerEmbassyBot, msg: Message) {
-        const accountantsList = TextGenerators.getAccountsList(
-            UsersRepository.getUsersByRole("accountant"),
-            bot.context(msg).mode
-        );
+        const accountantsList = TextGenerators.getAccountsList(userService.getUsersByRole("accountant"), bot.context(msg).mode);
 
         await bot.sendOrEditMessage(msg.chat.id, t("basic.donateCash", { accountantsList }), msg, {}, msg.message_id);
     }
 
     @Route(["donatecard", "card"])
     static async donateCardHandler(bot: HackerEmbassyBot, msg: Message) {
-        const accountantsList = TextGenerators.getAccountsList(
-            UsersRepository.getUsersByRole("accountant"),
-            bot.context(msg).mode
-        );
+        const accountantsList = TextGenerators.getAccountsList(userService.getUsersByRole("accountant"), bot.context(msg).mode);
 
         await bot.sendOrEditMessage(
             msg.chat.id,
@@ -259,7 +252,7 @@ export default class BasicController implements BotController {
         const inline_keyboard = [
             [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
         ];
-        const users = UsersRepository.getUsersByRole("member");
+        const users = userService.getUsersByRole("member");
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
 
         await bot.sendOrEditMessage(msg.chat.id, message, msg, { reply_markup: { inline_keyboard } }, msg.message_id);

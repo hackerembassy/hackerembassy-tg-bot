@@ -3,7 +3,6 @@ import { Message } from "node-telegram-bot-api";
 import fetch from "node-fetch";
 
 import { BotConfig, EmbassyApiConfig, NeuralConfig } from "@config";
-import usersRepository from "@data/repositories/users";
 import fundsRepository from "@data/repositories/funds";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import embassyService from "@services/embassy/embassy";
@@ -396,7 +395,7 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     @AllowedChats(PublicChats)
     static async heyHandler(bot: HackerEmbassyBot, msg: Message) {
-        const residents = usersRepository.getUsersByRole("member");
+        const residents = userService.getUsersByRole("member");
         const residentsInside = userService
             .getPeopleInside()
             .filter(insider => residents.find(r => r.username === insider.user.username));

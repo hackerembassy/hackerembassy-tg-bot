@@ -7,7 +7,6 @@ import { BotConfig } from "@config";
 import { State, StateEx, User, UserStateEx } from "@data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
-import UsersRepository from "@data/repositories/users";
 import fundsRepository, { COSTS_PREFIX } from "@data/repositories/funds";
 
 import { DefaultCurrency, sumDonations } from "@services/funds/currency";
@@ -488,11 +487,8 @@ export default class StatusController implements BotController {
 
         const mention = context.isButtonResponse ? undefined : helpers.getMentions(msg)[0];
         const force = username !== undefined || mention !== undefined;
-        const target = mention
-            ? UsersRepository.getUserByUserId(mention.id)
-            : username
-              ? UsersRepository.getUserByName(username.replace("@", ""))
-              : sender;
+        const identifier = mention?.id ?? username;
+        const target = identifier ? userService.getUser(identifier) : sender;
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
@@ -556,11 +552,8 @@ export default class StatusController implements BotController {
 
         const mention = context.isButtonResponse ? undefined : helpers.getMentions(msg)[0];
         const force = username !== undefined || mention !== undefined;
-        const target = mention
-            ? UsersRepository.getUserByUserId(mention.id)
-            : username
-              ? UsersRepository.getUserByName(username.replace("@", ""))
-              : sender;
+        const identifier = mention?.id ?? username;
+        const target = identifier ? userService.getUser(identifier) : sender;
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
@@ -817,7 +810,7 @@ export default class StatusController implements BotController {
         void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
-        const target = username ? UsersRepository.getUserByName(username.replace("@", "")) : sender;
+        const target = username ? userService.getUser(username) : sender;
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("status.profile.notfound"), msg);
 
@@ -853,7 +846,7 @@ export default class StatusController implements BotController {
         void bot.sendChatAction(msg.chat.id, "typing", msg);
 
         const sender = bot.context(msg).user;
-        const target = username ? (UsersRepository.getUserByName(username.replace("@", "")) ?? sender) : sender;
+        const target = username ? (userService.getUser(username) ?? sender) : sender;
         const { days, hours, minutes } = userService.getUserTotalTime(target);
 
         await bot.sendMessageExt(

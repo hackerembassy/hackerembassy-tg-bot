@@ -5,9 +5,8 @@ import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 
 import { BotConfig } from "@config";
 
-import UsersRepository from "@data/repositories/users";
-
 import logger from "@services/common/logger";
+import { userService } from "@services/domain/user";
 
 import HackerEmbassyBot from "./core/classes/HackerEmbassyBot";
 import AdminController from "./controllers/admin";
@@ -103,11 +102,9 @@ export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
 
         if (process.env["NODE_ENV"] !== "production") return;
 
-        const membersWithUserid = UsersRepository.getUsersByRole("member").filter(user => user.userid);
+        const members = userService.getUsersByRole("member");
 
-        if (membersWithUserid.length === 0) return;
-
-        for (const member of membersWithUserid) {
+        for (const member of members) {
             await bot.setMyCommands(residentCommands, { scope: { type: "chat", chat_id: member.userid } });
         }
     } catch (error) {

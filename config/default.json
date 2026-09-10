@@ -53,6 +53,9 @@
                 "message": "📢 Котики, отправьте фото водамера на +37433144696"
             }
         },
+        "dailydigest": {
+            "chats": ["main", "horny", "key"]
+        },
         "features": {
             "reminders": true,
             "autoinside": true,

@@ -117,14 +117,14 @@ export default class ServiceController implements BotController {
     @UserRoles(TrustedMembers)
     @AllowedChats(PublicChats)
     @FeatureFlag("dailydigest")
-    static async sendDailyDigestHandler(bot: HackerEmbassyBot, msg: Nullable<Message>) {
+    static async sendDailyDigestHandler(bot: HackerEmbassyBot, msg: Nullable<Message>, targetChatId?: number) {
         // Pass null, not msg, to sendMessageExt below - a "-forward" modifier on msg would redirect the reply elsewhere.
         if (msg && !NonTopicChats.includes(msg.chat.id)) {
             return bot.sendMessageExt(msg.chat.id, t("service.tldr.notready"), null);
         }
 
-        // Interactive calls summarize the chat they were run in; the cron job (msg === null) always targets main.
-        const chatId = msg?.chat.id ?? botConfig.chats.main;
+        // Interactive calls summarize the chat they were run in; cron jobs (msg === null) pass an explicit targetChatId.
+        const chatId = msg?.chat.id ?? targetChatId ?? botConfig.chats.main;
         const notifyEmpty = () => (msg ? bot.sendMessageExt(chatId, t("service.tldr.empty"), null) : undefined);
 
         try {

@@ -32,6 +32,7 @@ export interface BotConfig {
     history: BotHistoryConfig;
     live: LiveConfig;
     reminders: RemindersConfig;
+    dailydigest: DailyDigestConfig;
     funds: FundsConfig;
     debug: boolean;
     moderatedChats: number[];
@@ -83,6 +84,10 @@ export interface RemindersConfig {
     utility: UtilityReminder;
     internet: UtilityReminder;
     utility_water: UtilityReminder;
+}
+
+export interface DailyDigestConfig {
+    chats: (keyof ChatsConfig)[];
 }
 
 export interface OutageConfig {

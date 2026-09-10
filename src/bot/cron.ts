@@ -69,11 +69,22 @@ function setupCronJobs(bot: HackerEmbassyBot): void {
         // Better to run this a little after midnight since the tg client devs kinda struggle with telling yesterday and today apart around midnight
         runningJobs.push(new CronJob("1 0 * * *", () => BirthdayController.sendBirthdayWishes(bot, null)));
 
+    // 𓆏
     if (botConfig.features.wednesday)
         runningJobs.push(new CronJob("1 0 * * 3", () => MemeController.remindItIsWednesdayHandler(bot)));
 
-    if (botConfig.features.dailydigest)
-        runningJobs.push(new CronJob("1 0 * * *", () => void ServiceController.sendDailyDigestHandler(bot, null)));
+    // Daily slop
+    if (botConfig.features.dailydigest) {
+        runningJobs.push(
+            ...botConfig.dailydigest.chats.map(
+                (chatName, index) =>
+                    new CronJob(
+                        `${1 + index} 0 * * *`,
+                        () => void ServiceController.sendDailyDigestHandler(bot, null, botConfig.chats[chatName])
+                    )
+            )
+        );
+    }
 
     // START THESE JOBS!!!
     for (const job of runningJobs) job.start();

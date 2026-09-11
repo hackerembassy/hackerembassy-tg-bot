@@ -13,6 +13,8 @@ import {
     ChatId,
     ChatMemberUpdated,
     ChatPermissions,
+    EditMessageTextParams,
+    EditMessageTextResult,
     InlineKeyboardMarkup,
     InputMediaPhoto,
     Message,
@@ -222,7 +224,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         const preparedOptionsWithThreadId = preparedOptions as WithMessageThreadId<EditMessageTextOptions>;
         preparedOptionsWithThreadId.message_thread_id = msg.message_thread_id;
 
-        return super.editMessageText(preparedText, preparedOptionsWithThreadId);
+        return this.editMessageText(preparedText, preparedOptionsWithThreadId);
     }
 
     sendPhotoExt(
@@ -875,56 +877,54 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.commandRouter.addRoute(aliases, handler, paramRegex, paramMapper, userRoles, allowedChats);
     }
 
-    async sendOrEditMessage(
+    sendOrEditMessage(
         chatId: number,
         text: string,
         msg: Message,
         options: EditMessageTextOptions | SendMessageOptions,
         messageId: number
     ): Promise<Message | boolean | null> {
-        if (this.context(msg).isEditing) {
-            try {
-                const editOptions: EditMessageTextOptions = { ...options } as EditMessageTextOptions;
-                return await this.editMessageTextExt(text, msg, {
+        return this.sendOrEdit(
+            msg,
+            () =>
+                this.editMessageTextExt(text, msg, {
                     chat_id: chatId,
                     message_id: messageId,
-                    ...editOptions,
-                });
-            } catch {
-                // Message was not modified
-            } finally {
-                this.context(msg).isEditing = false;
-            }
-        } else {
-            return this.sendMessageExt(chatId, text, msg, options);
-        }
-
-        return null;
+                    ...(options as EditMessageTextOptions),
+                }),
+            () => this.sendMessageExt(chatId, text, msg, options)
+        );
     }
 
-    async sendOrEditPhoto(
+    sendOrEditPhoto(
         chatId: number,
         photo: Buffer | ArrayBuffer,
         msg: Message,
         options: SendPhotoOptions
     ): Promise<Message | boolean | null> {
-        if (this.context(msg).isEditing) {
-            try {
-                return await this.editPhoto(photo, msg, {
+        return this.sendOrEdit(
+            msg,
+            () =>
+                this.editPhoto(photo, msg, {
                     chat_id: chatId,
                     message_id: msg.message_id,
                     ...options,
-                } as EditMessageMediaOptionsExt);
-            } catch {
-                // Message was not modified
-            } finally {
-                this.context(msg).isEditing = false;
-            }
-        } else {
-            return this.sendPhotoExt(chatId, photo as Buffer, msg, options);
-        }
+                } as EditMessageMediaOptionsExt),
+            () => this.sendPhotoExt(chatId, photo as Buffer, msg, options)
+        );
+    }
 
-        return null;
+    private async sendOrEdit<T>(msg: Message, edit: () => Promise<T>, send: () => Promise<T>): Promise<T | null> {
+        if (!this.context(msg).isEditing) return send();
+
+        try {
+            return await edit();
+        } catch {
+            // Message was not modified
+            return null;
+        } finally {
+            this.context(msg).isEditing = false;
+        }
     }
 
     fetchFileAsBase64(fileId: string) {
@@ -1060,6 +1060,17 @@ export default class HackerEmbassyBot extends TelegramBot {
      */
     sendMessage(chatId: ChatId, text: string, options?: Omit<SendMessageParams, "chat_id" | "text">): Promise<Message> {
         return super.sendMessage(chatId, text, options);
+    }
+
+    /**
+     * @deprecated Do not use directly
+     * @see editMessageTextExt
+     */
+    editMessageText(
+        text: string | EditMessageTextParams,
+        form?: Omit<EditMessageTextParams, "text">
+    ): Promise<EditMessageTextResult> {
+        return typeof text === "string" ? super.editMessageText(text, form ?? {}) : super.editMessageText(text);
     }
 
     /**

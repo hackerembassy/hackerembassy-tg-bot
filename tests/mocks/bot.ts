@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Stream } from "node:stream";
 
-import { ChatId, Message, Update } from "node-telegram-bot-api";
+import { CallbackQuery, ChatId, EditMessageTextParams, EditMessageTextResult, Message, Update } from "node-telegram-bot-api";
 
 import { addControllers } from "@hackembot/setup";
 import { TEST_USERS } from "@data/seed";
 import HackerEmbassyBot from "@hackembot/core/classes/HackerEmbassyBot";
-import { FileInput, SendAnimationOptions, SendMessageOptions, SendPhotoOptions } from "@hackembot/core/types";
+import { ButtonFlags } from "@hackembot/core/inlineButtons";
+import { CallbackData, FileInput, SendAnimationOptions, SendMessageOptions, SendPhotoOptions } from "@hackembot/core/types";
 
 export class HackerEmbassyBotMock extends HackerEmbassyBot {
     constructor(token: string) {
@@ -46,6 +47,27 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
         } as Message);
     }
 
+    // HackerEmbassyBot only ever calls the (text, form) overload (via editMessageTextExt); the
+    // (form) single-object overload is accepted here purely so the override stays assignable to
+    // the base class's full overload set. Real Telegram behavior for a normal chat edit (as
+    // opposed to an inline-query message, which this bot never edits) is the edited Message, not
+    // `true` - callers like status.ts read resultMessage.message_id/.chat back out afterwards.
+    override editMessageText(
+        textOrForm: string | EditMessageTextParams,
+        form?: Omit<EditMessageTextParams, "text">
+    ): Promise<EditMessageTextResult> {
+        const text = typeof textOrForm === "string" ? textOrForm : (textOrForm.text ?? "");
+        const { chat_id, message_id } = typeof textOrForm === "string" ? (form ?? {}) : textOrForm;
+        this.results.push(text);
+
+        return Promise.resolve({
+            message_id: message_id ?? 1,
+            date: 0,
+            chat: { id: Number(chat_id ?? 0), type: "private" },
+            text,
+        } as Message);
+    }
+
     override async routeMessage(message: Message) {
         const routingPromise = super.routeMessage(message);
         this.pendingRoutings.add(routingPromise);
@@ -57,10 +79,21 @@ export class HackerEmbassyBotMock extends HackerEmbassyBot {
         }
     }
 
+    override async routeCallback(callbackQuery: CallbackQuery) {
+        const routingPromise = super.routeCallback(callbackQuery);
+        this.pendingRoutings.add(routingPromise);
+
+        try {
+            return await routingPromise;
+        } finally {
+            this.pendingRoutings.delete(routingPromise);
+        }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async processUpdate(update: Update) {
-        // routeMessage is invoked fire-and-forget from an event listener, so capture
-        // the promise(s) it adds to pendingRoutings during this call and await those.
+        // routeMessage/routeCallback are invoked fire-and-forget from event listeners, so capture
+        // the promise(s) they add to pendingRoutings during this call and await those.
         const routingsBefore = new Set(this.pendingRoutings);
         super.processUpdate(update);
         const newRoutings = [...this.pendingRoutings].filter(promise => !routingsBefore.has(promise));
@@ -118,6 +151,45 @@ export function createMockMessage(
                     type: "bot_command",
                 },
             ],
+        },
+    };
+}
+
+// Simulates pressing an inline button built with InlineButton(text, cmd, flags, { params }) -
+// routeCallback requires callback_query.message.from to already be set (it's used as the
+// throttle key before callbackHandler overwrites msg.from with the presser's identity).
+export function createMockCallbackQuery(
+    cmd: string,
+    fromUser = TEST_USERS.guest,
+    options: { flags?: ButtonFlags; params?: unknown; chatId?: number; messageId?: number } = {}
+): Update {
+    const chatId = options.chatId ?? fromUser.userid;
+    const messageId = options.messageId ?? 1;
+    const data: CallbackData = { cmd, fs: options.flags, ...(options.params === undefined ? {} : { params: options.params }) };
+
+    return {
+        update_id: 0,
+        callback_query: {
+            id: "1",
+            chat_instance: "1",
+            from: {
+                id: fromUser.userid,
+                is_bot: false,
+                first_name: "First Name",
+                username: fromUser.username,
+            },
+            message: {
+                message_id: messageId,
+                chat: { id: chatId, type: "private" },
+                date: Date.now() / 1000,
+                from: {
+                    id: fromUser.userid,
+                    is_bot: false,
+                    first_name: "First Name",
+                    username: fromUser.username,
+                },
+            },
+            data: JSON.stringify(data),
         },
     };
 }

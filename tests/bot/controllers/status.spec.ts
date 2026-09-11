@@ -1,6 +1,7 @@
 import { TEST_USERS } from "@data/seed";
+import { ButtonFlags } from "@hackembot/core/inlineButtons";
 
-import { createMockBot, createMockMessage } from "../../mocks/bot";
+import { createMockBot, createMockCallbackQuery, createMockMessage } from "../../mocks/bot";
 
 describe("Bot Status commands:", () => {
     const mockBot = createMockBot();
@@ -139,5 +140,23 @@ describe("Bot Status commands:", () => {
         await mockBot.processUpdate(createMockMessage("/notgoing second reason", TEST_USERS.accountant));
 
         expect(mockBot.popResults()).toEqual(["status\\.going", "status\\.going", "status\\.notgoing", "status\\.notgoing"]);
+    });
+
+    test("pressing the status refresh button edits the existing message instead of sending a new one", async () => {
+        await mockBot.processUpdate(createMockMessage("/status", TEST_USERS.accountant));
+        const [sentText] = mockBot.popResults();
+
+        // routeCallback throttles via a real setTimeout by default (see jestSetup's doNotFake) -
+        // fake it locally so the leftover cooldown timer doesn't outlive this test.
+        jest.useFakeTimers();
+        await mockBot.processUpdate(
+            createMockCallbackQuery("status", TEST_USERS.accountant, { flags: ButtonFlags.Editing, params: false })
+        );
+        jest.useRealTimers();
+        const editedResults = mockBot.popResults();
+
+        // sendOrEditMessage should call editMessageText (captured here), not sendMessage, and
+        // render the same content a fresh /status send would - only the delivery method differs.
+        expect(editedResults).toEqual([sentText]);
     });
 });

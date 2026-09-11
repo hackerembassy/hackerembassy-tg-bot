@@ -110,6 +110,7 @@ jest.mock("@services/common/logger", () => {
                 console.log(error.message);
             }
         }),
+        warn: jest.fn(),
         info: jest.fn(),
     };
 });

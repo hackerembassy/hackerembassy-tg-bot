@@ -34,7 +34,7 @@ export class UserRateLimiter {
             const cooldown = UserRateLimiter.#limitTimerIds.get(userId);
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            if (!cooldown) func(args);
+            if (!cooldown) func(...args);
             clearTimeout(cooldown);
 
             const timerId = setTimeout(() => {

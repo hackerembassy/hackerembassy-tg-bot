@@ -27,7 +27,7 @@ npm run start-service    # run built embassy service from dist/
 
 npm run test             # jest
 npm run test:ci          # jest with coverage
-npx jest tests/bot/status.spec.ts        # single test file
+npx jest tests/bot/controllers/status.spec.ts  # single test file
 npx jest -t "should change the /status"  # single test by name
 
 npm run lint              # eslint '**/*.{ts,js}'
@@ -122,7 +122,9 @@ Both `tsconfig.json` and `jest.config.ts` define matching path aliases — keep 
 
 ### Tests
 
-Jest + ts-jest, tests live in `tests/bot/*.spec.ts` and `tests/utils/*.spec.ts`. `tests/jestSetup.ts` mocks the
+Jest + ts-jest, tests live in `tests/bot/controllers/*.spec.ts` (one per `src/bot/controllers/*.ts`),
+`tests/bot/core/*.spec.ts` (bot-wide dispatch behavior and core classes like `MessageHistory`/`MessageStreamer`), and
+`tests/utils/*.spec.ts`. `tests/jestSetup.ts` mocks the
 Telegram API over fetch, mocks `@data/db` to an in-memory seeded DB (`src/data/seed.ts`), mocks currency/network/
 calendar/logger. `tests/mocks/bot.ts` provides `createMockBot()`/`createMockMessage()` for driving controller
 handlers through `processUpdate` and asserting on `popResults()` (translation keys, since locales aren't loaded in

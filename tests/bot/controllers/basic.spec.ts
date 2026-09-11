@@ -1,4 +1,4 @@
-import { createMockBot, createMockMessage } from "../mocks/bot";
+import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 describe("Basic commands:", () => {
     const mockBot = createMockBot();

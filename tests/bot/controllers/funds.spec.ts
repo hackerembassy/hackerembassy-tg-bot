@@ -1,7 +1,7 @@
 import fundsRepository from "@data/repositories/funds";
 import { TEST_USERS } from "@data/seed";
 
-import { createMockBot, createMockMessage } from "../mocks/bot";
+import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 describe("Bot Funds commands:", () => {
     const mockBot = createMockBot();

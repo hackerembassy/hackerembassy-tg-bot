@@ -4,7 +4,7 @@ import { BotConfig } from "@config";
 import { TEST_USERS } from "@data/seed";
 import ServiceController from "@hackembot/controllers/service";
 
-import { createMockBot, createMockMessage } from "../mocks/bot";
+import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 const botConfig = config.get<BotConfig>("bot");
 const TLDR_CHAT_ID = botConfig.chats.test; // in both PublicChats and NonTopicChats

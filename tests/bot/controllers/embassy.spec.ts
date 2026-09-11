@@ -2,7 +2,7 @@ import { TEST_USERS } from "@data/seed";
 
 import embassyService from "@services/embassy/embassy";
 
-import { createMockBot, createMockMessage } from "../mocks/bot";
+import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 describe("Bot Embassy commands:", () => {
     const mockBot = createMockBot();

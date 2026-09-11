@@ -1,6 +1,6 @@
 import { TEST_USERS } from "@data/seed";
 
-import { createMockBot, createMockMessage } from "../mocks/bot";
+import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 describe("Bot Needs commands:", () => {
     const mockBot = createMockBot();

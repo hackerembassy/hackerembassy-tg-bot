@@ -51,10 +51,8 @@ import {
     IGNORE_UPDATE_TIMEOUT,
     IMPERSONATION_MARKER,
     MAX_MESSAGE_LENGTH,
-    MAX_STREAMING_WINDOW,
     POLLING_OPTIONS,
     RESTRICTED_PERMISSIONS,
-    ZERO_WIDTH_SPACE,
 } from "../constants";
 import MessageHistory from "./MessageHistory";
 import { executeOverTime, UserRateLimiter } from "./RateLimit";
@@ -89,8 +87,8 @@ import {
 import { ButtonFlags, InlineDeepLinkButton } from "../inlineButtons";
 import ChatBridge from "./ChatBridge";
 import { NonTopicChats, PublicChats } from "../decorators";
-import { MessageStreamingError } from "../errors";
 import CommandRouter, { AddAliasResult } from "./CommandRouter";
+import MessageStreamer from "./MessageStreamer";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -125,6 +123,7 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     // Routes
     private commandRouter = new CommandRouter(botConfig.name);
+    private streamer = new MessageStreamer();
     private voiceHandler: BotHandler | null = null;
     private chatMemberHandler: ChatMemberHandler | null = null;
     private askContinuationHandler: AskContinuationHandler | null = null;
@@ -390,122 +389,20 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     // TODO: add support for sending plain text and make it less bad
-
-    async sendStreamedMessage(
+    sendStreamedMessage(
         chatId: ChatId,
         stream: DeltaStream,
         msg: Message,
         options: SendMessageOptions = {}
     ): Promise<Nullable<{ message: Message; text: string }>> {
-        void this.sendChatAction(chatId, "typing", msg);
+        const requestedParseMode = options.parse_mode === "GFM" ? "GFM" : "";
 
-        const parseMode = options.parse_mode === "GFM" ? "GFM" : "";
-
-        let messageToEdit: Nullable<Message> = null;
-        let lastMessage: Nullable<Message> = null;
-        let buffer = "";
-        let fullText = "";
-        let window = 0;
-        let currentScope: string | null = null;
-
-        try {
-            for await (const chunk of stream) {
-                if (chunk.error) {
-                    throw new MessageStreamingError(chunk.error);
-                }
-
-                if (chunk.scope && !currentScope) {
-                    currentScope = chunk.scope;
-                    const startScopeHeader = `[${chunk.scope}]\n`;
-                    buffer += startScopeHeader;
-                    fullText += startScopeHeader;
-                    window += startScopeHeader.length;
-                } else if (!chunk.scope && currentScope) {
-                    const endScopeHeader = `\n[/${ZERO_WIDTH_SPACE}${currentScope}]\n\n`;
-                    currentScope = null;
-                    buffer += endScopeHeader;
-                    fullText += endScopeHeader;
-                    window += endScopeHeader.length;
-                }
-
-                if (chunk.response) {
-                    buffer += chunk.response;
-                    fullText += chunk.response;
-                    window += chunk.response.length;
-                }
-
-                // Skip empty chunks
-                if (buffer.length === 0) continue;
-
-                if (!messageToEdit) {
-                    messageToEdit = await this.withPlainTextFallback(chunk.done ? parseMode : "", pm =>
-                        this.sendMessageExt(chatId, buffer, msg, { ...options, parse_mode: pm })
-                    );
-                    lastMessage = messageToEdit;
-                } else if (chunk.done || window >= MAX_STREAMING_WINDOW) {
-                    // A length-driven cut can (and for long code-bearing replies, will) sever an open
-                    // "**bold" or an unclosed code fence if done at an arbitrary character offset - so it's
-                    // aligned to the last newline within budget instead, via the same chunkSubstr used for
-                    // long non-streamed messages. GFMToTelegramMarkdown confines every entity except fenced
-                    // code blocks to a single line, so that's enough to safely format the segment being
-                    // closed out, not just the true final one (chunk.done). Splitting applies on chunk.done
-                    // too - a final flush can itself land over the limit, and unlike a mid-stream rollover
-                    // there's no next iteration to send the rest, so every leftover segment is flushed here.
-                    const overLength = buffer.length > MAX_MESSAGE_LENGTH;
-                    const [segment, ...rest] = overLength ? chunkSubstr(buffer, MAX_MESSAGE_LENGTH) : [buffer];
-                    const editTarget = messageToEdit;
-
-                    // Close an open scope here and reopen it below, so a cut mid-scope never leaves
-                    // one message with no closing tag and the next with no opening tag.
-                    const closedSegment =
-                        overLength && currentScope ? `${segment}\n[/${ZERO_WIDTH_SPACE}${currentScope}]\n\n` : segment;
-
-                    await this.withPlainTextFallback(chunk.done || overLength ? parseMode : "", pm =>
-                        this.editMessageTextExt(closedSegment, editTarget, {
-                            chat_id: chatId,
-                            message_id: editTarget.message_id,
-                            parse_mode: pm,
-                        })
-                    );
-
-                    if (chunk.done) {
-                        for (const trailingSegment of rest) {
-                            lastMessage = await this.withPlainTextFallback(parseMode, pm =>
-                                this.sendMessageExt(chatId, trailingSegment, msg, { ...options, parse_mode: pm })
-                            );
-                        }
-                    } else if (overLength) {
-                        messageToEdit = null;
-                        buffer = (currentScope ? `[${currentScope}]\n` : "") + rest.join("");
-                    }
-
-                    window = 0;
-                }
-            }
-
-            return lastMessage ? { message: lastMessage, text: fullText } : null;
-        } catch (error) {
-            if (error instanceof MessageStreamingError) {
-                throw error;
-            }
-            logger.error(error);
-            return null;
-        }
-    }
-
-    // Telegram's MarkdownV2 parser is strict and will reject the whole send/edit if the converted
-    // entities are malformed - rare given how defensive GFMToTelegramMarkdown is, but streamed AI output
-    // is unpredictable enough that it shouldn't be allowed to abort an otherwise-working response. Retries
-    // once as plain text instead of letting the error propagate; a plain-text failure is a real problem
-    // (network, bad chat id, etc.) and still propagates to the caller as before.
-    private async withPlainTextFallback<T>(parseMode: "GFM" | "", attempt: (parseMode: "GFM" | "") => Promise<T>): Promise<T> {
-        try {
-            return await attempt(parseMode);
-        } catch (error) {
-            if (parseMode !== "GFM") throw error;
-            logger.warn(error);
-            return await attempt("");
-        }
+        return this.streamer.sendStreamedMessage(stream, requestedParseMode, {
+            onTyping: () => void this.sendChatAction(chatId, "typing", msg),
+            sendText: (text, parseMode) => this.sendMessageExt(chatId, text, msg, { ...options, parse_mode: parseMode }),
+            editText: (text, target, parseMode) =>
+                this.editMessageTextExt(text, target, { chat_id: chatId, message_id: target.message_id, parse_mode: parseMode }),
+        });
     }
 
     // "GFM" is a custom parse_mode for text written in GitHub Flavored Markdown - it's converted to

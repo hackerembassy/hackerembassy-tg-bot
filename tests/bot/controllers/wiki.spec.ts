@@ -1,6 +1,6 @@
 import wiki from "@services/external/wiki";
 
-import { createMockBot, createMockMessage } from "../mocks/bot";
+import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 describe("Bot Wiki commands:", () => {
     const mockBot = createMockBot();

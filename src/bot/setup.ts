@@ -130,7 +130,8 @@ export function addSpecialRoutes(bot: HackerEmbassyBot): void {
     bot.addEventRoutes(
         EmbassyController.voiceInSpaceHandler,
         ServiceController.newMemberHandler,
-        EmbassyController.buildAskContinuation
+        EmbassyController.buildAskContinuation,
+        EmbassyController.guessHandler
     );
 }
 

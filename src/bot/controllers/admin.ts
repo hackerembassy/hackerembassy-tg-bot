@@ -4,7 +4,6 @@ import config from "config";
 import { BotConfig } from "@config";
 
 import { User } from "@data/models";
-import AliasesRepository from "@data/repositories/aliases";
 import logger, { getLatestLogFilePath } from "@services/common/logger";
 import { hasRole, userService } from "@services/domain/user";
 import { Admins, AllowedChats, CaptureInteger, ClosedChats, Members, Route, UserRoles } from "@hackembot/core/decorators";
@@ -12,6 +11,7 @@ import { ButtonFlags, InlineButton } from "@hackembot/core/inlineButtons";
 
 import * as TextGenerators from "../text";
 import { StateFlags } from "../core/classes/BotState";
+import { AddAliasResult } from "../core/classes/CommandRouter";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotCustomEvent, BotController } from "../core/types";
@@ -439,15 +439,12 @@ export default class AdminController implements BotController {
 
         const alias = aliasName.toLowerCase();
         const targetCommandToken = target.split(" ")[0];
-        const bareAlias = alias.slice(1);
-        const bareTargetCommand = targetCommandToken.slice(1).toLowerCase();
+        const result = bot.addAlias(alias, target.trim(), msg.from?.id ?? 0);
 
-        if (bot.hasRoute(bareAlias)) return bot.sendMessageExt(msg.chat.id, t("admin.alias.add.exists"), msg);
+        if (result === AddAliasResult.AlreadyExists) return bot.sendMessageExt(msg.chat.id, t("admin.alias.add.exists"), msg);
 
-        if (!bot.hasRoute(bareTargetCommand))
+        if (result === AddAliasResult.InvalidTarget)
             return bot.sendMessageExt(msg.chat.id, t("admin.alias.add.badTarget", { command: targetCommandToken }), msg);
-
-        AliasesRepository.upsertAlias(alias, target.trim(), msg.from?.id ?? 0);
 
         return bot.sendMessageExt(msg.chat.id, t("admin.alias.add.success", { alias, target }), msg);
     }
@@ -456,7 +453,7 @@ export default class AdminController implements BotController {
     @UserRoles(Admins)
     static aliasRemoveHandler(bot: HackerEmbassyBot, msg: Message, aliasName: string) {
         const alias = aliasName.toLowerCase();
-        const removed = AliasesRepository.removeAlias(alias.startsWith("/") ? alias : `/${alias}`).changes > 0;
+        const removed = bot.removeAlias(alias);
 
         return bot.sendMessageExt(msg.chat.id, t(removed ? "admin.alias.remove.success" : "admin.alias.remove.fail"), msg);
     }
@@ -468,7 +465,7 @@ export default class AdminController implements BotController {
     }
 
     private static sendAliasHelp(bot: HackerEmbassyBot, msg: Message) {
-        const list = AliasesRepository.getAliases();
+        const list = bot.getAliases();
         const listText =
             list.length > 0
                 ? t("admin.alias.list.text", { list: list.map(a => `#\`${a.alias}#\` → #\`${a.target}#\``).join("\n") })

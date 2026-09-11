@@ -803,6 +803,16 @@ export default class EmbassyController implements BotController {
         return parentEntry.model ? `/ask ${parentEntry.model} ${text}` : `/ollama ${text}`;
     }
 
+    // Best-effort AI answer for a message with no matching route, e.g. for @CabiaRangris.
+    static async guessHandler(bot: HackerEmbassyBot, msg: Message, text: string): Promise<void> {
+        try {
+            const guess = await openAI.askChat(text, t("embassy.neural.contexts.guess"));
+            await bot.sendMessageExt(msg.chat.id, "[ai generated] " + guess, msg);
+        } catch (error) {
+            logger.error(error);
+        }
+    }
+
     @Route(["ask"], OptionalParam(/(\S+?)(?: (.*))?/ims), match => [match[2], match[1]])
     @Route(["gpt"], OptionalParam(/(.*)/ims), match => [match[1], "gpt"])
     @Route(["glados"], OptionalParam(/(.*)/ims), match => [match[1], "glados"])

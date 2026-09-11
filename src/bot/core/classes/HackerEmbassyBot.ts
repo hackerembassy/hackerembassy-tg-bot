@@ -24,10 +24,9 @@ import {
 } from "node-telegram-bot-api";
 import { withDir, withFile } from "tmp-promise";
 
-import { BotConfig, BotFeatureFlag } from "@config";
+import { BotConfig } from "@config";
 
 import { Alias, User } from "@data/models";
-import aliasesRepository from "@data/repositories/aliases";
 import { UserRole } from "@data/types";
 
 import logger from "@services/common/logger";
@@ -37,13 +36,12 @@ import { chunkSubstr } from "@utils/text";
 import { hashMD5 } from "@utils/common";
 import { readFileAsBase64 } from "@utils/filesystem";
 import { DeltaStream } from "@services/neural/openwebui";
-import { openAI } from "@services/neural/openai";
 import telemetry from "@services/common/telemetry";
 
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../localization";
 import { GFMToTelegramMarkdown, taggedMarkdownToTelegramMarkdownV2 } from "../converters";
-import { effectiveName, OptionalRegExp, tgUserLink } from "../helpers";
-import BotMessageContext, { DefaultModes } from "./BotMessageContext";
+import { effectiveName, tgUserLink } from "../helpers";
+import BotMessageContext from "./BotMessageContext";
 import BotState from "./BotState";
 import {
     DEFAULT_CLEAR_QUEUE_LENGTH,
@@ -71,6 +69,7 @@ import {
     ChatMemberHandler,
     AskContinuationHandler,
     EditMessageMediaOptionsExt,
+    GuessHandler,
     ITelegramUser,
     MatchMapperFunction,
     SerializedFunction,
@@ -89,8 +88,9 @@ import {
 } from "../types";
 import { ButtonFlags, InlineDeepLinkButton } from "../inlineButtons";
 import ChatBridge from "./ChatBridge";
-import { MetadataKeys, NonTopicChats, PublicChats, RouteMetadata } from "../decorators";
+import { NonTopicChats, PublicChats } from "../decorators";
 import { MessageStreamingError } from "../errors";
+import CommandRouter, { AddAliasResult } from "./CommandRouter";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -124,10 +124,11 @@ export default class HackerEmbassyBot extends TelegramBot {
     public forwardTarget = botConfig.chats.main;
 
     // Routes
-    private routeMap = new Map<string, BotRoute>();
+    private commandRouter = new CommandRouter(botConfig.name);
     private voiceHandler: BotHandler | null = null;
     private chatMemberHandler: ChatMemberHandler | null = null;
     private askContinuationHandler: AskContinuationHandler | null = null;
+    private guessHandler: GuessHandler | null = null;
 
     // Context storage for user messages
     private contextMap = new Map<Message, BotMessageContext>();
@@ -139,18 +140,17 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     public start() {
-        // Let's start listening for events
         this.on("message", message => void this.routeMessage(message));
         this.on("callback_query", callbackQuery => void this.routeCallback(callbackQuery));
-        if (botConfig.features.voice && this.voiceHandler) this.on("voice", this.voiceHandler.bind(this, this));
-        if (botConfig.features.greetings && this.chatMemberHandler) this.onExt("chat_member", this.chatMemberHandler);
-        if (botConfig.features.reactions) this.on("message", message => void this.reactToMessage(message));
-
         this.on("error", error => logger.error(error));
         this.on("polling_error", error => {
             this.pollingError = error;
             logger.error(error);
         });
+
+        if (botConfig.features.voice && this.voiceHandler) this.on("voice", this.voiceHandler.bind(this, this));
+        if (botConfig.features.greetings && this.chatMemberHandler) this.onExt("chat_member", this.chatMemberHandler);
+        if (botConfig.features.reactions) this.on("message", message => void this.reactToMessage(message));
 
         void this.startPolling().then(() => logger.info(`--- Bot ${this.name} started polling ---`));
     }
@@ -164,33 +164,24 @@ export default class HackerEmbassyBot extends TelegramBot {
         super.processUpdate(update);
     }
 
-    isUserAllowed(user: Nullable<User>, command: string): boolean {
-        const savedRestrictions = this.routeMap.get(command)?.userRoles;
-
-        if (!savedRestrictions || savedRestrictions.length === 0) return true;
-        if (user) return hasRole(user, "admin", ...savedRestrictions);
-
-        return savedRestrictions.includes("default");
+    canUserCallCommand(user: Nullable<User>, command: string): boolean {
+        return this.commandRouter.canUserCallCommand(user, command);
     }
 
-    isChatAllowed(chatId: number, command: string): boolean {
-        const savedRestrictions = this.routeMap.get(command)?.allowedChats;
-
-        if (!savedRestrictions || savedRestrictions.length === 0) return true;
-        if (savedRestrictions.includes(chatId)) return true;
-
-        return false;
+    canCallCommandInChat(chatId: number, command: string): boolean {
+        return this.commandRouter.canCallCommandInChat(chatId, command);
     }
 
-    hasRoute(command: string): boolean {
-        return this.routeMap.has(command.toLowerCase());
+    addAlias(alias: string, target: string, createdBy: number): AddAliasResult {
+        return this.commandRouter.addAlias(alias, target, createdBy);
     }
 
-    private parseCommand(text: string) {
-        const fullCommand = text.split(" ")[0];
-        const commandWithCase = fullCommand.split("@")[0].slice(1);
+    removeAlias(alias: string): boolean {
+        return this.commandRouter.removeAlias(alias);
+    }
 
-        return { fullCommand, commandWithCase, command: commandWithCase.toLowerCase() };
+    getAliases(): Alias[] {
+        return this.commandRouter.getAliases();
     }
 
     canUserGuess(user: Nullable<User>, chat: Chat): boolean {
@@ -227,14 +218,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         super.on(event, newListener);
     }
 
-    get addedModifiersString(): string {
-        return Object.keys(DefaultModes)
-            .reduce((acc, key) => {
-                return `${acc} -${key}|`;
-            }, "(")
-            .replace(/\|$/, ")*");
-    }
-
     editMessageTextExt(text: string, msg: Message, options: EditMessageTextOptions): Promise<boolean | Message> {
         const { text: preparedText, options: preparedOptions } = this.prepareTextAndOptions(text, options);
         const preparedOptionsWithThreadId = preparedOptions as WithMessageThreadId<EditMessageTextOptions>;
@@ -243,81 +226,72 @@ export default class HackerEmbassyBot extends TelegramBot {
         return super.editMessageText(preparedText, preparedOptionsWithThreadId);
     }
 
-    async sendPhotoExt(
+    sendPhotoExt(
         chatId: ChatId,
         photo: FileInput,
         msg: Message,
         options: SendPhotoOptions = {},
         fileOptions: FileMeta = {}
     ): Promise<Message> {
+        return this.sendMediaExt(
+            chatId,
+            photo,
+            msg,
+            options,
+            (chatIdToUse, source, sendOptions) => this.sendPhoto(chatIdToUse, source, sendOptions, fileOptions),
+            message => message.photo?.[0]?.file_id
+        );
+    }
+
+    sendAnimationExt(chatId: ChatId, animation: FileInput, msg: Message, options: SendAnimationOptions = {}): Promise<Message> {
+        return this.sendMediaExt(
+            chatId,
+            animation,
+            msg,
+            options,
+            (chatIdToUse, source, sendOptions) => this.sendAnimation(chatIdToUse, source, sendOptions),
+            message => message.animation?.file_id
+        );
+    }
+
+    // Shared by sendPhotoExt/sendAnimationExt: mode/forward resolution, inline keyboard stripping
+    // in static mode, caption markdown conversion, file-id caching, pin-on-send and history push.
+    // `send` performs the actual Telegram API call, `getFileId` reads back the id to cache.
+    private async sendMediaExt<T extends SendPhotoOptions | SendAnimationOptions>(
+        chatId: ChatId,
+        media: FileInput,
+        msg: Message,
+        options: T,
+        send: (chatIdToUse: ChatId, source: FileInput, options: WithMessageThreadId<T>) => Promise<Message>,
+        getFileId: (message: Message) => Optional<string>
+    ): Promise<Message> {
         const context = this.context(msg);
-        const mode = this.context(msg).mode;
+        const mode = context.mode;
         const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
         const inline_keyboard =
             mode.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
 
         if (options.caption) {
             options.caption = taggedMarkdownToTelegramMarkdownV2(options.caption);
-            options = this.prepareOptionsForMarkdown({ ...options });
+            options = this.prepareOptionsForMarkdown({ ...options }) as T;
         }
 
         void this.sendChatAction(chatId, "upload_photo", msg);
 
         //@ts-expect-error typescript should filter ReadableStream from FileInput but it doesn't
-        const photoHash = photo instanceof Stream ? null : hashMD5(photo);
-        const cachedFileId = photoHash ? this.botState.fileIdCache[photoHash] : null;
+        const mediaHash = media instanceof Stream ? null : hashMD5(media);
+        const cachedFileId = mediaHash ? this.botState.fileIdCache[mediaHash] : null;
 
-        const message = await this.sendPhoto(
-            chatIdToUse,
-            cachedFileId ?? photo,
-            {
-                ...options,
-                reply_markup: {
-                    inline_keyboard,
-                },
-                message_thread_id: context.messageThreadId,
-            },
-            fileOptions
-        );
-
-        if (!cachedFileId && photoHash && message.photo) {
-            this.botState.fileIdCache[photoHash] = message.photo[0].file_id;
-            this.botState.persistFileIdCache();
-        }
-
-        if (mode.pin) {
-            this.tryPinChatMessage(message, context.user);
-        }
-
-        this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
-
-        return message;
-    }
-
-    // TODO extract common logic from here sendPhotoExt
-    async sendAnimationExt(chatId: ChatId, animation: FileInput, msg: Message, options?: SendAnimationOptions): Promise<Message> {
-        const context = this.context(msg);
-        const mode = context.mode;
-        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
-
-        if (options?.caption) {
-            options.caption = taggedMarkdownToTelegramMarkdownV2(options.caption);
-            options = this.prepareOptionsForMarkdown({ ...options });
-        }
-
-        void this.sendChatAction(chatId, "upload_photo", msg);
-
-        //@ts-expect-error typescript should filter ReadableStream from FileInput but it doesn't
-        const animationHash = animation instanceof Stream ? null : hashMD5(animation);
-        const cachedFileId = animationHash ? this.botState.fileIdCache[animationHash] : null;
-
-        const message = await this.sendAnimation(chatIdToUse, cachedFileId ?? animation, {
+        const message = await send(chatIdToUse, cachedFileId ?? media, {
             ...options,
+            reply_markup: { inline_keyboard },
             message_thread_id: context.messageThreadId,
         });
 
-        if (!cachedFileId && animationHash && message.animation) {
-            this.botState.fileIdCache[animationHash] = message.animation.file_id;
+        const newFileId = getFileId(message);
+
+        if (!cachedFileId && mediaHash && newFileId) {
+            this.botState.fileIdCache[mediaHash] = newFileId;
             this.botState.persistFileIdCache();
         }
 
@@ -689,6 +663,17 @@ export default class HackerEmbassyBot extends TelegramBot {
         return identifier.startsWith("@") ? identifier.slice(1) : Number.parseInt(identifier);
     }
 
+    private resolveContinuationText(message: Message, commandText: string): string {
+        if (!commandText || this.isBotCommand(commandText) || !message.reply_to_message || !this.askContinuationHandler)
+            return commandText;
+
+        const parentEntry = this.messageHistory.findByMessageId(message.chat.id, message.reply_to_message.message_id);
+
+        if (parentEntry?.from !== this.name) return commandText;
+
+        return this.askContinuationHandler(this, message, parentEntry) ?? commandText;
+    }
+
     async routeMessage(message: Message) {
         try {
             // Skip old updates
@@ -717,26 +702,12 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Get command from message text or a deeplink
             const deeplink = message.text?.match(/\/start (.*)/)?.[1].replaceAll("__", " ");
-            let text = deeplink ? `/${deeplink}` : ((message.text ?? message.caption) as string);
+            const rawCommandText = deeplink ? `/${deeplink}` : ((message.text ?? message.caption) as string);
+            const commandText = botConfig.features.askContinuation
+                ? this.resolveContinuationText(message, rawCommandText)
+                : rawCommandText;
 
-            // A plain reply to one of our own tracked messages (e.g. an LLM answer) can be rewritten
-            // into proper command text, so it's routed - and permission/feature/locale-checked -
-            // through the exact same dispatch path as any other command, with nothing duplicated here.
-            if (
-                botConfig.features.askContinuation &&
-                text &&
-                !this.isBotCommand(text) &&
-                message.reply_to_message &&
-                this.askContinuationHandler
-            ) {
-                const parentEntry = this.messageHistory.findByMessageId(message.chat.id, message.reply_to_message.message_id);
-                const continuationText =
-                    parentEntry?.from === this.name ? this.askContinuationHandler(this, message, parentEntry) : undefined;
-
-                if (continuationText) text = continuationText;
-            }
-
-            const isCommand = this.isBotCommand(text);
+            const isCommand = this.isBotCommand(commandText);
 
             // If the message is not a command, we can skip or save it to history
             if (!isCommand) {
@@ -760,33 +731,7 @@ export default class HackerEmbassyBot extends TelegramBot {
                 return;
             }
 
-            let { fullCommand, commandWithCase, command } = this.parseCommand(text);
-            let route = this.routeMap.get(command);
-
-            // Resolve a user-defined alias if no real command matched
-            if (!route) {
-                let alias: Optional<Alias>;
-
-                try {
-                    alias = aliasesRepository.getAliasByName(`/${command}`);
-                } catch (error) {
-                    logger.error(error);
-                }
-
-                if (alias) {
-                    // Just replacing one command with another: swap the leading "/command[@bot]"
-                    // token for the alias's stored target, keep the rest of the text.
-                    const aliasedText = text.replace(fullCommand, () => alias.target);
-                    const parsed = this.parseCommand(aliasedText);
-                    const aliasedRoute = this.routeMap.get(parsed.command);
-
-                    if (aliasedRoute) {
-                        text = aliasedText;
-                        ({ fullCommand, commandWithCase, command } = parsed);
-                        route = aliasedRoute;
-                    }
-                }
-            }
+            const { route, text, commandWithCase, command } = this.commandRouter.resolveRoute(commandText);
 
             // Prepare context
             if (!message.from) throw new Error("Message missing the sender, aborting...");
@@ -803,14 +748,10 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Try to guess the answer if no route is found for members, especially for @CabiaRangris
             if (!route) {
-                return !this.guessIgnoreList.has(command) && this.canUserGuess(user, message.chat)
-                    ? await messageContext.run(() =>
-                          openAI
-                              .askChat(text, t("embassy.neural.contexts.guess"))
-                              .then(guess => this.sendMessageExt(message.chat.id, "[ai generated] " + guess, message))
-                              .catch(error => logger.error(error))
-                      )
-                    : null;
+                if (!this.guessIgnoreList.has(command) && this.canUserGuess(user, message.chat) && this.guessHandler) {
+                    await messageContext.run(() => this.guessHandler!(this, message, text));
+                }
+                return;
             }
 
             telemetry.receivedCommandsCounter.inc({
@@ -822,9 +763,9 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             const canSkipRestrictions = isAdmin && !impersonatedUser;
 
-            if (!canSkipRestrictions && route.userRoles.length > 0 && !this.isUserAllowed(user, command))
+            if (!canSkipRestrictions && route.userRoles.length > 0 && !this.canUserCallCommand(user, command))
                 return await messageContext.run(() => this.sendRestrictedMessage(message, route, "restricted"));
-            if (!canSkipRestrictions && route.allowedChats.length > 0 && !this.isChatAllowed(message.chat.id, command))
+            if (!canSkipRestrictions && route.allowedChats.length > 0 && !this.canCallCommandInChat(message.chat.id, command))
                 return await messageContext.run(() => this.sendRestrictedMessage(message, route, "chatnotallowed"));
 
             // Parse global modifiers and set them to the context
@@ -839,21 +780,11 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             messageContext.mode.secret = this.isSecretModeAllowed(message, messageContext);
 
-            // Call message handler with params
-            if (route.paramMapper) {
-                const match = route.regex.exec(textToMatch);
-                const matchedParams = match ? route.paramMapper(match) : null;
+            const matchedParams = this.commandRouter.matchParams(route, textToMatch);
 
-                if (matchedParams) {
-                    await messageContext.run(() => route.handler(this, message, ...matchedParams));
-                    return;
-                } else if (!route.optional) {
-                    return;
-                }
-            }
+            if (route.paramMapper && !matchedParams && !route.optional) return;
 
-            // Call message handler without params
-            await messageContext.run(() => route.handler(this, message));
+            await messageContext.run(() => route.handler(this, message, ...(matchedParams ?? [])));
         } catch (error) {
             logger.error(error);
         } finally {
@@ -900,10 +831,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (!data.cmd) throw new Error("Missing calback command");
 
         // Check restritions
-        if (isBanned(user) || !this.isUserAllowed(user, data.cmd)) return;
+        if (isBanned(user) || !this.canUserCallCommand(user, data.cmd)) return;
 
         // Get route handler
-        const handler = this.routeMap.get(data.cmd)?.handler;
+        const handler = this.commandRouter.getRoute(data.cmd)?.handler;
         if (!handler) throw new Error(`Route handler for ${data.cmd} does not exist`);
 
         telemetry.receivedCallbacksCounter.inc({
@@ -1023,40 +954,17 @@ export default class HackerEmbassyBot extends TelegramBot {
     addEventRoutes(
         voiceHandler: BotHandler,
         chatMemberHandler: ChatMemberHandler,
-        askContinuationHandler: AskContinuationHandler
+        askContinuationHandler: AskContinuationHandler,
+        guessHandler: GuessHandler
     ) {
         this.voiceHandler = voiceHandler;
         this.chatMemberHandler = chatMemberHandler;
         this.askContinuationHandler = askContinuationHandler;
+        this.guessHandler = guessHandler;
     }
 
     addController(controller: BotController) {
-        const decoratedMethods = Object.getOwnPropertyNames(controller)
-            .filter(
-                name =>
-                    typeof controller[name as keyof BotController] === "function" &&
-                    name !== "prototype" &&
-                    name !== "length" &&
-                    name !== "name"
-            )
-            .filter(name => Reflect.getMetadata(MetadataKeys.Route, controller, name));
-
-        for (const methodName of decoratedMethods) {
-            const featureFlag = Reflect.getMetadata(MetadataKeys.FeatureFlag, controller, methodName) as
-                BotFeatureFlag | undefined;
-
-            if (featureFlag && !botConfig.features[featureFlag]) continue;
-
-            const roles = Reflect.getMetadata(MetadataKeys.Roles, controller, methodName) as UserRole[];
-            const routes = Reflect.getMetadata(MetadataKeys.Route, controller, methodName) as RouteMetadata[];
-            const allowedChats = Reflect.getMetadata(MetadataKeys.AllowedChats, controller, methodName) as ChatId[];
-            const method = controller[methodName as keyof BotController] as BotHandler;
-            const handler = method.bind(controller);
-
-            for (const route of routes) {
-                this.addRoute(route.aliases, handler, route.paramRegex, route.paramMapper, roles, allowedChats);
-            }
-        }
+        this.commandRouter.addController(controller);
     }
 
     addRoute(
@@ -1067,20 +975,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         userRoles: UserRole[] = [],
         allowedChats: ChatId[] = []
     ): void {
-        const optional = paramRegex instanceof OptionalRegExp;
-        const regex = this.createRegex(aliases, paramRegex, optional);
-        const botRoute = {
-            regex,
-            handler,
-            paramMapper,
-            optional,
-            userRoles,
-            allowedChats,
-        };
-
-        for (const alias of aliases) {
-            this.routeMap.set(alias, botRoute);
-        }
+        this.commandRouter.addRoute(aliases, handler, paramRegex, paramMapper, userRoles, allowedChats);
     }
 
     async sendOrEditMessage(
@@ -1214,16 +1109,6 @@ export default class HackerEmbassyBot extends TelegramBot {
         return super.restrictChatMember(chatId, userId, options);
     }
     //#endregion
-
-    private createRegex(aliases: string[], paramRegex: Nullable<RegExp>, optional: boolean = false) {
-        const commandPart = `/(?:${aliases.join("|")})`;
-        const botnamePart = this.name ? `(?:@${this.name})?` : "";
-
-        let paramsPart = "";
-        if (paramRegex) paramsPart = optional ? paramRegex.source : ` ${paramRegex.source}`;
-
-        return new RegExp(`^${commandPart}${botnamePart}${paramsPart}$`, paramRegex?.flags);
-    }
 
     private prepareOptionsForMarkdown(
         options: SendMessageOptions | EditMessageTextOptions

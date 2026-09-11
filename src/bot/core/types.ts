@@ -116,6 +116,9 @@ export type ChatMemberHandler = (bot: HackerEmbassyBot, memberUpdated: ChatMembe
 // leave it as a regular non-command message.
 export type AskContinuationHandler = (bot: HackerEmbassyBot, msg: Message, parentEntry: MessageHistoryEntry) => Optional<string>;
 
+// Answers a message with no matching route as a best-effort AI guess (e.g. for @CabiaRangris).
+export type GuessHandler = (bot: HackerEmbassyBot, msg: Message, text: string) => Promise<unknown>;
+
 export type EditMessageTextOptions = Omit<EditMessageTextParams, "text"> & {
     // Used to resolve relative links/images when parse_mode is "GFM" (see core/converters.ts)
     baseUrl?: string;

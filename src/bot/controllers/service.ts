@@ -3,7 +3,6 @@ import config from "config";
 import { ChatMemberUpdated, Message } from "node-telegram-bot-api";
 
 import { BotConfig } from "@config";
-import ApiKeysRepository from "@data/repositories/apikeys";
 import logger from "@services/common/logger";
 import {
     AllowedChats,
@@ -19,7 +18,7 @@ import {
 
 import { openwebui } from "@services/neural/openwebui";
 import { hasRole, userService } from "@services/domain/user";
-import { generateRandomKey, sha256, splitArray } from "@utils/common";
+import { splitArray } from "@utils/common";
 import {
     COMPACT_DURATION_REGEX,
     TIME_RANGE_KEYWORDS,
@@ -412,20 +411,18 @@ export default class ServiceController implements BotController {
         if (!context.isPrivate()) return bot.sendMessageExt(msg.chat.id, t("service.token.private"), msg);
 
         const user = context.user;
-        const key = ApiKeysRepository.getKeyByUser(user.userid);
+        const key = userService.getApiKey(user);
 
         switch (command) {
             case "set": {
-                if (key) return bot.sendMessageExt(msg.chat.id, t("service.token.exists"), msg);
+                const newKey = userService.issueApiKey(user);
 
-                const newKey = generateRandomKey();
-                ApiKeysRepository.addKey(user.userid, sha256(newKey));
+                if (!newKey) return bot.sendMessageExt(msg.chat.id, t("service.token.exists"), msg);
 
                 return bot.sendMessageExt(msg.chat.id, t("service.token.set", { token: newKey }), msg);
             }
             case "remove": {
-                if (!key) return bot.sendMessageExt(msg.chat.id, t("service.token.missing"), msg);
-                ApiKeysRepository.removeKey(key.id);
+                if (!userService.revokeApiKey(user)) return bot.sendMessageExt(msg.chat.id, t("service.token.missing"), msg);
 
                 return bot.sendMessageExt(msg.chat.id, t("service.token.removed"), msg);
             }

@@ -1,6 +1,6 @@
 import config from "config";
 
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, inArray } from "drizzle-orm";
 
 import { CurrencyConfig } from "@config";
 import { Fund, Donation } from "@data/models";
@@ -82,6 +82,16 @@ class FundsRepository extends BaseRepository {
                 },
             })
             .sync();
+    }
+
+    getDonationsOfUsers(userIds: number[], since?: Date): Donation[] {
+        if (userIds.length === 0) return [];
+
+        return this.db
+            .select()
+            .from(donations)
+            .where(and(inArray(donations.user_id, userIds), since ? gte(donations.date, since) : undefined))
+            .all();
     }
 
     getLatestCosts(): Fund | undefined {

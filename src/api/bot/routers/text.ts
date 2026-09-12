@@ -4,7 +4,7 @@ import config from "config";
 import * as TextGenerators from "@hackembot/text";
 import { stripCustomMarkup } from "@hackembot/core/converters";
 
-import FundsRepository from "@data/repositories/funds";
+import { fundsService } from "@services/domain/funds";
 import embassyService from "@services/embassy/embassy";
 
 import { getClosestEventsFromCalendar, getTodayEvents, getTodayEventsCached } from "@services/external/googleCalendar";
@@ -94,8 +94,8 @@ if (apiConfig.features.calendar) {
 }
 
 router.get("/funds", async (_, res) => {
-    const funds = FundsRepository.getFundsByStatus("open");
-    const donations = FundsRepository.getAllDonations(true, true);
+    const funds = fundsService.getFundsByStatus("open");
+    const donations = fundsService.getAllDonations(true, true);
 
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true }, { mention: false });
 

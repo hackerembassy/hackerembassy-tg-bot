@@ -1,4 +1,5 @@
 import { TEST_USERS } from "@data/seed";
+import { needsService } from "@services/domain/needs";
 
 import { createMockBot, createMockMessage } from "../../mocks/bot";
 
@@ -25,5 +26,21 @@ describe("Bot Needs commands:", () => {
         await mockBot.processUpdate(createMockMessage("/bought nonexistent_item_xyz"));
 
         expect(mockBot.popResults()).toEqual(["needs\\.bought\\.notfound"]);
+    });
+
+    test("/boughtundo only reopens the need for the user who closed it", async () => {
+        await mockBot.processUpdate(createMockMessage("/buy soldering iron", TEST_USERS.guest));
+
+        const need = needsService.getOpenNeeds().find(n => n.item === "soldering iron");
+
+        expect(need).toBeDefined();
+
+        await mockBot.processUpdate(createMockMessage("/bought soldering iron", TEST_USERS.accountant));
+
+        await mockBot.processUpdate(createMockMessage(`/boughtundo ${need!.id}`, TEST_USERS.guest));
+        expect(needsService.getNeedById(need!.id)?.buyer_id).toBe(TEST_USERS.accountant.userid);
+
+        await mockBot.processUpdate(createMockMessage(`/boughtundo ${need!.id}`, TEST_USERS.accountant));
+        expect(needsService.getNeedById(need!.id)?.buyer_id).toBeNull();
     });
 });

@@ -1,6 +1,6 @@
 import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
 
-import NeedsRepository from "@data/repositories/needs";
+import { needsService } from "@services/domain/needs";
 import { Route } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
@@ -13,7 +13,7 @@ import * as TextGenerators from "../text";
 export default class NeedsController implements BotController {
     @Route(["needs"])
     static async needsHandler(bot: HackerEmbassyBot, msg: Message) {
-        const needs = NeedsRepository.getOpenNeeds();
+        const needs = needsService.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs);
 
         const needs_keyboard = needs.map(need => [
@@ -36,7 +36,7 @@ export default class NeedsController implements BotController {
     @Route(["buy", "need"], /(.*)/, match => [match[1]])
     static async buyHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const requester = bot.context(msg).user;
-        const success = NeedsRepository.addBuy(item, requester.userid, new Date());
+        const success = needsService.addBuy(item, requester);
 
         await bot.sendMessageExt(
             msg.chat.id,
@@ -46,15 +46,14 @@ export default class NeedsController implements BotController {
     }
 
     static async boughtByIdHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
-        await NeedsController.boughtHandler(bot, msg, NeedsRepository.getNeedById(id)?.item ?? "");
+        await NeedsController.boughtHandler(bot, msg, needsService.getNeedById(id)?.item ?? "");
     }
 
     @Route(["boughtundo"], /(\d+)/, match => [match[1]])
     static async boughtUndoHandler(bot: HackerEmbassyBot, msg: Message, id: number) {
-        const need = NeedsRepository.getNeedById(id);
         const sender = bot.context(msg).user;
 
-        if (need && need.buyer_id === sender.userid && NeedsRepository.undoClose(need.id)) {
+        if (needsService.undoClose(id, sender)) {
             await bot.deleteMessage(msg.chat.id, msg.message_id);
         }
     }
@@ -62,13 +61,11 @@ export default class NeedsController implements BotController {
     @Route(["bought"], /(.*)/, match => [match[1]])
     static async boughtHandler(bot: HackerEmbassyBot, msg: Message, item: string) {
         const buyer = bot.context(msg).user;
-        const need = NeedsRepository.getOpenNeedByItem(item);
+        const need = needsService.markBought(item, buyer);
 
-        if (!need || need.buyer_id) {
+        if (!need) {
             return await bot.sendMessageExt(msg.chat.id, t("needs.bought.notfound"), msg);
         }
-
-        NeedsRepository.closeNeed(need.id, buyer.userid, new Date());
 
         const successText = t("needs.bought.success", {
             username: helpers.userLink(buyer),

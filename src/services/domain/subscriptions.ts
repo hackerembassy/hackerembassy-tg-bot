@@ -2,7 +2,8 @@ import { Topic, User } from "@data/models";
 
 import subscriptionsRepository from "@data/repositories/subscriptions";
 import usersRepository from "@data/repositories/users";
-import fundsRepository from "@data/repositories/funds";
+
+import { fundsService } from "./funds";
 
 const PseudoTopics = new Map([
     ["members", { id: -1, name: "members", description: "All current residents" }],
@@ -78,9 +79,9 @@ class SubscriptionsService {
     }
 
     private getDebtors() {
-        const fundName = fundsRepository.getLatestCosts()?.name;
+        const fundName = fundsService.getLatestCosts()?.name;
         if (!fundName) return [];
-        const donations = fundsRepository.getDonationsForName(fundName);
+        const donations = fundsService.getDonationsForName(fundName);
         const residents = usersRepository.getUsersByRole("member");
 
         return residents.filter(resident => donations.filter(d => d.user_id === resident.userid).length === 0);

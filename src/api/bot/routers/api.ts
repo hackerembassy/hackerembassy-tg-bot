@@ -2,13 +2,12 @@ import { Router, Request } from "express";
 import config from "config";
 
 import { User } from "@data/models";
-import FundsRepository from "@data/repositories/funds";
 
-import { getFundDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/funds/export";
+import { getFundDonationsSummary } from "@services/domain/funds/reports";
 import { spaceService } from "@services/domain/space";
+import { fundsService, SponsorshipLevel, SponsorshipLevelToName } from "@services/domain/funds";
 import logger from "@services/common/logger";
 import { hasRole, userService } from "@services/domain/user";
-import { donateToFund } from "@services/funds/donation";
 import { SERVICE_USERS } from "@data/seed";
 
 import bot from "@hackembot/instance";
@@ -163,10 +162,11 @@ apiRouter.get("/donations", async (req, res) => {
     const limit = req.query.limit ? Number(req.query.limit) : undefined;
     if (limit !== undefined && (Number.isNaN(limit) || limit < 0)) return void res.status(400).send({ error: "Invalid limit" });
 
-    const fund = req.query.fund ? FundsRepository.getFundByName(req.query.fund as string) : FundsRepository.getLatestCosts();
+    const fund = fundsService.resolveCostsFund(req.query.fund as string | undefined);
     if (!fund) return void res.status(500).send({ error: "Costs fund is not found" });
 
-    res.json(await getFundDonationsSummary(fund, limit));
+    const donations = fundsService.getDonationsForFund(fund.id, true, true);
+    res.json(await getFundDonationsSummary(fund, donations, limit));
 });
 
 apiRouter.get("/sponsors", (req, res) => {
@@ -196,11 +196,11 @@ apiRouter.get("/funds", allowSpecialEntities, (req, res) => {
         case "open":
         case "closed":
         case "suspended": {
-            return void res.json(FundsRepository.getFundsByStatus(status));
+            return void res.json(fundsService.getFundsByStatus(status));
         }
         case "all":
         case undefined: {
-            return void res.json(FundsRepository.getAllFunds());
+            return void res.json(fundsService.getAllFunds());
         }
         default: {
             return void res.status(400).send({ error: "Invalid status" });
@@ -211,11 +211,12 @@ apiRouter.get("/funds", allowSpecialEntities, (req, res) => {
 apiRouter.get("/funds/:id", allowSpecialEntities, async (req, res) => {
     if (Number.isNaN(Number(req.params.id))) return void res.status(400).send({ error: "Invalid fund id" });
 
-    const fund = FundsRepository.getFundById(Number(req.params.id));
+    const fund = fundsService.getFundById(Number(req.params.id));
 
     if (!fund) return void res.status(404).send({ error: "Fund is not found" });
 
-    res.json(await getFundDonationsSummary(fund));
+    const donations = fundsService.getDonationsForFund(fund.id, true, true);
+    res.json(await getFundDonationsSummary(fund, donations));
 });
 
 apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) => {
@@ -244,7 +245,7 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
             return void res.status(400).send({ error: "Missing body parameters" });
         if (Number.isNaN(fundId)) return void res.status(400).send({ error: "Invalid fund id" });
 
-        const fund = FundsRepository.getFundById(fundId);
+        const fund = fundsService.getFundById(fundId);
 
         if (!fund) return void res.status(400).send({ error: "Fund not found" });
 
@@ -257,7 +258,7 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
 
         if (!accountant) return void res.status(400).send({ error: "Accountant user not found" });
 
-        const donationResult = await donateToFund(fund.name, body.amount, body.currency ?? "AMD", user, accountant);
+        const donationResult = await fundsService.donate(fund.name, body.amount, body.currency ?? "AMD", user, accountant);
         const requestIp = getRequestIp(req) ?? "unknown";
 
         const alertMessage = `New donation added via API:\n- Donation ID: ${formatMonospaced(donationResult.donationId.toString())}\n- Fund: ${formatMonospaced(fund.name)}\n- Amount: ${formatMonospaced(donationResult.amount + " " + donationResult.currency)}\n- IP: ${requestIp} \n- User: ${userLink(user)} [${user.userid}]\n`;

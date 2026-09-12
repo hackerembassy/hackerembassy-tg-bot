@@ -1,12 +1,7 @@
 import { writeToBuffer } from "@fast-csv/format";
 import ChartJsImage from "chartjs-to-image";
 
-import config from "config";
-
-import FundsRepository from "@data/repositories/funds";
-
-import { BotConfig, SponsorshipLevelsConfig } from "@config";
-import { Donation, DonationEx, Fund, User } from "@data/models";
+import { DonationEx, Fund } from "@data/models";
 
 import { UserVisit } from "@services/domain/user";
 
@@ -16,38 +11,7 @@ import { equalsIns } from "@utils/text";
 
 import { effectiveName } from "@hackembot/core/helpers";
 
-import { DefaultCurrency, convertCurrency, formatValueForCurrency, sumDonations, toBasicMoneyString } from "./currency";
-
-const fundsConfig = config.get<BotConfig>("bot").funds;
-
-export enum SponsorshipLevel {
-    Platinum = 4,
-    Gold = 3,
-    Silver = 2,
-    Bronze = 1,
-    None = 0,
-}
-
-export const SponsorshipNameToLevel = new Map<keyof SponsorshipLevelsConfig, SponsorshipLevel>([
-    ["bronze", SponsorshipLevel.Bronze],
-    ["silver", SponsorshipLevel.Silver],
-    ["gold", SponsorshipLevel.Gold],
-    ["platinum", SponsorshipLevel.Platinum],
-]);
-
-export const SponsorshipLevelToName = new Map<SponsorshipLevel, keyof SponsorshipLevelsConfig>([
-    [SponsorshipLevel.Bronze, "bronze"],
-    [SponsorshipLevel.Silver, "silver"],
-    [SponsorshipLevel.Gold, "gold"],
-    [SponsorshipLevel.Platinum, "platinum"],
-]);
-
-export const SponsorshipLevelToEmoji = new Map<SponsorshipLevel, string>([
-    [SponsorshipLevel.Bronze, "🥉"],
-    [SponsorshipLevel.Silver, "🥈"],
-    [SponsorshipLevel.Gold, "🥇"],
-    [SponsorshipLevel.Platinum, "💎"],
-]);
+import { DefaultCurrency, convertCurrency, formatValueForCurrency, toBasicMoneyString } from "./currency";
 
 interface SimplifiedDonation {
     username: string;
@@ -89,12 +53,7 @@ const remainedColor = "rgba(0,0,0,0.025)";
 
 // Export functions
 
-export async function exportFundToCSV(fundname: string): Promise<Buffer> {
-    const fund = FundsRepository.getFundByName(fundname);
-    if (!fund) throw new Error("Fund not found");
-
-    const donations = FundsRepository.getDonationsForFundId(fund.id, true, true);
-
+export async function exportFundToCSV(fund: Fund, donations: DonationEx[]): Promise<Buffer> {
     const DonationExs = await Promise.all(
         donations.map(async d => {
             const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
@@ -113,13 +72,9 @@ export async function exportFundToCSV(fundname: string): Promise<Buffer> {
     return await writeToBuffer(DonationExs, { headers: true });
 }
 
-export async function exportFundToDonut(fundname: string): Promise<Buffer> {
-    const fund = FundsRepository.getFundByName(fundname);
-    if (!fund) throw new Error("Fund not found");
-
-    const alldonations = FundsRepository.getDonationsForFundId(fund.id, true, true);
+export async function exportFundToDonut(fund: Fund, donations: DonationEx[]): Promise<Buffer> {
     const simplifiedDonations = await Promise.all(
-        alldonations.map(async d => {
+        donations.map(async d => {
             const convertedValue = await convertCurrency(d.value, d.currency, fund.target_currency);
             return {
                 username: d.user.username ?? d.user.first_name ?? "Unknown",
@@ -148,7 +103,7 @@ export async function exportFundToDonut(fundname: string): Promise<Buffer> {
         customColorScheme.push(remainedColor);
     }
 
-    const chart = createDonut(labels, data, fundname, { height: 900, width: 1400 }, donutLabels, customColorScheme);
+    const chart = createDonut(labels, data, fund.name, { height: 900, width: 1400 }, donutLabels, customColorScheme);
 
     return await chart.toBinary();
 }
@@ -341,16 +296,17 @@ export function combineDonations(donations: SimplifiedDonation[]): SimplifiedDon
     return combinedDonations;
 }
 
-export async function getFundDonationsSummary(fund: Fund, limit?: number) {
-    const donations = FundsRepository.getDonationsForFundId(fund.id, true, true) as (DonationEx & { converted_value?: number })[];
-
-    for (const donation of donations) {
-        donation.converted_value = (await convertCurrency(donation.value, donation.currency, fund.target_currency)) ?? -1;
-    }
+export async function getFundDonationsSummary(fund: Fund, donations: DonationEx[], limit?: number) {
+    const donationsWithConvertedValue = await Promise.all(
+        donations.map(async donation => ({
+            ...donation,
+            converted_value: (await convertCurrency(donation.value, donation.currency, fund.target_currency)) ?? -1,
+        }))
+    );
 
     // Add handling first_name
-    const resultDonations = donations
-        .toSorted((a, b) => b.converted_value! - a.converted_value!)
+    const resultDonations = donationsWithConvertedValue
+        .toSorted((a, b) => b.converted_value - a.converted_value)
         .slice(0, limit)
         .map((d, index) => ({
             rank: index + 1,
@@ -362,7 +318,7 @@ export async function getFundDonationsSummary(fund: Fund, limit?: number) {
         }));
 
     // Processing data for HASS
-    const collected_value = Number.parseFloat(resultDonations.reduce((acc, d) => acc + (d.converted_value ?? 0), 0).toFixed(2));
+    const collected_value = Number.parseFloat(resultDonations.reduce((acc, d) => acc + d.converted_value, 0).toFixed(2));
     const ranked_donations = resultDonations.map(d => `${d.rank}. ${d.username} - ${d.combined_value}`).join("    ");
     const fund_stats = `${fund.name} - ${collected_value} out of ${fund.target_value} ${fund.target_currency}`;
 
@@ -380,38 +336,4 @@ export async function getFundDonationsSummary(fund: Fund, limit?: number) {
             fund_stats,
         },
     };
-}
-
-export function getUserDonationMap(donations: DonationEx[]) {
-    const sponsorDataMap = new Map<number, { user: User; donations: Donation[] }>();
-
-    for (const donation of donations) {
-        let sponsorData = sponsorDataMap.get(donation.user_id);
-        if (!sponsorData) {
-            sponsorData = { user: donation.user, donations: [] };
-            sponsorDataMap.set(donation.user_id, sponsorData);
-        }
-        sponsorData.donations.push(donation);
-    }
-
-    return sponsorDataMap.values();
-}
-
-export function getSponsorshipStartPeriodDate() {
-    const startPeriodDate = new Date();
-    startPeriodDate.setMonth(startPeriodDate.getMonth() - fundsConfig.sponsorship.period);
-    return startPeriodDate;
-}
-
-export async function getSponsorshipLevel(donations: Donation[]) {
-    const sum = await sumDonations(donations);
-    return sum >= fundsConfig.sponsorship.levels.platinum
-        ? SponsorshipLevel.Platinum
-        : sum >= fundsConfig.sponsorship.levels.gold
-          ? SponsorshipLevel.Gold
-          : sum >= fundsConfig.sponsorship.levels.silver
-            ? SponsorshipLevel.Silver
-            : sum >= fundsConfig.sponsorship.levels.bronze
-              ? SponsorshipLevel.Bronze
-              : SponsorshipLevel.None;
 }

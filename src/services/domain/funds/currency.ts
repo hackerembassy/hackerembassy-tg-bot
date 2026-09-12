@@ -9,9 +9,9 @@ import { Convert } from "easy-currencies";
 
 import { CurrencyConfig } from "@config";
 
-import { PROJECT_ROOT } from "@utils/filesystem";
+import logger from "@services/common/logger";
 
-import logger from "../common/logger";
+import { PROJECT_ROOT } from "@utils/filesystem";
 
 export type CoinDefinition = {
     fullname: string;

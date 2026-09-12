@@ -6,7 +6,7 @@ import { CommandsMap, GlobalModifiers } from "@constants/commands";
 import { UserRole } from "@data/types";
 
 import { BotConfig } from "@config";
-import { getCoinDefinition, getCoinQR } from "@services/funds/currency";
+import { getCoinDefinition, getCoinQR } from "@services/domain/funds/currency";
 import { splitRoles, userService } from "@services/domain/user";
 import * as GitHub from "@services/external/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/external/googleCalendar";

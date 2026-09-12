@@ -7,12 +7,12 @@ import { BotConfig } from "@config";
 import { State, StateEx, User, UserStateEx } from "@data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
-import fundsRepository, { COSTS_PREFIX } from "@data/repositories/funds";
+import { COSTS_PREFIX, fundsService } from "@services/domain/funds";
 
-import { DefaultCurrency, sumDonations } from "@services/funds/currency";
+import { DefaultCurrency, sumDonations } from "@services/domain/funds/currency";
 import embassyService, { EmbassyLinkMacUrl } from "@services/embassy/embassy";
-import { createUserStatsDonut } from "@services/funds/export";
-import * as ExportHelper from "@services/funds/export";
+import { createUserStatsDonut } from "@services/domain/funds/reports";
+import * as ExportHelper from "@services/domain/funds/reports";
 import { SpaceClimate } from "@services/embassy/hass";
 import logger from "@services/common/logger";
 import { getTodayEventsCached, HSEvent } from "@services/external/googleCalendar";
@@ -814,7 +814,7 @@ export default class StatusController implements BotController {
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("status.profile.notfound"), msg);
 
-        const donations = fundsRepository.getDonationsOf(target.userid, true, true);
+        const donations = fundsService.getDonationsOf(target.userid, true, true);
         const donationList = donations.length > 0 ? TextGenerators.generateFundDonationsList(donations) : "";
         const totalDonated = donations.length > 0 ? await sumDonations(donations) : 0;
         const { days, hours, minutes } = userService.getUserTotalTime(target);

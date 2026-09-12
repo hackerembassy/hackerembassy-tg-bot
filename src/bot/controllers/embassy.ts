@@ -3,10 +3,10 @@ import { Message } from "node-telegram-bot-api";
 import fetch from "node-fetch";
 
 import { BotConfig, EmbassyApiConfig, NeuralConfig } from "@config";
-import fundsRepository from "@data/repositories/funds";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import embassyService from "@services/embassy/embassy";
-import { getFundDonationsSummary } from "@services/funds/export";
+import { fundsService } from "@services/domain/funds";
+import { getFundDonationsSummary } from "@services/domain/funds/reports";
 import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
 import logger from "@services/common/logger";
 import { userService, hasRole } from "@services/domain/user";
@@ -493,11 +493,12 @@ export default class EmbassyController implements BotController {
     @FeatureFlag("embassy")
     static async sendDonationsSummaryHandler(bot: HackerEmbassyBot, msg: Message, fund?: string) {
         try {
-            const selectedFund = fund ? fundsRepository.getFundByName(fund) : fundsRepository.getLatestCosts();
+            const selectedFund = fundsService.resolveCostsFund(fund);
 
             if (!selectedFund) throw new Error(`No fund ${fund} found`);
 
-            const donationsSummary = await getFundDonationsSummary(selectedFund);
+            const donations = fundsService.getDonationsForFund(selectedFund.id, true, true);
+            const donationsSummary = await getFundDonationsSummary(selectedFund, donations);
 
             await EmbassyController.textinspaceHandler(
                 bot,

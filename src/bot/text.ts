@@ -5,18 +5,18 @@ import { PrintersConfig, CalendarConfig, BotConfig, CurrencyConfig } from "@conf
 import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "@data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
-import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/funds/currency";
+import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/domain/funds/currency";
 import { HSEvent } from "@services/external/googleCalendar";
 import { SpaceClimate } from "@services/embassy/hass";
 import { PrinterStatus } from "@services/embassy/printer3d";
+import { UserVisit } from "@services/domain/user";
 import {
+    DonationResult,
     SponsorshipLevel,
     SponsorshipLevelToEmoji,
     SponsorshipLevelToName,
     SponsorshipNameToLevel,
-} from "@services/funds/export";
-import { UserVisit } from "@services/domain/user";
-import { DonationResult } from "@services/funds/donation";
+} from "@services/domain/funds";
 
 import { splitArray } from "@utils/common";
 import {

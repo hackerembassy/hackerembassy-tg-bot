@@ -49,9 +49,9 @@ jest.mock("@utils/meta", () => {
     };
 });
 
-jest.mock("@services/funds/currency", () => {
+jest.mock("@services/domain/funds/currency", () => {
     return {
-        ...jest.requireActual<typeof import("@services/funds/currency")>("@services/funds/currency"),
+        ...jest.requireActual<typeof import("@services/domain/funds/currency")>("@services/domain/funds/currency"),
         convert: jest.fn(),
         initConvert: jest.fn(),
         convertCurrency: jest.fn((amount: number) => amount),
@@ -59,9 +59,9 @@ jest.mock("@services/funds/currency", () => {
     };
 });
 
-jest.mock("@services/funds/export", () => {
+jest.mock("@services/domain/funds/sponsorship", () => {
     return {
-        ...jest.requireActual<typeof import("@services/funds/export")>("@services/funds/export"),
+        ...jest.requireActual<typeof import("@services/domain/funds/sponsorship")>("@services/domain/funds/sponsorship"),
         getSponsorshipLevel: jest.fn(() => null),
     };
 });

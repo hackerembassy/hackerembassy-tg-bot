@@ -3,14 +3,13 @@ import { z } from "zod";
 
 import type { CallToolResult, McpServer } from "@modelcontextprotocol/server";
 
-import FundsRepository from "@data/repositories/funds";
-import NeedsRepository from "@data/repositories/needs";
-
 import { BotApiConfig, BotConfig, CalendarConfig, PrintersConfig } from "@config";
 import { spaceService } from "@services/domain/space";
 import { userService } from "@services/domain/user";
+import { fundsService, SponsorshipLevel, SponsorshipLevelToName } from "@services/domain/funds";
+import { needsService } from "@services/domain/needs";
 import embassyService from "@services/embassy/embassy";
-import { getFundDonationsSummary, SponsorshipLevel, SponsorshipLevelToName } from "@services/funds/export";
+import { getFundDonationsSummary } from "@services/domain/funds/reports";
 import { getClosestEventsFromCalendar, getTodayEventsCached, HSEvent } from "@services/external/googleCalendar";
 import { getAboutText, getJoinText } from "@hackembot/text";
 
@@ -129,7 +128,7 @@ export function registerMcpTools(server: McpServer): void {
                 "Use this to find a fund name before calling get_donations for a non-rent fund.",
         },
         () => {
-            const funds = FundsRepository.getFundsByStatus("open");
+            const funds = fundsService.getFundsByStatus("open");
 
             return jsonResult(funds.map(f => ({ name: f.name, target: f.target_value, currency: f.target_currency })));
         }
@@ -155,11 +154,13 @@ export function registerMcpTools(server: McpServer): void {
             }),
         },
         async ({ fund: fundName, limit }) => {
-            const fund = fundName ? FundsRepository.getFundByName(fundName) : FundsRepository.getLatestCosts();
+            const fund = fundsService.resolveCostsFund(fundName);
 
             if (!fund) return errorResult(`Fund not found${fundName ? `: ${fundName}` : ""}`);
 
-            return jsonResult(await getFundDonationsSummary(fund, limit));
+            const donations = fundsService.getDonationsForFund(fund.id, true, true);
+
+            return jsonResult(await getFundDonationsSummary(fund, donations, limit));
         }
     );
 
@@ -192,7 +193,7 @@ export function registerMcpTools(server: McpServer): void {
         "get_needs_list",
         { description: "Get the list of things people need to buy for the Hacker Embassy hackerspace" },
         () => {
-            const needs = NeedsRepository.getOpenNeeds();
+            const needs = needsService.getOpenNeeds();
 
             return jsonResult(needs.map(n => ({ item: n.item, requestedBy: effectiveName(n.requester) })));
         }

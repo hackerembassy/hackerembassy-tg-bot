@@ -5,9 +5,11 @@ import { DefaultUser } from "@data/seed";
 import statusRepository from "@data/repositories/status";
 import usersRepository from "@data/repositories/users";
 import devicesRepository from "@data/repositories/devices";
+import apiKeysRepository from "@data/repositories/apikeys";
 
 import logger from "@services/common/logger";
 import { convertToElapsedObject, ElapsedTimeObject, isToday, MONTH } from "@utils/date";
+import { generateRandomKey, sha256 } from "@utils/common";
 import { isValidMAC } from "@utils/network";
 
 import { spaceService } from "./space";
@@ -180,6 +182,28 @@ class UserService {
     public saveUser(user: User) {
         this.refreshCachedUserFields(user.userid, user);
         return usersRepository.updateUser(user.userid, user);
+    }
+
+    public getApiKey(user: User) {
+        return apiKeysRepository.getKeyByUser(user.userid);
+    }
+
+    // Refuses to overwrite an existing key - the caller must revoke it first
+    public issueApiKey(user: User): string | undefined {
+        if (this.getApiKey(user)) return undefined;
+
+        const newKey = generateRandomKey();
+        apiKeysRepository.addKey(user.userid, sha256(newKey));
+
+        return newKey;
+    }
+
+    public revokeApiKey(user: User): boolean {
+        const key = this.getApiKey(user);
+
+        if (!key) return false;
+
+        return apiKeysRepository.removeKey(key.id);
     }
 
     public getUserState(user: User): UserStateEx | undefined {

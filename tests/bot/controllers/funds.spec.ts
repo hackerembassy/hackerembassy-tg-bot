@@ -115,4 +115,57 @@ describe("Bot Funds commands:", () => {
 
         fundsRepository.removeFundByName(mockRentFund.name);
     });
+
+    test("/residentscosts lists residents against the current costs fund, filtered by option", async () => {
+        fundsRepository.addFund(mockRentFund);
+
+        await mockBot.processUpdate(
+            createMockMessage(
+                `/adddonation 100 USD from @${TEST_USERS.accountant.username} to ${mockRentFund.name}`,
+                TEST_USERS.admin
+            )
+        );
+
+        await mockBot.processUpdate(createMockMessage("/residentscosts paid", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/residentscosts left", TEST_USERS.accountant));
+
+        const [, paidList, leftList] = mockBot.popResults();
+
+        expect(paidList).toContain("accountant");
+        expect(paidList).not.toContain("admin");
+        expect(leftList).toContain("admin");
+        expect(leftList).not.toContain("accountant");
+
+        fundsRepository.removeFundByName(mockRentFund.name);
+    });
+
+    test("/rmonth lists residents by donation status for the current month, filtered by option", async () => {
+        await mockBot.processUpdate(createMockMessage("/addfund Rmonth_Fund with target 500 USD", TEST_USERS.admin));
+        await mockBot.processUpdate(
+            createMockMessage(`/adddonation 100 USD from @${TEST_USERS.accountant.username} to Rmonth_Fund`, TEST_USERS.admin)
+        );
+        mockBot.popResults();
+
+        await mockBot.processUpdate(createMockMessage("/rmonth paid", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/rmonth left", TEST_USERS.accountant));
+
+        const [paidList, leftList] = mockBot.popResults();
+
+        expect(paidList).toContain("accountant");
+        expect(paidList).not.toContain("admin");
+        expect(leftList).toContain("admin");
+        expect(leftList).not.toContain("accountant");
+    });
+
+    test("/refreshsponsors recalculates sponsorship levels from recent donations", async () => {
+        await mockBot.processUpdate(createMockMessage("/addfund Sponsor_Fund with target 500 USD", TEST_USERS.admin));
+        await mockBot.processUpdate(
+            createMockMessage(`/adddonation 5000 USD from @${TEST_USERS.guest.username} to Sponsor_Fund`, TEST_USERS.admin)
+        );
+        mockBot.popResults();
+
+        await mockBot.processUpdate(createMockMessage("/refreshsponsors", TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual(["funds\\.refreshsponsorships\\.success"]);
+    });
 });

@@ -106,7 +106,12 @@ jest.mock("@services/common/logger", () => {
         ...jest.requireActual<typeof import("@services/common/logger")>("@services/common/logger"),
         log: jest.fn(),
         error: jest.fn().mockImplementation((error: Error | string) => {
-            if (error instanceof Error && !error.message.startsWith("Mocked") && !error.message.startsWith("request to")) {
+            if (
+                error instanceof Error &&
+                !error.message.startsWith("Mocked") &&
+                !error.message.startsWith("request to") &&
+                !error.message.includes("tried to unlock the door")
+            ) {
                 console.log(error.message);
             }
         }),

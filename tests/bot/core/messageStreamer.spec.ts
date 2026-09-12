@@ -143,7 +143,7 @@ describe("MessageStreamer.sendStreamedMessage", () => {
         const callbacks: MessageStreamCallbacks = {
             onTyping: jest.fn(),
             sendText: jest.fn(() => {
-                throw new Error("network down");
+                throw new Error("Mocked network down");
             }),
             editText: jest.fn(),
         };

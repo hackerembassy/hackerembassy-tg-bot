@@ -65,7 +65,7 @@ export default class ServiceController implements BotController {
 
     @Route(
         ["tldr"],
-        OptionalParam(new RegExp(`(${TIME_RANGE_KEYWORDS.join("|")}|${COMPACT_DURATION_REGEX.source}|\\d*)(?: (.+))?`)),
+        OptionalParam(new RegExp(String.raw`(${TIME_RANGE_KEYWORDS.join("|")}|${COMPACT_DURATION_REGEX.source}|\d*)(?: (.+))?`)),
         match => [match[1], match[2]]
     )
     @UserRoles(TrustedMembers)

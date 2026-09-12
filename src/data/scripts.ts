@@ -11,7 +11,7 @@ import * as relations from "./relations";
 import { SEED_SERVICE_USERS } from "./seed";
 import { User } from "./models";
 
-export function getOrCreateDb(shouldInit = process.env.NODE_ENV === "production", location: string) {
+export function getOrCreateDb(location: string, shouldInit = process.env.NODE_ENV === "production") {
     try {
         let isNewDatabase = false;
 

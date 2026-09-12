@@ -156,7 +156,11 @@ export function registerMcpTools(server: McpServer): void {
         async ({ fund: fundName, limit }) => {
             const fund = fundsService.resolveCostsFund(fundName);
 
-            if (!fund) return errorResult(`Fund not found${fundName ? `: ${fundName}` : ""}`);
+            if (!fund) {
+                const fundNameSuffix = fundName ? `: ${fundName}` : "";
+
+                return errorResult(`Fund not found${fundNameSuffix}`);
+            }
 
             const donations = fundsService.getDonationsForFund(fund.id, true, true);
 

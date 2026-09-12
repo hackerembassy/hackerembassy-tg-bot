@@ -11,7 +11,7 @@ console.log(
     "[DEV] Preparing bot before the first launch.\n ! You need to have ssh-keygen installed in PATH to succesfully generate keys for embassy API"
 );
 
-getOrCreateDb(true, path.join(PROJECT_ROOT, "db/data.db"));
+getOrCreateDb(path.join(PROJECT_ROOT, "db/data.db"), true);
 
 const UsersRepository = (await import("@data/repositories/users")).default;
 

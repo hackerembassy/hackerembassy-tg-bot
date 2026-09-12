@@ -140,7 +140,7 @@ function wrapOllamaChunk() {
 export class OpenWebUI {
     public base: string;
 
-    constructor(private apiKey: string) {
+    constructor(private readonly apiKey: string) {
         this.base = neuralConfig.openwebui.base;
     }
 

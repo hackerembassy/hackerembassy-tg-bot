@@ -55,11 +55,11 @@ const printersConfig = config.get<PrintersConfig>("printers");
 
 // Classes
 export class Printer3d {
-    private config: PrinterEndpoint;
-    private apiBase: string;
-    private camBase: string;
+    private readonly config: PrinterEndpoint;
+    private readonly apiBase: string;
+    private readonly camBase: string;
 
-    constructor(private name: keyof typeof printersConfig) {
+    constructor(private readonly name: keyof typeof printersConfig) {
         this.config = printersConfig[this.name];
         this.apiBase = `${this.config.host}:${this.config.apiport}`;
         this.camBase = `${this.config.host}:${this.config.camport}`;

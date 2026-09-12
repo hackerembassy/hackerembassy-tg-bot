@@ -29,7 +29,7 @@ export default class BotMessageContext {
 
     constructor(
         public user: User,
-        private msg: Message,
+        private readonly msg: Message,
         public command?: string
     ) {}
 

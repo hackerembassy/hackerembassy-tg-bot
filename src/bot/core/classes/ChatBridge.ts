@@ -1,6 +1,6 @@
 export default class ChatBridge {
-    private adminChatMap: Map<number, number> = new Map();
-    private chatAdminMap: Map<number, number> = new Map();
+    private readonly adminChatMap: Map<number, number> = new Map();
+    private readonly chatAdminMap: Map<number, number> = new Map();
 
     getLinkedChat(adminId: number): number | null {
         return this.adminChatMap.get(adminId) ?? null;

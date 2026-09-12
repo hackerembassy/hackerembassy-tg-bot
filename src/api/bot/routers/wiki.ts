@@ -72,7 +72,7 @@ router.post("/hooks/documents.update", outlineSignedMiddleware, (req, res, next)
         const timeoutId = setTimeout(() => {
             const fullUrl = `${wikiConfig.baseUrl}${url}`;
 
-            void bot.sendAlert(`📝 \\u0023wiki page #[${title}#]#(${fullUrl}#) was updated by ${updatedBy.name}`);
+            void bot.sendAlert(String.raw`📝 \u0023wiki page #[${title}#]#(${fullUrl}#) was updated by ${updatedBy.name}`);
             debounceTimers.delete(url);
         }, WEBHOOK_DEBOUNCE);
 

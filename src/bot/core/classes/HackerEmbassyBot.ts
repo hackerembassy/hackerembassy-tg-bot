@@ -104,15 +104,18 @@ const WelcomeMessageMap: {
 };
 
 export default class HackerEmbassyBot extends TelegramBot {
-    public name: string = botConfig.name;
-    public customEmitter = new EventEmitter();
-    public botState = new BotState(this);
-    public botMessageHistory = new MessageHistory(
+    public readonly name: string = botConfig.name;
+    public readonly customEmitter = new EventEmitter();
+    public readonly botState = new BotState(this);
+    public readonly botMessageHistory = new MessageHistory(
         this.botState.createMessageLogStore("history"),
         botConfig.history.commandsLimit
     );
-    public messageHistory = new MessageHistory(this.botState.createMessageLogStore("messages"), botConfig.history.messagesLimit);
-    public assets: BotAssets = {
+    public readonly messageHistory = new MessageHistory(
+        this.botState.createMessageLogStore("messages"),
+        botConfig.history.messagesLimit
+    );
+    public readonly assets: BotAssets = {
         images: {
             restricted: null,
             chatnotallowed: null,
@@ -120,20 +123,20 @@ export default class HackerEmbassyBot extends TelegramBot {
     };
     public pollingError: Error | null = null;
     public autoRemoveChats: number[] = [];
-    public chatBridge = new ChatBridge();
+    public readonly chatBridge = new ChatBridge();
     public forwardTarget = botConfig.chats.main;
 
     // Routes
-    private commandRouter = new CommandRouter(botConfig.name);
-    private streamer = new MessageStreamer();
+    private readonly commandRouter = new CommandRouter(botConfig.name);
+    private readonly streamer = new MessageStreamer();
     private voiceHandler: BotHandler | null = null;
     private chatMemberHandler: ChatMemberHandler | null = null;
     private askContinuationHandler: AskContinuationHandler | null = null;
     private guessHandler: GuessHandler | null = null;
 
     // Context storage for user messages
-    private contextMap = new Map<Message, BotMessageContext>();
-    private guessIgnoreList = new Set(botConfig.guess.ignoreList);
+    private readonly contextMap = new Map<Message, BotMessageContext>();
+    private readonly guessIgnoreList = new Set(botConfig.guess.ignoreList);
 
     constructor(token: string) {
         // @ts-expect-error polling options type in the lib is a lie
@@ -538,13 +541,11 @@ export default class HackerEmbassyBot extends TelegramBot {
             await this.deleteMessages(chatId, messages);
         } else {
             this.deleteQueue.push(messageId);
-            if (!this.deleteTimeout) {
-                this.deleteTimeout = setTimeout(() => {
-                    void this.deleteMessages(chatId, this.deleteQueue);
-                    this.deleteQueue = [];
-                    this.deleteTimeout = null;
-                }, timeout);
-            }
+            this.deleteTimeout ??= setTimeout(() => {
+                void this.deleteMessages(chatId, this.deleteQueue);
+                this.deleteQueue = [];
+                this.deleteTimeout = null;
+            }, timeout);
         }
     }
 
@@ -835,9 +836,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     public async sendRestrictedMessage(message: Message, route?: BotRoute, type: keyof typeof this.assets.images = "restricted") {
-        if (!this.assets.images[type]) {
-            this.assets.images[type] = await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
-        }
+        this.assets.images[type] ??= await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
 
         return this.assets.images[type]
             ? this.sendPhotoExt(message.chat.id, this.assets.images[type], message, {

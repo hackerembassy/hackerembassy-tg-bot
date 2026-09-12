@@ -24,7 +24,7 @@ export default class MessageHistory {
     }
 
     push(chatId: string | number, entry: Omit<MessageHistoryEntry, "datetime">, order = 0) {
-        if (!this.messageLog[chatId]) this.messageLog[chatId] = [];
+        this.messageLog[chatId] ??= [];
 
         const chatHistory = this.messageLog[chatId];
 

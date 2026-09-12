@@ -99,7 +99,7 @@ export async function arp(ip: string): Promise<string> {
     if (!net.isIP(ip)) throw new Error(`Invalid IP address: ${ip}`);
 
     const arpOutput = await execCommand("arp", ["-n", ip]);
-    const match = arpOutput.match(MAC_REGEX);
+    const match = MAC_REGEX.exec(arpOutput);
     const mac = match ? match[0] : null;
 
     if (!mac) throw new Error(`MAC not found for IP ${ip}`);

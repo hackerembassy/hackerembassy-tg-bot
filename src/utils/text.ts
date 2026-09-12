@@ -45,7 +45,7 @@ export function chunkSubstr(str: string, size: number) {
 export function replaceUnsafeSymbolsForAscii(message: string) {
     return message
         .replace(/\[.+?\]/, "")
-        .replaceAll(/[💸|💎|🥇|🥈|🥉] /gu, "")
+        .replaceAll(/[💸💎🥇🥈🥉] /gu, "")
         .replaceAll(/[#|`]/g, "")
         .replaceAll(/\(.*?\)/g, "")
         .replaceAll("-", "\u002D")

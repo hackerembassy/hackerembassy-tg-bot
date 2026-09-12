@@ -375,15 +375,11 @@ export default class EmbassyController implements BotController {
         try {
             const body = await embassyService.pingDevice(deviceName);
 
-            await bot.sendMessageExt(
-                msg.chat.id,
-                raw
-                    ? body.output
-                    : body.alive
-                      ? t("embassy.device.alive.up", { time: body.time })
-                      : t("embassy.device.alive.down"),
-                msg
-            );
+            let message = t("embassy.device.alive.down");
+            if (raw) message = body.output;
+            else if (body.alive) message = t("embassy.device.alive.up", { time: body.time });
+
+            await bot.sendMessageExt(msg.chat.id, message, msg);
         } catch (error) {
             logger.error(error);
 

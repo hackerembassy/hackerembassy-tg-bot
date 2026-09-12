@@ -2,6 +2,10 @@ import { NodeHtmlMarkdown } from "node-html-markdown";
 
 import { ZERO_WIDTH_SPACE } from "./constants";
 
+// Sentinel used above to smuggle a literal "#" through taggedMarkdownToTelegramMarkdownV2 without
+// it being read as the tag marker itself - written out as U+0023 rather than a literal "#".
+const SENTINEL_PLACEHOLDER = String.raw`\u0023`;
+
 /**
  * Bot uses MarkdownV2 by default, because it's needed for almost every command.
  * But we still want to be able to use markdown special symbols as regular symbols in some cases.
@@ -12,10 +16,10 @@ import { ZERO_WIDTH_SPACE } from "./constants";
  */
 export function taggedMarkdownToTelegramMarkdownV2(message: string): string {
     return message
-        .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, "\\$1")
+        .replaceAll(/((?<![\\|#])[_*[\]()~`>+\-=|{}.!])/g, String.raw`\$1`)
         .replaceAll(/#([_*[\]()~`>+\-=|{}.!])/g, "$1")
         .replaceAll("#", "")
-        .replaceAll("\\u0023", "\\#");
+        .replaceAll(SENTINEL_PLACEHOLDER, String.raw`\#`);
 }
 
 /**
@@ -42,8 +46,8 @@ export function stripCustomMarkup(text: string): string {
 // later passes - including the final blanket escape - don't touch it again. Uses a Private Use Area
 // character, which can't appear in real content and won't collide with plain digits in prose.
 const ENTITY_PLACEHOLDER_MARK = "";
-const ENTITY_PLACEHOLDER_REGEX = new RegExp(`${ENTITY_PLACEHOLDER_MARK}(\\d+)${ENTITY_PLACEHOLDER_MARK}`, "g");
-const THINKING_SCOPE_REGEX = new RegExp(`\\[thinking\\]\\n([\\s\\S]*?)\\n\\[/${ZERO_WIDTH_SPACE}thinking\\]\\n\\n`, "g");
+const ENTITY_PLACEHOLDER_REGEX = new RegExp(String.raw`${ENTITY_PLACEHOLDER_MARK}(\d+)${ENTITY_PLACEHOLDER_MARK}`, "g");
+const THINKING_SCOPE_REGEX = new RegExp(String.raw`\[thinking\]\n([\s\S]*?)\n\[/${ZERO_WIDTH_SPACE}thinking\]\n\n`, "g");
 
 export function stripThinkingScope(text: string): string {
     return text.replaceAll(THINKING_SCOPE_REGEX, "");
@@ -62,7 +66,7 @@ export function GFMToTelegramMarkdown(markdown: string, baseUrl: string = ""): s
 
     const text = markdown
         // Some sources export literal "\n" instead of real line breaks; the regexes below match on actual newlines
-        .replaceAll("\\n", "\n")
+        .replaceAll(String.raw`\n`, "\n")
         // Fenced/inline code is taken verbatim and protected, since it's the one place stray
         // specials (e.g. a real "_" in example code) are meant to stay literal, not get escaped
         .replaceAll(/```[a-zA-Z0-9]*\n([\s\S]*?)```/g, (_, code: string) => protect(`\`\`\`\n${code}\`\`\``))
@@ -127,7 +131,9 @@ export function GFMToTelegramMarkdown(markdown: string, baseUrl: string = ""): s
         .replaceAll(THINKING_SCOPE_REGEX, (_, content: string) => {
             if (!content.trim()) return "";
 
-            return `${protect("**>")}${content.split("\n").join(`\n${protect(">")}`)}${protect("||")}\n\n`;
+            const quotedLines = content.split("\n").join(`\n${protect(">")}`);
+
+            return `${protect("**>")}${quotedLines}${protect("||")}\n\n`;
         });
 
     // Everything left at this point is plain prose - escape any stray entity-delimiter characters
@@ -145,14 +151,14 @@ export function GFMToTelegramMarkdown(markdown: string, baseUrl: string = ""): s
 // escape model is well-specified and two-phase (escapes are resolved before entities are scanned),
 // so it doesn't have that failure mode.
 function escapeTelegramMarkdownV2Specials(text: string): string {
-    return text.replaceAll(/[_*[\]()~`>#+=|{}.!\\-]/g, "\\$&");
+    return text.replaceAll(/[_*[\]()~`>#+=|{}.!\\-]/g, String.raw`\$&`);
 }
 
 // Inside the (...) part of a link/image definition, MarkdownV2 only requires ')' and '\' to be
 // escaped - anything else (including '.', '-', '_', '~', which commonly appear in real URLs) must
 // stay untouched, or the escaped backslash would become part of the URL itself and break the link.
 function escapeTelegramMarkdownV2Url(url: string): string {
-    return url.replaceAll(/[)\\]/g, "\\$&");
+    return url.replaceAll(/[)\\]/g, String.raw`\$&`);
 }
 
 function resolveRelativeUrl(url: string, baseUrl: string = ""): string {

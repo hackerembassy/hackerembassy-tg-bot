@@ -19,7 +19,7 @@ export function formatUsername(username: Optional<string>, mention = false, isAp
 
     if (isApi) return `@${username}`;
 
-    return mention ? `@${username}`.replaceAll("_", "\\_") : `#[${username}#]#(t.me/${username}#)`;
+    return mention ? `@${username}`.replaceAll("_", String.raw`\_`) : `#[${username}#]#(t.me/${username}#)`;
 }
 
 export function tgUserLink(tgUser: ITelegramUser) {

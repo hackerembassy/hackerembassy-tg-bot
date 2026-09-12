@@ -287,16 +287,14 @@ export default class FundsController implements BotController {
 
                     if (!convertedValue) throw new Error("Failed to convert currency");
 
-                    const happinessLevel =
-                        convertedValue < 10000
-                            ? 1
-                            : convertedValue < 20000
-                              ? 2
-                              : convertedValue < 40000
-                                ? 3
-                                : convertedValue < 80000
-                                  ? 4
-                                  : 5; // lol
+                    const happinessThresholds: [threshold: number, level: number][] = [
+                        [10000, 1],
+                        [20000, 2],
+                        [40000, 3],
+                        [80000, 4],
+                    ];
+                    const happinessLevel = happinessThresholds.find(([threshold]) => convertedValue < threshold)?.[1] ?? 5;
+
                     return getImageFromPath(`./resources/images/anime/${happinessLevel}.jpg`);
                 }
             }

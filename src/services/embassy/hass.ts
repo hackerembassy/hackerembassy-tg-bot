@@ -174,7 +174,7 @@ class Alarm {
 }
 
 class Conditioner {
-    constructor(private entityId: string) {}
+    constructor(private readonly entityId: string) {}
 
     async getState() {
         const response = await hass.get(`${climateConfig.conditioner.statePath}/${this.entityId}`);

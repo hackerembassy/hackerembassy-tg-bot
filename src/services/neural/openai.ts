@@ -43,7 +43,7 @@ export type ChatCompletionResponse = {
 // Legacy non-streaming class to communicate with external OpenAI API
 // TODO: Remove this class and route through Open Web UI
 export class OpenAI {
-    constructor(private apiKey: string) {}
+    constructor(private readonly apiKey: string) {}
 
     async askChat(prompt: string, context: string) {
         if (!this.apiKey) throw new Error("OpenAI API key is not set");

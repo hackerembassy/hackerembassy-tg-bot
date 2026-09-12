@@ -53,7 +53,7 @@ export function sanitizeUsername(username: string): string {
 
 // Classes
 class UserService {
-    private lastUserStateCache: Map<number, UserStateEx> = new Map();
+    private readonly lastUserStateCache: Map<number, UserStateEx> = new Map();
 
     // Public methods
     public verifyUser(tgUser: { id: number; username?: string }, language: string) {

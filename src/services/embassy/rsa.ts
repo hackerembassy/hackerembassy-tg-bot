@@ -29,11 +29,15 @@ class Rsa {
     private priv: Nullable<Promise<NodeRSA>> = null;
 
     private get pubKey(): Promise<NodeRSA> {
-        return (this.pub ??= Rsa.load(Rsa.pubPath));
+        this.pub ??= Rsa.load(Rsa.pubPath);
+
+        return this.pub;
     }
 
     private get privKey(): Promise<NodeRSA> {
-        return (this.priv ??= Rsa.load(Rsa.privPath));
+        this.priv ??= Rsa.load(Rsa.privPath);
+
+        return this.priv;
     }
 
     private static async load(keyPath: string): Promise<NodeRSA> {

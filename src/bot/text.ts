@@ -74,16 +74,17 @@ export async function createFundList(
 export function generateFundStatus(fund: Fund, sumOfAllDonations: number, isHistory: boolean): string {
     switch (fund.status) {
         case "closed": {
-            return `☑️ \\[${t("funds.fund.closed")}]`;
+            return String.raw`☑️ \[${t("funds.fund.closed")}]`;
         }
         case "postponed": {
-            return `⏱ \\[${t("funds.fund.postponed")}]`;
+            return String.raw`⏱ \[${t("funds.fund.postponed")}]`;
         }
         case "open": {
-            return `${sumOfAllDonations < fund.target_value ? "🟠" : "🟢"}${isHistory ? ` \\[${t("funds.fund.open")}]` : ""}`;
+            const openSuffix = isHistory ? String.raw` \[${t("funds.fund.open")}]` : "";
+            return `${sumOfAllDonations < fund.target_value ? "🟠" : "🟢"}${openSuffix}`;
         }
         default: {
-            return `⚙️ \\[${fund.status}]`;
+            return String.raw`⚙️ \[${fund.status}]`;
         }
     }
 }
@@ -131,13 +132,15 @@ export function generateDonationsList(
     let donationList = "";
 
     for (const donation of donations) {
-        donationList += `      ${options.showAdmin ? `[#\`${donation.id}#\`] - ` : ""}${
-            donation.user.username
-                ? formatUsername(donation.user.username, mode.mention, options.isApi)
-                : donation.user.first_name
-        } - ${toBasicMoneyString(donation.value)} ${donation.currency}${
-            options.showAdmin ? ` →  ${donation.accountant.username}` : ""
-        }\n`;
+        const donationIdPart = options.showAdmin ? `[#\`${donation.id}#\`] - ` : "";
+        const donationUserName = donation.user.username
+            ? formatUsername(donation.user.username, mode.mention, options.isApi)
+            : donation.user.first_name;
+        const accountantPart = options.showAdmin ? ` →  ${donation.accountant.username}` : "";
+
+        donationList += `      ${donationIdPart}${donationUserName} - ${toBasicMoneyString(donation.value)} ${
+            donation.currency
+        }${accountantPart}\n`;
     }
 
     return donationList;
@@ -203,12 +206,16 @@ export function getStatusMessage(
         const name = userStatus.user.username
             ? formatUsername(userStatus.user.username, false, options.isApi)
             : userStatus.user.first_name;
-        stateText += `${name} ${getUserBadges(userStatus.user)} ${userStatus.note ? `(${userStatus.note})` : ""}\n`;
+        const notePart = userStatus.note ? `(${userStatus.note})` : "";
+        stateText += `${name} ${getUserBadges(userStatus.user)} ${notePart}\n`;
     }
     stateText += "\n";
 
     // Misc
-    stateText += climateInfo ? getClimateMessage(climateInfo, options) : options.isApi ? "" : REPLACE_MARKER;
+    let miscText = REPLACE_MARKER;
+    if (climateInfo) miscText = getClimateMessage(climateInfo, options);
+    else if (options.isApi) miscText = "";
+    stateText += miscText;
     stateText += options.isApi
         ? ""
         : t("status.status.updated", {
@@ -424,12 +431,23 @@ export function getStatsTexts(userTimes: UserVisit[], dateBoundaries: DateBounda
     return messages;
 }
 
+const placeMedals = new Map([
+    [1, "🥇"],
+    [2, "🥈"],
+    [3, "🥉"],
+]);
+
+function getPlaceMedal(userPlace: number): string {
+    if (placeMedals.has(userPlace)) return placeMedals.get(userPlace)!;
+    return userPlace < 11 ? "🧁" : "🍪";
+}
+
 export function getStatsList(userTimes: UserVisit[], offset = 0): string {
     const lines = [];
 
     for (const [i, userTime] of userTimes.entries()) {
         const userPlace = i + offset + 1;
-        const medal = userPlace === 1 ? "🥇" : userPlace === 2 ? "🥈" : userPlace === 3 ? "🥉" : userPlace < 11 ? "🧁" : "🍪";
+        const medal = getPlaceMedal(userPlace);
         const place = `${medal}${userPlace}`.padEnd(4, " ");
         lines.push(
             `${place}${fixedWidthPeriod(userTime.usertime)} ${effectiveName(userTime.user)} ${getUserBadges(userTime.user)}`
@@ -447,7 +465,9 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
 }
 
 export function HSEventToString(event: HSEvent, short: boolean = false): string {
-    const dateTimeOptions = event.allDay ? onlyDateOptions : short ? onlyTimeOptions : shortDateTimeOptions;
+    let dateTimeOptions = shortDateTimeOptions;
+    if (event.allDay) dateTimeOptions = onlyDateOptions;
+    else if (short) dateTimeOptions = onlyTimeOptions;
     const eventStart = event.start?.toLocaleString("RU-ru", dateTimeOptions);
     const eventEnd = event.end?.toLocaleString("RU-ru", dateTimeOptions);
     const eventTime = event.allDay && eventStart === eventEnd ? eventStart : `${eventStart} - ${eventEnd}`;
@@ -482,7 +502,12 @@ export function getTodayEventsText(todayEvents: HSEvent[]): string {
 
 export function listTopics(topics: Topic[]): string {
     return topics.length > 0
-        ? topics.map(topic => `#\`${topic.name}#\`${topic.description ? ` - ${topic.description}` : ""}`).join("\n")
+        ? topics
+              .map(topic => {
+                  const descriptionPart = topic.description ? ` - ${topic.description}` : "";
+                  return `#\`${topic.name}#\`${descriptionPart}`;
+              })
+              .join("\n")
         : "";
 }
 
@@ -555,7 +580,7 @@ export function getNewSponsorshipText(user: User, sponsorship: SponsorshipLevel)
 
 export function getSponsorsList(sponsors: User[], isApi = false): string {
     return sponsors
-        .sort((a, b) =>
+        .toSorted((a, b) =>
             b.sponsorship === a.sponsorship
                 ? (a.username ?? a.first_name ?? "").localeCompare(b.username ?? b.first_name ?? "")
                 : (b.sponsorship ?? 0) - (a.sponsorship ?? 0)

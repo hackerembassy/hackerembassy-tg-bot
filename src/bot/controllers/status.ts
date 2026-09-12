@@ -457,7 +457,7 @@ export default class StatusController implements BotController {
         await bot.sendMessageExt(msg.chat.id, t("status.evict"), msg);
     }
 
-    @Route(["inforce", "inf", "goin"], new RegExp(`(\\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`), match => [
+    @Route(["inforce", "inf", "goin"], new RegExp(String.raw`(\S+)(?: (?:for )?(${DURATION_STRING_REGEX.source}))?`), match => [
         match[2],
         match[1],
     ])
@@ -636,7 +636,6 @@ export default class StatusController implements BotController {
                 inline_keyboard,
             },
         });
-        return;
     }
 
     @Route(["notgoing", "notcoming", "notcuming", "ng"], OptionalParam(/(.*)/), match => [match[1]])
@@ -708,10 +707,7 @@ export default class StatusController implements BotController {
 
         if (!PublicChats.includes(msg.chat.id)) return;
 
-        const isFlipFlop =
-            previousState !== undefined &&
-            previousState.status === expectedStatus &&
-            Date.now() - previousState.date <= FLIP_FLOP_WINDOW_MS;
+        const isFlipFlop = previousState?.status === expectedStatus && Date.now() - previousState.date <= FLIP_FLOP_WINDOW_MS;
 
         if (!isFlipFlop) return;
 

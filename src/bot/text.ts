@@ -5,13 +5,14 @@ import { PrintersConfig, CalendarConfig, BotConfig, CurrencyConfig } from "@conf
 import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "@data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
-import { Coins, formatValueForCurrency, sumDonations, toBasicMoneyString } from "@services/domain/funds/currency";
+import { Coins, formatValueForCurrency, toBasicMoneyString } from "@services/domain/funds/currency";
 import { HSEvent } from "@services/external/googleCalendar";
 import { SpaceClimate } from "@services/embassy/hass";
 import { PrinterStatus } from "@services/embassy/printer3d";
 import { UserVisit } from "@services/domain/user";
 import {
     DonationResult,
+    fundsService,
     SponsorshipLevel,
     SponsorshipLevelToEmoji,
     SponsorshipLevelToName,
@@ -54,7 +55,7 @@ export async function createFundList(
 
     for (const fund of funds) {
         const fundDonations = donations.filter(donation => donation.fund_id === fund.id);
-        const sumOfAllDonations = await sumDonations(fundDonations, fund.target_currency);
+        const sumOfAllDonations = await fundsService.sumDonations(fundDonations, fund.target_currency);
         const fundStatus = generateFundStatus(fund, sumOfAllDonations, isHistory);
 
         list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${toBasicMoneyString(

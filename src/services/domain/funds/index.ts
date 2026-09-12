@@ -3,7 +3,7 @@ import FundsRepository from "@data/repositories/funds";
 
 import logger from "@services/common/logger";
 
-import { parseMoneyValue, prepareCurrency, sumDonations } from "./currency";
+import { convertCurrency, DefaultCurrency, parseMoneyValue, prepareCurrency } from "./currency";
 import { getSponsorshipLevel, getSponsorshipStartPeriodDate, getUserDonationMap } from "./sponsorship";
 import { userService } from "../user";
 
@@ -111,6 +111,15 @@ class FundsService {
         return FundsRepository.transferDonation(donationId, accountantId);
     }
 
+    public async sumDonations(fundDonations: { value: number; currency: string }[], targetCurrency: string = DefaultCurrency) {
+        return await fundDonations.reduce(async (prev, current) => {
+            const newValue = await convertCurrency(current.value, current.currency, targetCurrency);
+            const prevValue = await prev;
+
+            return newValue ? prevValue + newValue : prevValue;
+        }, Promise.resolve(0));
+    }
+
     // Business logic
     public async donate(
         fundName: string,
@@ -157,8 +166,9 @@ class FundsService {
     }
 
     public async recalculateSponsorship(user: User, donations: Donation[]): Promise<{ updated: boolean; level: number }> {
+        const userDonationsSum = await this.sumDonations(donations);
         const oldSponsorship = user.sponsorship;
-        const newSponsorship = await getSponsorshipLevel(donations);
+        const newSponsorship = getSponsorshipLevel(userDonationsSum);
         const updated = oldSponsorship !== newSponsorship;
 
         if (updated) {
@@ -246,7 +256,7 @@ class FundsService {
 
     public async getDebtSummary(userId: number): Promise<{ donations: DonationEx[]; total: number }> {
         const donations = this.getFundDonationsHeldBy(userId);
-        const total = donations.length > 0 ? await sumDonations(donations) : 0;
+        const total = donations.length > 0 ? await this.sumDonations(donations) : 0;
 
         return { donations, total };
     }

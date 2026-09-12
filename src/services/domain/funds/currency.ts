@@ -105,8 +105,16 @@ export function formatValueForCurrency(value: number, currency: string): number 
     return Number(value.toFixed(fraction));
 }
 
-export function parseMoneyValue(value: string) {
-    return Number(value.replaceAll(/(k|тыс|тысяч|т)/g, "000").replaceAll(",", ""));
+// The numeric part is captured (not just stripped) so a stray character elsewhere in the string
+// (e.g. "2 ,k") can't sneak past as valid input - only a contiguous run of digits/./, counts.
+const ThousandsShorthandPattern = /^\s*(-?[\d.,]+)\s*(тысяч|тыс|k|т)\s*$/;
+
+export function parseMoneyValue(value: string): number {
+    const shorthandMatch = value.match(ThousandsShorthandPattern);
+
+    if (shorthandMatch) return Number(shorthandMatch[1].replaceAll(",", "")) * 1000;
+
+    return Number(value.trim().replaceAll(",", ""));
 }
 
 export function toBasicMoneyString(value: number): string {
@@ -192,18 +200,6 @@ export async function convertCurrency(
         logger.error("Error while converting currency", error);
         return;
     }
-}
-
-export async function sumDonations(
-    fundDonations: { value: number; currency: string }[],
-    targetCurrency: string = DefaultCurrency
-) {
-    return await fundDonations.reduce(async (prev, current) => {
-        const newValue = await convertCurrency(current.value, current.currency, targetCurrency);
-        const prevValue = await prev;
-
-        return newValue ? prevValue + newValue : prevValue;
-    }, Promise.resolve(0));
 }
 
 export function getCoinDefinition(coinname: string): CoinDefinition | undefined {

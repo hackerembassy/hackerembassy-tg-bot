@@ -9,7 +9,7 @@ import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types"
 
 import { COSTS_PREFIX, fundsService } from "@services/domain/funds";
 
-import { DefaultCurrency, sumDonations } from "@services/domain/funds/currency";
+import { DefaultCurrency } from "@services/domain/funds/currency";
 import embassyService, { EmbassyLinkMacUrl } from "@services/embassy/embassy";
 import { createUserStatsDonut } from "@services/domain/funds/reports";
 import * as ExportHelper from "@services/domain/funds/reports";
@@ -816,7 +816,7 @@ export default class StatusController implements BotController {
 
         const donations = fundsService.getDonationsOf(target.userid, true, true);
         const donationList = donations.length > 0 ? TextGenerators.generateFundDonationsList(donations) : "";
-        const totalDonated = donations.length > 0 ? await sumDonations(donations) : 0;
+        const totalDonated = donations.length > 0 ? await fundsService.sumDonations(donations) : 0;
         const { days, hours, minutes } = userService.getUserTotalTime(target);
 
         const statsText = `${t("status.statsof", {

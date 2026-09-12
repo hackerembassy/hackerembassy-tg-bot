@@ -3,8 +3,6 @@ import config from "config";
 import { BotConfig, SponsorshipLevelsConfig } from "@config";
 import { Donation, DonationEx, User } from "@data/models";
 
-import { sumDonations } from "./currency";
-
 const fundsConfig = config.get<BotConfig>("bot").funds;
 
 export enum SponsorshipLevel {
@@ -57,8 +55,7 @@ export function getSponsorshipStartPeriodDate() {
     return startPeriodDate;
 }
 
-export async function getSponsorshipLevel(donations: Donation[]) {
-    const sum = await sumDonations(donations);
+export function getSponsorshipLevel(sum: number) {
     return sum >= fundsConfig.sponsorship.levels.platinum
         ? SponsorshipLevel.Platinum
         : sum >= fundsConfig.sponsorship.levels.gold

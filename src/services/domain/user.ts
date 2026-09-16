@@ -274,7 +274,7 @@ class UserService {
 
     public evictPeople(): void {
         const date = Date.now();
-        const peopleInside = this.getPeopleInside();
+        const peopleInside = this.getPeopleInside(true);
 
         for (const userstate of peopleInside) {
             this.pushPeopleState({

@@ -1,3 +1,6 @@
+import { CommandsMap, GeneralCommandsList, MemberCommandsList, TenantCommandsList } from "@constants/commands";
+import { TEST_USERS } from "@data/seed";
+
 import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 describe("Basic commands:", () => {
@@ -43,6 +46,17 @@ describe("Basic commands:", () => {
         await mockBot.processUpdate(createMockMessage(`/about`));
 
         expect(mockBot.popResults()).toEqual(["basic\\.help", "basic\\.about"]);
+    });
+
+    test("tenant /help consists of general and tenant commands without the member section", async () => {
+        await mockBot.processUpdate(createMockMessage("/help", TEST_USERS.tenant));
+
+        expect(mockBot.popResults()).toEqual(["basic\\.help"]);
+        expect(CommandsMap.tenant).toBe(TenantCommandsList);
+        expect(GeneralCommandsList).toContain("/status (s)");
+        expect(TenantCommandsList).toContain("/unlock (u)");
+        expect(TenantCommandsList).not.toContain("[Команды резидентов]");
+        expect(TenantCommandsList).not.toBe(MemberCommandsList);
     });
 
     test("should return correct donate responses", async () => {

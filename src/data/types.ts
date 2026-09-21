@@ -14,7 +14,16 @@ export const enum UserStateType {
     InsideSecret = 3,
 }
 
-export type UserRole = "admin" | "member" | "accountant" | "trusted" | "default" | "restricted" | "banned" | "service";
+export type UserRole =
+    | "admin"
+    | "member"
+    | "tenant"
+    | "accountant"
+    | "trusted"
+    | "default"
+    | "restricted"
+    | "banned"
+    | "service";
 
 export const enum AutoInsideMode {
     Disabled = 0,

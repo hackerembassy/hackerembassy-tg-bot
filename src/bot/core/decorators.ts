@@ -19,6 +19,7 @@ export enum MetadataKeys {
 // Common user roles
 export const TrustedMembers = ["member", "trusted"] as UserRole[];
 export const Members = ["member"] as UserRole[];
+export const Unlockers = ["member", "tenant"] as UserRole[];
 export const Accountants = ["accountant"] as UserRole[];
 export const Admins = ["admin"] as UserRole[];
 

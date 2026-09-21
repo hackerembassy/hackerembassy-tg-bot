@@ -9,7 +9,32 @@ describe("Bot Embassy commands:", () => {
 
     afterEach(() => jest.clearAllMocks());
 
-    test("/unlock is restricted to members and requires the user's device to be detected inside", async () => {
+    test("a tenant whose device is detected inside can unlock the door", async () => {
+        (embassyService.isAnyDeviceInside as jest.Mock).mockResolvedValueOnce(true);
+
+        await mockBot.processUpdate(createMockMessage("/unlock", TEST_USERS.tenant));
+
+        expect(mockBot.popResults()).toEqual(["embassy\\.unlock\\.success"]);
+        expect(embassyService.unlockDoorFor).toHaveBeenCalledTimes(1);
+    });
+
+    test("a tenant whose device is not detected inside cannot unlock the door", async () => {
+        (embassyService.isAnyDeviceInside as jest.Mock).mockResolvedValueOnce(false);
+
+        await mockBot.processUpdate(createMockMessage("/unlock", TEST_USERS.tenant));
+
+        expect(mockBot.popResults()).toEqual(["embassy\\.unlock\\.nomac"]);
+        expect(embassyService.unlockDoorFor).not.toHaveBeenCalled();
+    });
+
+    test("a tenant remains blocked from member-only camera commands", async () => {
+        await mockBot.processUpdate(createMockMessage("/allcams", TEST_USERS.tenant));
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.restricted"]);
+        expect(embassyService.getAllCameras).not.toHaveBeenCalled();
+    });
+
+    test("/unlock remains available to members and requires the user's device to be detected inside", async () => {
         // Guests can't even attempt it.
         await mockBot.processUpdate(createMockMessage("/unlock", TEST_USERS.guest));
 

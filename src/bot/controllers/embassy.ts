@@ -25,6 +25,7 @@ import {
     PublicChats,
     Route,
     TrustedMembers,
+    Unlockers,
     UserRoles,
 } from "@hackembot/core/decorators";
 
@@ -52,7 +53,7 @@ enum DeviceOperation {
 export default class EmbassyController implements BotController {
     @Route(["unlock", "u"])
     @FeatureFlag("embassy")
-    @UserRoles(Members)
+    @UserRoles(Unlockers)
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         const user = bot.context(msg).user;
 

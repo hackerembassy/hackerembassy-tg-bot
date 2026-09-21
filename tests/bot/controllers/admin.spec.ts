@@ -100,6 +100,16 @@ describe("Bot Admin commands:", () => {
         ]);
     });
 
+    test("/updateroles can assign tenant without granting member-only access", async () => {
+        await mockBot.processUpdate(createMockMessage("/updateroles of tenant to default", TEST_USERS.admin));
+        mockBot.popResults();
+
+        await mockBot.processUpdate(createMockMessage("/updateroles of tenant to tenant", TEST_USERS.admin));
+        await mockBot.processUpdate(createMockMessage("/allcams", TEST_USERS.tenant));
+
+        expect(mockBot.popResults()).toEqual(["admin\\.updateRoles\\.success", "general\\.errors\\.restricted"]);
+    });
+
     test("/updateroles actually grants permissions, /removeuser actually revokes them, both restricted to admins", async () => {
         // A non-admin (even one with other elevated roles) can't grant roles or delete users.
         await mockBot.processUpdate(createMockMessage("/updateroles of guest to member", TEST_USERS.accountant));

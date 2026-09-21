@@ -64,6 +64,12 @@ export const TEST_USERS = {
         userid: 12,
         username: "guest",
     },
+    tenant: {
+        ...DefaultUser,
+        userid: 13,
+        username: "tenant",
+        roles: "tenant",
+    },
 };
 
 export const DefaultState: StateEx = {
@@ -82,4 +88,4 @@ export const SEED_SERVICE_USERS: User[] = [
     SERVICE_USERS.terminal,
 ];
 
-export const SEED_TEST_USERS: User[] = [TEST_USERS.admin, TEST_USERS.accountant, TEST_USERS.guest];
+export const SEED_TEST_USERS: User[] = [TEST_USERS.admin, TEST_USERS.accountant, TEST_USERS.guest, TEST_USERS.tenant];

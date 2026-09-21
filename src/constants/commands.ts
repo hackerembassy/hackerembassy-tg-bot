@@ -146,6 +146,14 @@ export const MemberCommandsList: string = `
 [END Команды резидентов]
 `;
 
+export const TenantCommandsList: string = `
+[Команды жильцов]
+
+/unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /mac)
+
+[END Команды жильцов]
+`;
+
 export const AdminCommandsList: string = `
 [Команды админов]
 
@@ -175,7 +183,7 @@ export const AdminCommandsList: string = `
 /getlinkedchat - Получить привязанный чат
 /detected - Получить список обнаруженных устройств в спейсе
 
-\\* Roles: admin, accountant, member, trusted, restricted, banned, default
+\\* Roles: admin, accountant, member, tenant, trusted, restricted, banned, default
 
 [END Команды админов]
 `;
@@ -227,6 +235,7 @@ export const GlobalModifiers: string = `
 export const CommandsMap = {
     default: GeneralCommandsList,
     member: MemberCommandsList,
+    tenant: TenantCommandsList,
     admin: AdminCommandsList,
     accountant: AccountantCommandsList,
 };

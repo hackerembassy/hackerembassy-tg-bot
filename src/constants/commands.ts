@@ -147,11 +147,11 @@ export const MemberCommandsList: string = `
 `;
 
 export const TenantCommandsList: string = `
-[Команды арендаторов]
+[Команды жильцов]
 
 /unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /mac)
 
-[END Команды арендаторов]
+[END Команды жильцов]
 `;
 
 export const AdminCommandsList: string = `

@@ -232,9 +232,11 @@ export function getClimateMessage(climateInfo: SpaceClimate, options: { withSecr
 }
 
 export function getUserBadges(user: User): string {
-    const roleBadges = `${user.roles?.includes("member") ? "🔑" : ""}${user.roles?.includes("tenant") ? "🏠" : ""}${
-        user.roles?.includes("accountant") ? "📒" : ""
-    }${user.roles?.includes("trusted") ? "🎓" : ""}`;
+    const roleBadges =
+        (user.roles?.includes("member") ? "🔑" : "") +
+        (user.roles?.includes("accountant") ? "📒" : "") +
+        (user.roles?.includes("trusted") ? "🎓" : "") +
+        (user.roles?.includes("tenant") ? "🏠" : "");
     const sponsorshipBadge = user.sponsorship ? SponsorshipLevelToEmoji.get(user.sponsorship) : "";
     const customBadge = user.emoji ?? "";
     const birthdayBadge = hasBirthdayToday(user.birthday) ? "🎂" : "";

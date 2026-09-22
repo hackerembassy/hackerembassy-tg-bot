@@ -1,5 +1,6 @@
 import { TEST_USERS } from "@data/seed";
 import { ButtonFlags } from "@hackembot/core/inlineButtons";
+import { getUserBadges } from "@hackembot/text";
 
 import { createMockBot, createMockCallbackQuery, createMockMessage } from "../../mocks/bot";
 
@@ -93,6 +94,10 @@ describe("Bot Status commands:", () => {
             "status\\.emoji\\.isnotset",
             "general\\.errors\\.restricted",
         ]);
+    });
+
+    test("tenant role has a house badge", () => {
+        expect(getUserBadges(TEST_USERS.tenant)).toBe("🏠");
     });
 
     test("/going and /notgoing record RSVP intent", async () => {

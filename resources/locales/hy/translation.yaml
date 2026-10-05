@@ -686,18 +686,18 @@ hackemcoins:
     grant:
         help: "ℹ️ Ավելացնել HC: #`/granthc քանակ to username for պատճառ#`"
         success: "🪙 {{username}}-ին ավելացվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
-        log: "🪙 [#`{{id}}#`] {{actor}}-ը {{username}}-ին ավելացրեց {{amount}} HC «{{reason}}» համար, հաշվեկշիռ: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}}-ը {{username}}-ին ավելացրեց {{amount}} HC «{{reason}}» համար"
     deduct:
         help: "ℹ️ Դուրս գրել HC: #`/deducthc քանակ from username for պատճառ#`"
         success: "🪙 {{username}}-ից դուրս գրվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
-        log: "🪙 [#`{{id}}#`] {{actor}}-ը {{username}}-ից դուրս գրեց {{amount}} HC «{{reason}}» համար, հաշվեկշիռ: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}}-ը {{username}}-ից դուրս գրեց {{amount}} HC «{{reason}}» համար"
     received:
         donation: "🪙 Շնորհակալություն #`{{fundName}}#` հավաքագրմանը նվիրաբերելու համար! Քեզ ավելացվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC. Կարող ես ծախսել խորտիկների վրա: /snacks"
         grant: "🪙 {{actor}}-ը քեզ ավելացրեց {{amount}} HC «{{reason}}» համար, հաշվեկշիռ: {{balance}} HC"
         refund: "🪙 #`{{name}}#` գնումը [#`{{id}}#`] չեղարկվեց, քեզ վերադարձվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
     donationadjust:
-        changed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] փոխվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով, հաշվեկշիռ: {{balance}} HC"
-        removed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] ջնջվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով, հաշվեկշիռ: {{balance}} HC"
+        changed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] փոխվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով"
+        removed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] ջնջվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով"
     errors:
         amount: "⚠️ HC-ի քանակը պետք է լինի դրական ամբողջ թիվ"
 snacks:

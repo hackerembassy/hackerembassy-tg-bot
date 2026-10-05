@@ -148,7 +148,6 @@ export default class HackemcoinsController implements BotController {
                 donationId,
                 username: user ? helpers.userLink(user) : adjustment.transaction.user_id,
                 amount: adjustment.transaction.amount,
-                balance: adjustment.balance,
             })
         );
     }

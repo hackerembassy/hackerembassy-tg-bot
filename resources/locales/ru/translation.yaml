@@ -692,18 +692,18 @@ hackemcoins:
     grant:
         help: "ℹ️ Начислить HC: #`/granthc количество to username for причина#`"
         success: "🪙 {{username}} начислено {{amount}} HC, баланс: {{balance}} HC"
-        log: "🪙 [#`{{id}}#`] {{actor}} начислил {{username}} {{amount}} HC за «{{reason}}», баланс: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} начислил {{username}} {{amount}} HC за «{{reason}}»"
     deduct:
         help: "ℹ️ Списать HC: #`/deducthc количество from username for причина#`"
         success: "🪙 У {{username}} списано {{amount}} HC, баланс: {{balance}} HC"
-        log: "🪙 [#`{{id}}#`] {{actor}} списал у {{username}} {{amount}} HC за «{{reason}}», баланс: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} списал у {{username}} {{amount}} HC за «{{reason}}»"
     received:
         donation: "🪙 Спасибо за донат в сбор #`{{fundName}}#`! Тебе начислено {{amount}} HC, баланс: {{balance}} HC. Потратить их можно на снеки: /snacks"
         grant: "🪙 {{actor}} начислил тебе {{amount}} HC за «{{reason}}», баланс: {{balance}} HC"
         refund: "🪙 Покупка #`{{name}}#` [#`{{id}}#`] отменена, тебе вернули {{amount}} HC, баланс: {{balance}} HC"
     donationadjust:
-        changed: "🪙 [#`{{id}}#`] Донат [id:{{donationId}}] изменен, баланс {{username}} скорректирован на {{amount}} HC, баланс: {{balance}} HC"
-        removed: "🪙 [#`{{id}}#`] Донат [id:{{donationId}}] удален, баланс {{username}} скорректирован на {{amount}} HC, баланс: {{balance}} HC"
+        changed: "🪙 [#`{{id}}#`] Донат [id:{{donationId}}] изменен, баланс {{username}} скорректирован на {{amount}} HC"
+        removed: "🪙 [#`{{id}}#`] Донат [id:{{donationId}}] удален, баланс {{username}} скорректирован на {{amount}} HC"
     errors:
         amount: "⚠️ Количество HC должно быть целым положительным числом"
 snacks:

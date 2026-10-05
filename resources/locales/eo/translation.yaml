@@ -690,18 +690,18 @@ hackemcoins:
     grant:
         help: "ℹ️ Doni HC: #`/granthc kvanto to username for kialo#`"
         success: "🪙 {{username}} ricevis {{amount}} HC, saldo: {{balance}} HC"
-        log: "🪙 [#`{{id}}#`] {{actor}} donis al {{username}} {{amount}} HC pro «{{reason}}», saldo: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} donis al {{username}} {{amount}} HC pro «{{reason}}»"
     deduct:
         help: "ℹ️ Depreni HC: #`/deducthc kvanto from username for kialo#`"
         success: "🪙 {{amount}} HC deprenitaj de {{username}}, saldo: {{balance}} HC"
-        log: "🪙 [#`{{id}}#`] {{actor}} deprenis {{amount}} HC de {{username}} pro «{{reason}}», saldo: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} deprenis {{amount}} HC de {{username}} pro «{{reason}}»"
     received:
         donation: "🪙 Dankon pro via donaco al #`{{fundName}}#`! Vi ricevis {{amount}} HC, saldo: {{balance}} HC. Elspezu ilin por manĝetoj: /snacks"
         grant: "🪙 {{actor}} donis al vi {{amount}} HC pro «{{reason}}», saldo: {{balance}} HC"
         refund: "🪙 Via aĉeto de #`{{name}}#` [#`{{id}}#`] estis nuligita, {{amount}} HC redonitaj, saldo: {{balance}} HC"
     donationadjust:
-        changed: "🪙 [#`{{id}}#`] Donaco [id:{{donationId}}] ŝanĝiĝis, la saldo de {{username}} korektita je {{amount}} HC, saldo: {{balance}} HC"
-        removed: "🪙 [#`{{id}}#`] Donaco [id:{{donationId}}] forigita, la saldo de {{username}} korektita je {{amount}} HC, saldo: {{balance}} HC"
+        changed: "🪙 [#`{{id}}#`] Donaco [id:{{donationId}}] ŝanĝiĝis, la saldo de {{username}} korektita je {{amount}} HC"
+        removed: "🪙 [#`{{id}}#`] Donaco [id:{{donationId}}] forigita, la saldo de {{username}} korektita je {{amount}} HC"
     errors:
         amount: "⚠️ La kvanto de HC devas esti pozitiva entjero"
 snacks:

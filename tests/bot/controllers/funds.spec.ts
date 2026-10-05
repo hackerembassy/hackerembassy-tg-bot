@@ -51,6 +51,7 @@ describe("Bot Funds commands:", () => {
 
         expect(mockBot.popResults()).toEqual([
             "funds\\.addfund\\.success",
+            "hackemcoins\\.received\\.donation",
             "funds\\.adddonation\\.success\nfunds\\.adddonation\\.sponsorship",
             "funds\\.funds🟢 Test\\_Fund\\_With\\_Donations \\- funds\\.fund\\.collected 5000 funds\\.fund\\.from 500 USD\n      [guest](t\\.me/guest) \\- 5000 USD\n\n",
         ]);
@@ -89,9 +90,11 @@ describe("Bot Funds commands:", () => {
 
         expect(mockBot.popResults()).toEqual([
             "funds\\.addfund\\.success",
+            "hackemcoins\\.received\\.donation",
             "funds\\.adddonation\\.success",
             "general\\.errors\\.restricted",
             "funds\\.changedonation\\.success",
+            "hackemcoins\\.donationadjust\\.changed",
             "general\\.errors\\.restricted",
             "funds\\.removedonation\\.success",
         ]);
@@ -129,7 +132,7 @@ describe("Bot Funds commands:", () => {
         await mockBot.processUpdate(createMockMessage("/residentscosts paid", TEST_USERS.accountant));
         await mockBot.processUpdate(createMockMessage("/residentscosts left", TEST_USERS.accountant));
 
-        const [, paidList, leftList] = mockBot.popResults();
+        const [paidList, leftList] = mockBot.popResults().slice(-2);
 
         expect(paidList).toContain("accountant");
         expect(paidList).not.toContain("admin");

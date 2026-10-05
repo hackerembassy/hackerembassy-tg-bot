@@ -29,6 +29,7 @@ import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 import EmbassyController from "./embassy";
+import HackemcoinsController from "./hackemcoins";
 import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -323,13 +324,14 @@ export default class FundsController implements BotController {
 
             if (Number.isNaN(value) || !preparedCurrency) throw new Error("Invalid value or currency");
 
-            const mentionId = helpers.getMentions(msg)[0]?.id;
-            const user = userService.getUser(sponsorName) ?? (mentionId ? userService.getUser(mentionId) : undefined);
+            const user = helpers.resolveTargetUser(msg, sponsorName);
             const accountant = bot.context(msg).user;
 
             if (!user) throw new Error("User not found");
 
             const donationResult = await fundsService.donate(fundName, value, preparedCurrency, user, accountant);
+
+            await HackemcoinsController.notifyDonationReward(bot, user, donationResult, fundName);
 
             return await FundsController.sendGratitude(bot, msg, donationResult, user, fundName);
         } catch (error) {
@@ -480,13 +482,22 @@ export default class FundsController implements BotController {
     @Route(["removedonation"], /(\d+)/, match => [match[1]])
     @UserRoles(Accountants)
     static async removeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId: number) {
-        const success = fundsService.removeDonation(donationId);
+        const removed = fundsService.removeDonation(donationId, bot.context(msg).user);
 
         await bot.sendMessageExt(
             msg.chat.id,
-            success ? t("funds.removedonation.success", { donationId }) : t("funds.removedonation.fail"),
+            removed ? t("funds.removedonation.success", { donationId }) : t("funds.removedonation.fail"),
             msg
         );
+
+        if (removed)
+            await HackemcoinsController.logDonationAdjustment(
+                bot,
+                "removed",
+                removed.donation.id,
+                userService.getUser(removed.donation.user_id),
+                removed.hackemcoinAdjustment
+            );
     }
 
     @Route(["changedonation"], /(\d+) to (\S+)\s?(\D*?)/, match => [match[1], match[2], match[3]])
@@ -502,13 +513,24 @@ export default class FundsController implements BotController {
 
         if (!donation) return bot.sendMessageExt(msg.chat.id, t("funds.changedonation.nodonation"), msg);
 
-        const updated = await fundsService.applyDonationAmount(donation, valueString, currency);
+        const updated = await fundsService.applyDonationAmount(donation, valueString, currency, bot.context(msg).user);
 
-        return bot.sendMessageExt(
+        await bot.sendMessageExt(
             msg.chat.id,
             updated ? t("funds.changedonation.success", { donationId }) : t("funds.changedonation.fail"),
             msg
         );
+
+        if (updated)
+            await HackemcoinsController.logDonationAdjustment(
+                bot,
+                "changed",
+                donation.id,
+                userService.getUser(donation.user_id),
+                updated.hackemcoinAdjustment
+            );
+
+        return;
     }
 
     @Route(["debt", "mymoney"], OptionalParam(/(\S+)/), match => [match[1]])

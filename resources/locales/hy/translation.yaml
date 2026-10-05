@@ -659,6 +659,87 @@ needs:
             ✅ {{username}}-ը գնել է #`{{item}}#` space-ի համար
         notfound: 🙄 Այս անունով գնման հարցում չկա, հավանաբար արդեն գնված է
         undo: ❌ Չեղարկել գնման հարցումը
+hackemcoins:
+    balance:
+        text: |
+            🪙 Քո հաշվեկշիռը: {{balance}} HC
+
+            Hackemcoin (HC) - space-ի ներքին արժույթն է, 1 HC = {{rate}} {{currency}}.
+
+            Ինչպես ստանալ:
+            - Նվիրաբերիր ցանկացած հավաքագրման: նվիրատվության {{percent}}%-ը կվերադառնա քեզ HC-ով
+            - Ռեզիդենտները կարող են HC տալ space-ին օգնելու համար
+
+            Ինչպես ծախսել: վերցրու խորտիկ /snacks-ից #`/takesnack անուն#` հրամանով
+            Գործարքների պատմություն: /hchistory
+        of: "🪙 {{username}}-ի հաշվեկշիռը: {{balance}} HC"
+    history:
+        empty: "🪙 Hackemcoin գործարքներ դեռ չկան"
+        title: "🪙 Վերջին գործարքները (հաշվեկշիռ: {{balance}} HC):"
+        types:
+            donation: "նվիրատվություն"
+            donation_adjust: "նվիրատվության ճշգրտում"
+            grant: "հավելում"
+            deduct: "դուրսգրում"
+            purchase: "գնում"
+            purchase_undo: "գնման չեղարկում"
+    grant:
+        help: "ℹ️ Ավելացնել HC: #`/granthc քանակ to username for պատճառ#`"
+        success: "🪙 {{username}}-ին ավելացվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}}-ը {{username}}-ին ավելացրեց {{amount}} HC «{{reason}}» համար, հաշվեկշիռ: {{balance}} HC"
+    deduct:
+        help: "ℹ️ Դուրս գրել HC: #`/deducthc քանակ from username for պատճառ#`"
+        success: "🪙 {{username}}-ից դուրս գրվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}}-ը {{username}}-ից դուրս գրեց {{amount}} HC «{{reason}}» համար, հաշվեկշիռ: {{balance}} HC"
+    received:
+        donation: "🪙 Շնորհակալություն #`{{fundName}}#` հավաքագրմանը նվիրաբերելու համար! Քեզ ավելացվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC. Կարող ես ծախսել խորտիկների վրա: /snacks"
+        grant: "🪙 {{actor}}-ը քեզ ավելացրեց {{amount}} HC «{{reason}}» համար, հաշվեկշիռ: {{balance}} HC"
+        refund: "🪙 #`{{name}}#` գնումը [#`{{id}}#`] չեղարկվեց, քեզ վերադարձվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
+    donationadjust:
+        changed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] փոխվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով, հաշվեկշիռ: {{balance}} HC"
+        removed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] ջնջվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով, հաշվեկշիռ: {{balance}} HC"
+    errors:
+        amount: "⚠️ HC-ի քանակը պետք է լինի դրական ամբողջ թիվ"
+snacks:
+    list:
+        empty: "🍫 Խորտիկներ դեռ չկան"
+        title: "🍫 Խորտիկներ hackemcoin-ով (քո հաշվեկշիռը: {{balance}} HC):"
+        stock: "մնացել է {{stock}} հատ"
+        outofstock: "առկա չէ"
+        help: "ℹ️ Վերցնել խորտիկ: #`/takesnack անուն#`"
+    take:
+        help: "ℹ️ Վերցնել խորտիկ: #`/takesnack անուն#`, խորտիկների ցանկ: /snacks"
+        success: "🍫 {{username}}-ը վերցրեց #`{{name}}#` {{price}} HC-ով [#`{{id}}#`], հաշվեկշիռ: {{balance}} HC"
+        notfound: "⚠️ #`{{name}}#` խորտիկը չի գտնվել, խորտիկների ցանկ: /snacks"
+        outofstock: "😔 #`{{name}}#`-ը վերջացել է"
+        insufficient: "🪙 Hackemcoin-ը բավարար չէ: #`{{name}}#`-ն արժե {{price}} HC, իսկ դու ունես {{balance}} HC"
+        log: "🍫 [#`{{id}}#`] {{username}}-ը վերցրեց #`{{name}}#` {{price}} HC-ով, մնացել է {{stock}} հատ"
+    add:
+        help: "ℹ️ Ավելացնել խորտիկ: #`/addsnack անուն price գին stock քանակ#` (stock-ը պարտադիր չէ)"
+        success: "🍫 Ավելացվեց #`{{name}}#` խորտիկը: {{price}} HC, {{stock}} հատ"
+        exists: "⚠️ #`{{name}}#` խորտիկն արդեն կա, օգտագործիր /setsnackstock կամ /setsnackprice"
+        log: "🍫 {{username}}-ը ավելացրեց #`{{name}}#` խորտիկը: {{price}} HC, {{stock}} հատ"
+    stock:
+        help: "ℹ️ Սահմանել մնացորդը: #`/setsnackstock անուն քանակ#`"
+        success: "🍫 #`{{name}}#`-ի մնացորդը: {{previousStock}} → {{stock}} հատ"
+        log: "🍫 {{username}}-ը փոխեց #`{{name}}#`-ի մնացորդը: {{previousStock}} → {{stock}} հատ"
+    price:
+        help: "ℹ️ Փոխել գինը: #`/setsnackprice անուն գին#`"
+        success: "🍫 #`{{name}}#`-ի գինը: {{previousPrice}} → {{price}} HC"
+        log: "🍫 {{username}}-ը փոխեց #`{{name}}#`-ի գինը: {{previousPrice}} → {{price}} HC"
+    remove:
+        help: "ℹ️ Ջնջել խորտիկը: #`/removesnack անուն#`"
+        success: "🗑 #`{{name}}#` խորտիկը ջնջվեց"
+        log: "🗑 {{username}}-ը ջնջեց #`{{name}}#` խորտիկը (մնացել էր {{stock}} հատ)"
+    undo:
+        help: "ℹ️ Չեղարկել գնումը: #`/undosnack գնման_համար#` (համարը կա լոգբուքում)"
+        success: "↩️ [#`{{id}}#`] #`{{name}}#` գնումը չեղարկվեց, {{username}}-ին վերադարձվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
+        notfound: "⚠️ [#`{{id}}#`] գնումը չի գտնվել"
+        already: "⚠️ [#`{{id}}#`] գնումն արդեն չեղարկված է"
+        log: "↩️ [#`{{id}}#`] {{actor}}-ը չեղարկեց {{username}}-ի #`{{name}}#` գնումը, վերադարձվեց {{amount}} HC, մնացել է {{stock}} հատ"
+    errors:
+        number: "⚠️ Գինը և քանակը պետք է լինեն ոչ բացասական ամբողջ թվեր"
+        notfound: "⚠️ #`{{name}}#` խորտիկը չի գտնվել"
 service:
     welcome:
         confirm: |
@@ -760,6 +841,7 @@ status:
             {{donationList}}
         total: 💰 Ընդհանուր ավելացվել է space-ին {{total}} {{currency}}
         notfound: ⚠️ Օգտատերը չի գտնվել
+        hackemcoins: "🪙 Hackemcoin հաշվեկշիռ: {{balance}} HC"
     mac:
         buttons:
             detect: 🔍 Ավտոմատ հայտնաբերել

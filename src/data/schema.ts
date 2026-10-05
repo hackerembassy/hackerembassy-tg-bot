@@ -1,7 +1,7 @@
 import { sqliteTable, integer, text, index } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
-import { UserStateChangeType, UserStateType } from "./types";
+import { HackemcoinTransactionType, UserStateChangeType, UserStateType } from "./types";
 
 export const states = sqliteTable("states", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
@@ -141,4 +141,51 @@ export const apikeys = sqliteTable(
             .references(() => users.userid),
     },
     table => [index("user_id_idx").on(table.user_id)]
+);
+
+export const snacks = sqliteTable("snacks", {
+    id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+    name: text("name").notNull().unique(),
+    price: integer("price").notNull(),
+    stock: integer("stock").default(0).notNull(),
+    removed: integer("removed", { mode: "boolean" }).default(false).notNull(),
+    created_by: integer("created_by")
+        .notNull()
+        .references(() => users.userid),
+});
+
+export const hackemcoinBalances = sqliteTable("hackemcoin_balances", {
+    user_id: integer("user_id")
+        .primaryKey()
+        .notNull()
+        .references(() => users.userid, { onDelete: "cascade" }),
+    balance: integer("balance").default(0).notNull(),
+});
+
+export const hackemcoinTransactions = sqliteTable(
+    "hackemcoin_transactions",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+        user_id: integer("user_id")
+            .notNull()
+            .references(() => users.userid, { onDelete: "cascade" }),
+        amount: integer("amount").notNull(),
+        type: text("type").notNull().$type<HackemcoinTransactionType>(),
+        reason: text("reason").default(sql`(NULL)`),
+        actor_id: integer("actor_id")
+            .notNull()
+            .references(() => users.userid),
+        // No foreign key: the history must outlive /removedonation
+        donation_id: integer("donation_id").default(sql`(NULL)`),
+        snack_id: integer("snack_id")
+            .default(sql`(NULL)`)
+            .references(() => snacks.id),
+        ref_id: integer("ref_id").default(sql`(NULL)`),
+        date: integer("date", { mode: "timestamp_ms" }).notNull(),
+    },
+    table => [
+        index("hackemcoin_user_idx").on(table.user_id),
+        index("hackemcoin_donation_idx").on(table.donation_id),
+        index("hackemcoin_ref_idx").on(table.ref_id),
+    ]
 );

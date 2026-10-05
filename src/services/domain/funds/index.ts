@@ -1,11 +1,13 @@
 import { Donation, DonationEx, Fund, User } from "@data/models";
 import FundsRepository from "@data/repositories/funds";
+import { runInTransaction } from "@data/repositories/base";
 
 import logger from "@services/common/logger";
 
 import { convertCurrency, DefaultCurrency, parseMoneyValue, prepareCurrency } from "./currency";
 import { getSponsorshipLevel, getSponsorshipStartPeriodDate, getUserDonationMap } from "./sponsorship";
 import { userService } from "../user";
+import { HackemcoinOperationResult, hackemcoinsService } from "../hackemcoins";
 
 export { COSTS_PREFIX } from "@data/repositories/funds";
 export { SponsorshipLevel, SponsorshipLevelToEmoji, SponsorshipLevelToName, SponsorshipNameToLevel } from "./sponsorship";
@@ -17,6 +19,12 @@ export interface DonationResult {
     hasAlreadyDonated: boolean;
     hasUpdatedSponsorship: boolean;
     newSponsorshipLevel: number;
+    hackemcoinReward?: HackemcoinOperationResult;
+}
+
+export interface DonationChangeResult {
+    donation: Donation;
+    hackemcoinAdjustment?: HackemcoinOperationResult;
 }
 
 class FundsService {
@@ -99,8 +107,18 @@ class FundsService {
         return FundsRepository.getDonationById(donationId, joinFunds, joinUsers);
     }
 
-    public removeDonation(donationId: number) {
-        return FundsRepository.removeDonationById(donationId);
+    public removeDonation(donationId: number, actor: User): Optional<DonationChangeResult> {
+        return runInTransaction(() => {
+            const donation = FundsRepository.getDonationById(donationId);
+
+            if (!donation) return;
+
+            const hackemcoinAdjustment = hackemcoinsService.adjustDonationReward(donation.id, donation.user_id, actor.userid, 0);
+            const removed = FundsRepository.removeDonationById(donation.id);
+            if (!removed) throw new Error(`Failed to remove donation ${donation.id}`);
+
+            return { donation, hackemcoinAdjustment };
+        });
     }
 
     public updateDonation(donation: Donation) {
@@ -136,9 +154,20 @@ class FundsService {
             donation => donation.user_id === user.userid
         );
 
-        const lastInsertRowid = FundsRepository.addDonationTo(fund.id, user.userid, amount, accountant.userid, currency);
+        const reward = await hackemcoinsService.calculateDonationReward(amount, currency);
 
-        if (!lastInsertRowid) throw new Error("Failed to add donation");
+        const { donationId, hackemcoinReward } = runInTransaction(() => {
+            const lastInsertRowid = FundsRepository.addDonationTo(fund.id, user.userid, amount, accountant.userid, currency);
+
+            if (!lastInsertRowid) throw new Error("Failed to add donation");
+
+            const donationId = Number(lastInsertRowid);
+
+            return {
+                donationId,
+                hackemcoinReward: hackemcoinsService.rewardDonation(donationId, user.userid, accountant.userid, reward),
+            };
+        });
 
         const userDonations = FundsRepository.getDonationsOf(user.userid, false, false, getSponsorshipStartPeriodDate());
         const { updated: hasUpdatedSponsorship, level: newSponsorshipLevel } = await this.recalculateSponsorship(
@@ -147,12 +176,13 @@ class FundsService {
         );
 
         return {
-            donationId: Number(lastInsertRowid),
+            donationId,
             amount,
             currency,
             hasAlreadyDonated,
             hasUpdatedSponsorship,
             newSponsorshipLevel,
+            hackemcoinReward,
         };
     }
 
@@ -242,16 +272,29 @@ class FundsService {
     public async applyDonationAmount(
         donation: Donation,
         valueString: string,
-        currencyString: string
-    ): Promise<Donation | undefined> {
+        currencyString: string,
+        actor: User
+    ): Promise<DonationChangeResult | undefined> {
         const value = parseMoneyValue(valueString);
         const preparedCurrency = await prepareCurrency(currencyString);
 
         if (Number.isNaN(value) || !preparedCurrency) return undefined;
 
         const updatedDonation = { ...donation, value, currency: preparedCurrency };
+        const reward = await hackemcoinsService.calculateDonationReward(value, preparedCurrency);
 
-        return this.updateDonation(updatedDonation) ? updatedDonation : undefined;
+        return runInTransaction(() => {
+            if (!this.updateDonation(updatedDonation)) return;
+
+            const hackemcoinAdjustment = hackemcoinsService.adjustDonationReward(
+                donation.id,
+                donation.user_id,
+                actor.userid,
+                reward
+            );
+
+            return { donation: updatedDonation, hackemcoinAdjustment };
+        });
     }
 
     public async getDebtSummary(userId: number): Promise<{ donations: DonationEx[]; total: number }> {

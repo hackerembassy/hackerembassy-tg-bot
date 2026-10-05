@@ -58,6 +58,12 @@ export const GeneralCommandsList: string = `[Команды гостей]
 #\`/buy item_name#\` - Попросить купить что-нибудь в спейс по дороге (бумага, чай, и.т.п)
 #\`/bought item_name#\` - Отметить что-то купленным из needs
 
+Hackemcoin и снеки:
+/hackemcoins (hc) - Мой баланс hackemcoin (HC), как их получить и на что потратить
+/hchistory - Последние операции с моими HC
+/snacks - Снеки, которые можно взять за HC
+#\`/takesnack snack_name#\` - Взять снек за HC
+
 Статистика:
 /me - Твоя статистика донатов и посещений
 /stats - Статистика по времени в спейсе (на основе отметок)
@@ -113,6 +119,16 @@ export const MemberCommandsList: string = `
 /enableresidentmenu - Включить меню резидента в приватном чате с ботом
 /removebuttons (rb) - Убрать кнопки из сообщения бота (команду нужно отправлять как ответ)
 /custom text - Создать кастомное сообщение с изображением и кнопками
+
+Hackemcoin и снеки (все действия пишутся в логбук):
+#\`/granthc amount to telegram_username for reason#\` - Начислить HC
+#\`/deducthc amount from telegram_username for reason#\` - Списать HC
+#\`/hackemcoins telegram_username#\` - Баланс HC другого юзера
+#\`/addsnack snack_name price amount stock count#\` - Добавить снек (stock можно не указывать)
+#\`/setsnackstock snack_name count#\` - Установить остаток снека
+#\`/setsnackprice snack_name amount#\` - Изменить цену снека
+#\`/removesnack snack_name#\` - Удалить снек
+#\`/undosnack purchase_id#\` - Отменить покупку снека и вернуть HC
 
 Инфа:
 /residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце

@@ -14,9 +14,11 @@ import BasicController from "./controllers/basic";
 import BirthdayController from "./controllers/birthday";
 import EmbassyController from "./controllers/embassy";
 import FundsController from "./controllers/funds";
+import HackemcoinsController from "./controllers/hackemcoins";
 import MemeController from "./controllers/meme";
 import NeedsController from "./controllers/needs";
 import ServiceController from "./controllers/service";
+import SnacksController from "./controllers/snacks";
 import StatusController from "./controllers/status";
 import SubscriptionsController from "./controllers/subscriptions";
 import WikiController from "./controllers/wiki";
@@ -44,6 +46,8 @@ const defaultCommands = [
         command: "needs",
         description: "Посмотреть, что просили купить в спейс по дороге",
     },
+    { command: "hackemcoins", description: "Мой баланс hackemcoin и как их получить" },
+    { command: "snacks", description: "Снеки за hackemcoin" },
     { command: "about", description: "О спейсе и боте" },
     { command: "join", description: "Как присоединиться к нам" },
     { command: "events", description: "Мероприятия в спейсе" },
@@ -88,6 +92,8 @@ const residentCommands = [
         command: "needs",
         description: "Посмотреть, что просили купить в спейс по дороге",
     },
+    { command: "hackemcoins", description: "Мой баланс hackemcoin и как их получить" },
+    { command: "snacks", description: "Снеки за hackemcoin" },
     { command: "anette", description: "Статус Anette" },
     { command: "shaytan", description: "Статус Shaytan" },
     { command: "oda", description: "Статус Oda" },
@@ -118,9 +124,11 @@ export function addControllers(bot: HackerEmbassyBot): void {
     bot.addController(BirthdayController);
     bot.addController(EmbassyController);
     bot.addController(FundsController);
+    bot.addController(HackemcoinsController);
     bot.addController(MemeController);
     bot.addController(NeedsController);
     bot.addController(ServiceController);
+    bot.addController(SnacksController);
     bot.addController(StatusController);
     bot.addController(SubscriptionsController);
     bot.addController(WikiController);

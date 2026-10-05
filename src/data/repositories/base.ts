@@ -11,4 +11,9 @@ abstract class BaseRepository {
     ) {}
 }
 
+// better-sqlite3 runs everything on one connection, so repository calls made inside fn join the transaction (nested ones become savepoints)
+export function runInTransaction<T>(fn: () => T): T {
+    return drizzleClient.transaction(() => fn());
+}
+
 export default BaseRepository;

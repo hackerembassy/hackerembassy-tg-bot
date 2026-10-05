@@ -36,6 +36,13 @@
       "when": 1786286162893,
       "tag": "0004_previous_ken_ellis",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791217702978,
+      "tag": "0005_hackemcoins_and_snacks",
+      "breakpoints": true
     }
   ]
 }

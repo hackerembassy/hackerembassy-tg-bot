@@ -76,6 +76,8 @@ SQLite via `better-sqlite3` + Drizzle ORM. `src/data/db.ts` is the client single
 tables, `src/data/migrations/` holds generated SQL migrations (`npm run migrations` after schema changes).
 Repositories in `src/data/repositories/*.ts` extend `BaseRepository` (`src/data/repositories/base.ts`), which
 injects the drizzle client and a logger — repositories are the only layer that should import `@data/db` directly.
+Writes spanning several repositories that must succeed or fail together go through `runInTransaction` from the same
+file (e.g. a donation plus its hackemcoin reward, a snack purchase plus its stock change).
 Domain logic sits one layer up in `src/services/domain/` (e.g. `space.ts`, `user.ts`; a domain with enough internal
 structure to warrant it, like `funds/`, is a subfolder with an `index.ts` instead of a flat file), which
 controllers call instead of repositories directly where domain rules apply.

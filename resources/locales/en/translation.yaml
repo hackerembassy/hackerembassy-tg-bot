@@ -664,6 +664,87 @@ needs:
             ✅ {{username}} bought #`{{item}}#` in space
         notfound: 🙄 There was no open purchase request with this name, probably already purchased
         undo: ❌ Cancel purchase
+hackemcoins:
+    balance:
+        text: |
+            🪙 Your balance: {{balance}} HC
+
+            Hackemcoin (HC) is the space's own currency, 1 HC = {{rate}} {{currency}}.
+
+            How to get them:
+            - Donate to any fund: {{percent}}% of the donation comes back to you in HC
+            - Residents can grant HC for helping the space
+
+            How to spend them: take a snack from /snacks with #`/takesnack name#`
+            Transaction history: /hchistory
+        of: "🪙 {{username}}'s balance: {{balance}} HC"
+    history:
+        empty: "🪙 No hackemcoin transactions yet"
+        title: "🪙 Latest transactions (balance: {{balance}} HC):"
+        types:
+            donation: "donation"
+            donation_adjust: "donation adjustment"
+            grant: "grant"
+            deduct: "deduction"
+            purchase: "purchase"
+            purchase_undo: "purchase undo"
+    grant:
+        help: "ℹ️ Grant HC: #`/granthc amount to username for reason#`"
+        success: "🪙 {{username}} got {{amount}} HC, balance: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} granted {{username}} {{amount}} HC for «{{reason}}», balance: {{balance}} HC"
+    deduct:
+        help: "ℹ️ Deduct HC: #`/deducthc amount from username for reason#`"
+        success: "🪙 {{amount}} HC deducted from {{username}}, balance: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} deducted {{amount}} HC from {{username}} for «{{reason}}», balance: {{balance}} HC"
+    received:
+        donation: "🪙 Thanks for donating to #`{{fundName}}#`! You got {{amount}} HC, balance: {{balance}} HC. Spend them on snacks: /snacks"
+        grant: "🪙 {{actor}} granted you {{amount}} HC for «{{reason}}», balance: {{balance}} HC"
+        refund: "🪙 Your #`{{name}}#` purchase [#`{{id}}#`] was undone, {{amount}} HC returned, balance: {{balance}} HC"
+    donationadjust:
+        changed: "🪙 [#`{{id}}#`] Donation [id:{{donationId}}] changed, {{username}}'s balance adjusted by {{amount}} HC, balance: {{balance}} HC"
+        removed: "🪙 [#`{{id}}#`] Donation [id:{{donationId}}] removed, {{username}}'s balance adjusted by {{amount}} HC, balance: {{balance}} HC"
+    errors:
+        amount: "⚠️ The HC amount must be a positive whole number"
+snacks:
+    list:
+        empty: "🍫 No snacks yet"
+        title: "🍫 Snacks for hackemcoin (your balance: {{balance}} HC):"
+        stock: "{{stock}} left"
+        outofstock: "out of stock"
+        help: "ℹ️ Take a snack: #`/takesnack name#`"
+    take:
+        help: "ℹ️ Take a snack: #`/takesnack name#`, snack list: /snacks"
+        success: "🍫 {{username}} took #`{{name}}#` for {{price}} HC [#`{{id}}#`], balance: {{balance}} HC"
+        notfound: "⚠️ Snack #`{{name}}#` not found, snack list: /snacks"
+        outofstock: "😔 #`{{name}}#` is out of stock"
+        insufficient: "🪙 Not enough hackemcoin: #`{{name}}#` costs {{price}} HC, you have {{balance}} HC"
+        log: "🍫 [#`{{id}}#`] {{username}} took #`{{name}}#` for {{price}} HC, {{stock}} left"
+    add:
+        help: "ℹ️ Add a snack: #`/addsnack name price amount stock count#` (stock is optional)"
+        success: "🍫 Snack #`{{name}}#` added: {{price}} HC, {{stock}} in stock"
+        exists: "⚠️ Snack #`{{name}}#` already exists, use /setsnackstock or /setsnackprice"
+        log: "🍫 {{username}} added snack #`{{name}}#`: {{price}} HC, {{stock}} in stock"
+    stock:
+        help: "ℹ️ Set stock: #`/setsnackstock name count#`"
+        success: "🍫 #`{{name}}#` stock: {{previousStock}} → {{stock}}"
+        log: "🍫 {{username}} changed #`{{name}}#` stock: {{previousStock}} → {{stock}}"
+    price:
+        help: "ℹ️ Set price: #`/setsnackprice name price#`"
+        success: "🍫 #`{{name}}#` price: {{previousPrice}} → {{price}} HC"
+        log: "🍫 {{username}} changed #`{{name}}#` price: {{previousPrice}} → {{price}} HC"
+    remove:
+        help: "ℹ️ Remove a snack: #`/removesnack name#`"
+        success: "🗑 Snack #`{{name}}#` removed"
+        log: "🗑 {{username}} removed snack #`{{name}}#` ({{stock}} were left)"
+    undo:
+        help: "ℹ️ Undo a purchase: #`/undosnack purchase_id#` (the id is in the logbook)"
+        success: "↩️ Purchase [#`{{id}}#`] #`{{name}}#` undone, {{amount}} HC returned to {{username}}, balance: {{balance}} HC"
+        notfound: "⚠️ Purchase [#`{{id}}#`] not found"
+        already: "⚠️ Purchase [#`{{id}}#`] is already undone"
+        log: "↩️ [#`{{id}}#`] {{actor}} undid {{username}}'s #`{{name}}#` purchase, {{amount}} HC returned, {{stock}} left"
+    errors:
+        number: "⚠️ Price and count must be non-negative whole numbers"
+        notfound: "⚠️ Snack #`{{name}}#` not found"
 service:
     welcome:
         confirm: |
@@ -763,6 +844,7 @@ status:
             {{donationList}}
         total: 💰 Total donations to space {{total}} {{currency}}
         notfound: ⚠️ User not found
+        hackemcoins: "🪙 Hackemcoin balance: {{balance}} HC"
     mac:
         buttons:
             detect: 🔍 Detect automatically

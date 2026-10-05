@@ -22,6 +22,7 @@ CREATE TABLE `hackemcoin_transactions` (
 --> statement-breakpoint
 CREATE INDEX `hackemcoin_user_idx` ON `hackemcoin_transactions` (`user_id`);--> statement-breakpoint
 CREATE INDEX `hackemcoin_donation_idx` ON `hackemcoin_transactions` (`donation_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `hackemcoin_donation_reward_idx` ON `hackemcoin_transactions` (`donation_id`) WHERE "hackemcoin_transactions"."type" = 'donation';--> statement-breakpoint
 CREATE INDEX `hackemcoin_ref_idx` ON `hackemcoin_transactions` (`ref_id`);--> statement-breakpoint
 CREATE TABLE `snacks` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,

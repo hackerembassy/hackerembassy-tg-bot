@@ -108,7 +108,7 @@ describe("services/domain/funds FundsService money math", () => {
         it("updates the parsed value/currency of an existing donation", async () => {
             const updated = await fundsService.applyDonationAmount(donation, "1,250.5", "eur", TEST_USERS.admin);
 
-            expect(updated?.donation).toMatchObject({ id: donation.id, value: 1250.5, currency: "eur" });
+            expect(updated).toMatchObject({ id: donation.id, value: 1250.5, currency: "eur" });
             expect(fundsRepository.getDonationById(donation.id)).toMatchObject({ value: 1250.5, currency: "eur" });
         });
 

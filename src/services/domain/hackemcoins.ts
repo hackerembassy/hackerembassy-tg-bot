@@ -1,10 +1,14 @@
 import config from "config";
 
 import { BotConfig } from "@config";
-import { HackemcoinTransaction, User } from "@data/models";
+import { Donation, HackemcoinTransaction, User } from "@data/models";
 import HackemcoinsRepository from "@data/repositories/hackemcoins";
 
+import logger from "@services/common/logger";
+import broadcast, { BroadcastEvents } from "@services/common/broadcast";
+
 import { convertCurrency } from "./funds/currency";
+import type { DonationEvent } from "./funds";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -13,11 +17,40 @@ export interface HackemcoinOperationResult {
     balance: number;
 }
 
+export type DonationAdjustment = "changed" | "removed";
+
+export interface DonationRewardEvent extends HackemcoinOperationResult {
+    donation: Donation;
+}
+
+export interface DonationAdjustmentEvent extends DonationRewardEvent {
+    change: DonationAdjustment;
+}
+
 class HackemcoinsService {
     public readonly enabled = botConfig.features.hackemcoins;
     public readonly currency = botConfig.hackemcoins.currency;
     public readonly rate = botConfig.hackemcoins.rate;
     public readonly donationRewardPercent = botConfig.hackemcoins.donationRewardPercent;
+
+    // Donation events are handled one at a time so a quick change/removal can't overtake the reward it corrects
+    private donationQueue: Promise<unknown> = Promise.resolve();
+
+    constructor() {
+        if (!this.enabled) return;
+
+        broadcast.addListener(BroadcastEvents.DonationAdded, (event: DonationEvent) =>
+            this.enqueue(() => this.rewardDonation(event))
+        );
+        broadcast.addListener(BroadcastEvents.DonationChanged, (event: DonationEvent) =>
+            this.enqueue(async () =>
+                this.adjustDonationReward(event, "changed", await this.calculateDonationReward(event.donation))
+            )
+        );
+        broadcast.addListener(BroadcastEvents.DonationRemoved, (event: DonationEvent) =>
+            this.enqueue(() => this.adjustDonationReward(event, "removed", 0))
+        );
+    }
 
     public getBalance(userId: number) {
         return HackemcoinsRepository.getBalance(userId);
@@ -35,54 +68,61 @@ class HackemcoinsService {
         return !!HackemcoinsRepository.getTransactionReferencing(transactionId);
     }
 
-    public async calculateDonationReward(value: number, currency: string): Promise<number> {
-        if (!this.enabled) return 0;
+    private enqueue(task: () => unknown) {
+        this.donationQueue = this.donationQueue.then(task).catch((error: unknown) => logger.error(error));
+    }
 
-        const converted = await convertCurrency(value, currency, this.currency);
+    private async calculateDonationReward(donation: Donation): Promise<number> {
+        const converted = await convertCurrency(donation.value, donation.currency, this.currency);
 
         if (!converted) return 0;
 
         return Math.floor((converted * this.donationRewardPercent) / (100 * this.rate));
     }
 
-    public rewardDonation(donationId: number, userId: number, accountantId: number, reward: number) {
-        if (reward <= 0) return;
+    private async rewardDonation({ donation, actor }: DonationEvent) {
+        const reward = await this.calculateDonationReward(donation);
 
-        return HackemcoinsRepository.addTransaction({
-            user_id: userId,
-            actor_id: accountantId,
+        if (reward <= 0 || HackemcoinsRepository.getDonationReward(donation.id)) return;
+
+        const result = HackemcoinsRepository.addTransaction({
+            user_id: donation.user_id,
+            actor_id: actor.userid,
             amount: reward,
             type: "donation",
-            donation_id: donationId,
+            donation_id: donation.id,
             reason: null,
             snack_id: null,
             ref_id: null,
         });
+
+        broadcast.emit(BroadcastEvents.HackemcoinsDonationRewarded, { donation, ...result } satisfies DonationRewardEvent);
     }
 
     // Donations made before hackemcoins existed have no reward entry and must not earn coins retroactively when edited
-    public adjustDonationReward(
-        donationId: number,
-        userId: number,
-        actorId: number,
-        newReward: number
-    ): HackemcoinOperationResult | undefined {
-        if (!this.enabled || !HackemcoinsRepository.getDonationReward(donationId)) return undefined;
+    private adjustDonationReward({ donation, actor }: DonationEvent, change: DonationAdjustment, newReward: number) {
+        if (!HackemcoinsRepository.getDonationReward(donation.id)) return;
 
-        const delta = newReward - HackemcoinsRepository.getDonationRewardTotal(donationId);
+        const delta = newReward - HackemcoinsRepository.getDonationRewardTotal(donation.id);
 
-        if (delta === 0) return undefined;
+        if (delta === 0) return;
 
-        return HackemcoinsRepository.addTransaction({
-            user_id: userId,
-            actor_id: actorId,
+        const result = HackemcoinsRepository.addTransaction({
+            user_id: donation.user_id,
+            actor_id: actor.userid,
             amount: delta,
             type: "donation_adjust",
-            donation_id: donationId,
+            donation_id: donation.id,
             reason: null,
             snack_id: null,
             ref_id: null,
         });
+
+        broadcast.emit(BroadcastEvents.HackemcoinsDonationAdjusted, {
+            donation,
+            change,
+            ...result,
+        } satisfies DonationAdjustmentEvent);
     }
 
     public grant(target: User, actor: User, amount: number, reason: string) {

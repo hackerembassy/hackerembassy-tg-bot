@@ -12,7 +12,6 @@ import { SERVICE_USERS } from "@data/seed";
 
 import bot from "@hackembot/instance";
 import FundsController from "@hackembot/controllers/funds";
-import HackemcoinsController from "@hackembot/controllers/hackemcoins";
 import { formatMonospaced, userLink } from "@hackembot/core/helpers";
 import { BotConfig } from "@config";
 const botConfig = config.get<BotConfig>("bot");
@@ -260,8 +259,6 @@ apiRouter.post("/funds/:id/donations", allowSpecialEntities, async (req, res) =>
         if (!accountant) return void res.status(400).send({ error: "Accountant user not found" });
 
         const donationResult = await fundsService.donate(fund.name, body.amount, body.currency ?? "AMD", user, accountant);
-
-        void HackemcoinsController.notifyDonationReward(bot, user, donationResult, fund.name);
         const requestIp = getRequestIp(req) ?? "unknown";
 
         const alertMessage = `New donation added via API:\n- Donation ID: ${formatMonospaced(donationResult.donationId.toString())}\n- Fund: ${formatMonospaced(fund.name)}\n- Amount: ${formatMonospaced(donationResult.amount + " " + donationResult.currency)}\n- IP: ${requestIp} \n- User: ${userLink(user)} [${user.userid}]\n`;

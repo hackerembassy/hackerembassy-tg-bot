@@ -29,7 +29,6 @@ import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 import EmbassyController from "./embassy";
-import HackemcoinsController from "./hackemcoins";
 import { OptionalParam } from "../core/helpers";
 
 const botConfig = config.get<BotConfig>("bot");
@@ -331,8 +330,6 @@ export default class FundsController implements BotController {
 
             const donationResult = await fundsService.donate(fundName, value, preparedCurrency, user, accountant);
 
-            await HackemcoinsController.notifyDonationReward(bot, user, donationResult, fundName);
-
             return await FundsController.sendGratitude(bot, msg, donationResult, user, fundName);
         } catch (error) {
             logger.error(error);
@@ -482,22 +479,13 @@ export default class FundsController implements BotController {
     @Route(["removedonation"], /(\d+)/, match => [match[1]])
     @UserRoles(Accountants)
     static async removeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId: number) {
-        const removed = fundsService.removeDonation(donationId, bot.context(msg).user);
+        const success = fundsService.removeDonation(donationId, bot.context(msg).user);
 
         await bot.sendMessageExt(
             msg.chat.id,
-            removed ? t("funds.removedonation.success", { donationId }) : t("funds.removedonation.fail"),
+            success ? t("funds.removedonation.success", { donationId }) : t("funds.removedonation.fail"),
             msg
         );
-
-        if (removed)
-            await HackemcoinsController.logDonationAdjustment(
-                bot,
-                "removed",
-                removed.donation.id,
-                userService.getUser(removed.donation.user_id),
-                removed.hackemcoinAdjustment
-            );
     }
 
     @Route(["changedonation"], /(\d+) to (\S+)\s?(\D*?)/, match => [match[1], match[2], match[3]])
@@ -515,22 +503,11 @@ export default class FundsController implements BotController {
 
         const updated = await fundsService.applyDonationAmount(donation, valueString, currency, bot.context(msg).user);
 
-        await bot.sendMessageExt(
+        return bot.sendMessageExt(
             msg.chat.id,
             updated ? t("funds.changedonation.success", { donationId }) : t("funds.changedonation.fail"),
             msg
         );
-
-        if (updated)
-            await HackemcoinsController.logDonationAdjustment(
-                bot,
-                "changed",
-                donation.id,
-                userService.getUser(donation.user_id),
-                updated.hackemcoinAdjustment
-            );
-
-        return;
     }
 
     @Route(["debt", "mymoney"], OptionalParam(/(\S+)/), match => [match[1]])

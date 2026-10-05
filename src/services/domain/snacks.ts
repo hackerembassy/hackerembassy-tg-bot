@@ -29,21 +29,19 @@ class SnacksService {
     }
 
     public addSnack(name: string, price: number, stock: number, creator: User): Snack | undefined {
-        return runInTransaction(() => {
-            const trimmedName = name.trim();
-            const existing = SnacksRepository.getSnackByName(trimmedName);
+        const trimmedName = name.trim();
+        const existing = SnacksRepository.getSnackByName(trimmedName);
 
-            if (!existing) return SnacksRepository.addSnack({ name: trimmedName, price, stock, created_by: creator.userid });
+        if (!existing) return SnacksRepository.addSnack({ name: trimmedName, price, stock, created_by: creator.userid });
 
-            if (!existing.removed) return;
+        if (!existing.removed) return;
 
-            return SnacksRepository.updateSnack(existing.id, {
-                name: trimmedName,
-                price,
-                stock,
-                removed: false,
-                created_by: creator.userid,
-            });
+        return SnacksRepository.updateSnack(existing.id, {
+            name: trimmedName,
+            price,
+            stock,
+            removed: false,
+            created_by: creator.userid,
         });
     }
 
@@ -98,15 +96,13 @@ class SnacksService {
     }
 
     private updateSnack(name: string, changes: Partial<Snack>): Optional<SnackChange> {
-        return runInTransaction(() => {
-            const previous = this.getSnack(name);
+        const previous = this.getSnack(name);
 
-            if (!previous) return;
+        if (!previous) return;
 
-            const snack = SnacksRepository.updateSnack(previous.id, changes);
+        const snack = SnacksRepository.updateSnack(previous.id, changes);
 
-            return snack ? { snack, previous } : undefined;
-        });
+        return snack ? { snack, previous } : undefined;
     }
 }
 

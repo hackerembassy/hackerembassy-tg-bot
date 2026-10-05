@@ -1,9 +1,14 @@
 import { Message } from "node-telegram-bot-api";
 
 import { User } from "@data/models";
-import { hasRole } from "@services/domain/user";
-import { HackemcoinOperationResult, hackemcoinsService } from "@services/domain/hackemcoins";
-import { DonationResult } from "@services/domain/funds";
+import { hasRole, userService } from "@services/domain/user";
+import {
+    DonationAdjustmentEvent,
+    DonationRewardEvent,
+    HackemcoinOperationResult,
+    hackemcoinsService,
+} from "@services/domain/hackemcoins";
+import { fundsService } from "@services/domain/funds";
 import { FeatureFlag, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
@@ -133,33 +138,27 @@ export default class HackemcoinsController implements BotController {
         return;
     }
 
-    static async notifyDonationReward(bot: HackerEmbassyBot, user: User, donationResult: DonationResult, fundName: string) {
-        const reward = donationResult.hackemcoinReward;
+    static async donationRewardedHandler(bot: HackerEmbassyBot, { donation, transaction, balance }: DonationRewardEvent) {
+        const user = userService.getUser(donation.user_id);
 
-        if (!reward) return;
+        if (!user) return;
 
         await bot.sendDirectMessage(user, "hackemcoins.received.donation", {
-            amount: reward.transaction.amount,
-            balance: reward.balance,
-            fundName,
+            amount: transaction.amount,
+            balance,
+            fundName: fundsService.getFundById(donation.fund_id)?.name,
         });
     }
 
-    static async logDonationAdjustment(
-        bot: HackerEmbassyBot,
-        change: "changed" | "removed",
-        donationId: number,
-        user: Optional<User>,
-        adjustment?: HackemcoinOperationResult
-    ) {
-        if (!adjustment) return;
+    static async donationAdjustedHandler(bot: HackerEmbassyBot, { donation, change, transaction }: DonationAdjustmentEvent) {
+        const user = userService.getUser(donation.user_id);
 
         await bot.sendAlert(
             t(`hackemcoins.donationadjust.${change}`, {
-                id: adjustment.transaction.id,
-                donationId,
-                username: user ? helpers.userLink(user) : adjustment.transaction.user_id,
-                amount: adjustment.transaction.amount,
+                id: transaction.id,
+                donationId: donation.id,
+                username: user ? helpers.userLink(user) : donation.user_id,
+                amount: transaction.amount,
             })
         );
     }

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "4f7d363c-dad5-44fe-8844-95f746ba7ced",
+  "id": "2d80903a-2dd7-4b02-8980-a7f68b45164b",
   "prevId": "ac1b2d3a-65bf-4c41-8034-66c86e4297f6",
   "tables": {
     "aliases": {
@@ -513,6 +513,14 @@
             "donation_id"
           ],
           "isUnique": false
+        },
+        "hackemcoin_donation_reward_idx": {
+          "name": "hackemcoin_donation_reward_idx",
+          "columns": [
+            "donation_id"
+          ],
+          "isUnique": true,
+          "where": "\"hackemcoin_transactions\".\"type\" = 'donation'"
         },
         "hackemcoin_ref_idx": {
           "name": "hackemcoin_ref_idx",

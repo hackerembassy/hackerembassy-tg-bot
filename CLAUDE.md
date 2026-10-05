@@ -76,8 +76,9 @@ SQLite via `better-sqlite3` + Drizzle ORM. `src/data/db.ts` is the client single
 tables, `src/data/migrations/` holds generated SQL migrations (`npm run migrations` after schema changes).
 Repositories in `src/data/repositories/*.ts` extend `BaseRepository` (`src/data/repositories/base.ts`), which
 injects the drizzle client and a logger — repositories are the only layer that should import `@data/db` directly.
-Writes spanning several repositories that must succeed or fail together go through `runInTransaction` from the same
-file (e.g. a donation plus its hackemcoin reward, a snack purchase plus its stock change).
+Writes spanning several repositories that must roll back together go through `runInTransaction` from the same file
+(e.g. a snack purchase plus its stock change). Transactions are synchronous (better-sqlite3), so no `await` inside;
+do async work such as currency conversion before or after.
 Domain logic sits one layer up in `src/services/domain/` (e.g. `space.ts`, `user.ts`; a domain with enough internal
 structure to warrant it, like `funds/`, is a subfolder with an `index.ts` instead of a flat file), which
 controllers call instead of repositories directly where domain rules apply.
@@ -92,6 +93,8 @@ chart-rendering code with no repository access of its own, kept alongside the fu
 nothing outside the funds/donations feature ever uses them. `src/services/common/broadcast.ts` is an event emitter
 (`BroadcastEvents.SpaceOpened/SpaceClosed/SpaceUnlocked`, etc.) used to decouple state changes (e.g. door/status
 changes from embassy hardware) from bot notification handlers wired up in `src/bot/setup.ts::addEventHandlers`.
+It also decouples domains: `fundsService` emits `DonationAdded/Changed/Removed` and knows nothing about hackemcoins,
+whose service subscribes to them to reward donors (so a donation and its reward are deliberately not one transaction).
 
 ### Bot HTTP API
 

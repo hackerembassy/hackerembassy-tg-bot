@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, text, index, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 import { HackemcoinTransactionType, UserStateChangeType, UserStateType } from "./types";
@@ -186,6 +186,9 @@ export const hackemcoinTransactions = sqliteTable(
     table => [
         index("hackemcoin_user_idx").on(table.user_id),
         index("hackemcoin_donation_idx").on(table.donation_id),
+        uniqueIndex("hackemcoin_donation_reward_idx")
+            .on(table.donation_id)
+            .where(sql`${table.type} = 'donation'`),
         index("hackemcoin_ref_idx").on(table.ref_id),
     ]
 );

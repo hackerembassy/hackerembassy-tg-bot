@@ -1,16 +1,23 @@
 import fundsRepository from "@data/repositories/funds";
+import hackemcoinsRepository from "@data/repositories/hackemcoins";
 import { TEST_USERS } from "@data/seed";
+import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import { hackemcoinsService } from "@services/domain/hackemcoins";
 import { fundsService } from "@services/domain/funds";
+import { addEventHandlers } from "@hackembot/setup";
 
 import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 const guestBalance = () => hackemcoinsService.getBalance(TEST_USERS.guest.userid);
+// Donation rewards are handled asynchronously after the donation is committed
+const flushEvents = () => new Promise(resolve => setTimeout(resolve, 10));
 
 describe("Bot Hackemcoins commands:", () => {
     const mockBot = createMockBot();
     // The sponsorship line is only appended on a user's first donation in the process
     const popFirstLines = () => mockBot.popResults().map(result => result.split("\n")[0]);
+    // The reward DM races the gratitude reply
+    const popSortedFirstLines = () => popFirstLines().sort();
 
     afterEach(() => mockBot.popResults());
 
@@ -119,6 +126,8 @@ describe("Bot Hackemcoins commands:", () => {
     describe("donation rewards", () => {
         const fundName = "Hackemcoin_Fund";
 
+        beforeAll(() => addEventHandlers(mockBot));
+
         beforeEach(() =>
             fundsRepository.addFund({ name: fundName, target_value: 100000, target_currency: "AMD", status: "open" })
         );
@@ -134,8 +143,9 @@ describe("Bot Hackemcoins commands:", () => {
             await mockBot.processUpdate(
                 createMockMessage(`/adddonation 5000 AMD from guest to ${fundName}`, TEST_USERS.accountant)
             );
+            await flushEvents();
 
-            expect(popFirstLines()).toEqual(["hackemcoins\\.received\\.donation", "funds\\.adddonation\\.success"]);
+            expect(popSortedFirstLines()).toEqual(["funds\\.adddonation\\.success", "hackemcoins\\.received\\.donation"]);
             expect(guestBalance()).toBe(before + 50);
         });
 
@@ -145,15 +155,17 @@ describe("Bot Hackemcoins commands:", () => {
             await mockBot.processUpdate(
                 createMockMessage(`/adddonation 199 AMD from guest to ${fundName}`, TEST_USERS.accountant)
             );
+            await flushEvents();
 
-            expect(popFirstLines()).toEqual(["hackemcoins\\.received\\.donation", "funds\\.adddonation\\.success"]);
+            expect(popSortedFirstLines()).toEqual(["funds\\.adddonation\\.success", "hackemcoins\\.received\\.donation"]);
             expect(guestBalance()).toBe(before + 1);
 
             await mockBot.processUpdate(
                 createMockMessage(`/adddonation 99 AMD from guest to ${fundName}`, TEST_USERS.accountant)
             );
+            await flushEvents();
 
-            expect(popFirstLines()).toEqual(["funds\\.adddonation\\.increased"]);
+            expect(popSortedFirstLines()).toEqual(["funds\\.adddonation\\.increased"]);
             expect(guestBalance()).toBe(before + 1);
         });
 
@@ -162,18 +174,21 @@ describe("Bot Hackemcoins commands:", () => {
             const { donationId } = await fundsService.donate(fundName, 5000, "AMD", TEST_USERS.guest, TEST_USERS.accountant);
 
             await mockBot.processUpdate(createMockMessage(`/changedonation ${donationId} to 8000 AMD`, TEST_USERS.accountant));
+            await flushEvents();
             expect(guestBalance()).toBe(before + 80);
 
             await mockBot.processUpdate(createMockMessage(`/changedonation ${donationId} to 8000 AMD`, TEST_USERS.accountant));
             await mockBot.processUpdate(createMockMessage(`/removedonation ${donationId}`, TEST_USERS.accountant));
+            await flushEvents();
             expect(guestBalance()).toBe(before);
 
-            expect(mockBot.popResults()).toEqual([
+            expect(popSortedFirstLines()).toEqual([
                 "funds\\.changedonation\\.success",
-                "hackemcoins\\.donationadjust\\.changed",
                 "funds\\.changedonation\\.success",
                 "funds\\.removedonation\\.success",
+                "hackemcoins\\.donationadjust\\.changed",
                 "hackemcoins\\.donationadjust\\.removed",
+                "hackemcoins\\.received\\.donation",
             ]);
         });
 
@@ -190,20 +205,41 @@ describe("Bot Hackemcoins commands:", () => {
 
             await mockBot.processUpdate(createMockMessage(`/changedonation ${donationId} to 9000 AMD`, TEST_USERS.accountant));
             await mockBot.processUpdate(createMockMessage(`/removedonation ${donationId}`, TEST_USERS.accountant));
+            await flushEvents();
 
             expect(mockBot.popResults()).toEqual(["funds\\.changedonation\\.success", "funds\\.removedonation\\.success"]);
             expect(guestBalance()).toBe(before);
         });
 
-        test("a failed reward rolls the whole donation back", async () => {
-            jest.spyOn(hackemcoinsService, "rewardDonation").mockImplementationOnce(() => {
-                throw new Error("Mocked reward failure");
+        test("a replayed donation event doesn't reward the donation twice", async () => {
+            const before = guestBalance();
+            const { donationId } = await fundsService.donate(fundName, 5000, "AMD", TEST_USERS.guest, TEST_USERS.accountant);
+            const donation = fundsService.getDonationById(donationId)!;
+
+            await flushEvents();
+            broadcast.emit(BroadcastEvents.DonationAdded, { donation, actor: TEST_USERS.accountant });
+            await flushEvents();
+
+            expect(guestBalance()).toBe(before + 50);
+        });
+
+        test("a failed reward keeps the donation and doesn't block later rewards", async () => {
+            const before = guestBalance();
+
+            jest.spyOn(hackemcoinsRepository, "addTransaction").mockImplementationOnce(() => {
+                throw new Error("Mocked journal failure");
             });
 
-            await expect(fundsService.donate(fundName, 5000, "AMD", TEST_USERS.guest, TEST_USERS.accountant)).rejects.toThrow(
-                "Mocked reward failure"
-            );
-            expect(fundsRepository.getDonationsForName(fundName)).toHaveLength(0);
+            const { donationId } = await fundsService.donate(fundName, 5000, "AMD", TEST_USERS.guest, TEST_USERS.accountant);
+            await flushEvents();
+
+            expect(fundsService.getDonationById(donationId)).toBeDefined();
+            expect(guestBalance()).toBe(before);
+
+            await fundsService.donate(fundName, 3000, "AMD", TEST_USERS.guest, TEST_USERS.accountant);
+            await flushEvents();
+
+            expect(guestBalance()).toBe(before + 30);
         });
     });
 });

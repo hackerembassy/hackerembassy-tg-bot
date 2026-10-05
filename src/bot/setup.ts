@@ -7,6 +7,7 @@ import { BotConfig } from "@config";
 
 import logger from "@services/common/logger";
 import { userService } from "@services/domain/user";
+import { DonationAdjustmentEvent, DonationRewardEvent } from "@services/domain/hackemcoins";
 
 import HackerEmbassyBot from "./core/classes/HackerEmbassyBot";
 import AdminController from "./controllers/admin";
@@ -150,12 +151,10 @@ export function addEventHandlers(bot: HackerEmbassyBot) {
         BroadcastEvents.SpaceUnlocked,
         username => void EmbassyController.unlockedNotificationHandler(bot, username)
     );
-    broadcast.addListener(
-        BroadcastEvents.HackemcoinsDonationRewarded,
-        event => void HackemcoinsController.donationRewardedHandler(bot, event)
+    broadcast.addAsyncListener(BroadcastEvents.HackemcoinsDonationRewarded, (event: DonationRewardEvent) =>
+        HackemcoinsController.donationRewardedHandler(bot, event)
     );
-    broadcast.addListener(
-        BroadcastEvents.HackemcoinsDonationAdjusted,
-        event => void HackemcoinsController.donationAdjustedHandler(bot, event)
+    broadcast.addAsyncListener(BroadcastEvents.HackemcoinsDonationAdjusted, (event: DonationAdjustmentEvent) =>
+        HackemcoinsController.donationAdjustedHandler(bot, event)
     );
 }

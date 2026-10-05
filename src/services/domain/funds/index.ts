@@ -105,12 +105,12 @@ class FundsService {
         return FundsRepository.getDonationById(donationId, joinFunds, joinUsers);
     }
 
-    public removeDonation(donationId: number, actor: User): boolean {
+    public async removeDonation(donationId: number, actor: User): Promise<boolean> {
         const donation = FundsRepository.getDonationById(donationId);
 
         if (!donation || !FundsRepository.removeDonationById(donation.id)) return false;
 
-        broadcast.emit(BroadcastEvents.DonationRemoved, { donation, actor } satisfies DonationEvent);
+        await broadcast.emitAsync(BroadcastEvents.DonationRemoved, { donation, actor } satisfies DonationEvent);
 
         return true;
     }
@@ -153,7 +153,7 @@ class FundsService {
 
         if (!donation) throw new Error("Failed to add donation");
 
-        broadcast.emit(BroadcastEvents.DonationAdded, { donation, actor: accountant } satisfies DonationEvent);
+        await broadcast.emitAsync(BroadcastEvents.DonationAdded, { donation, actor: accountant } satisfies DonationEvent);
 
         const userDonations = FundsRepository.getDonationsOf(user.userid, false, false, getSponsorshipStartPeriodDate());
         const { updated: hasUpdatedSponsorship, level: newSponsorshipLevel } = await this.recalculateSponsorship(
@@ -269,7 +269,7 @@ class FundsService {
 
         if (!this.updateDonation(updatedDonation)) return undefined;
 
-        broadcast.emit(BroadcastEvents.DonationChanged, { donation: updatedDonation, actor } satisfies DonationEvent);
+        await broadcast.emitAsync(BroadcastEvents.DonationChanged, { donation: updatedDonation, actor } satisfies DonationEvent);
 
         return updatedDonation;
     }

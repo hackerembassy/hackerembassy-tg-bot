@@ -479,7 +479,7 @@ export default class FundsController implements BotController {
     @Route(["removedonation"], /(\d+)/, match => [match[1]])
     @UserRoles(Accountants)
     static async removeDonationHandler(bot: HackerEmbassyBot, msg: Message, donationId: number) {
-        const success = fundsService.removeDonation(donationId, bot.context(msg).user);
+        const success = await fundsService.removeDonation(donationId, bot.context(msg).user);
 
         await bot.sendMessageExt(
             msg.chat.id,

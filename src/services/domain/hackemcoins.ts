@@ -4,7 +4,6 @@ import { BotConfig } from "@config";
 import { Donation, HackemcoinTransaction, User } from "@data/models";
 import HackemcoinsRepository from "@data/repositories/hackemcoins";
 
-import logger from "@services/common/logger";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 
 import { convertCurrency } from "./funds/currency";
@@ -39,15 +38,15 @@ class HackemcoinsService {
     constructor() {
         if (!this.enabled) return;
 
-        broadcast.addListener(BroadcastEvents.DonationAdded, (event: DonationEvent) =>
+        broadcast.addAsyncListener(BroadcastEvents.DonationAdded, (event: DonationEvent) =>
             this.enqueue(() => this.rewardDonation(event))
         );
-        broadcast.addListener(BroadcastEvents.DonationChanged, (event: DonationEvent) =>
+        broadcast.addAsyncListener(BroadcastEvents.DonationChanged, (event: DonationEvent) =>
             this.enqueue(async () =>
                 this.adjustDonationReward(event, "changed", await this.calculateDonationReward(event.donation))
             )
         );
-        broadcast.addListener(BroadcastEvents.DonationRemoved, (event: DonationEvent) =>
+        broadcast.addAsyncListener(BroadcastEvents.DonationRemoved, (event: DonationEvent) =>
             this.enqueue(() => this.adjustDonationReward(event, "removed", 0))
         );
     }
@@ -68,8 +67,12 @@ class HackemcoinsService {
         return !!HackemcoinsRepository.getTransactionReferencing(transactionId);
     }
 
-    private enqueue(task: () => unknown) {
-        this.donationQueue = this.donationQueue.then(task).catch((error: unknown) => logger.error(error));
+    private enqueue(task: () => unknown): Promise<unknown> {
+        const run = this.donationQueue.then(task);
+
+        this.donationQueue = run.catch(() => null);
+
+        return run;
     }
 
     private async calculateDonationReward(donation: Donation): Promise<number> {
@@ -96,11 +99,14 @@ class HackemcoinsService {
             ref_id: null,
         });
 
-        broadcast.emit(BroadcastEvents.HackemcoinsDonationRewarded, { donation, ...result } satisfies DonationRewardEvent);
+        await broadcast.emitAsync(BroadcastEvents.HackemcoinsDonationRewarded, {
+            donation,
+            ...result,
+        } satisfies DonationRewardEvent);
     }
 
     // Donations made before hackemcoins existed have no reward entry and must not earn coins retroactively when edited
-    private adjustDonationReward({ donation, actor }: DonationEvent, change: DonationAdjustment, newReward: number) {
+    private async adjustDonationReward({ donation, actor }: DonationEvent, change: DonationAdjustment, newReward: number) {
         if (!HackemcoinsRepository.getDonationReward(donation.id)) return;
 
         const delta = newReward - HackemcoinsRepository.getDonationRewardTotal(donation.id);
@@ -118,7 +124,7 @@ class HackemcoinsService {
             ref_id: null,
         });
 
-        broadcast.emit(BroadcastEvents.HackemcoinsDonationAdjusted, {
+        await broadcast.emitAsync(BroadcastEvents.HackemcoinsDonationAdjusted, {
             donation,
             change,
             ...result,

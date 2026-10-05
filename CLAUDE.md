@@ -93,8 +93,9 @@ chart-rendering code with no repository access of its own, kept alongside the fu
 nothing outside the funds/donations feature ever uses them. `src/services/common/broadcast.ts` is an event emitter
 (`BroadcastEvents.SpaceOpened/SpaceClosed/SpaceUnlocked`, etc.) used to decouple state changes (e.g. door/status
 changes from embassy hardware) from bot notification handlers wired up in `src/bot/setup.ts::addEventHandlers`.
-It also decouples domains: `fundsService` emits `DonationAdded/Changed/Removed` and knows nothing about hackemcoins,
-whose service subscribes to them to reward donors (so a donation and its reward are deliberately not one transaction).
+It also decouples domains: `fundsService` awaits `broadcast.emitAsync(DonationAdded/Changed/Removed)` and knows nothing
+about hackemcoins, whose service subscribes via `addAsyncListener` to reward donors. `emitAsync` waits for async
+listeners but only logs their failures, and a donation and its reward are deliberately not one transaction.
 
 ### Bot HTTP API
 

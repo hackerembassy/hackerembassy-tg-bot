@@ -22,10 +22,6 @@ export interface DonationRewardEvent extends HackemcoinOperationResult {
     donation: Donation;
 }
 
-export interface DonationAdjustmentEvent extends DonationRewardEvent {
-    change: DonationAdjustment;
-}
-
 class HackemcoinsService {
     public readonly enabled = botConfig.features.hackemcoins;
     public readonly currency = botConfig.hackemcoins.currency;
@@ -61,9 +57,7 @@ class HackemcoinsService {
     }
 
     public adjustDonationReward(event: DonationEvent, change: DonationAdjustment): Promise<unknown> {
-        return this.enqueue(async () =>
-            this.applyDonationAdjustment(event, change, await this.adjustedRewards[change](event.donation))
-        );
+        return this.enqueue(async () => this.applyDonationAdjustment(event, await this.adjustedRewards[change](event.donation)));
     }
 
     private enqueue(task: () => unknown): Promise<unknown> {
@@ -105,14 +99,14 @@ class HackemcoinsService {
     }
 
     // Donations made before hackemcoins existed have no reward entry and must not earn coins retroactively when edited
-    private async applyDonationAdjustment({ donation, actor }: DonationEvent, change: DonationAdjustment, newReward: number) {
+    private applyDonationAdjustment({ donation, actor }: DonationEvent, newReward: number) {
         if (!HackemcoinsRepository.getDonationReward(donation.id)) return;
 
         const delta = newReward - HackemcoinsRepository.getDonationRewardTotal(donation.id);
 
         if (delta === 0) return;
 
-        const result = HackemcoinsRepository.addTransaction({
+        HackemcoinsRepository.addTransaction({
             user_id: donation.user_id,
             actor_id: actor.userid,
             amount: delta,
@@ -122,12 +116,6 @@ class HackemcoinsService {
             snack_id: null,
             ref_id: null,
         });
-
-        await broadcast.emitAsync(BroadcastEvents.HackemcoinsDonationAdjusted, {
-            donation,
-            change,
-            ...result,
-        } satisfies DonationAdjustmentEvent);
     }
 
     public grant(target: User, actor: User, amount: number, reason: string) {

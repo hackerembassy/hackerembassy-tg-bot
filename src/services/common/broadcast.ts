@@ -10,7 +10,6 @@ export const enum BroadcastEvents {
     DonationChanged = "donation-changed",
     DonationRemoved = "donation-removed",
     HackemcoinsDonationRewarded = "hackemcoins-donation-rewarded",
-    HackemcoinsDonationAdjusted = "hackemcoins-donation-adjusted",
 }
 
 type Listener = (...args: unknown[]) => unknown;

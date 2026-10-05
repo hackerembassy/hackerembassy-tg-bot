@@ -99,7 +99,7 @@ subscribes inside a service. Subscriptions live in two places, one file per area
 - `src/services/listeners/` (`addDomainListeners`, called from `src/bot.ts`) — domain reacting to domain, e.g.
   hackemcoins rewarding donors on funds' donation events. `fundsService` knows nothing about hackemcoins.
 - `src/bot/listeners/` (`addBotListeners`, called from `src/bot/instance.ts`) — bot notifications, e.g. the space
-  open/close announcements and the hackemcoin reward DM / logbook entry.
+  open/close announcements and the hackemcoin donation-reward DM.
 
 `broadcast.emitAsync` + `addAsyncListener` await async listeners (failures are logged, never thrown back into the
 emitter). A donation and its hackemcoin reward are deliberately not one transaction.

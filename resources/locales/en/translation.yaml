@@ -700,9 +700,6 @@ hackemcoins:
         donation: "🪙 Thanks for donating to #`{{fundName}}#`! You got {{amount}} HC, balance: {{balance}} HC. Spend them on snacks: /snacks"
         grant: "🪙 {{actor}} granted you {{amount}} HC for «{{reason}}», balance: {{balance}} HC"
         refund: "🪙 Your #`{{name}}#` purchase [#`{{id}}#`] was undone, {{amount}} HC returned, balance: {{balance}} HC"
-    donationadjust:
-        changed: "🪙 [#`{{id}}#`] Donation [id:{{donationId}}] changed, {{username}}'s balance adjusted by {{amount}} HC"
-        removed: "🪙 [#`{{id}}#`] Donation [id:{{donationId}}] removed, {{username}}'s balance adjusted by {{amount}} HC"
     errors:
         amount: "⚠️ The HC amount must be a positive whole number"
 snacks:

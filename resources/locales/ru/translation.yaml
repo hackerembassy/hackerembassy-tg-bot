@@ -701,9 +701,6 @@ hackemcoins:
         donation: "🪙 Спасибо за донат в сбор #`{{fundName}}#`! Тебе начислено {{amount}} HC, баланс: {{balance}} HC. Потратить их можно на снеки: /snacks"
         grant: "🪙 {{actor}} начислил тебе {{amount}} HC за «{{reason}}», баланс: {{balance}} HC"
         refund: "🪙 Покупка #`{{name}}#` [#`{{id}}#`] отменена, тебе вернули {{amount}} HC, баланс: {{balance}} HC"
-    donationadjust:
-        changed: "🪙 [#`{{id}}#`] Донат [id:{{donationId}}] изменен, баланс {{username}} скорректирован на {{amount}} HC"
-        removed: "🪙 [#`{{id}}#`] Донат [id:{{donationId}}] удален, баланс {{username}} скорректирован на {{amount}} HC"
     errors:
         amount: "⚠️ Количество HC должно быть целым положительным числом"
 snacks:

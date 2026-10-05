@@ -695,9 +695,6 @@ hackemcoins:
         donation: "🪙 Շնորհակալություն #`{{fundName}}#` հավաքագրմանը նվիրաբերելու համար! Քեզ ավելացվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC. Կարող ես ծախսել խորտիկների վրա: /snacks"
         grant: "🪙 {{actor}}-ը քեզ ավելացրեց {{amount}} HC «{{reason}}» համար, հաշվեկշիռ: {{balance}} HC"
         refund: "🪙 #`{{name}}#` գնումը [#`{{id}}#`] չեղարկվեց, քեզ վերադարձվեց {{amount}} HC, հաշվեկշիռ: {{balance}} HC"
-    donationadjust:
-        changed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] փոխվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով"
-        removed: "🪙 [#`{{id}}#`] Նվիրատվությունը [id:{{donationId}}] ջնջվեց, {{username}}-ի հաշվեկշիռը ճշգրտվեց {{amount}} HC-ով"
     errors:
         amount: "⚠️ HC-ի քանակը պետք է լինի դրական ամբողջ թիվ"
 snacks:

@@ -2,12 +2,7 @@ import { Message } from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 import { hasRole, userService } from "@services/domain/user";
-import {
-    DonationAdjustmentEvent,
-    DonationRewardEvent,
-    HackemcoinOperationResult,
-    hackemcoinsService,
-} from "@services/domain/hackemcoins";
+import { DonationRewardEvent, HackemcoinOperationResult, hackemcoinsService } from "@services/domain/hackemcoins";
 import { fundsService } from "@services/domain/funds";
 import { FeatureFlag, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
@@ -148,18 +143,5 @@ export default class HackemcoinsController implements BotController {
             balance,
             fundName: fundsService.getFundById(donation.fund_id)?.name,
         });
-    }
-
-    static async donationAdjustedHandler(bot: HackerEmbassyBot, { donation, change, transaction }: DonationAdjustmentEvent) {
-        const user = userService.getUser(donation.user_id);
-
-        await bot.sendAlert(
-            t(`hackemcoins.donationadjust.${change}`, {
-                id: transaction.id,
-                donationId: donation.id,
-                username: user ? helpers.userLink(user) : donation.user_id,
-                amount: transaction.amount,
-            })
-        );
     }
 }

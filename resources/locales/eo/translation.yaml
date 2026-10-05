@@ -699,9 +699,6 @@ hackemcoins:
         donation: "🪙 Dankon pro via donaco al #`{{fundName}}#`! Vi ricevis {{amount}} HC, saldo: {{balance}} HC. Elspezu ilin por manĝetoj: /snacks"
         grant: "🪙 {{actor}} donis al vi {{amount}} HC pro «{{reason}}», saldo: {{balance}} HC"
         refund: "🪙 Via aĉeto de #`{{name}}#` [#`{{id}}#`] estis nuligita, {{amount}} HC redonitaj, saldo: {{balance}} HC"
-    donationadjust:
-        changed: "🪙 [#`{{id}}#`] Donaco [id:{{donationId}}] ŝanĝiĝis, la saldo de {{username}} korektita je {{amount}} HC"
-        removed: "🪙 [#`{{id}}#`] Donaco [id:{{donationId}}] forigita, la saldo de {{username}} korektita je {{amount}} HC"
     errors:
         amount: "⚠️ La kvanto de HC devas esti pozitiva entjero"
 snacks:

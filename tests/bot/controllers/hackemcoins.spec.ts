@@ -166,7 +166,7 @@ describe("Bot Hackemcoins commands:", () => {
             expect(guestBalance()).toBe(before + 1);
         });
 
-        test("/changedonation and /removedonation re-sync the reward and log the adjustment", async () => {
+        test("/changedonation and /removedonation re-sync the reward without logbook entries", async () => {
             const before = guestBalance();
             const { donationId } = await fundsService.donate(fundName, 5000, "AMD", TEST_USERS.guest, TEST_USERS.accountant);
 
@@ -179,10 +179,8 @@ describe("Bot Hackemcoins commands:", () => {
 
             expect(popFirstLines()).toEqual([
                 "hackemcoins\\.received\\.donation",
-                "hackemcoins\\.donationadjust\\.changed",
                 "funds\\.changedonation\\.success",
                 "funds\\.changedonation\\.success",
-                "hackemcoins\\.donationadjust\\.removed",
                 "funds\\.removedonation\\.success",
             ]);
         });

@@ -1,6 +1,8 @@
+import { BotCommand } from "node-telegram-bot-api";
+
 import config from "config";
 
-import { BotConfig } from "@config";
+import { BotConfig, BotFeatureFlag } from "@config";
 
 import logger from "@services/common/logger";
 import { userService } from "@services/domain/user";
@@ -21,6 +23,17 @@ import SubscriptionsController from "./controllers/subscriptions";
 import WikiController from "./controllers/wiki";
 
 const botConfig = config.get<BotConfig>("bot");
+
+const featureCommands: Partial<Record<BotFeatureFlag, BotCommand[]>> = {
+    hackemcoins: [
+        { command: "hackemcoins", description: "Мой баланс hackemcoin и как их получить" },
+        { command: "snacks", description: "Снеки за hackemcoin" },
+    ],
+};
+
+const enabledFeatureCommands = Object.entries(featureCommands)
+    .filter(([flag]) => botConfig.features[flag as BotFeatureFlag])
+    .flatMap(([, commands]) => commands);
 
 const defaultCommands = [
     { command: "start", description: "Панель управления" },
@@ -43,8 +56,6 @@ const defaultCommands = [
         command: "needs",
         description: "Посмотреть, что просили купить в спейс по дороге",
     },
-    { command: "hackemcoins", description: "Мой баланс hackemcoin и как их получить" },
-    { command: "snacks", description: "Снеки за hackemcoin" },
     { command: "about", description: "О спейсе и боте" },
     { command: "join", description: "Как присоединиться к нам" },
     { command: "events", description: "Мероприятия в спейсе" },
@@ -64,6 +75,7 @@ const defaultCommands = [
     { command: "stats", description: "Статистика по времени в спейсе" },
     { command: "topics", description: "Топики для подписки на уведомления" },
     { command: "wiki", description: "Страницы вики спейса" },
+    ...enabledFeatureCommands,
 ];
 
 const residentCommands = [
@@ -89,13 +101,12 @@ const residentCommands = [
         command: "needs",
         description: "Посмотреть, что просили купить в спейс по дороге",
     },
-    { command: "hackemcoins", description: "Мой баланс hackemcoin и как их получить" },
-    { command: "snacks", description: "Снеки за hackemcoin" },
     { command: "anette", description: "Статус Anette" },
     { command: "shaytan", description: "Статус Shaytan" },
     { command: "oda", description: "Статус Oda" },
     { command: "stats", description: "Статистика по времени в спейсе" },
     { command: "topics", description: "Топики для подписки на уведомления" },
+    ...enabledFeatureCommands,
 ];
 
 export async function setMenu(bot: HackerEmbassyBot): Promise<void> {

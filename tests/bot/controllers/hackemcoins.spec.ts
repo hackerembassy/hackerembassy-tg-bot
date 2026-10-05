@@ -4,7 +4,8 @@ import { TEST_USERS } from "@data/seed";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import { hackemcoinsService } from "@services/domain/hackemcoins";
 import { fundsService } from "@services/domain/funds";
-import { addEventHandlers } from "@hackembot/setup";
+import { addDomainListeners } from "@services/listeners";
+import { addBotListeners } from "@hackembot/listeners";
 
 import { createMockBot, createMockMessage } from "../../mocks/bot";
 
@@ -122,7 +123,10 @@ describe("Bot Hackemcoins commands:", () => {
     describe("donation rewards", () => {
         const fundName = "Hackemcoin_Fund";
 
-        beforeAll(() => addEventHandlers(mockBot));
+        beforeAll(() => {
+            addDomainListeners();
+            addBotListeners(mockBot);
+        });
 
         beforeEach(() =>
             fundsRepository.addFund({ name: fundName, target_value: 100000, target_currency: "AMD", status: "open" })

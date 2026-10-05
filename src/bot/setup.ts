@@ -1,13 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import config from "config";
-
-import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 
 import { BotConfig } from "@config";
 
 import logger from "@services/common/logger";
 import { userService } from "@services/domain/user";
-import { DonationAdjustmentEvent, DonationRewardEvent } from "@services/domain/hackemcoins";
 
 import HackerEmbassyBot from "./core/classes/HackerEmbassyBot";
 import AdminController from "./controllers/admin";
@@ -141,20 +137,5 @@ export function addSpecialRoutes(bot: HackerEmbassyBot): void {
         ServiceController.newMemberHandler,
         EmbassyController.buildAskContinuation,
         EmbassyController.guessHandler
-    );
-}
-
-export function addEventHandlers(bot: HackerEmbassyBot) {
-    broadcast.addListener(BroadcastEvents.SpaceOpened, state => void StatusController.openedNotificationHandler(bot, state));
-    broadcast.addListener(BroadcastEvents.SpaceClosed, state => void StatusController.closedNotificationHandler(bot, state));
-    broadcast.addListener(
-        BroadcastEvents.SpaceUnlocked,
-        username => void EmbassyController.unlockedNotificationHandler(bot, username)
-    );
-    broadcast.addAsyncListener(BroadcastEvents.HackemcoinsDonationRewarded, (event: DonationRewardEvent) =>
-        HackemcoinsController.donationRewardedHandler(bot, event)
-    );
-    broadcast.addAsyncListener(BroadcastEvents.HackemcoinsDonationAdjusted, (event: DonationAdjustmentEvent) =>
-        HackemcoinsController.donationAdjustedHandler(bot, event)
     );
 }

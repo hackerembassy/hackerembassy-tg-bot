@@ -58,7 +58,7 @@ from `src/bot/core/decorators.ts`:
 
 Every controller implements `BotController` and is registered once in `src/bot/setup.ts::addControllers`.
 `src/bot/instance.ts` builds the `HackerEmbassyBot` singleton and calls `addControllers`, `addSpecialRoutes`,
-`addEventHandlers`, `setAutomaticFeatures` (cron), and `setMenu` before starting polling.
+`addBotListeners` (`src/bot/listeners/`), `setAutomaticFeatures` (cron), and `setMenu` before starting polling.
 
 Handler signature convention: `static async fooHandler(bot: HackerEmbassyBot, msg: Message, ...params)`.
 
@@ -86,16 +86,23 @@ controllers call instead of repositories directly where domain rules apply.
 ### Services
 
 `src/services/` is grouped by purpose: `common/` (logger, broadcast event bus, telemetry), `domain/` (space/user/
-subscription/funds/needs business logic), `embassy/` (door, 3D printers, Home Assistant, MQTT), `external/`
-(GitHub, Google Calendar, wiki/Outline), `neural/` (OpenAI, local Ollama/open-webui, Stable Diffusion). The
-`domain/funds/` subfolder also holds `currency.ts` and `reports.ts` — stateless currency-conversion and CSV/
-chart-rendering code with no repository access of its own, kept alongside the funds domain service since
-nothing outside the funds/donations feature ever uses them. `src/services/common/broadcast.ts` is an event emitter
-(`BroadcastEvents.SpaceOpened/SpaceClosed/SpaceUnlocked`, etc.) used to decouple state changes (e.g. door/status
-changes from embassy hardware) from bot notification handlers wired up in `src/bot/setup.ts::addEventHandlers`.
-It also decouples domains: `fundsService` awaits `broadcast.emitAsync(DonationAdded/Changed/Removed)` and knows nothing
-about hackemcoins, whose service subscribes via `addAsyncListener` to reward donors. `emitAsync` waits for async
-listeners but only logs their failures, and a donation and its reward are deliberately not one transaction.
+subscription/funds/needs business logic), `listeners/` (cross-domain event subscriptions), `embassy/` (door, 3D
+printers, Home Assistant, MQTT), `external/` (GitHub, Google Calendar, wiki/Outline), `neural/` (OpenAI, local
+Ollama/open-webui, Stable Diffusion). The `domain/funds/` subfolder also holds `currency.ts` and `reports.ts` —
+stateless currency-conversion and CSV/chart-rendering code with no repository access of its own, kept alongside the
+funds domain service since nothing outside the funds/donations feature ever uses them.
+
+`src/services/common/broadcast.ts` is an event emitter (`BroadcastEvents.SpaceOpened/SpaceClosed/SpaceUnlocked`,
+`DonationAdded/Changed/Removed`, etc.) that decouples state changes from their reactions. Services only emit; nothing
+subscribes inside a service. Subscriptions live in two places, one file per area:
+
+- `src/services/listeners/` (`addDomainListeners`, called from `src/bot.ts`) — domain reacting to domain, e.g.
+  hackemcoins rewarding donors on funds' donation events. `fundsService` knows nothing about hackemcoins.
+- `src/bot/listeners/` (`addBotListeners`, called from `src/bot/instance.ts`) — bot notifications, e.g. the space
+  open/close announcements and the hackemcoin reward DM / logbook entry.
+
+`broadcast.emitAsync` + `addAsyncListener` await async listeners (failures are logged, never thrown back into the
+emitter). A donation and its hackemcoin reward are deliberately not one transaction.
 
 ### Bot HTTP API
 

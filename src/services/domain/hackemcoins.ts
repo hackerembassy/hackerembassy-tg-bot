@@ -35,22 +35,6 @@ class HackemcoinsService {
     // Donation events are handled one at a time so a quick change/removal can't overtake the reward it corrects
     private donationQueue: Promise<unknown> = Promise.resolve();
 
-    constructor() {
-        if (!this.enabled) return;
-
-        broadcast.addAsyncListener(BroadcastEvents.DonationAdded, (event: DonationEvent) =>
-            this.enqueue(() => this.rewardDonation(event))
-        );
-        broadcast.addAsyncListener(BroadcastEvents.DonationChanged, (event: DonationEvent) =>
-            this.enqueue(async () =>
-                this.adjustDonationReward(event, "changed", await this.calculateDonationReward(event.donation))
-            )
-        );
-        broadcast.addAsyncListener(BroadcastEvents.DonationRemoved, (event: DonationEvent) =>
-            this.enqueue(() => this.adjustDonationReward(event, "removed", 0))
-        );
-    }
-
     public getBalance(userId: number) {
         return HackemcoinsRepository.getBalance(userId);
     }
@@ -65,6 +49,21 @@ class HackemcoinsService {
 
     public isUndone(transactionId: number) {
         return !!HackemcoinsRepository.getTransactionReferencing(transactionId);
+    }
+
+    private readonly adjustedRewards: Record<DonationAdjustment, (donation: Donation) => Promise<number>> = {
+        changed: donation => this.calculateDonationReward(donation),
+        removed: () => Promise.resolve(0),
+    };
+
+    public rewardDonation(event: DonationEvent): Promise<unknown> {
+        return this.enqueue(() => this.applyDonationReward(event));
+    }
+
+    public adjustDonationReward(event: DonationEvent, change: DonationAdjustment): Promise<unknown> {
+        return this.enqueue(async () =>
+            this.applyDonationAdjustment(event, change, await this.adjustedRewards[change](event.donation))
+        );
     }
 
     private enqueue(task: () => unknown): Promise<unknown> {
@@ -83,7 +82,7 @@ class HackemcoinsService {
         return Math.floor((converted * this.donationRewardPercent) / (100 * this.rate));
     }
 
-    private async rewardDonation({ donation, actor }: DonationEvent) {
+    private async applyDonationReward({ donation, actor }: DonationEvent) {
         const reward = await this.calculateDonationReward(donation);
 
         if (reward <= 0 || HackemcoinsRepository.getDonationReward(donation.id)) return;
@@ -106,7 +105,7 @@ class HackemcoinsService {
     }
 
     // Donations made before hackemcoins existed have no reward entry and must not earn coins retroactively when edited
-    private async adjustDonationReward({ donation, actor }: DonationEvent, change: DonationAdjustment, newReward: number) {
+    private async applyDonationAdjustment({ donation, actor }: DonationEvent, change: DonationAdjustment, newReward: number) {
         if (!HackemcoinsRepository.getDonationReward(donation.id)) return;
 
         const delta = newReward - HackemcoinsRepository.getDonationRewardTotal(donation.id);

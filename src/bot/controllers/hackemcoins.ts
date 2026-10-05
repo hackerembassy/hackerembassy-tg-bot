@@ -14,10 +14,25 @@ import * as TextGenerators from "../text";
 
 type BalanceChange = "grant" | "deduct";
 
+interface BalanceChangeOperation {
+    apply: (target: User, actor: User, amount: number, reason: string) => HackemcoinOperationResult;
+    notification?: string;
+}
+
 const CaptureBalanceChange = (preposition: string) =>
     helpers.OptionalParam(new RegExp(`(\\d+) ${preposition} (\\S+) for ([\\s\\S]*\\S)`));
 
 export default class HackemcoinsController implements BotController {
+    private static readonly balanceChanges: Record<BalanceChange, BalanceChangeOperation> = {
+        grant: {
+            apply: (...args) => hackemcoinsService.grant(...args),
+            notification: "hackemcoins.received.grant",
+        },
+        deduct: {
+            apply: (...args) => hackemcoinsService.deduct(...args),
+        },
+    };
+
     @Route(["hackemcoins", "hackemcoin", "hc"], helpers.OptionalParam(/(\S+)/), match => [match[1]])
     @FeatureFlag("hackemcoins")
     static hackemcoinsHandler(bot: HackerEmbassyBot, msg: Message, username?: string) {
@@ -99,10 +114,8 @@ export default class HackemcoinsController implements BotController {
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
 
         const actor = bot.context(msg).user;
-        const { transaction, balance } =
-            change === "grant"
-                ? hackemcoinsService.grant(target, actor, amount, reason)
-                : hackemcoinsService.deduct(target, actor, amount, reason);
+        const { apply, notification } = HackemcoinsController.balanceChanges[change];
+        const { transaction, balance } = apply(target, actor, amount, reason);
         const params = {
             id: transaction.id,
             actor: helpers.userLink(actor),
@@ -115,8 +128,7 @@ export default class HackemcoinsController implements BotController {
         await bot.sendMessageExt(msg.chat.id, t(`hackemcoins.${change}.success`, params), msg);
         await bot.sendAlert(t(`hackemcoins.${change}.log`, params));
 
-        if (change === "grant" && target.userid !== actor.userid)
-            await bot.sendDirectMessage(target, "hackemcoins.received.grant", params);
+        if (notification && target.userid !== actor.userid) await bot.sendDirectMessage(target, notification, params);
 
         return;
     }

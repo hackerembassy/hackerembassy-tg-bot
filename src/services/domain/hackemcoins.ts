@@ -71,7 +71,7 @@ class HackemcoinsService {
     private async calculateDonationReward(donation: Donation): Promise<number> {
         const converted = await convertCurrency(donation.value, donation.currency, this.currency);
 
-        if (!converted) return 0;
+        if (typeof converted !== "number") throw new Error(`Failed to convert ${donation.currency} to ${this.currency}`);
 
         return Math.floor((converted * this.donationRewardPercent) / (100 * this.rate));
     }
@@ -79,8 +79,9 @@ class HackemcoinsService {
     private async applyDonationReward({ donation, actor }: DonationEvent) {
         const reward = await this.calculateDonationReward(donation);
 
-        if (reward <= 0 || HackemcoinsRepository.getDonationReward(donation.id)) return;
+        if (HackemcoinsRepository.getDonationReward(donation.id)) return;
 
+        // A zero entry still marks the donation as rewardable, so correcting it upward later pays out
         const result = HackemcoinsRepository.addTransaction({
             user_id: donation.user_id,
             actor_id: actor.userid,
@@ -91,6 +92,8 @@ class HackemcoinsService {
             snack_id: null,
             ref_id: null,
         });
+
+        if (reward <= 0) return;
 
         await broadcast.emitAsync(BroadcastEvents.HackemcoinsDonationRewarded, {
             donation,

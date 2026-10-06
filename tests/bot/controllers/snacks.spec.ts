@@ -169,4 +169,34 @@ describe("Bot Snacks commands:", () => {
         expect(mockBot.popResults()).toEqual(["snacks\\.take\\.success", "snacks\\.take\\.log", "snacks\\.take\\.insufficient"]);
         expect(guestBalance()).toBe(0);
     });
+
+    test("non-ASCII snack names are found case-insensitively and can't be duplicated", async () => {
+        topUpGuest(100);
+
+        await mockBot.processUpdate(createMockMessage("/addsnack Чипсы price 10 stock 5", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/addsnack чипсы price 20", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/takesnack ЧИПСЫ", TEST_USERS.guest));
+        await mockBot.processUpdate(createMockMessage("/setsnackstock чипсы 9", TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual([
+            "snacks\\.add\\.success",
+            "snacks\\.add\\.log",
+            "snacks\\.add\\.exists",
+            "snacks\\.take\\.success",
+            "snacks\\.take\\.log",
+            "snacks\\.stock\\.success",
+            "snacks\\.stock\\.log",
+        ]);
+        expect(snacksService.getSnacks().filter(snack => snack.name.toLowerCase() === "чипсы")).toHaveLength(1);
+        expect(snacksService.getSnack("Чипсы")).toMatchObject({ name: "Чипсы", price: 10, stock: 9 });
+    });
+
+    test("/snacks shows markup characters in names literally", async () => {
+        await mockBot.processUpdate(createMockMessage(String.raw`/addsnack Mate#1\ price 10 stock 1`, TEST_USERS.accountant));
+        mockBot.popResults();
+
+        await mockBot.processUpdate(createMockMessage("/snacks", TEST_USERS.guest));
+
+        expect(mockBot.popResults()[0]).toContain("`Mate\\#1\\\\`");
+    });
 });

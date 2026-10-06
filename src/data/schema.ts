@@ -145,7 +145,8 @@ export const apikeys = sqliteTable(
 
 export const snacks = sqliteTable("snacks", {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    name: text("name").notNull().unique(),
+    name: text("name").notNull(),
+    name_key: text("name_key").notNull().unique(),
     price: integer("price").notNull(),
     stock: integer("stock").default(0).notNull(),
     removed: integer("removed", { mode: "boolean" }).default(false).notNull(),

@@ -1,15 +1,31 @@
+import { Update } from "node-telegram-bot-api";
+
 import fundsRepository from "@data/repositories/funds";
 import hackemcoinsRepository from "@data/repositories/hackemcoins";
 import { TEST_USERS } from "@data/seed";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import { hackemcoinsService } from "@services/domain/hackemcoins";
 import { fundsService } from "@services/domain/funds";
+import { convertCurrency } from "@services/domain/funds/currency";
 import { addDomainListeners } from "@services/listeners";
 import { addBotListeners } from "@hackembot/listeners";
 
 import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 const guestBalance = () => hackemcoinsService.getBalance(TEST_USERS.guest.userid);
+
+function withTextMention(update: Update, mentionText: string, user: { userid: number }, lastOccurrence = false): Update {
+    const text = update.message!.text!;
+    const offset = lastOccurrence ? text.lastIndexOf(mentionText) : text.indexOf(mentionText);
+    const entity = { type: "text_mention" as const, offset, length: mentionText.length };
+
+    update.message!.entities = [
+        ...(update.message!.entities ?? []),
+        { ...entity, user: { id: user.userid, is_bot: false, first_name: mentionText } },
+    ];
+
+    return update;
+}
 
 describe("Bot Hackemcoins commands:", () => {
     const mockBot = createMockBot();
@@ -102,6 +118,82 @@ describe("Bot Hackemcoins commands:", () => {
         ]);
     });
 
+    test("/granthc resolves a multiword text mention to the mentioned user", async () => {
+        const before = guestBalance();
+
+        await mockBot.processUpdate(
+            withTextMention(
+                createMockMessage("/granthc 7 to Guest Person for helped out", TEST_USERS.accountant),
+                "Guest Person",
+                TEST_USERS.guest
+            )
+        );
+
+        expect(mockBot.popResults()[0]).toBe("hackemcoins\\.grant\\.success");
+        expect(guestBalance()).toBe(before + 7);
+    });
+
+    test("a text mention wins over a username equal to its display text", async () => {
+        const adminBefore = hackemcoinsService.getBalance(TEST_USERS.admin.userid);
+        const before = guestBalance();
+
+        await mockBot.processUpdate(
+            withTextMention(createMockMessage("/granthc 3 to admin for tea", TEST_USERS.accountant), "admin", TEST_USERS.guest)
+        );
+
+        expect(guestBalance()).toBe(before + 3);
+        expect(hackemcoinsService.getBalance(TEST_USERS.admin.userid)).toBe(adminBefore);
+    });
+
+    test("a text mention in the reason is not taken as the recipient", async () => {
+        const before = guestBalance();
+
+        await mockBot.processUpdate(
+            withTextMention(
+                createMockMessage("/granthc 5 to @nobody_here for helped Guest Person", TEST_USERS.accountant),
+                "Guest Person",
+                TEST_USERS.guest
+            )
+        );
+
+        expect(mockBot.popResults()).toEqual(["general\\.errors\\.nouser"]);
+        expect(guestBalance()).toBe(before);
+    });
+
+    test("a reason mention with the recipient's display text doesn't redirect the coins", async () => {
+        const adminBefore = hackemcoinsService.getBalance(TEST_USERS.admin.userid);
+        const before = guestBalance();
+
+        await mockBot.processUpdate(
+            withTextMention(
+                createMockMessage("/granthc 7 to guest for helped guest", TEST_USERS.accountant),
+                "guest",
+                TEST_USERS.admin,
+                true
+            )
+        );
+
+        expect(guestBalance()).toBe(before + 7);
+        expect(hackemcoinsService.getBalance(TEST_USERS.admin.userid)).toBe(adminBefore);
+    });
+
+    test("/granthc rejects an overlong reason without changing the balance", async () => {
+        const before = guestBalance();
+
+        await mockBot.processUpdate(createMockMessage(`/granthc 1 to guest for ${"x".repeat(501)}`, TEST_USERS.accountant));
+
+        expect(mockBot.popResults()).toEqual(["hackemcoins\\.errors\\.reason"]);
+        expect(guestBalance()).toBe(before);
+    });
+
+    test("/hackemcoins shows the balance of a multiword text mention", async () => {
+        await mockBot.processUpdate(
+            withTextMention(createMockMessage("/hc Guest Person", TEST_USERS.accountant), "Guest Person", TEST_USERS.guest)
+        );
+
+        expect(mockBot.popResults()).toEqual(["hackemcoins\\.balance\\.of"]);
+    });
+
     test("/hchistory lists the sender's latest transactions", async () => {
         await mockBot.processUpdate(createMockMessage("/hchistory", TEST_USERS.tenant));
         await mockBot.processUpdate(createMockMessage("/hchistory", TEST_USERS.guest));
@@ -112,6 +204,23 @@ describe("Bot Hackemcoins commands:", () => {
         expect(history).toMatch(/^hackemcoins\\\.history\\\.title\n/);
         expect(history).toContain("hackemcoins\\.history\\.types\\.grant");
         expect(history).toContain("hackemcoins\\.history\\.types\\.deduct");
+    });
+
+    test("/hchistory splits a history longer than one Telegram message", async () => {
+        for (let i = 0; i < 10; i++)
+            hackemcoinsService.grant(TEST_USERS.tenant, TEST_USERS.admin, 1, `${i} ${"long reason ".repeat(50)}`);
+
+        await mockBot.processUpdate(createMockMessage("/hchistory", TEST_USERS.tenant));
+
+        expect(mockBot.popResults().length).toBeGreaterThan(1);
+    });
+
+    test("/hchistory shows markup characters in reasons literally", async () => {
+        hackemcoinsService.grant(TEST_USERS.admin, TEST_USERS.accountant, 1, "#*bold");
+
+        await mockBot.processUpdate(createMockMessage("/hchistory", TEST_USERS.admin));
+
+        expect(mockBot.popResults()[0]).toContain(String.raw`\#\*bold`);
     });
 
     test("/me shows the hackemcoin balance", async () => {
@@ -183,6 +292,27 @@ describe("Bot Hackemcoins commands:", () => {
                 "funds\\.changedonation\\.success",
                 "funds\\.removedonation\\.success",
             ]);
+        });
+
+        test("a failed currency conversion leaves the existing reward untouched", async () => {
+            const before = guestBalance();
+            const { donationId } = await fundsService.donate(fundName, 5000, "AMD", TEST_USERS.guest, TEST_USERS.accountant);
+
+            // eslint-disable-next-line unicorn/no-useless-undefined -- mockResolvedValueOnce requires an explicit value
+            jest.mocked(convertCurrency).mockResolvedValueOnce(undefined);
+            await mockBot.processUpdate(createMockMessage(`/changedonation ${donationId} to 8000 USD`, TEST_USERS.accountant));
+
+            expect(guestBalance()).toBe(before + 50);
+        });
+
+        test("a donation worth less than a coin still earns the reward once corrected upward", async () => {
+            const before = guestBalance();
+            const { donationId } = await fundsService.donate(fundName, 99, "AMD", TEST_USERS.guest, TEST_USERS.accountant);
+
+            await mockBot.processUpdate(createMockMessage(`/changedonation ${donationId} to 5000 AMD`, TEST_USERS.accountant));
+
+            expect(guestBalance()).toBe(before + 50);
+            expect(hackemcoinsService.getHistory(TEST_USERS.guest.userid).some(entry => entry.amount === 0)).toBe(false);
         });
 
         test("editing a donation made before hackemcoins existed doesn't reward it retroactively", async () => {

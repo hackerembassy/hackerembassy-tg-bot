@@ -27,6 +27,7 @@ CREATE INDEX `hackemcoin_ref_idx` ON `hackemcoin_transactions` (`ref_id`);--> st
 CREATE TABLE `snacks` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
+	`name_key` text NOT NULL,
 	`price` integer NOT NULL,
 	`stock` integer DEFAULT 0 NOT NULL,
 	`removed` integer DEFAULT false NOT NULL,
@@ -34,4 +35,4 @@ CREATE TABLE `snacks` (
 	FOREIGN KEY (`created_by`) REFERENCES `users`(`userid`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `snacks_name_unique` ON `snacks` (`name`);
+CREATE UNIQUE INDEX `snacks_name_key_unique` ON `snacks` (`name_key`);

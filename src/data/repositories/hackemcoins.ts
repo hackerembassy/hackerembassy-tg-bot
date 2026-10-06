@@ -1,4 +1,4 @@
-import { and, desc, eq, sql, sum } from "drizzle-orm";
+import { and, desc, eq, ne, sql, sum } from "drizzle-orm";
 
 import { HackemcoinTransaction } from "@data/models";
 import { hackemcoinBalances, hackemcoinTransactions } from "@data/schema";
@@ -25,7 +25,7 @@ class HackemcoinsRepository extends BaseRepository {
     getTransactionsOf(userId: number, limit: number) {
         return this.db.query.hackemcoinTransactions
             .findMany({
-                where: eq(hackemcoinTransactions.user_id, userId),
+                where: and(eq(hackemcoinTransactions.user_id, userId), ne(hackemcoinTransactions.amount, 0)),
                 orderBy: desc(hackemcoinTransactions.id),
                 limit,
                 with: { snack: true },

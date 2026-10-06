@@ -702,6 +702,7 @@ hackemcoins:
         refund: "🪙 Your #`{{name}}#` purchase [#`{{id}}#`] was undone, {{amount}} HC returned, balance: {{balance}} HC"
     errors:
         amount: "⚠️ The HC amount must be a positive whole number"
+        reason: "⚠️ The reason must be at most {{max}} characters"
 snacks:
     list:
         empty: "🍫 No snacks yet"

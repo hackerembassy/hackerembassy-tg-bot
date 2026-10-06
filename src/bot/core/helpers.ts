@@ -41,9 +41,14 @@ export function getMentions(msg: Message) {
 
 // Users without a username can only be referenced by a text mention, whose display text isn't a lookup key
 export function resolveTargetUser(msg: Message, identifier: string): Optional<User> {
-    const mentionId = getMentions(msg)[0]?.id;
+    const text = msg.text ?? "";
+    // The recipient comes before any free text, so a later mention with the same display text is not it
+    const offset = text.indexOf(identifier, text.indexOf(" "));
+    const mention = msg.entities?.find(
+        entity => entity.type === "text_mention" && entity.offset === offset && entity.length === identifier.length
+    );
 
-    return userService.getUser(identifier) ?? (mentionId ? userService.getUser(mentionId) : undefined);
+    return mention?.user ? userService.getUser(mention.user.id) : userService.getUser(identifier);
 }
 
 export function formatDateTime(text: string, date: Date): string {

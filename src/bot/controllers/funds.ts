@@ -301,7 +301,7 @@ export default class FundsController implements BotController {
         }
     }
 
-    @Route(["adddonation", "ad"], /(\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?) from (\S+?) to (.*\S)/, match => [
+    @Route(["adddonation", "ad"], /(\d+(?:\.\d+)?(?:k|тыс|тысяч|т)?)\s?(\D*?) from (.+?) to (.*\S)/, match => [
         match[1],
         match[2],
         match[3],

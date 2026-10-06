@@ -22,6 +22,11 @@ export function taggedMarkdownToTelegramMarkdownV2(message: string): string {
         .replaceAll(SENTINEL_PLACEHOLDER, String.raw`\#`);
 }
 
+// Pre-escaped specials are skipped by the converter above, and "#" can only survive it as the sentinel
+export function escapeTaggedMarkdown(text: string): string {
+    return text.replaceAll(/[_*[\]()~`>+\-=|{}.!\\]/g, String.raw`\$&`).replaceAll("#", SENTINEL_PLACEHOLDER);
+}
+
 /**
  * @param text which can have html tags
  * @returns string in Markdownv2 format where all markdown tags are escaped with # symbol

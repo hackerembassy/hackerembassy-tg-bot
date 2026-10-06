@@ -199,4 +199,12 @@ describe("Bot Snacks commands:", () => {
 
         expect(mockBot.popResults()[0]).toContain("`Mate\\#1\\\\`");
     });
+
+    test("a free snack purchase shows up in /hchistory", async () => {
+        await mockBot.processUpdate(createMockMessage("/addsnack Water price 0 stock 1", TEST_USERS.accountant));
+        await mockBot.processUpdate(createMockMessage("/takesnack Water", TEST_USERS.guest));
+        mockBot.popResults();
+
+        expect(hackemcoinsService.getHistory(TEST_USERS.guest.userid, 1)[0]).toMatchObject({ type: "purchase", amount: 0 });
+    });
 });

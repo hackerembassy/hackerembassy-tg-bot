@@ -2,6 +2,7 @@ import { Donation, DonationEx, Fund, User } from "@data/models";
 import FundsRepository from "@data/repositories/funds";
 
 import logger from "@services/common/logger";
+import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 
 import { convertCurrency, DefaultCurrency, parseMoneyValue, prepareCurrency } from "./currency";
 import { getSponsorshipLevel, getSponsorshipStartPeriodDate, getUserDonationMap } from "./sponsorship";
@@ -17,6 +18,11 @@ export interface DonationResult {
     hasAlreadyDonated: boolean;
     hasUpdatedSponsorship: boolean;
     newSponsorshipLevel: number;
+}
+
+export interface DonationEvent {
+    donation: Donation;
+    actor: User;
 }
 
 class FundsService {
@@ -99,8 +105,14 @@ class FundsService {
         return FundsRepository.getDonationById(donationId, joinFunds, joinUsers);
     }
 
-    public removeDonation(donationId: number) {
-        return FundsRepository.removeDonationById(donationId);
+    public async removeDonation(donationId: number, actor: User): Promise<boolean> {
+        const donation = FundsRepository.getDonationById(donationId);
+
+        if (!donation || !FundsRepository.removeDonationById(donation.id)) return false;
+
+        await broadcast.emitAsync(BroadcastEvents.DonationRemoved, { donation, actor } satisfies DonationEvent);
+
+        return true;
     }
 
     public updateDonation(donation: Donation) {
@@ -137,8 +149,11 @@ class FundsService {
         );
 
         const lastInsertRowid = FundsRepository.addDonationTo(fund.id, user.userid, amount, accountant.userid, currency);
+        const donation = lastInsertRowid ? FundsRepository.getDonationById(Number(lastInsertRowid)) : undefined;
 
-        if (!lastInsertRowid) throw new Error("Failed to add donation");
+        if (!donation) throw new Error("Failed to add donation");
+
+        await broadcast.emitAsync(BroadcastEvents.DonationAdded, { donation, actor: accountant } satisfies DonationEvent);
 
         const userDonations = FundsRepository.getDonationsOf(user.userid, false, false, getSponsorshipStartPeriodDate());
         const { updated: hasUpdatedSponsorship, level: newSponsorshipLevel } = await this.recalculateSponsorship(
@@ -147,7 +162,7 @@ class FundsService {
         );
 
         return {
-            donationId: Number(lastInsertRowid),
+            donationId: donation.id,
             amount,
             currency,
             hasAlreadyDonated,
@@ -242,7 +257,8 @@ class FundsService {
     public async applyDonationAmount(
         donation: Donation,
         valueString: string,
-        currencyString: string
+        currencyString: string,
+        actor: User
     ): Promise<Donation | undefined> {
         const value = parseMoneyValue(valueString);
         const preparedCurrency = await prepareCurrency(currencyString);
@@ -251,7 +267,11 @@ class FundsService {
 
         const updatedDonation = { ...donation, value, currency: preparedCurrency };
 
-        return this.updateDonation(updatedDonation) ? updatedDonation : undefined;
+        if (!this.updateDonation(updatedDonation)) return undefined;
+
+        await broadcast.emitAsync(BroadcastEvents.DonationChanged, { donation: updatedDonation, actor } satisfies DonationEvent);
+
+        return updatedDonation;
     }
 
     public async getDebtSummary(userId: number): Promise<{ donations: DonationEx[]; total: number }> {

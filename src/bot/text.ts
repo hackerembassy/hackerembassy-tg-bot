@@ -2,7 +2,7 @@ import config from "config";
 
 import { PrintersConfig, CalendarConfig, BotConfig, CurrencyConfig } from "@config";
 
-import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx } from "@data/models";
+import { Fund, Need, Topic, User, UserStateEx, DonationEx, StateEx, Snack, HackemcoinTransactionEx } from "@data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
 import { Coins, formatValueForCurrency, toBasicMoneyString } from "@services/domain/funds/currency";
@@ -285,6 +285,36 @@ export function getNeedsList(needs: (Need & { requester: User })[]): string {
     message += `\n${t("needs.buy.helpbuy")}`;
 
     if (areNeedsProvided) message += t("needs.buy.helpbought");
+
+    return message;
+}
+
+export function getSnacksList(snacks: Snack[], balance: number): string {
+    if (snacks.length === 0) return t("snacks.list.empty");
+
+    let message = `${t("snacks.list.title", { balance })}\n`;
+
+    for (const snack of snacks) {
+        const stock = snack.stock > 0 ? t("snacks.list.stock", { stock: snack.stock }) : t("snacks.list.outofstock");
+
+        message += `- #\`${snack.name}#\` - ${snack.price} HC, ${stock}\n`;
+    }
+
+    return `${message}\n${t("snacks.list.help")}`;
+}
+
+export function getHackemcoinHistory(transactions: HackemcoinTransactionEx[], balance: number): string {
+    if (transactions.length === 0) return t("hackemcoins.history.empty");
+
+    let message = `${t("hackemcoins.history.title", { balance })}\n`;
+
+    for (const transaction of transactions) {
+        const date = transaction.date.toLocaleString("RU-ru", shortDateTimeOptions);
+        const amount = transaction.amount > 0 ? `+${transaction.amount}` : `${transaction.amount}`;
+        const details = transaction.snack ? `#\`${transaction.snack.name}#\`` : (transaction.reason ?? "");
+
+        message += `${formatDateTime(date, transaction.date)} ${amount} HC - ${t(`hackemcoins.history.types.${transaction.type}`)} [${transaction.id}] ${details}\n`;
+    }
 
     return message;
 }

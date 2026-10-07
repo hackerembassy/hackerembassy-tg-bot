@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { BotCommand } from "node-telegram-bot-api";
+
 import config from "config";
 
-import broadcast, { BroadcastEvents } from "@services/common/broadcast";
-
-import { BotConfig } from "@config";
+import { BotConfig, BotFeatureFlag } from "@config";
 
 import logger from "@services/common/logger";
 import { userService } from "@services/domain/user";
@@ -14,14 +13,27 @@ import BasicController from "./controllers/basic";
 import BirthdayController from "./controllers/birthday";
 import EmbassyController from "./controllers/embassy";
 import FundsController from "./controllers/funds";
+import HackemcoinsController from "./controllers/hackemcoins";
 import MemeController from "./controllers/meme";
 import NeedsController from "./controllers/needs";
 import ServiceController from "./controllers/service";
+import SnacksController from "./controllers/snacks";
 import StatusController from "./controllers/status";
 import SubscriptionsController from "./controllers/subscriptions";
 import WikiController from "./controllers/wiki";
 
 const botConfig = config.get<BotConfig>("bot");
+
+const featureCommands: Partial<Record<BotFeatureFlag, BotCommand[]>> = {
+    hackemcoins: [
+        { command: "hackemcoins", description: "Мой баланс hackemcoin и как их получить" },
+        { command: "snacks", description: "Снеки за hackemcoin" },
+    ],
+};
+
+const enabledFeatureCommands = Object.entries(featureCommands)
+    .filter(([flag]) => botConfig.features[flag as BotFeatureFlag])
+    .flatMap(([, commands]) => commands);
 
 const defaultCommands = [
     { command: "start", description: "Панель управления" },
@@ -63,6 +75,7 @@ const defaultCommands = [
     { command: "stats", description: "Статистика по времени в спейсе" },
     { command: "topics", description: "Топики для подписки на уведомления" },
     { command: "wiki", description: "Страницы вики спейса" },
+    ...enabledFeatureCommands,
 ];
 
 const residentCommands = [
@@ -93,6 +106,7 @@ const residentCommands = [
     { command: "oda", description: "Статус Oda" },
     { command: "stats", description: "Статистика по времени в спейсе" },
     { command: "topics", description: "Топики для подписки на уведомления" },
+    ...enabledFeatureCommands,
 ];
 
 export async function setMenu(bot: HackerEmbassyBot): Promise<void> {
@@ -118,9 +132,11 @@ export function addControllers(bot: HackerEmbassyBot): void {
     bot.addController(BirthdayController);
     bot.addController(EmbassyController);
     bot.addController(FundsController);
+    bot.addController(HackemcoinsController);
     bot.addController(MemeController);
     bot.addController(NeedsController);
     bot.addController(ServiceController);
+    bot.addController(SnacksController);
     bot.addController(StatusController);
     bot.addController(SubscriptionsController);
     bot.addController(WikiController);
@@ -132,14 +148,5 @@ export function addSpecialRoutes(bot: HackerEmbassyBot): void {
         ServiceController.newMemberHandler,
         EmbassyController.buildAskContinuation,
         EmbassyController.guessHandler
-    );
-}
-
-export function addEventHandlers(bot: HackerEmbassyBot) {
-    broadcast.addListener(BroadcastEvents.SpaceOpened, state => void StatusController.openedNotificationHandler(bot, state));
-    broadcast.addListener(BroadcastEvents.SpaceClosed, state => void StatusController.closedNotificationHandler(bot, state));
-    broadcast.addListener(
-        BroadcastEvents.SpaceUnlocked,
-        username => void EmbassyController.unlockedNotificationHandler(bot, username)
     );
 }

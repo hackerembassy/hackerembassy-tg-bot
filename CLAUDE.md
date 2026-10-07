@@ -58,7 +58,7 @@ from `src/bot/core/decorators.ts`:
 
 Every controller implements `BotController` and is registered once in `src/bot/setup.ts::addControllers`.
 `src/bot/instance.ts` builds the `HackerEmbassyBot` singleton and calls `addControllers`, `addSpecialRoutes`,
-`addEventHandlers`, `setAutomaticFeatures` (cron), and `setMenu` before starting polling.
+`addBotListeners` (`src/bot/listeners/`), `setAutomaticFeatures` (cron), and `setMenu` before starting polling.
 
 Handler signature convention: `static async fooHandler(bot: HackerEmbassyBot, msg: Message, ...params)`.
 
@@ -76,6 +76,9 @@ SQLite via `better-sqlite3` + Drizzle ORM. `src/data/db.ts` is the client single
 tables, `src/data/migrations/` holds generated SQL migrations (`npm run migrations` after schema changes).
 Repositories in `src/data/repositories/*.ts` extend `BaseRepository` (`src/data/repositories/base.ts`), which
 injects the drizzle client and a logger — repositories are the only layer that should import `@data/db` directly.
+Writes spanning several repositories that must roll back together go through `runInTransaction` from the same file
+(e.g. a snack purchase plus its stock change). Transactions are synchronous (better-sqlite3), so no `await` inside;
+do async work such as currency conversion before or after.
 Domain logic sits one layer up in `src/services/domain/` (e.g. `space.ts`, `user.ts`; a domain with enough internal
 structure to warrant it, like `funds/`, is a subfolder with an `index.ts` instead of a flat file), which
 controllers call instead of repositories directly where domain rules apply.
@@ -83,13 +86,23 @@ controllers call instead of repositories directly where domain rules apply.
 ### Services
 
 `src/services/` is grouped by purpose: `common/` (logger, broadcast event bus, telemetry), `domain/` (space/user/
-subscription/funds/needs business logic), `embassy/` (door, 3D printers, Home Assistant, MQTT), `external/`
-(GitHub, Google Calendar, wiki/Outline), `neural/` (OpenAI, local Ollama/open-webui, Stable Diffusion). The
-`domain/funds/` subfolder also holds `currency.ts` and `reports.ts` — stateless currency-conversion and CSV/
-chart-rendering code with no repository access of its own, kept alongside the funds domain service since
-nothing outside the funds/donations feature ever uses them. `src/services/common/broadcast.ts` is an event emitter
-(`BroadcastEvents.SpaceOpened/SpaceClosed/SpaceUnlocked`, etc.) used to decouple state changes (e.g. door/status
-changes from embassy hardware) from bot notification handlers wired up in `src/bot/setup.ts::addEventHandlers`.
+subscription/funds/needs business logic), `listeners/` (cross-domain event subscriptions), `embassy/` (door, 3D
+printers, Home Assistant, MQTT), `external/` (GitHub, Google Calendar, wiki/Outline), `neural/` (OpenAI, local
+Ollama/open-webui, Stable Diffusion). The `domain/funds/` subfolder also holds `currency.ts` and `reports.ts` —
+stateless currency-conversion and CSV/chart-rendering code with no repository access of its own, kept alongside the
+funds domain service since nothing outside the funds/donations feature ever uses them.
+
+`src/services/common/broadcast.ts` is an event emitter (`BroadcastEvents.SpaceOpened/SpaceClosed/SpaceUnlocked`,
+`DonationAdded/Changed/Removed`, etc.) that decouples state changes from their reactions. Services only emit; nothing
+subscribes inside a service. Subscriptions live in two places, one file per area:
+
+- `src/services/listeners/` (`addDomainListeners`, called from `src/bot.ts`) — domain reacting to domain, e.g.
+  hackemcoins rewarding donors on funds' donation events. `fundsService` knows nothing about hackemcoins.
+- `src/bot/listeners/` (`addBotListeners`, called from `src/bot/instance.ts`) — bot notifications, e.g. the space
+  open/close announcements and the hackemcoin donation-reward DM.
+
+`broadcast.emitAsync` + `addAsyncListener` await async listeners (failures are logged, never thrown back into the
+emitter). A donation and its hackemcoin reward are deliberately not one transaction.
 
 ### Bot HTTP API
 

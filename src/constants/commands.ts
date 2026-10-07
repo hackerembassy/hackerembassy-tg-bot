@@ -1,3 +1,31 @@
+import config from "config";
+
+import { BotConfig, BotFeatureFlag } from "@config";
+
+const botFeatures = config.get<BotConfig>("bot").features;
+
+const featureSection = (flag: BotFeatureFlag, section: string) => (botFeatures[flag] ? section : "");
+
+const HackemcoinsGuestCommands = `
+Hackemcoin и снеки:
+/hackemcoins (hc) - Мой баланс hackemcoin (HC), как их получить и на что потратить
+/hchistory - Последние операции с моими HC
+/snacks - Снеки, которые можно взять за HC
+#\`/cancelsnack purchase_id#\` - Отменить свою покупку в течение 2 минут
+`;
+
+const HackemcoinsMemberCommands = `Hackemcoin и снеки (все действия пишутся в логбук):
+#\`/granthc amount to telegram_username for reason#\` - Начислить HC
+#\`/deducthc amount from telegram_username for reason#\` - Списать HC
+#\`/hackemcoins telegram_username#\` - Баланс HC другого юзера
+#\`/addsnack snack_name price amount stock count#\` - Добавить снек (stock можно не указывать)
+#\`/setsnackstock snack_name count#\` - Установить остаток снека
+#\`/setsnackprice snack_name amount#\` - Изменить цену снека
+#\`/removesnack snack_name#\` - Удалить снек
+#\`/undosnack purchase_id#\` - Отменить покупку снека и вернуть HC
+
+`;
+
 export const GeneralCommandsList: string = `[Команды гостей]
 
 Инфа:
@@ -57,7 +85,7 @@ export const GeneralCommandsList: string = `[Команды гостей]
 /needs - Посмотреть, что просили купить в спейс по дороге
 #\`/buy item_name#\` - Попросить купить что-нибудь в спейс по дороге (бумага, чай, и.т.п)
 #\`/bought item_name#\` - Отметить что-то купленным из needs
-
+${featureSection("hackemcoins", HackemcoinsGuestCommands)}
 Статистика:
 /me - Твоя статистика донатов и посещений
 /stats - Статистика по времени в спейсе (на основе отметок)
@@ -114,7 +142,7 @@ export const MemberCommandsList: string = `
 /removebuttons (rb) - Убрать кнопки из сообщения бота (команду нужно отправлять как ответ)
 /custom text - Создать кастомное сообщение с изображением и кнопками
 
-Инфа:
+${featureSection("hackemcoins", HackemcoinsMemberCommands)}Инфа:
 /residentsdonated (rcosts) all|left|paid - Кто из резидентов уже задонатил в этом месяце
 /historycosts year - График донатов резидентов на аренду (без указания года будет выбран текущий)
 

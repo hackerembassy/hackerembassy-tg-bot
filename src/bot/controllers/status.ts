@@ -8,6 +8,7 @@ import { State, StateEx, User, UserStateEx } from "@data/models";
 import { UserStateChangeType, UserStateType, AutoInsideMode } from "@data/types";
 
 import { COSTS_PREFIX, fundsService } from "@services/domain/funds";
+import { hackemcoinsService } from "@services/domain/hackemcoins";
 
 import { DefaultCurrency } from "@services/domain/funds/currency";
 import embassyService, { EmbassyLinkMacUrl } from "@services/embassy/embassy";
@@ -819,10 +820,13 @@ export default class StatusController implements BotController {
             username: helpers.userLink(target),
         })}: ${days}d, ${hours}h, ${minutes}m\n\n`;
 
+        const hackemcoinsText = hackemcoinsService.enabled
+            ? `\n${t("status.profile.hackemcoins", { balance: hackemcoinsService.getBalance(target.userid) })}`
+            : "";
         const message = `${statsText}${t("status.profile.donated", { donationList })}${t("status.profile.total", {
             total: totalDonated.toFixed(2),
             currency: DefaultCurrency,
-        })}`;
+        })}${hackemcoinsText}`;
 
         await bot.sendLongMessage(msg.chat.id, message, msg);
 

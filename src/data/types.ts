@@ -14,19 +14,12 @@ export const enum UserStateType {
     InsideSecret = 3,
 }
 
-export type UserRole =
-    | "admin"
-    | "member"
-    | "tenant"
-    | "accountant"
-    | "trusted"
-    | "default"
-    | "restricted"
-    | "banned"
-    | "service";
+export type UserRole = "admin" | "member" | "tenant" | "accountant" | "trusted" | "default" | "restricted" | "banned" | "service";
 
 export const enum AutoInsideMode {
     Disabled = 0,
     Enabled = 1,
     Ghost = 2,
 }
+
+export type HackemcoinTransactionType = "donation" | "donation_adjust" | "grant" | "deduct" | "purchase" | "purchase_undo";

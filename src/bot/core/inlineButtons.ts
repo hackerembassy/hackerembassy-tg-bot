@@ -64,10 +64,6 @@ export function InlineDeepLinkButton(text: string, botName: string, cmd: string)
     };
 }
 
-export function isAnnoyingChat(bot: HackerEmbassyBot, msg: Message) {
-    return bot.context(msg).mode.forward || AnnoyingChats.has(msg.chat.id);
-}
-
 export function AnnoyingInlineButton(
     bot: HackerEmbassyBot,
     msg: Message,
@@ -76,5 +72,7 @@ export function AnnoyingInlineButton(
     flags?: ButtonFlags,
     options?: object
 ) {
-    return isAnnoyingChat(bot, msg) ? InlineDeepLinkButton(text, bot.name, command) : InlineButton(text, command, flags, options);
+    return bot.context(msg).mode.forward || AnnoyingChats.has(msg.chat.id)
+        ? InlineDeepLinkButton(text, bot.name, command)
+        : InlineButton(text, command, flags, options);
 }

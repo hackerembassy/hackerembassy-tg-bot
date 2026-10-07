@@ -670,7 +670,7 @@ hackemcoins:
             - Նվիրաբերիր ցանկացած հավաքագրման: նվիրատվության {{percent}}%-ը կվերադառնա քեզ HC-ով
             - Ռեզիդենտները կարող են HC տալ space-ին օգնելու համար
 
-            Ինչպես ծախսել: վերցրու խորտիկ /snacks-ում
+            Ինչպես ծախսել: վերցրու խորտիկ /snacks-ից #`/takesnack անուն#` հրամանով
             Գործարքների պատմություն: /hchistory
         of: "🪙 {{username}}-ի հաշվեկշիռը: {{balance}} HC"
     history:
@@ -703,20 +703,14 @@ snacks:
         title: "🍫 Խորտիկներ hackemcoin-ով (քո հաշվեկշիռը: {{balance}} HC):"
         stock: "մնացել է {{stock}} հատ"
         outofstock: "առկա չէ"
-        help: "ℹ️ Սեղմիր ներքևի խորտիկի վրա՝ այն վերցնելու համար"
+        help: "ℹ️ Վերցնել խորտիկ: #`/takesnack անուն#`"
     take:
+        help: "ℹ️ Վերցնել խորտիկ: #`/takesnack անուն#`, խորտիկների ցանկ: /snacks"
         success: "🍫 {{username}}-ը վերցրեց #`{{name}}#` {{price}} HC-ով [#`{{id}}#`], հաշվեկշիռ: {{balance}} HC"
-        notfound: "⚠️ Այս խորտիկն այլևս հասանելի չէ"
+        notfound: "⚠️ #`{{name}}#` խորտիկը չի գտնվել, խորտիկների ցանկ: /snacks"
         outofstock: "😔 #`{{name}}#`-ը վերջացել է"
         insufficient: "🪙 Hackemcoin-ը բավարար չէ: #`{{name}}#`-ն արժե {{price}} HC, իսկ դու ունես {{balance}} HC"
         log: "🍫 [#`{{id}}#`] {{username}}-ը վերցրեց #`{{name}}#` {{price}} HC-ով, մնացել է {{stock}} հատ"
-        confirm: "🍫 Վերցնե՞լ #`{{name}}#`-ը {{price}} HC-ով\nՀաշվեկշիռ: {{balance}} → {{after}} HC"
-        pricechanged: "⚠️ #`{{name}}#`-ի գինը փոխվել է՝ {{price}} HC, նայիր նորից"
-    buttons:
-        take: "✅ Վերցնել"
-        back: "← Հետ"
-        list: "🍫 Խորտիկներ"
-        shop: "🛒 Վերցնել խորտիկ"
     add:
         help: "ℹ️ Ավելացնել խորտիկ: #`/addsnack անուն price գին stock քանակ#` (stock-ը պարտադիր չէ)"
         success: "🍫 Ավելացվեց #`{{name}}#` խորտիկը: {{price}} HC, {{stock}} հատ"

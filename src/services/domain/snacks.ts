@@ -7,7 +7,6 @@ import { hackemcoinsService } from "./hackemcoins";
 export type PurchaseResult =
     | { status: "notfound" }
     | { status: "outofstock"; snack: Snack }
-    | { status: "pricechanged"; snack: Snack }
     | { status: "insufficient"; snack: Snack; balance: number }
     | { status: "success"; snack: Snack; transaction: HackemcoinTransaction; balance: number };
 
@@ -25,12 +24,6 @@ class SnacksService {
 
     public getSnack(name: string) {
         const snack = SnacksRepository.getSnackByName(name.trim());
-
-        return snack && !snack.removed ? snack : undefined;
-    }
-
-    public getSnackById(id: number) {
-        const snack = SnacksRepository.getSnackById(id);
 
         return snack && !snack.removed ? snack : undefined;
     }
@@ -64,14 +57,12 @@ class SnacksService {
         return this.updateSnack(name, { removed: true });
     }
 
-    // The buyer confirmed a specific price, so a price edited in between must not be charged silently
-    public purchase(snackId: number, confirmedPrice: number, buyer: User): PurchaseResult {
+    public purchase(name: string, buyer: User): PurchaseResult {
         return runInTransaction(() => {
-            const snack = this.getSnackById(snackId);
+            const snack = this.getSnack(name);
 
             if (!snack) return { status: "notfound" };
             if (snack.stock <= 0) return { status: "outofstock", snack };
-            if (snack.price !== confirmedPrice) return { status: "pricechanged", snack };
 
             const balance = hackemcoinsService.getBalance(buyer.userid);
 

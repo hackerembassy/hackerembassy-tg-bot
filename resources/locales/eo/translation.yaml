@@ -674,7 +674,7 @@ hackemcoins:
             - Donacu al iu ajn kolekto: {{percent}}% de la donaco revenas al vi en HC
             - Loĝantoj povas doni HC pro helpo al la spaco
 
-            Kiel elspezi: prenu manĝeton en /snacks
+            Kiel elspezi: prenu manĝeton el /snacks per #`/takesnack nomo#`
             Historio de transakcioj: /hchistory
         of: "🪙 Saldo de {{username}}: {{balance}} HC"
     history:
@@ -707,20 +707,14 @@ snacks:
         title: "🍫 Manĝetoj por hackemcoin (via saldo: {{balance}} HC):"
         stock: "restas {{stock}}"
         outofstock: "elĉerpita"
-        help: "ℹ️ Tuŝu manĝeton sube por preni ĝin"
+        help: "ℹ️ Preni manĝeton: #`/takesnack nomo#`"
     take:
+        help: "ℹ️ Preni manĝeton: #`/takesnack nomo#`, listo de manĝetoj: /snacks"
         success: "🍫 {{username}} prenis #`{{name}}#` por {{price}} HC [#`{{id}}#`], saldo: {{balance}} HC"
-        notfound: "⚠️ Ĉi tiu manĝeto ne plu estas disponebla"
+        notfound: "⚠️ Manĝeto #`{{name}}#` ne trovita, listo de manĝetoj: /snacks"
         outofstock: "😔 #`{{name}}#` estas elĉerpita"
         insufficient: "🪙 Ne sufiĉas hackemcoin: #`{{name}}#` kostas {{price}} HC, vi havas {{balance}} HC"
         log: "🍫 [#`{{id}}#`] {{username}} prenis #`{{name}}#` por {{price}} HC, restas {{stock}}"
-        confirm: "🍫 Ĉu preni #`{{name}}#` por {{price}} HC?\nSaldo: {{balance}} → {{after}} HC"
-        pricechanged: "⚠️ La prezo de #`{{name}}#` ŝanĝiĝis al {{price}} HC, rigardu denove"
-    buttons:
-        take: "✅ Preni"
-        back: "← Reen"
-        list: "🍫 Manĝetoj"
-        shop: "🛒 Preni manĝeton"
     add:
         help: "ℹ️ Aldoni manĝeton: #`/addsnack nomo price prezo stock kvanto#` (stock estas nedeviga)"
         success: "🍫 Manĝeto #`{{name}}#` aldonita: {{price}} HC, {{stock}} en stoko"

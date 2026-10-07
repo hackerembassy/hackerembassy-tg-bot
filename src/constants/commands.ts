@@ -11,6 +11,7 @@ Hackemcoin и снеки:
 /hackemcoins (hc) - Мой баланс hackemcoin (HC), как их получить и на что потратить
 /hchistory - Последние операции с моими HC
 /snacks - Снеки, которые можно взять за HC
+#\`/takesnack snack_name#\` - Взять снек за HC
 `;
 
 const HackemcoinsMemberCommands = `Hackemcoin и снеки (все действия пишутся в логбук):

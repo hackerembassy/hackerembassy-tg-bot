@@ -676,7 +676,7 @@ hackemcoins:
             - Задонатить в любой сбор: {{percent}}% от суммы доната вернется тебе в HC
             - Резиденты могут начислить HC за помощь спейсу
 
-            Как потратить: взять снек в /snacks
+            Как потратить: взять снек из /snacks командой #`/takesnack название#`
             История операций: /hchistory
         of: "🪙 Баланс {{username}}: {{balance}} HC"
     history:
@@ -709,20 +709,14 @@ snacks:
         title: "🍫 Снеки за hackemcoin (твой баланс: {{balance}} HC):"
         stock: "осталось {{stock}} шт."
         outofstock: "нет в наличии"
-        help: "ℹ️ Нажми на снек ниже, чтобы взять его"
+        help: "ℹ️ Взять снек: #`/takesnack название#`"
     take:
+        help: "ℹ️ Взять снек: #`/takesnack название#`, список снеков: /snacks"
         success: "🍫 {{username}} взял #`{{name}}#` за {{price}} HC [#`{{id}}#`], баланс: {{balance}} HC"
-        notfound: "⚠️ Этого снека больше нет"
+        notfound: "⚠️ Снек #`{{name}}#` не найден, список снеков: /snacks"
         outofstock: "😔 #`{{name}}#` закончился"
         insufficient: "🪙 Недостаточно hackemcoin: #`{{name}}#` стоит {{price}} HC, а у тебя {{balance}} HC"
         log: "🍫 [#`{{id}}#`] {{username}} взял #`{{name}}#` за {{price}} HC, осталось {{stock}} шт."
-        confirm: "🍫 Взять #`{{name}}#` за {{price}} HC?\nБаланс: {{balance}} → {{after}} HC"
-        pricechanged: "⚠️ Цена #`{{name}}#` изменилась на {{price}} HC, посмотри ещё раз"
-    buttons:
-        take: "✅ Взять"
-        back: "← Назад"
-        list: "🍫 Снеки"
-        shop: "🛒 Взять снек"
     add:
         help: "ℹ️ Добавить снек: #`/addsnack название price цена stock количество#` (stock можно не указывать)"
         success: "🍫 Добавлен снек #`{{name}}#`: {{price}} HC, {{stock}} шт."

@@ -675,7 +675,7 @@ hackemcoins:
             - Donate to any fund: {{percent}}% of the donation comes back to you in HC
             - Residents can grant HC for helping the space
 
-            How to spend them: take a snack in /snacks
+            How to spend them: take a snack from /snacks with #`/takesnack name#`
             Transaction history: /hchistory
         of: "🪙 {{username}}'s balance: {{balance}} HC"
     history:
@@ -708,20 +708,14 @@ snacks:
         title: "🍫 Snacks for hackemcoin (your balance: {{balance}} HC):"
         stock: "{{stock}} left"
         outofstock: "out of stock"
-        help: "ℹ️ Tap a snack below to take it"
+        help: "ℹ️ Take a snack: #`/takesnack name#`"
     take:
+        help: "ℹ️ Take a snack: #`/takesnack name#`, snack list: /snacks"
         success: "🍫 {{username}} took #`{{name}}#` for {{price}} HC [#`{{id}}#`], balance: {{balance}} HC"
-        notfound: "⚠️ This snack is no longer available"
+        notfound: "⚠️ Snack #`{{name}}#` not found, snack list: /snacks"
         outofstock: "😔 #`{{name}}#` is out of stock"
         insufficient: "🪙 Not enough hackemcoin: #`{{name}}#` costs {{price}} HC, you have {{balance}} HC"
         log: "🍫 [#`{{id}}#`] {{username}} took #`{{name}}#` for {{price}} HC, {{stock}} left"
-        confirm: "🍫 Take #`{{name}}#` for {{price}} HC?\nBalance: {{balance}} → {{after}} HC"
-        pricechanged: "⚠️ The price of #`{{name}}#` has changed to {{price}} HC, take another look"
-    buttons:
-        take: "✅ Take"
-        back: "← Back"
-        list: "🍫 Snacks"
-        shop: "🛒 Take a snack"
     add:
         help: "ℹ️ Add a snack: #`/addsnack name price amount stock count#` (stock is optional)"
         success: "🍫 Snack #`{{name}}#` added: {{price}} HC, {{stock}} in stock"

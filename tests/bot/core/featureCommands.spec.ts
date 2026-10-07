@@ -32,7 +32,7 @@ describe("Feature-gated commands:", () => {
 
         expect(menus).toHaveLength(2);
         for (const menu of menus) expect(menu.map(c => c.command)).toEqual(expect.arrayContaining(["hackemcoins", "snacks"]));
-        expect(help).toContain("/takesnack");
+        expect(help).toContain("/cancelsnack");
         expect(memberHelp).toContain("/granthc");
     });
 

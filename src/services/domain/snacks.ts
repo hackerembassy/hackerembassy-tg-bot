@@ -17,6 +17,8 @@ export type UndoPurchaseResult =
 
 export type SnackChange = { snack: Snack; previous: Snack };
 
+export const SELF_CANCEL_MINUTES = 2;
+
 class SnacksService {
     public getSnacks() {
         return SnacksRepository.getSnacks();
@@ -24,6 +26,12 @@ class SnacksService {
 
     public getSnack(name: string) {
         const snack = SnacksRepository.getSnackByName(name.trim());
+
+        return snack && !snack.removed ? snack : undefined;
+    }
+
+    public getSnackById(id: number) {
+        const snack = SnacksRepository.getSnackById(id);
 
         return snack && !snack.removed ? snack : undefined;
     }
@@ -57,9 +65,9 @@ class SnacksService {
         return this.updateSnack(name, { removed: true });
     }
 
-    public purchase(name: string, buyer: User): PurchaseResult {
+    public purchase(snackId: number, buyer: User): PurchaseResult {
         return runInTransaction(() => {
-            const snack = this.getSnack(name);
+            const snack = this.getSnackById(snackId);
 
             if (!snack) return { status: "notfound" };
             if (snack.stock <= 0) return { status: "outofstock", snack };
@@ -93,6 +101,21 @@ class SnacksService {
 
             return { status: "success", purchase, snack, ...result };
         });
+    }
+
+    // Buyers may only take back an accidental tap; anything else stays a resident's call via /undosnack
+    public cancelOwnPurchase(purchaseId: number, buyer: User): UndoPurchaseResult | { status: "invalid" } {
+        const purchase = hackemcoinsService.getTransactionById(purchaseId);
+        const isRecentOwnPurchase =
+            purchase?.type === "purchase" &&
+            purchase.user_id === buyer.userid &&
+            Date.now() - purchase.date.getTime() <= SELF_CANCEL_MINUTES * 60 * 1000;
+
+        if (!isRecentOwnPurchase) return { status: "invalid" };
+
+        const result = this.undoPurchase(purchaseId, buyer);
+
+        return result.status === "success" ? result : { status: "invalid" };
     }
 
     private updateSnack(name: string, changes: Partial<Snack>): Optional<SnackChange> {

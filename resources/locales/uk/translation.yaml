@@ -676,7 +676,7 @@ hackemcoins:
             - Задонатити в будь-який збір: {{percent}}% від суми донату повернеться тобі в HC
             - Резиденти можуть нарахувати HC за допомогу спейсу
 
-            Як витратити: взяти снек з /snacks командою #`/takesnack назва#`
+            Як витратити: взяти снек у /snacks
             Історія операцій: /hchistory
         of: "🪙 Баланс {{username}}: {{balance}} HC"
     history:
@@ -709,14 +709,21 @@ snacks:
         title: "🍫 Снеки за hackemcoin (твій баланс: {{balance}} HC):"
         stock: "залишилось {{stock}} шт."
         outofstock: "немає в наявності"
-        help: "ℹ️ Взяти снек: #`/takesnack назва#`"
+        help: "ℹ️ Натисни на снек нижче, щоб взяти його"
     take:
-        help: "ℹ️ Взяти снек: #`/takesnack назва#`, список снеків: /snacks"
         success: "🍫 {{username}} взяв #`{{name}}#` за {{price}} HC [#`{{id}}#`], баланс: {{balance}} HC"
-        notfound: "⚠️ Снек #`{{name}}#` не знайдено, список снеків: /snacks"
+        notfound: "⚠️ Цього снека більше немає"
         outofstock: "😔 #`{{name}}#` закінчився"
         insufficient: "🪙 Недостатньо hackemcoin: #`{{name}}#` коштує {{price}} HC, а в тебе {{balance}} HC"
         log: "🍫 [#`{{id}}#`] {{username}} взяв #`{{name}}#` за {{price}} HC, залишилось {{stock}} шт."
+        cancelhint: "↩️ Натиснув випадково? Скасуй протягом {{minutes}} хв.: #`/cancelsnack {{id}}#`"
+    cancel:
+        help: "ℹ️ Скасувати свою покупку протягом {{minutes}} хв.: #`/cancelsnack номер_покупки#`"
+        invalid: "⚠️ Цю покупку не можна скасувати"
+        log: "↩️ [#`{{id}}#`] {{username}} скасував свою покупку #`{{name}}#`, повернули {{amount}} HC, залишилось {{stock}} шт."
+    buttons:
+        list: "🍫 Снеки"
+        shop: "🛒 Взяти снек"
     add:
         help: "ℹ️ Додати снек: #`/addsnack назва price ціна stock кількість#` (stock можна не вказувати)"
         success: "🍫 Додано снек #`{{name}}#`: {{price}} HC, {{stock}} шт."

@@ -1,11 +1,14 @@
-import { Message } from "node-telegram-bot-api";
+import { InlineKeyboardButton, Message } from "node-telegram-bot-api";
+
+import { Snack } from "@data/models";
 
 import { hasRole, userService } from "@services/domain/user";
 import { hackemcoinsService } from "@services/domain/hackemcoins";
-import { snacksService, SnackChange } from "@services/domain/snacks";
+import { SELF_CANCEL_MINUTES, snacksService, SnackChange } from "@services/domain/snacks";
 import { FeatureFlag, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
+import { ButtonFlags, chunkButtonsForMobile, InlineButton, InlineDeepLinkButton } from "../core/inlineButtons";
 import t from "../core/localization";
 import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
@@ -20,30 +23,30 @@ export default class SnacksController implements BotController {
         const user = bot.context(msg).user;
         const isResident = hasRole(user, "admin", ...Members);
         const snacks = snacksService.getSnacks().filter(snack => isResident || snack.stock > 0);
+        const text = TextGenerators.getSnacksList(snacks, hackemcoinsService.getBalance(user.userid));
+        const options = { reply_markup: { inline_keyboard: SnacksController.snackButtons(bot, msg, snacks) } };
 
-        return bot.sendLongMessage(
-            msg.chat.id,
-            TextGenerators.getSnacksList(snacks, hackemcoinsService.getBalance(user.userid)),
-            msg
-        );
+        if (bot.context(msg).isEditing) return bot.sendOrEditMessage(msg.chat.id, text, msg, options, msg.message_id);
+
+        return bot.sendLongMessage(msg.chat.id, text, msg, options);
     }
 
-    @Route(["takesnack"], helpers.OptionalParam(/(.*\S)/), match => [match[1]])
+    @Route(["snackbuy"])
     @FeatureFlag("hackemcoins")
-    static async takeSnackHandler(bot: HackerEmbassyBot, msg: Message, name?: string) {
-        if (!name) return bot.sendMessageExt(msg.chat.id, t("snacks.take.help"), msg);
+    static async snackBuyHandler(bot: HackerEmbassyBot, msg: Message, snackId?: number) {
+        if (snackId === undefined) return;
 
         const buyer = bot.context(msg).user;
-        const result = snacksService.purchase(name, buyer);
+        const result = snacksService.purchase(snackId, buyer);
 
-        if (result.status === "notfound") return bot.sendMessageExt(msg.chat.id, t("snacks.take.notfound", { name }), msg);
+        if (result.status === "notfound") return SnacksController.showStep(bot, msg, t("snacks.take.notfound"));
         if (result.status === "outofstock")
-            return bot.sendMessageExt(msg.chat.id, t("snacks.take.outofstock", { name: result.snack.name }), msg);
+            return SnacksController.showStep(bot, msg, t("snacks.take.outofstock", { name: result.snack.name }));
         if (result.status === "insufficient")
-            return bot.sendMessageExt(
-                msg.chat.id,
-                t("snacks.take.insufficient", { name: result.snack.name, price: result.snack.price, balance: result.balance }),
-                msg
+            return SnacksController.showStep(
+                bot,
+                msg,
+                t("snacks.take.insufficient", { name: result.snack.name, price: result.snack.price, balance: result.balance })
             );
 
         const params = {
@@ -54,9 +57,38 @@ export default class SnacksController implements BotController {
             stock: result.snack.stock,
             balance: result.balance,
         };
+        const receipt = `${t("snacks.take.success", params)}\n${t("snacks.take.cancelhint", { id: params.id, minutes: SELF_CANCEL_MINUTES })}`;
 
-        await bot.sendMessageExt(msg.chat.id, t("snacks.take.success", params), msg);
+        // The purchase is already committed, so a receipt that couldn't replace the list is sent on its own
+        if (!(await SnacksController.showStep(bot, msg, receipt))) await bot.sendMessageExt(msg.chat.id, receipt, msg);
+
         await bot.sendAlert(t("snacks.take.log", params));
+
+        return;
+    }
+
+    @Route(["cancelsnack"], helpers.OptionalParam(/(\d+)/), match => [match[1]])
+    @FeatureFlag("hackemcoins")
+    static async cancelSnackHandler(bot: HackerEmbassyBot, msg: Message, purchaseIdString?: string) {
+        if (!purchaseIdString)
+            return bot.sendMessageExt(msg.chat.id, t("snacks.cancel.help", { minutes: SELF_CANCEL_MINUTES }), msg);
+
+        const buyer = bot.context(msg).user;
+        const result = snacksService.cancelOwnPurchase(Number(purchaseIdString), buyer);
+
+        if (result.status !== "success") return bot.sendMessageExt(msg.chat.id, t("snacks.cancel.invalid"), msg);
+
+        const params = {
+            id: result.purchase.id,
+            username: helpers.userLink(buyer),
+            name: result.snack.name,
+            amount: result.transaction.amount,
+            stock: result.snack.stock,
+            balance: result.balance,
+        };
+
+        await bot.sendMessageExt(msg.chat.id, t("snacks.undo.success", params), msg);
+        await bot.sendAlert(t("snacks.cancel.log", params));
 
         return;
     }
@@ -152,6 +184,34 @@ export default class SnacksController implements BotController {
         if (buyer && buyer.userid !== actor.userid) await bot.sendDirectMessage(buyer, "hackemcoins.received.refund", params);
 
         return;
+    }
+
+    // Buying stays in the bot's DM, so purchases and balances aren't posted to shared chats
+    private static snackButtons(bot: HackerEmbassyBot, msg: Message, snacks: Snack[]): InlineKeyboardButton[][] {
+        if (msg.chat.type !== "private" || bot.context(msg).mode.forward)
+            return [[InlineDeepLinkButton(t("snacks.buttons.shop"), bot.name, "snacks")]];
+
+        const buttons = snacks
+            .filter(snack => snack.stock > 0)
+            .map(snack =>
+                InlineButton(`${snack.name} · ${snack.price} HC`, "snackbuy", ButtonFlags.Editing, {
+                    params: snack.id,
+                })
+            );
+
+        return chunkButtonsForMobile(buttons, 2);
+    }
+
+    private static showStep(bot: HackerEmbassyBot, msg: Message, text: string) {
+        const listButton = InlineButton(t("snacks.buttons.list"), "snacks", ButtonFlags.Editing);
+
+        return bot.sendOrEditMessage(
+            msg.chat.id,
+            text,
+            msg,
+            { reply_markup: { inline_keyboard: [[listButton]] } },
+            msg.message_id
+        );
     }
 
     static async replyToSnackChange(

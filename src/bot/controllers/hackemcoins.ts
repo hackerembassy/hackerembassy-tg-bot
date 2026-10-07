@@ -9,7 +9,6 @@ import { FeatureFlag, Members, Route, UserRoles } from "@hackembot/core/decorato
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotController } from "../core/types";
-import { escapeTaggedMarkdown } from "../core/converters";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 
@@ -19,9 +18,6 @@ interface BalanceChangeOperation {
     apply: (target: User, actor: User, amount: number, reason: string) => HackemcoinOperationResult;
     notification?: string;
 }
-
-// Keeps the logbook entry and the recipient's DM well under Telegram's 4096-character message limit
-const MAX_REASON_LENGTH = 500;
 
 const CaptureBalanceChange = (preposition: string) =>
     helpers.OptionalParam(new RegExp(`(\\d+) ${preposition} (.+?) for ([\\s\\S]*\\S)`));
@@ -113,9 +109,6 @@ export default class HackemcoinsController implements BotController {
         if (!Number.isSafeInteger(amount) || amount <= 0)
             return bot.sendMessageExt(msg.chat.id, t("hackemcoins.errors.amount"), msg);
 
-        if (reason.length > MAX_REASON_LENGTH)
-            return bot.sendMessageExt(msg.chat.id, t("hackemcoins.errors.reason", { max: MAX_REASON_LENGTH }), msg);
-
         const target = helpers.resolveTargetUser(msg, username);
 
         if (!target) return bot.sendMessageExt(msg.chat.id, t("general.errors.nouser"), msg);
@@ -128,7 +121,7 @@ export default class HackemcoinsController implements BotController {
             actor: helpers.userLink(actor),
             username: helpers.userLink(target),
             amount,
-            reason: escapeTaggedMarkdown(reason),
+            reason,
             balance,
         };
 
@@ -148,7 +141,7 @@ export default class HackemcoinsController implements BotController {
         await bot.sendDirectMessage(user, "hackemcoins.received.donation", {
             amount: transaction.amount,
             balance,
-            fundName: escapeTaggedMarkdown(fundsService.getFundById(donation.fund_id)?.name ?? ""),
+            fundName: fundsService.getFundById(donation.fund_id)?.name,
         });
     }
 }

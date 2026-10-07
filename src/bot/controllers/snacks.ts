@@ -8,7 +8,6 @@ import { FeatureFlag, Members, Route, UserRoles } from "@hackembot/core/decorato
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
 import { BotController } from "../core/types";
-import { escapeTaggedMarkdown } from "../core/converters";
 import * as helpers from "../core/helpers";
 import * as TextGenerators from "../text";
 
@@ -37,29 +36,20 @@ export default class SnacksController implements BotController {
         const buyer = bot.context(msg).user;
         const result = snacksService.purchase(name, buyer);
 
-        if (result.status === "notfound")
-            return bot.sendMessageExt(msg.chat.id, t("snacks.take.notfound", { name: escapeTaggedMarkdown(name) }), msg);
+        if (result.status === "notfound") return bot.sendMessageExt(msg.chat.id, t("snacks.take.notfound", { name }), msg);
         if (result.status === "outofstock")
-            return bot.sendMessageExt(
-                msg.chat.id,
-                t("snacks.take.outofstock", { name: escapeTaggedMarkdown(result.snack.name) }),
-                msg
-            );
+            return bot.sendMessageExt(msg.chat.id, t("snacks.take.outofstock", { name: result.snack.name }), msg);
         if (result.status === "insufficient")
             return bot.sendMessageExt(
                 msg.chat.id,
-                t("snacks.take.insufficient", {
-                    name: escapeTaggedMarkdown(result.snack.name),
-                    price: result.snack.price,
-                    balance: result.balance,
-                }),
+                t("snacks.take.insufficient", { name: result.snack.name, price: result.snack.price, balance: result.balance }),
                 msg
             );
 
         const params = {
             id: result.transaction.id,
             username: helpers.userLink(buyer),
-            name: escapeTaggedMarkdown(result.snack.name),
+            name: result.snack.name,
             price: result.snack.price,
             stock: result.snack.stock,
             balance: result.balance,
@@ -86,14 +76,9 @@ export default class SnacksController implements BotController {
         const creator = bot.context(msg).user;
         const snack = snacksService.addSnack(name, price, stock, creator);
 
-        if (!snack) return bot.sendMessageExt(msg.chat.id, t("snacks.add.exists", { name: escapeTaggedMarkdown(name) }), msg);
+        if (!snack) return bot.sendMessageExt(msg.chat.id, t("snacks.add.exists", { name }), msg);
 
-        const params = {
-            username: helpers.userLink(creator),
-            name: escapeTaggedMarkdown(snack.name),
-            price: snack.price,
-            stock: snack.stock,
-        };
+        const params = { username: helpers.userLink(creator), name: snack.name, price: snack.price, stock: snack.stock };
 
         await bot.sendMessageExt(msg.chat.id, t("snacks.add.success", params), msg);
         await bot.sendAlert(t("snacks.add.log", params));
@@ -155,7 +140,7 @@ export default class SnacksController implements BotController {
             id: result.purchase.id,
             actor: helpers.userLink(actor),
             username: buyer ? helpers.userLink(buyer) : result.purchase.user_id,
-            name: escapeTaggedMarkdown(result.snack.name),
+            name: result.snack.name,
             amount: result.transaction.amount,
             stock: result.snack.stock,
             balance: result.balance,
@@ -176,12 +161,11 @@ export default class SnacksController implements BotController {
         name: string,
         result: Optional<SnackChange>
     ) {
-        if (!result)
-            return bot.sendMessageExt(msg.chat.id, t("snacks.errors.notfound", { name: escapeTaggedMarkdown(name) }), msg);
+        if (!result) return bot.sendMessageExt(msg.chat.id, t("snacks.errors.notfound", { name }), msg);
 
         const params = {
             username: helpers.userLink(bot.context(msg).user),
-            name: escapeTaggedMarkdown(result.snack.name),
+            name: result.snack.name,
             previousStock: result.previous.stock,
             stock: result.snack.stock,
             previousPrice: result.previous.price,

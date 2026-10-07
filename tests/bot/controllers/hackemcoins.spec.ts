@@ -177,15 +177,6 @@ describe("Bot Hackemcoins commands:", () => {
         expect(hackemcoinsService.getBalance(TEST_USERS.admin.userid)).toBe(adminBefore);
     });
 
-    test("/granthc rejects an overlong reason without changing the balance", async () => {
-        const before = guestBalance();
-
-        await mockBot.processUpdate(createMockMessage(`/granthc 1 to guest for ${"x".repeat(501)}`, TEST_USERS.accountant));
-
-        expect(mockBot.popResults()).toEqual(["hackemcoins\\.errors\\.reason"]);
-        expect(guestBalance()).toBe(before);
-    });
-
     test("/hackemcoins shows the balance of a multiword text mention", async () => {
         await mockBot.processUpdate(
             withTextMention(createMockMessage("/hc Guest Person", TEST_USERS.accountant), "Guest Person", TEST_USERS.guest)
@@ -213,14 +204,6 @@ describe("Bot Hackemcoins commands:", () => {
         await mockBot.processUpdate(createMockMessage("/hchistory", TEST_USERS.tenant));
 
         expect(mockBot.popResults().length).toBeGreaterThan(1);
-    });
-
-    test("/hchistory shows markup characters in reasons literally", async () => {
-        hackemcoinsService.grant(TEST_USERS.admin, TEST_USERS.accountant, 1, "#*bold");
-
-        await mockBot.processUpdate(createMockMessage("/hchistory", TEST_USERS.admin));
-
-        expect(mockBot.popResults()[0]).toContain(String.raw`\#\*bold`);
     });
 
     test("/me shows the hackemcoin balance", async () => {

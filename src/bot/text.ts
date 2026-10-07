@@ -33,7 +33,7 @@ import {
 import { REPLACE_MARKER } from "./core/constants";
 import t from "./core/localization";
 import { BotMessageContextMode } from "./core/types";
-import { escapeTaggedMarkdown, toEscapedTelegramMarkdown } from "./core/converters";
+import { toEscapedTelegramMarkdown } from "./core/converters";
 import { effectiveName, formatDateTime, formatUsername, userLink } from "./core/helpers";
 
 const printersConfig = config.get<PrintersConfig>("printers");
@@ -297,7 +297,7 @@ export function getSnacksList(snacks: Snack[], balance: number): string {
     for (const snack of snacks) {
         const stock = snack.stock > 0 ? t("snacks.list.stock", { stock: snack.stock }) : t("snacks.list.outofstock");
 
-        message += `- #\`${escapeTaggedMarkdown(snack.name)}#\` - ${snack.price} HC, ${stock}\n`;
+        message += `- #\`${snack.name}#\` - ${snack.price} HC, ${stock}\n`;
     }
 
     return `${message}\n${t("snacks.list.help")}`;
@@ -311,9 +311,7 @@ export function getHackemcoinHistory(transactions: HackemcoinTransactionEx[], ba
     for (const transaction of transactions) {
         const date = transaction.date.toLocaleString("RU-ru", shortDateTimeOptions);
         const amount = transaction.amount > 0 ? `+${transaction.amount}` : `${transaction.amount}`;
-        const details = transaction.snack
-            ? `#\`${escapeTaggedMarkdown(transaction.snack.name)}#\``
-            : escapeTaggedMarkdown(transaction.reason ?? "");
+        const details = transaction.snack ? `#\`${transaction.snack.name}#\`` : (transaction.reason ?? "");
 
         message += `${formatDateTime(date, transaction.date)} ${amount} HC - ${t(`hackemcoins.history.types.${transaction.type}`)} [${transaction.id}] ${details}\n`;
     }

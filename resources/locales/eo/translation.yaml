@@ -701,7 +701,6 @@ hackemcoins:
         refund: "🪙 Via aĉeto de #`{{name}}#` [#`{{id}}#`] estis nuligita, {{amount}} HC redonitaj, saldo: {{balance}} HC"
     errors:
         amount: "⚠️ La kvanto de HC devas esti pozitiva entjero"
-        reason: "⚠️ La kialo povas havi maksimume {{max}} signojn"
 snacks:
     list:
         empty: "🍫 Ankoraŭ neniuj manĝetoj"

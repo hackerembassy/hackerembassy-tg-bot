@@ -665,6 +665,91 @@ needs:
             ✅ {{username}}, дякуємо за покупку #`{{item}}#` в спейс
         notfound: 🙄 Відкритого запиту на покупку з такою назвою не знайшлося, мабуть вже купили
         undo: ❌ Скасувати покупку
+hackemcoins:
+    balance:
+        text: |
+            🪙 Твій баланс: {{balance}} HC
+
+            Hackemcoin (HC) - внутрішня валюта спейсу, 1 HC = {{rate}} {{currency}}.
+
+            Як отримати:
+            - Задонатити в будь-який збір: {{percent}}% від суми донату повернеться тобі в HC
+            - Резиденти можуть нарахувати HC за допомогу спейсу
+
+            Як витратити: взяти снек у /snacks
+            Історія операцій: /hchistory
+        of: "🪙 Баланс {{username}}: {{balance}} HC"
+    history:
+        empty: "🪙 Операцій з hackemcoin поки не було"
+        title: "🪙 Останні операції (баланс: {{balance}} HC):"
+        types:
+            donation: "донат"
+            donation_adjust: "коригування донату"
+            grant: "нарахування"
+            deduct: "списання"
+            purchase: "покупка"
+            purchase_undo: "скасування покупки"
+    grant:
+        help: "ℹ️ Нарахувати HC: #`/granthc кількість to username for причина#`"
+        success: "🪙 {{username}} нараховано {{amount}} HC, баланс: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} нарахував {{username}} {{amount}} HC за «{{reason}}»"
+    deduct:
+        help: "ℹ️ Списати HC: #`/deducthc кількість from username for причина#`"
+        success: "🪙 У {{username}} списано {{amount}} HC, баланс: {{balance}} HC"
+        log: "🪙 [#`{{id}}#`] {{actor}} списав у {{username}} {{amount}} HC за «{{reason}}»"
+    received:
+        donation: "🪙 Дякуємо за донат у збір #`{{fundName}}#`! Тобі нараховано {{amount}} HC, баланс: {{balance}} HC. Витратити їх можна на снеки: /snacks"
+        grant: "🪙 {{actor}} нарахував тобі {{amount}} HC за «{{reason}}», баланс: {{balance}} HC"
+        refund: "🪙 Покупку #`{{name}}#` [#`{{id}}#`] скасовано, тобі повернули {{amount}} HC, баланс: {{balance}} HC"
+    errors:
+        amount: "⚠️ Кількість HC має бути цілим додатним числом"
+snacks:
+    list:
+        empty: "🍫 Снеків поки немає"
+        title: "🍫 Снеки за hackemcoin (твій баланс: {{balance}} HC):"
+        stock: "залишилось {{stock}} шт."
+        outofstock: "немає в наявності"
+        help: "ℹ️ Натисни на снек нижче, щоб взяти його"
+    take:
+        success: "🍫 {{username}} взяв #`{{name}}#` за {{price}} HC [#`{{id}}#`], баланс: {{balance}} HC"
+        notfound: "⚠️ Цього снека більше немає"
+        outofstock: "😔 #`{{name}}#` закінчився"
+        insufficient: "🪙 Недостатньо hackemcoin: #`{{name}}#` коштує {{price}} HC, а в тебе {{balance}} HC"
+        log: "🍫 [#`{{id}}#`] {{username}} взяв #`{{name}}#` за {{price}} HC, залишилось {{stock}} шт."
+        cancelhint: "↩️ Натиснув випадково? Скасуй протягом {{minutes}} хв.: #`/cancelsnack {{id}}#`"
+    cancel:
+        help: "ℹ️ Скасувати свою покупку протягом {{minutes}} хв.: #`/cancelsnack номер_покупки#`"
+        invalid: "⚠️ Цю покупку не можна скасувати"
+        log: "↩️ [#`{{id}}#`] {{username}} скасував свою покупку #`{{name}}#`, повернули {{amount}} HC, залишилось {{stock}} шт."
+    buttons:
+        list: "🍫 Снеки"
+        shop: "🛒 Взяти снек"
+    add:
+        help: "ℹ️ Додати снек: #`/addsnack назва price ціна stock кількість#` (stock можна не вказувати)"
+        success: "🍫 Додано снек #`{{name}}#`: {{price}} HC, {{stock}} шт."
+        exists: "⚠️ Снек #`{{name}}#` вже є, використовуй /setsnackstock або /setsnackprice"
+        log: "🍫 {{username}} додав снек #`{{name}}#`: {{price}} HC, {{stock}} шт."
+    stock:
+        help: "ℹ️ Встановити залишок: #`/setsnackstock назва кількість#`"
+        success: "🍫 Залишок #`{{name}}#`: {{previousStock}} → {{stock}} шт."
+        log: "🍫 {{username}} змінив залишок #`{{name}}#`: {{previousStock}} → {{stock}} шт."
+    price:
+        help: "ℹ️ Змінити ціну: #`/setsnackprice назва ціна#`"
+        success: "🍫 Ціна #`{{name}}#`: {{previousPrice}} → {{price}} HC"
+        log: "🍫 {{username}} змінив ціну #`{{name}}#`: {{previousPrice}} → {{price}} HC"
+    remove:
+        help: "ℹ️ Видалити снек: #`/removesnack назва#`"
+        success: "🗑 Снек #`{{name}}#` видалено"
+        log: "🗑 {{username}} видалив снек #`{{name}}#` (залишалось {{stock}} шт.)"
+    undo:
+        help: "ℹ️ Скасувати покупку: #`/undosnack номер_покупки#` (номер є в логбуці)"
+        success: "↩️ Покупку [#`{{id}}#`] #`{{name}}#` скасовано, {{username}} повернули {{amount}} HC, баланс: {{balance}} HC"
+        notfound: "⚠️ Покупку [#`{{id}}#`] не знайдено"
+        already: "⚠️ Покупку [#`{{id}}#`] вже скасовано"
+        log: "↩️ [#`{{id}}#`] {{actor}} скасував покупку #`{{name}}#` у {{username}}, повернули {{amount}} HC, залишилось {{stock}} шт."
+    errors:
+        number: "⚠️ Ціна та кількість мають бути цілими невід'ємними числами"
+        notfound: "⚠️ Снек #`{{name}}#` не знайдено"
 service:
     welcome:
         confirm: |
@@ -763,6 +848,7 @@ status:
             {{donationList}}
         total: 💰 Всього задоначено в спейс {{total}} {{currency}}
         notfound: ⚠️ Користувача не знайдено
+        hackemcoins: "🪙 Баланс hackemcoin: {{balance}} HC"
     mac:
         buttons:
             detect: 🔍 Визначити автоматично

@@ -8,7 +8,7 @@ import { getImageFromPath, getRandomImageFromFolder } from "@utils/filesystem";
 import { overlayStaticImageOnGif } from "@utils/image";
 import { randomInteger } from "@utils/common";
 import { Route } from "@hackembot/core/decorators";
-import { userService } from "@services/domain/user";
+import { sanitizeUsername, userService } from "@services/domain/user";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import t from "../core/localization";
@@ -112,7 +112,7 @@ export default class MemeController implements BotController {
 
         let source: string;
 
-        switch (target.slice(1)) {
+        switch (sanitizeUsername(extractedTarget)) {
             case bot.name: {
                 source = "./resources/images/animations/slap-bot.gif";
                 break;
@@ -154,7 +154,7 @@ export default class MemeController implements BotController {
 
         let source: string;
 
-        switch (target.slice(1)) {
+        switch (sanitizeUsername(extractedTarget)) {
             case bot.name: {
                 source = "./resources/images/animations/hug-bot.gif";
                 break;

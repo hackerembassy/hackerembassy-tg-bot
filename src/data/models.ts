@@ -10,6 +10,8 @@ import {
     apikeys,
     devices,
     aliases,
+    snacks,
+    hackemcoinTransactions,
 } from "@data/schema";
 
 export type User = typeof users.$inferSelect;
@@ -23,8 +25,11 @@ export type UserState = typeof userstates.$inferSelect;
 export type State = typeof states.$inferSelect;
 export type ApiKey = typeof apikeys.$inferSelect;
 export type Alias = typeof aliases.$inferSelect;
+export type Snack = typeof snacks.$inferSelect;
+export type HackemcoinTransaction = typeof hackemcoinTransactions.$inferSelect;
 
 export type UserStateEx = UserState & { user: User };
 export type StateEx = State & { changer: User };
 export type DeviceEx = Device & { user: User };
 export type DonationEx = Donation & { fund: Fund; user: User; accountant: User };
+export type HackemcoinTransactionEx = HackemcoinTransaction & { snack: Nullable<Snack> };

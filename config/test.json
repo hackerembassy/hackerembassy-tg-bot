@@ -12,7 +12,8 @@
             "welcome": true,
             "antispam": true,
             "embassy": true,
-            "calendar": true
+            "calendar": true,
+            "hackemcoins": true
         }
     },
     "embassy-api": {

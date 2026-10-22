@@ -1,6 +1,19 @@
 import { relations } from "drizzle-orm/relations";
 
-import { topics, subscriptions, users, states, needs, userstates, funds, donations, apikeys, devices } from "./schema";
+import {
+    topics,
+    subscriptions,
+    users,
+    states,
+    needs,
+    userstates,
+    funds,
+    donations,
+    apikeys,
+    devices,
+    snacks,
+    hackemcoinTransactions,
+} from "./schema";
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     topic: one(topics, {
@@ -98,5 +111,16 @@ export const apikeysRelations = relations(apikeys, ({ one }) => ({
     user: one(users, {
         fields: [apikeys.user_id],
         references: [users.userid],
+    }),
+}));
+
+export const hackemcoinTransactionsRelations = relations(hackemcoinTransactions, ({ one }) => ({
+    user: one(users, {
+        fields: [hackemcoinTransactions.user_id],
+        references: [users.userid],
+    }),
+    snack: one(snacks, {
+        fields: [hackemcoinTransactions.snack_id],
+        references: [snacks.id],
     }),
 }));

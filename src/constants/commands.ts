@@ -88,6 +88,8 @@ export const MemberCommandsList: string = `
 /live - Закрепить короткий лайв статус
 /doorbell (db) - Позвонить в дверной звонок
 /unlock (u) - Открыть дверь (только если роутер видит твой мак, зареганный в /mac)
+#\`/grantaccess telegram_username from DD-MM-YYYY HH:mm to DD-MM-YYYY HH:mm#\` - Временно разрешить гостю /unlock (пишется в логбук)
+#\`/revokeaccess telegram_username#\` - Отозвать временный доступ к двери
 /inghost (ghost) - Войти в спейс отображаясь только для резидентов
 #\`/inforce telegram_username#\` - Отметить другого юзера пришедшим в спейс
 #\`/outforce telegram_username#\` - Отметить другого юзера ушедшим из спейса

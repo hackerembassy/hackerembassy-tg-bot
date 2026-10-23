@@ -12,6 +12,7 @@ import HackerEmbassyBot from "./core/classes/HackerEmbassyBot";
 import AdminController from "./controllers/admin";
 import BasicController from "./controllers/basic";
 import BirthdayController from "./controllers/birthday";
+import DoorAccessController from "./controllers/doorAccess";
 import EmbassyController from "./controllers/embassy";
 import FundsController from "./controllers/funds";
 import MemeController from "./controllers/meme";
@@ -78,6 +79,7 @@ const residentCommands = [
     { command: "close", description: "Закрыть спейс" },
     { command: "evict", description: "Очистить список отметившихся" },
     { command: "unlock", description: "Открыть дверь" },
+    { command: "grantaccess", description: "Временно дать гостю открывать дверь" },
     { command: "funds", description: "Наши открытые сборы" },
     { command: "fundsall", description: "Все сборы" },
     { command: "debt", description: "Сколько числится на тебе донатов" },
@@ -116,6 +118,7 @@ export function addControllers(bot: HackerEmbassyBot): void {
     bot.addController(AdminController);
     bot.addController(BasicController);
     bot.addController(BirthdayController);
+    bot.addController(DoorAccessController);
     bot.addController(EmbassyController);
     bot.addController(FundsController);
     bot.addController(MemeController);

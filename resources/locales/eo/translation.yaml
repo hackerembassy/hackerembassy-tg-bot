@@ -663,6 +663,38 @@ needs:
             ✅ {{username}} aĉetis #`{{item}}#` en la spaco
         notfound: 🙄 Ne estis malferma aĉetpeto kun ĉi tiu nomo, probable jam aĉetita
         undo: ❌ Nuligi aĉeton
+access:
+    grant:
+        help: |
+            ℹ️ Permesi al gasto dum kelka tempo malfermi la pordon per /unlock:
+            #`/grantaccess username from 14-07-2026 14:59 to 14-07-2026 17:59#`
+            #`/grantaccess username from 14:59 to 17:59#` - hodiaŭ
+            #`/grantaccess username for 3h#` - ekde nun
+
+            Maksimume {{maxDays}} tagojn, komenciĝante ene de {{maxLeadDays}} tagoj. La horoj estas laŭ la horzono de la spaco.
+        success: "🔑 {{username}} povas malfermi la pordon de {{from}} ĝis {{to}} [#`{{id}}#`]"
+        log: "🔑 [#`{{id}}#`] {{actor}} donis al {{username}} aliron al la pordo de {{from}} ĝis {{to}}"
+        nodm: "⚠️ Ne eblis sciigi {{username}}: ri ne komencis privatan babilejon kun la roboto. Transdonu la detalojn mem"
+    revoke:
+        help: "ℹ️ Nuligi la aliron de gasto al la pordo: #`/revokeaccess username#`"
+        success: "🚫 {{username}} ne plu povas malfermi la pordon"
+        none: "ℹ️ {{username}} ne havas nunan aŭ planitan aliron al la pordo"
+        log: "🚫 [{{ids}}] {{actor}} nuligis la aliron de {{username}} al la pordo"
+    received:
+        grant: |
+            🔑 {{actor}} permesis al vi malfermi la pordon de la spaco de {{from}} ĝis {{to}}
+
+            Premu la butonon sube aŭ sendu /unlock. Via telefono devas esti konektita al la Wi-Fi de la spaco kaj registrita per /mac
+        revoke: "🚫 {{actor}} nuligis vian aliron al la pordo de la spaco"
+    buttons:
+        unlock: "🔑 Malfermi la pordon"
+    errors:
+        banned: "⛔ {{username}} estas forbarita kaj ne povas ricevi aliron al la pordo"
+        unlocker: "ℹ️ {{username}} jam povas malfermi la pordon"
+        order: "⚠️ La aliro devas finiĝi post sia komenco"
+        expired: "⚠️ Ĉi tiu tempointervalo jam pasis"
+        toolong: "⚠️ La aliro povas daŭri maksimume {{maxDays}} tagojn"
+        toofar: "⚠️ La aliro povas komenciĝi maksimume {{maxLeadDays}} tagojn de nun"
 service:
     welcome:
         confirm: |

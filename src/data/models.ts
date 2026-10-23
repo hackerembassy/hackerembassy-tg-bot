@@ -10,6 +10,7 @@ import {
     apikeys,
     devices,
     aliases,
+    doorAccessGrants,
 } from "@data/schema";
 
 export type User = typeof users.$inferSelect;
@@ -23,6 +24,7 @@ export type UserState = typeof userstates.$inferSelect;
 export type State = typeof states.$inferSelect;
 export type ApiKey = typeof apikeys.$inferSelect;
 export type Alias = typeof aliases.$inferSelect;
+export type DoorAccessGrant = typeof doorAccessGrants.$inferSelect;
 
 export type UserStateEx = UserState & { user: User };
 export type StateEx = State & { changer: User };

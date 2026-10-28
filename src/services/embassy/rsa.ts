@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-import NodeRSA from "node-rsa";
+import { NodeRSA, type Data } from "node-rsa";
 
 import { PROJECT_ROOT } from "@utils/filesystem";
 
@@ -10,7 +10,7 @@ import { PROJECT_ROOT } from "@utils/filesystem";
 // would be wasted I/O. The getters cache the load *promise*, not just the resolved key, so
 // concurrent calls made before the first load finishes share one file read instead of racing.
 class Rsa {
-    public async encrypt(message: NodeRSA.Data): Promise<string> {
+    public async encrypt(message: Data): Promise<string> {
         const key = await this.pubKey;
 
         return key.encrypt(message, "base64");
@@ -19,7 +19,7 @@ class Rsa {
     public async decrypt(message: string | Buffer): Promise<string> {
         const key = await this.privKey;
 
-        return key.decrypt(message).toString("utf8");
+        return key.decrypt(message, "utf8");
     }
 
     private static readonly pubPath = path.join(PROJECT_ROOT, "config/sec/pub.key");

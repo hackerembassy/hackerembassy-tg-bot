@@ -40,7 +40,7 @@
         "@modelcontextprotocol/server": "^2.0.0",
         "better-sqlite3": "^12.10.0",
         "chartjs-to-image": "^1.2.2",
-        "config": "^4.4.1",
+        "config": "^5.0.1",
         "cors": "^2.8.6",
         "cron": "^4.4.0",
         "crypto-convert": "^2.1.7",

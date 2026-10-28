@@ -1,10 +1,15 @@
 version: 2
+# PR limits add up to 5 open PRs at a time
 updates:
+    # Major versions are breaking, upgrade them by hand
     - package-ecosystem: npm
       directory: /
       schedule:
           interval: weekly
-      open-pull-requests-limit: 10
+      open-pull-requests-limit: 3
+      ignore:
+          - dependency-name: "*"
+            update-types: [version-update:semver-major]
       groups:
           production:
               dependency-type: production
@@ -17,6 +22,10 @@ updates:
       directory: /
       schedule:
           interval: weekly
+      open-pull-requests-limit: 1
+      ignore:
+          - dependency-name: "*"
+            update-types: [version-update:semver-major]
       groups:
           actions:
               patterns: ["*"]
@@ -26,6 +35,7 @@ updates:
       directory: /deploy
       schedule:
           interval: weekly
+      open-pull-requests-limit: 1
       ignore:
           - dependency-name: node
             update-types: [version-update:semver-major]

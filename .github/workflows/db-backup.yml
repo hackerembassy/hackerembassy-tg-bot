@@ -13,7 +13,7 @@ jobs:
     backup:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v7
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             - uses: ./.github/actions/extract-docker-volume
               with:
                   ssh_user: ci
@@ -24,7 +24,7 @@ jobs:
                   ssh_key: ${{ secrets.deploy_target_key }}
                   encryption_key: ${{ vars.backup_encryption_key }}
                   encryption_key_fingerprint: 1081AE754A88DD44DFBF78392B0905649F1964AC
-            - uses: actions/upload-artifact@v4
+            - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
               with:
                   name: hackem-bot-db.tar.gpg
                   path: hackem-bot-db.tar.gpg

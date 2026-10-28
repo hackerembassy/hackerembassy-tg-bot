@@ -24,18 +24,18 @@ jobs:
             contents: read
             packages: write
         steps:
-            - uses: actions/checkout@v7
-            - uses: docker/setup-buildx-action@v2
-            - uses: docker/login-action@v2
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+            - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
               with:
                   registry: ghcr.io
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
             - id: metadata
-              uses: docker/metadata-action@v4
+              uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
               with:
                   images: ghcr.io/${{ github.repository }}
-            - uses: docker/build-push-action@v5
+            - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
               with:
                   context: .
                   file: ./deploy/Containerfile
@@ -51,7 +51,7 @@ jobs:
                   ssh_host: ${{ secrets.deploy_target_host }}
                   ssh_port: ${{ secrets.deploy_target_port }}
                   ssh_key: ${{ secrets.deploy_target_key }}
-            - uses: appleboy/telegram-action@master
+            - uses: appleboy/telegram-action@214f06cfa3d3a588c1472116889437e7c6fd29b1 # v1.1.1
               with:
                   to: ${{ vars.alerts_chat_id }}
                   token: ${{ secrets.NOTIFICATION_BOT_TOKEN }}

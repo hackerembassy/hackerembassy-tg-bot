@@ -39,7 +39,7 @@ npm run init               # scripts/initDev.ts — first-time local setup (need
 npm run migrations         # drizzle-kit generate, after editing src/data/schema.ts
 ```
 
-Node version is pinned via `.nvmrc` (v26.2.0); README states 22+ works too. Husky + lint-staged run
+Node version is pinned via `.nvmrc` (v26.13.0 LTS); README states 22+ works too. Husky + lint-staged run
 prettier/eslint on staged files at commit time.
 
 ## Architecture

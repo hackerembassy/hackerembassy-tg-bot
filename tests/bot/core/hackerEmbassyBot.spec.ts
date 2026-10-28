@@ -2,7 +2,7 @@ import { Message } from "node-telegram-bot-api";
 
 import { TEST_USERS } from "@data/seed";
 
-import { createMockBot } from "../../mocks/bot";
+import { createMockBot, createMockMessage } from "../../mocks/bot";
 
 function fakeMessage(): Message {
     return {
@@ -98,5 +98,27 @@ describe("HackerEmbassyBot.sendOrEditPhoto", () => {
 
         expect(result).toBeNull();
         expect(bot.context(msg).isEditing).toBe(false);
+    });
+});
+
+describe("HackerEmbassyBot unknown command guessing", () => {
+    const bot = createMockBot();
+    const guessHandler = jest.fn();
+    const noop = jest.fn();
+
+    bot.addEventRoutes(noop, noop, noop, guessHandler);
+
+    beforeEach(() => guessHandler.mockClear());
+
+    it("guesses an answer for an unknown command", async () => {
+        await bot.routeMessage(createMockMessage("/makecoffee", TEST_USERS.admin).message!);
+
+        expect(guessHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(["/usr/sbin/grub-probe: error", "/etc/fstab", "/home/user/"])("does not guess for path %s", async text => {
+        await bot.routeMessage(createMockMessage(text, TEST_USERS.admin).message!);
+
+        expect(guessHandler).not.toHaveBeenCalled();
     });
 });

@@ -648,7 +648,10 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             // Try to guess the answer if no route is found for members, especially for @CabiaRangris
             if (!route) {
-                if (!this.guessIgnoreList.has(command) && this.canUserGuess(user, message.chat) && this.guessHandler) {
+                // Unix paths like /usr/sbin/grub-probe are not commands
+                const isPath = command.includes("/");
+
+                if (!isPath && !this.guessIgnoreList.has(command) && this.canUserGuess(user, message.chat) && this.guessHandler) {
                     await messageContext.run(() => this.guessHandler!(this, message, text));
                 }
                 return;

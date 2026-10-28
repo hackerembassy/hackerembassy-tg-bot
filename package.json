@@ -38,7 +38,7 @@
         "@fast-csv/format": "^5.0.7",
         "@modelcontextprotocol/node": "^2.0.0",
         "@modelcontextprotocol/server": "^2.0.0",
-        "better-sqlite3": "^12.10.0",
+        "better-sqlite3": "^13.0.3",
         "chartjs-to-image": "^1.2.2",
         "config": "^4.4.1",
         "cors": "^2.8.6",

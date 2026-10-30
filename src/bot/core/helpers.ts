@@ -2,7 +2,7 @@ import { Message, PhotoSize } from "node-telegram-bot-api";
 
 import { User } from "@data/models";
 
-import { sanitizeUsername } from "@services/domain/user";
+import { sanitizeUsername, userService } from "@services/domain/user";
 
 import { ITelegramUser } from "./types";
 
@@ -37,6 +37,18 @@ export function effectiveName(user?: ITelegramUser | User) {
 
 export function getMentions(msg: Message) {
     return msg.entities?.filter(e => e.type === "text_mention").map(e => e.user) ?? [];
+}
+
+// Users without a username can only be referenced by a text mention, whose display text isn't a lookup key
+export function resolveTargetUser(msg: Message, identifier: string): Optional<User> {
+    const text = msg.text ?? "";
+    // The recipient comes before any free text, so a later mention with the same display text is not it
+    const offset = text.indexOf(identifier, text.indexOf(" "));
+    const mention = msg.entities?.find(
+        entity => entity.type === "text_mention" && entity.offset === offset && entity.length === identifier.length
+    );
+
+    return mention?.user ? userService.getUser(mention.user.id) : userService.getUser(identifier);
 }
 
 export function formatDateTime(text: string, date: Date): string {

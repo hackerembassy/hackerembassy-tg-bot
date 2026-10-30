@@ -73,11 +73,17 @@
             "greetings": true,
             "voice": true,
             "askContinuation": true,
-            "dailydigest": true
+            "dailydigest": true,
+            "hackemcoins": false
         },
         "moderatedChats": [-1001605898533],
         "guess": {
             "ignoreList": ["q", "qs", "qrand", "qdrand", "qd", "qtop", "patternify", "piska", "leaders"]
+        },
+        "hackemcoins": {
+            "currency": "AMD",
+            "rate": 10,
+            "donationRewardPercent": 10
         },
         "funds": {
             "alternativeUsernames": ["dipierro", "keimoger", "MrPhoenix", "thronglet"],

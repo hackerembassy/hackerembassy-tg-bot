@@ -34,6 +34,7 @@ export interface BotConfig {
     reminders: RemindersConfig;
     dailydigest: DailyDigestConfig;
     funds: FundsConfig;
+    hackemcoins: HackemcoinsConfig;
     debug: boolean;
     moderatedChats: number[];
     guess: GuessConfig;
@@ -98,6 +99,12 @@ export interface OutageConfig {
     };
 }
 
+export interface HackemcoinsConfig {
+    currency: string;
+    rate: number;
+    donationRewardPercent: number;
+}
+
 export interface FundsConfig {
     alternativeUsernames: string[];
     sponsorship: {
@@ -155,6 +162,8 @@ export interface BotFeaturesConfig {
     askContinuation: boolean;
     /** Automated daily "what was discussed yesterday" summary posted to the main chat */
     dailydigest: boolean;
+    /** Hackemcoin balances and the snack shop paid with them */
+    hackemcoins: boolean;
 }
 
 export type BotFeatureFlag = keyof BotFeaturesConfig;

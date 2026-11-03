@@ -664,6 +664,38 @@ needs:
             ✅ {{username}} bought #`{{item}}#` in space
         notfound: 🙄 There was no open purchase request with this name, probably already purchased
         undo: ❌ Cancel purchase
+access:
+    grant:
+        help: |
+            ℹ️ Let a guest open the door with /unlock for a while:
+            #`/grantaccess username from 14-07-2026 14:59 to 14-07-2026 17:59#`
+            #`/grantaccess username from 14:59 to 17:59#` - today
+            #`/grantaccess username for 3h#` - starting now
+
+            Up to {{maxDays}} days long, starting within {{maxLeadDays}} days. Times are in the space timezone.
+        success: "🔑 {{username}} can open the door from {{from}} to {{to}} [#`{{id}}#`]"
+        log: "🔑 [#`{{id}}#`] {{actor}} granted {{username}} door access from {{from}} to {{to}}"
+        nodm: "⚠️ Couldn't notify {{username}}: they haven't started a private chat with the bot. Pass the details on yourself"
+    revoke:
+        help: "ℹ️ Revoke a guest's door access: #`/revokeaccess username#`"
+        success: "🚫 {{username}} can no longer open the door"
+        none: "ℹ️ {{username}} has no current or upcoming door access"
+        log: "🚫 [{{ids}}] {{actor}} revoked door access of {{username}}"
+    received:
+        grant: |
+            🔑 {{actor}} let you open the space door from {{from}} to {{to}}
+
+            Tap the button below or send /unlock. Your phone has to be on the space Wi-Fi and registered with /mac
+        revoke: "🚫 {{actor}} revoked your access to the space door"
+    buttons:
+        unlock: "🔑 Open the door"
+    errors:
+        banned: "⛔ {{username}} is banned and can't get door access"
+        unlocker: "ℹ️ {{username}} can already open the door"
+        order: "⚠️ The access has to end after it starts"
+        expired: "⚠️ This time window is already over"
+        toolong: "⚠️ Access can last at most {{maxDays}} days"
+        toofar: "⚠️ Access can start at most {{maxLeadDays}} days from now"
 service:
     welcome:
         confirm: |

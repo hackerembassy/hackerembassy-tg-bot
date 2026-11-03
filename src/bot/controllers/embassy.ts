@@ -5,6 +5,7 @@ import fetch from "node-fetch";
 import { BotConfig, EmbassyApiConfig, NeuralConfig } from "@config";
 import broadcast, { BroadcastEvents } from "@services/common/broadcast";
 import embassyService from "@services/embassy/embassy";
+import { doorAccessService } from "@services/domain/doorAccess";
 import { fundsService } from "@services/domain/funds";
 import { getFundDonationsSummary } from "@services/domain/funds/reports";
 import { AvailableConditioner, ConditionerActions, ConditionerMode } from "@services/embassy/hass";
@@ -53,9 +54,12 @@ enum DeviceOperation {
 export default class EmbassyController implements BotController {
     @Route(["unlock", "u"])
     @FeatureFlag("embassy")
-    @UserRoles(Unlockers)
     static async unlockHandler(bot: HackerEmbassyBot, msg: Message) {
         const user = bot.context(msg).user;
+
+        // Not @UserRoles: guests holding a /grantaccess window must reach the handler
+        if (!hasRole(user, "admin", ...Unlockers) && !doorAccessService.hasActiveGrant(user))
+            return bot.sendRestrictedMessage(msg, { userRoles: Unlockers });
 
         try {
             const userMacs = userService.getUserMacs(user);

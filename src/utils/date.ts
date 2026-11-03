@@ -229,3 +229,45 @@ export function hasBithdayThisMonth(date: Nullable<string>) {
 export function isIsoDateString(date?: string) {
     return date ? /^(?:\d{4}-)?(0[1-9]|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$/.test(date) : false;
 }
+
+const LOCAL_DATE_TIME_REGEX = /^(?:(\d{1,2})[-.](\d{1,2})[-.](\d{4}) )?(\d{1,2}):(\d{2})$/;
+
+// A time without a date ("14:59") falls on the reference day; times are wall-clock in the process timezone (TZ)
+export function parseLocalDateTime(input: string, reference: Date = new Date()): Optional<Date> {
+    const match = LOCAL_DATE_TIME_REGEX.exec(input.trim());
+
+    if (!match) return;
+
+    const [day, month, year] = match[3]
+        ? [Number(match[1]), Number(match[2]), Number(match[3])]
+        : [reference.getDate(), reference.getMonth() + 1, reference.getFullYear()];
+    const [hours, minutes] = [Number(match[4]), Number(match[5])];
+    const date = new Date(year, month - 1, day, hours, minutes);
+
+    // new Date() silently rolls 31-02 over into March and 25:00 into the next day
+    const isExact =
+        date.getDate() === day &&
+        date.getMonth() === month - 1 &&
+        date.getFullYear() === year &&
+        date.getHours() === hours &&
+        date.getMinutes() === minutes;
+
+    return isExact ? date : undefined;
+}
+
+export function isTimeOnly(input: string): boolean {
+    return /^\d{1,2}:\d{2}$/.test(input.trim());
+}
+
+const LONG_DURATION_REGEX = /^(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?$/;
+
+// "3h", "2h30m", "1d12h"; unlike durationStringToMs, days are allowed and an empty string is rejected
+export function parseLongDuration(input: string): Optional<number> {
+    const match = LONG_DURATION_REGEX.exec(input.trim());
+
+    if (!match || !match.slice(1).some(Boolean)) return;
+
+    const [days, hours, minutes] = match.slice(1).map(part => (part ? Number(part) : 0));
+
+    return days * DAY + hours * HOUR + minutes * MINUTE;
+}

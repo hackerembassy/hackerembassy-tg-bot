@@ -1,4 +1,11 @@
-import { getYesterday, hasBirthdayToday, hasBithdayThisMonth, isIsoDateString } from "@utils/date";
+import {
+    getYesterday,
+    hasBirthdayToday,
+    hasBithdayThisMonth,
+    isIsoDateString,
+    parseLocalDateTime,
+    parseLongDuration,
+} from "@utils/date";
 
 describe("utils/date", () => {
     describe("getYesterday", () => {
@@ -107,6 +114,41 @@ describe("utils/date", () => {
             expect(isIsoDateString("not-a-date")).toBe(false);
             expect(isIsoDateString("")).toBe(false);
             expect(isIsoDateString()).toBe(false);
+        });
+    });
+
+    describe("parseLocalDateTime", () => {
+        const reference = new Date(2026, 6, 14, 12, 0);
+
+        it.each([
+            ["14-07-2026 14:59", new Date(2026, 6, 14, 14, 59)],
+            ["1.8.2026 9:05", new Date(2026, 7, 1, 9, 5)],
+            ["17:30", new Date(2026, 6, 14, 17, 30)],
+            ["00:00", new Date(2026, 6, 14, 0, 0)],
+        ])("parses %s", (input, expected) => {
+            expect(parseLocalDateTime(input, reference)).toEqual(expected);
+        });
+
+        it.each(["31-02-2026 10:00", "14-13-2026 10:00", "25:00", "12:60", "2026-07-14 10:00", "tomorrow", ""])(
+            "rejects %s",
+            input => {
+                expect(parseLocalDateTime(input, reference)).toBeUndefined();
+            }
+        );
+    });
+
+    describe("parseLongDuration", () => {
+        it.each([
+            ["3h", 3 * 60 * 60 * 1000],
+            ["2h30m", 150 * 60 * 1000],
+            ["45m", 45 * 60 * 1000],
+            ["1d12h", 36 * 60 * 60 * 1000],
+        ])("parses %s", (input, expected) => {
+            expect(parseLongDuration(input)).toBe(expected);
+        });
+
+        it.each(["", "3", "h", "3x", "30m2h"])("rejects %s", input => {
+            expect(parseLongDuration(input)).toBeUndefined();
         });
     });
 });

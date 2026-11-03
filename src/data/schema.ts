@@ -142,3 +142,23 @@ export const apikeys = sqliteTable(
     },
     table => [index("user_id_idx").on(table.user_id)]
 );
+
+export const doorAccessGrants = sqliteTable(
+    "door_access_grants",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+        user_id: integer("user_id")
+            .notNull()
+            .references(() => users.userid, { onDelete: "cascade" }),
+        granted_by: integer("granted_by")
+            .notNull()
+            .references(() => users.userid),
+        starts_at: integer("starts_at", { mode: "timestamp_ms" }).notNull(),
+        ends_at: integer("ends_at", { mode: "timestamp_ms" }).notNull(),
+        revoked_by: integer("revoked_by")
+            .default(sql`(NULL)`)
+            .references(() => users.userid),
+        revoked_at: integer("revoked_at", { mode: "timestamp_ms" }).default(sql`(NULL)`),
+    },
+    table => [index("door_access_user_idx").on(table.user_id)]
+);

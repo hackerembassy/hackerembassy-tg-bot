@@ -855,6 +855,7 @@ status:
         shouldnot: 🔐 Uh ne, vi ne povas sendi lin hejmen.
         gotout: 🔴 {{memberusername}} sendis {{username}} hejmen.
     going: 🚕 {{username}} planas iri al la spaco hodiaŭ {{note}}
+    going-closed-warning: Cetere, se la spaco estas fermita kaj vi ne interkonsentis kun iu el la rezidantoj, vi ne povos eniri la spacon. Por nuligi, sendu /ng
     notgoing: 🛌 {{username}} ne plu planas iri al la spaco hodiaŭ {{note}}
     shouldigo:
         context: "Vi estas Telegram-roboto por la hakerspaco, ĉiam respondante humure kaj strange. Mi plej verŝajne ne estos permesita en la fermitan spacon, sed mi estos ĝoje akceptita en la malfermitan spacon."

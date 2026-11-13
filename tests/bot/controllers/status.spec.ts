@@ -1,4 +1,5 @@
 import { TEST_USERS } from "@data/seed";
+import StatusController from "@hackembot/controllers/status";
 import { ButtonFlags } from "@hackembot/core/inlineButtons";
 import { getUserBadges } from "@hackembot/text";
 
@@ -101,10 +102,69 @@ describe("Bot Status commands:", () => {
     });
 
     test("/going and /notgoing record RSVP intent", async () => {
+        jest.advanceTimersByTime(1);
+        await mockBot.processUpdate(createMockMessage("/open", TEST_USERS.admin));
+        mockBot.popResults();
+
         await mockBot.processUpdate(createMockMessage("/going", TEST_USERS.guest));
         await mockBot.processUpdate(createMockMessage("/notgoing", TEST_USERS.guest));
 
         expect(mockBot.popResults()).toEqual(["status\\.going", "status\\.notgoing"]);
+    });
+
+    test.each([
+        { user: TEST_USERS.guest, state: "/close", command: "/going", warning: true },
+        { user: TEST_USERS.guest, state: "/close", command: "/g попаять", warning: true },
+        { user: TEST_USERS.guest, state: "/open", command: "/going", warning: false },
+        { user: TEST_USERS.accountant, state: "/close", command: "/going", warning: false },
+        { user: TEST_USERS.tenant, state: "/close", command: "/going", warning: false },
+    ])("$command for $user.username when $state includes warning: $warning", async ({ user, state, command, warning }) => {
+        jest.advanceTimersByTime(1);
+        await mockBot.processUpdate(createMockMessage(state, TEST_USERS.admin));
+        mockBot.popResults();
+
+        try {
+            await mockBot.processUpdate(createMockMessage(command, user));
+
+            expect(mockBot.popResults()).toEqual([
+                warning ? "status\\.going\n\nstatus\\.going\\-closed\\-warning" : "status\\.going",
+            ]);
+        } finally {
+            jest.advanceTimersByTime(1);
+            await mockBot.processUpdate(createMockMessage("/ng", user));
+            mockBot.popResults();
+        }
+    });
+
+    test("the Russian closed-space warning follows the reason to go", async () => {
+        jest.advanceTimersByTime(1);
+        await mockBot.processUpdate(createMockMessage("/close", TEST_USERS.admin));
+        mockBot.popResults();
+
+        const msg = createMockMessage("/going попаять", TEST_USERS.guest).message!;
+        const context = mockBot.startContext(msg, TEST_USERS.guest);
+        context.language = "ru";
+        const sendMessageExt = jest.spyOn(mockBot, "sendMessageExt");
+
+        try {
+            await context.run(() => StatusController.goingHandler(mockBot, msg, "попаять"));
+
+            expect(sendMessageExt).toHaveBeenCalledWith(
+                msg.chat.id,
+                expect.stringContaining(
+                    "планирует сегодня зайти в спейс попаять\n\n" +
+                        "Кстати, если спейс закрыт и вы не договаривались ни с кем из резидентов, " +
+                        "зайти в спейс не получится. Для отмены отправьте /ng"
+                ),
+                msg,
+                expect.any(Object)
+            );
+        } finally {
+            sendMessageExt.mockRestore();
+            jest.advanceTimersByTime(1);
+            await mockBot.processUpdate(createMockMessage("/ng", TEST_USERS.guest));
+            mockBot.popResults();
+        }
     });
 
     test("/close should change the /status of space to closed and remove users inside", async () => {

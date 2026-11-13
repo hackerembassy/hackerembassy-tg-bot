@@ -17,7 +17,7 @@ import { SpaceClimate } from "@services/embassy/hass";
 import logger from "@services/common/logger";
 import { getTodayEventsCached, HSEvent } from "@services/external/googleCalendar";
 import { spaceService } from "@services/domain/space";
-import { userService } from "@services/domain/user";
+import { hasRole, userService } from "@services/domain/user";
 import { openAI } from "@services/neural/openai";
 import telemetry from "@services/common/telemetry";
 
@@ -36,6 +36,7 @@ import {
     PublicChats,
     Route,
     TrustedMembers,
+    Unlockers,
     UserRoles,
 } from "@hackembot/core/decorators";
 
@@ -619,10 +620,14 @@ export default class StatusController implements BotController {
         userService.setGoingState(sender, true, note);
         bot.customEmitter.emit(BotCustomEvent.statusLive);
 
-        const message = t("status.going", {
+        let message = t("status.going", {
             username: helpers.userLink(sender),
             note,
         });
+
+        if (!spaceService.getState().open && !hasRole(sender, ...Unlockers)) {
+            message += "\n\n" + t("status.going-closed-warning");
+        }
 
         const inline_keyboard = [
             [

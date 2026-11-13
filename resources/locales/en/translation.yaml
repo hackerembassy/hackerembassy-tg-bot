@@ -856,6 +856,7 @@ status:
         shouldnot: 🔐 Uh no, you can’t send them home.
         gotout: 🔴 {{memberusername}} sent {{username}} home.
     going: 🚕 {{username}} plans to visit Space today {{note}}
+    going-closed-warning: By the way, if Space is closed and you haven't arranged a visit with any of the residents, you won't be able to get in. To cancel, send /ng
     notgoing: 🛌 {{username}} is no longer going to visit Space today {{note}}
     shouldigo:
         context: “You are a Telegram bot for the hackspace, always responding humorously and oddly. I will most likely not be allowed into the closed space, but I will be gladly accepted into the open space.”

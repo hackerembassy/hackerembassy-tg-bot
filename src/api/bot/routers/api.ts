@@ -7,6 +7,7 @@ import { getFundDonationsSummary } from "@services/domain/funds/reports";
 import { spaceService } from "@services/domain/space";
 import { fundsService, SponsorshipLevel, SponsorshipLevelToName } from "@services/domain/funds";
 import logger from "@services/common/logger";
+import embassyService from "@services/embassy/embassy";
 import { hasRole, userService } from "@services/domain/user";
 import { SERVICE_USERS } from "@data/seed";
 
@@ -14,7 +15,6 @@ import bot from "@hackembot/instance";
 import FundsController from "@hackembot/controllers/funds";
 import { formatMonospaced, userLink } from "@hackembot/core/helpers";
 import { BotConfig } from "@config";
-const botConfig = config.get<BotConfig>("bot");
 
 import { getRequestIp } from "@utils/express";
 
@@ -22,6 +22,8 @@ import wikiRouter from "./wiki";
 import embassyRouter from "./embassy";
 import { spaceApiTemplate } from "../templates";
 import { authentificate, allowTrustedMembers, allowMembers, allowSpecialEntities } from "../middleware";
+
+const botConfig = config.get<BotConfig>("bot");
 
 // Router
 const apiRouter = Router();
@@ -181,6 +183,25 @@ apiRouter.get("/sponsors", (req, res) => {
             };
         })
     );
+});
+
+apiRouter.get("/climate", async (_, res) => {
+    if (!botConfig.features.embassy) return void res.status(404).send({ error: "Embassy features are disabled" });
+
+    const climate = await embassyService.getSpaceClimateCached();
+    res.set("Cache-Control", "public, max-age=5");
+
+    if (!climate) return void res.status(503).send({ error: "Climate data is unavailable" });
+
+    // Without the private rooms the bot only shows in special chats
+    res.json({ firstFloor: climate.firstFloor, secondFloor: climate.secondFloor });
+});
+
+apiRouter.get("/printers", async (_, res) => {
+    if (!botConfig.features.embassy) return void res.status(404).send({ error: "Embassy features are disabled" });
+
+    const printers = await embassyService.getPrintersSummaryCached();
+    res.set("Cache-Control", "public, max-age=5").json(printers);
 });
 
 apiRouter.get("/usernames", allowSpecialEntities, (_, res) => {

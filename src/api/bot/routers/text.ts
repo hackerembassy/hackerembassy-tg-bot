@@ -134,7 +134,7 @@ router.get("/status", async (_, res) => {
 
     const inside = userService.getPeopleInside();
     const going = userService.getPeopleGoing();
-    const climateInfo = await embassyService.getSpaceClimate().catch(() => null);
+    const climateInfo = await embassyService.getSpaceClimateCached();
     const todayEvents = apiConfig.features.calendar ? await getTodayEvents() : null;
 
     content = TextGenerators.getStatusMessage(state, inside, going, todayEvents, climateInfo, {

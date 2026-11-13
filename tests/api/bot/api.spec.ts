@@ -4,6 +4,7 @@ import fundsRepository from "@data/repositories/funds";
 import { TEST_USERS } from "@data/seed";
 
 import apiRouter from "@hackemapi/bot/routers/api";
+import embassyService from "@services/embassy/embassy";
 
 import { appWith, bearer, HASS_TOKEN, issueApiKey, TERMINAL_TOKEN } from "../helpers";
 
@@ -101,5 +102,33 @@ describe("Bot HTTP API /api router:", () => {
         expect(fundsRepository.getDonationsForName("Api_Test_Fund")).toHaveLength(1);
 
         fundsRepository.removeFundByName("Api_Test_Fund");
+    });
+
+    test("/climate returns public floors only with a short cache header, 503 when unavailable", async () => {
+        const floor = { temperature: "23", humidity: "40" };
+        jest.mocked(embassyService.getSpaceClimateCached).mockResolvedValueOnce({
+            firstFloor: floor,
+            secondFloor: floor,
+            bedroom: floor,
+        });
+
+        const ok = await request(app).get("/api/climate");
+        expect(ok.status).toBe(200);
+        expect(ok.body).toEqual({ firstFloor: floor, secondFloor: floor });
+        expect(ok.headers["cache-control"]).toBe("public, max-age=5");
+
+        const failed = await request(app).get("/api/climate");
+        expect(failed.status).toBe(503);
+    });
+
+    test("/printers returns the printers summary with a short cache header", async () => {
+        const summary = [{ name: "anette", state: "printing", progress: 68 }];
+        jest.mocked(embassyService.getPrintersSummaryCached).mockResolvedValueOnce(summary);
+
+        const response = await request(app).get("/api/printers");
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(summary);
+        expect(response.headers["cache-control"]).toBe("public, max-age=5");
     });
 });

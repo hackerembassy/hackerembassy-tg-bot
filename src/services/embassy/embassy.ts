@@ -1,7 +1,8 @@
 import config from "config";
+import memoize from "memoizee";
 import { RequestInit } from "node-fetch";
 
-import { EmbassyApiConfig } from "@config";
+import { EmbassyApiConfig, PrintersConfig } from "@config";
 import { Device, User } from "@data/models";
 import { fetchWithTimeout, successOrThrow } from "@utils/network";
 import { anyItemIsInList, filterFulfilled } from "@utils/filters";
@@ -13,11 +14,24 @@ import rsa from "./rsa";
 import logger from "../common/logger";
 
 const embassyApiConfig = config.get<EmbassyApiConfig>("embassy-api");
+const printersConfig = config.get<PrintersConfig>("printers");
 
 export const EmbassyBase = `${embassyApiConfig.service.host}:${embassyApiConfig.service.port}`;
 export const EmbassyBaseIP = `http://${embassyApiConfig.service.ip}:${embassyApiConfig.service.port}`;
 export const EmbassyBaseLocalDns = `http://${embassyApiConfig.service.localdns}:${embassyApiConfig.service.port}`;
 export const EmbassyLinkMacUrl = `${EmbassyBaseLocalDns}/devices/linkmac`;
+// Cached hardware reads hit the embassy at most once per this window, however many callers ask
+export const EMBASSY_CACHE_TIME = 5000;
+
+export type PrinterSummary = {
+    name: string;
+    state: string;
+    filename?: Nullable<string>;
+    progress?: number;
+    printDuration?: number;
+    extruderTemperature?: number;
+    bedTemperature?: number;
+};
 
 export enum DeviceCheckingMethod {
     OpenWRT = "openwrt",
@@ -50,7 +64,44 @@ type PrometheusResponse = {
 };
 
 class EmbassyService {
+    // Cached, never reject: failures resolve to null/offline so they're cached too and an outage doesn't cause a request storm
+    readonly getSpaceClimateCached = memoize(
+        () =>
+            this.getSpaceClimate().catch((error: unknown) => {
+                logger.error(error);
+                return null;
+            }),
+        { maxAge: EMBASSY_CACHE_TIME, promise: true }
+    );
+
+    readonly getPrintersSummaryCached = memoize(() => this.getPrintersSummary(), {
+        maxAge: EMBASSY_CACHE_TIME,
+        promise: true,
+    });
+
     // Public
+
+    // Status of every configured printer, without hosts or images
+    async getPrintersSummary(): Promise<PrinterSummary[]> {
+        const names = Object.keys(printersConfig);
+        const results = await Promise.allSettled(names.map(name => this.getPrinterStatus(name)));
+
+        return results.map((result, i) => {
+            if (result.status === "rejected" || result.value.status.error) return { name: names[i], state: "offline" };
+
+            const { print_stats, display_status, extruder, heater_bed } = result.value.status;
+
+            return {
+                name: names[i],
+                state: print_stats.state,
+                filename: print_stats.filename || null,
+                progress: Math.round(display_status.progress * 100),
+                printDuration: Math.round(print_stats.total_duration),
+                extruderTemperature: extruder.temperature,
+                bedTemperature: heater_bed.temperature,
+            };
+        });
+    }
 
     async unlockDoorFor(opener: User) {
         const response = await this.requestToEmbassy(

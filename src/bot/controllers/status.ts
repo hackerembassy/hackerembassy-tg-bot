@@ -209,15 +209,12 @@ export default class StatusController implements BotController {
 
     static getStatusInlineKeyboard(state: State, short: boolean) {
         const checkInControls: InlineKeyboardButton[] = state.open
-            ? [
-                  InlineButton(t("status.buttons.in"), "in", { style: "success" }),
-                  InlineButton(t("status.buttons.out"), "out", { style: "danger" }),
-              ]
+            ? [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]
             : [];
 
         const goingControls: InlineKeyboardButton[] = [
-            InlineButton(t("status.buttons.going"), "going", { style: "success" }),
-            InlineButton(t("status.buttons.notgoing"), "notgoing", { style: "danger" }),
+            InlineButton(t("status.buttons.going"), "going"),
+            InlineButton(t("status.buttons.notgoing"), "notgoing"),
         ];
 
         const bottomControls: InlineKeyboardButton[] = short
@@ -375,11 +372,8 @@ export default class StatusController implements BotController {
         bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [
-            [
-                InlineButton(t("status.buttons.in"), "in", { style: "success" }),
-                InlineButton(t("status.buttons.reclose"), "close", { style: "danger" }),
-            ],
-            [InlineButton(t("status.buttons.whoelse"), "status", { deeplink: "public", style: "primary" })],
+            [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.reclose"), "close", { style: "danger" })],
+            [InlineButton(t("status.buttons.whoelse"), "status", { deeplink: "public" })],
         ];
         const username = opener.username ? helpers.formatUsername(opener.username) : helpers.userLink(opener);
 
@@ -495,10 +489,10 @@ export default class StatusController implements BotController {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            InlineButton(t("status.buttons.inandin"), "in", { style: "success", display: "groups" }),
-                            InlineButton(t("status.buttons.inandout"), "out", { style: "danger", display: "groups" }),
+                            InlineButton(t("status.buttons.inandin"), "in", { display: "groups" }),
+                            InlineButton(t("status.buttons.inandout"), "out", { display: "groups" }),
                         ],
-                        [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
+                        [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public" })],
                     ],
                 },
             });
@@ -523,14 +517,14 @@ export default class StatusController implements BotController {
         const inline_keyboard = gotIn
             ? [
                   [
-                      InlineButton(t("status.buttons.inandin"), "in", { style: "success", display: "groups" }),
-                      InlineButton(t("status.buttons.inandout"), "out", { style: "danger", display: "groups" }),
+                      InlineButton(t("status.buttons.inandin"), "in", { display: "groups" }),
+                      InlineButton(t("status.buttons.inandout"), "out", { display: "groups" }),
                   ],
-                  [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
+                  [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public" })],
               ]
             : [
                   [
-                      InlineButton(t("status.buttons.repeat"), "in", { style: "primary" }),
+                      InlineButton(t("status.buttons.repeat"), "in"),
                       InlineButton(t("status.buttons.open"), "open", { style: "danger" }),
                   ],
               ];
@@ -569,10 +563,10 @@ export default class StatusController implements BotController {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            InlineButton(t("status.buttons.outandout"), "out", { style: "danger", display: "groups" }),
-                            InlineButton(t("status.buttons.outandin"), "in", { style: "success", display: "groups" }),
+                            InlineButton(t("status.buttons.outandout"), "out", { display: "groups" }),
+                            InlineButton(t("status.buttons.outandin"), "in", { display: "groups" }),
                         ],
-                        [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
+                        [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public" })],
                     ],
                 },
             });
@@ -594,14 +588,14 @@ export default class StatusController implements BotController {
         const inline_keyboard = gotOut
             ? [
                   [
-                      InlineButton(t("status.buttons.outandout"), "out", { style: "danger", display: "groups" }),
-                      InlineButton(t("status.buttons.outandin"), "in", { style: "success", display: "groups" }),
+                      InlineButton(t("status.buttons.outandout"), "out", { display: "groups" }),
+                      InlineButton(t("status.buttons.outandin"), "in", { display: "groups" }),
                   ],
-                  [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
+                  [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public" })],
               ]
             : [
                   [
-                      InlineButton(t("status.buttons.repeat"), "out", { style: "primary" }),
+                      InlineButton(t("status.buttons.repeat"), "out"),
                       InlineButton(t("status.buttons.open"), "open", { style: "danger" }),
                   ],
               ];
@@ -637,8 +631,8 @@ export default class StatusController implements BotController {
 
         const inline_keyboard = [
             [
-                InlineButton(t("status.buttons.andgoing"), "going", { style: "success", display: "groups" }),
-                InlineButton(t("status.buttons.whoelse"), "status", { deeplink: "public", style: "primary" }),
+                InlineButton(t("status.buttons.andgoing"), "going", { display: "groups" }),
+                InlineButton(t("status.buttons.whoelse"), "status", { deeplink: "public" }),
             ],
         ];
 

@@ -264,7 +264,7 @@ export default class BasicController implements BotController {
         });
 
         const inline_keyboard = [
-            [InlineButton(t("basic.start.buttons.status"), "status", { flags: ButtonFlags.Editing, style: "primary" })],
+            [InlineButton(t("basic.start.buttons.status"), "status", { flags: ButtonFlags.Editing })],
             [
                 InlineButton(t("basic.start.buttons.events"), "events", { flags: ButtonFlags.Editing }),
                 InlineButton(t("basic.start.buttons.funds"), "funds", { flags: ButtonFlags.Editing }),

@@ -69,7 +69,7 @@ export default class NeedsController implements BotController {
             username: helpers.userLink(buyer),
             item,
         });
-        const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", { params: need.id })]];
+        const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", { params: need.id, style: "danger" })]];
 
         return await bot.sendMessageExt(msg.chat.id, successText, msg, {
             reply_markup: { inline_keyboard },

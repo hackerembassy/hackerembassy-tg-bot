@@ -25,6 +25,7 @@ import {
     Update,
 } from "node-telegram-bot-api";
 import { withDir, withFile } from "tmp-promise";
+import { TOptions } from "i18next";
 
 import { BotConfig } from "@config";
 
@@ -40,7 +41,7 @@ import { readFileAsBase64 } from "@utils/filesystem";
 import { DeltaStream } from "@services/neural/openwebui";
 import telemetry from "@services/common/telemetry";
 
-import t, { DEFAULT_LANGUAGE, isSupportedLanguage } from "../localization";
+import t, { DEFAULT_LANGUAGE, getUserLanguage, isSupportedLanguage } from "../localization";
 import { GFMToTelegramMarkdown, taggedMarkdownToTelegramMarkdownV2 } from "../converters";
 import { effectiveName, tgUserLink } from "../helpers";
 import BotMessageContext from "./BotMessageContext";
@@ -391,6 +392,21 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     sendAlert(text: string) {
         return this.sendMessageExt(botConfig.chats.alerts, text, null);
+    }
+
+    // Telegram refuses to message users who never started the bot, so a failed delivery is expected, not an error
+    async sendDirectMessage(
+        user: User,
+        textKey: string,
+        options?: TOptions,
+        messageOptions?: SendMessageOptions
+    ): Promise<Nullable<Message>> {
+        try {
+            return await this.sendMessageExt(user.userid, t(textKey, options, getUserLanguage(user)), null, messageOptions);
+        } catch (error) {
+            logger.warn(`Failed to send a direct message to user ${user.userid}: ${(error as Error).message}`);
+            return null;
+        }
     }
 
     // TODO: add support for sending plain text and make it less bad
@@ -838,7 +854,11 @@ export default class HackerEmbassyBot extends TelegramBot {
         return false;
     }
 
-    public async sendRestrictedMessage(message: Message, route?: BotRoute, type: keyof typeof this.assets.images = "restricted") {
+    public async sendRestrictedMessage(
+        message: Message,
+        route?: Pick<BotRoute, "userRoles">,
+        type: keyof typeof this.assets.images = "restricted"
+    ) {
         this.assets.images[type] ??= await fs.readFile(`./resources/images/errors/${type}.png`).catch(() => null);
 
         return this.assets.images[type]

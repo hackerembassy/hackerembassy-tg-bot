@@ -29,6 +29,10 @@ export function isSupportedLanguage(value?: string | null): value is SupportedLa
     return SUPPORTED_LANGUAGES.includes(value as SupportedLanguage);
 }
 
+export function getUserLanguage(user: { language: string | null }): SupportedLanguage {
+    return isSupportedLanguage(user.language) ? user.language : DEFAULT_LANGUAGE;
+}
+
 const DEFAULT_LOCALES_PATH_PATTERN = "{{lng}}/{{ns}}.yaml";
 const RESOURCES_PATH = "resources/locales/";
 

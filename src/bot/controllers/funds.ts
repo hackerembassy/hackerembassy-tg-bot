@@ -25,6 +25,7 @@ import { Accountants, CaptureListOfIds, Members, Route, UserRoles } from "@hacke
 import BotMessageContext from "../core/classes/BotMessageContext";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
+import { taggedMarkdownVisibleLength } from "../core/converters";
 import t from "../core/localization";
 import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
@@ -100,7 +101,11 @@ export default class FundsController implements BotController {
         const sendAsText = () =>
             bot.sendMessageExt(msg.chat.id, t("funds.fund.text", { fundlist }), msg, { reply_markup: { inline_keyboard } });
 
-        if (botConfig.features.autodonuts && donations.length > 0 && caption.length <= TELEGRAM_CAPTION_LIMIT)
+        if (
+            botConfig.features.autodonuts &&
+            donations.length > 0 &&
+            taggedMarkdownVisibleLength(caption) <= TELEGRAM_CAPTION_LIMIT
+        )
             return FundsController.sendFundWithDonut(bot, msg, fund, donations, caption, sendAsText);
 
         return sendAsText();

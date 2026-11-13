@@ -23,6 +23,18 @@ export function taggedMarkdownToTelegramMarkdownV2(message: string): string {
 }
 
 /**
+ * Length of tagged markdown as Telegram counts it (caption/message limits): link targets, markup
+ * and escapes are invisible. JS string length is UTF-16, same unit Telegram uses.
+ */
+export function taggedMarkdownVisibleLength(message: string): number {
+    return message
+        .replaceAll(/#\]#\(.*?#\)/g, "")
+        .replaceAll(/#[_*[\]()~`>+\-=|{}.!]/g, "")
+        .replaceAll("#", "")
+        .replaceAll(/\\(.)/g, "$1").length;
+}
+
+/**
  * @param text which can have html tags
  * @returns string in Markdownv2 format where all markdown tags are escaped with # symbol
  */

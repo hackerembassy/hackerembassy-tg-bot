@@ -3,8 +3,10 @@ import {
     stripCustomMarkup,
     stripThinkingScope,
     taggedMarkdownToTelegramMarkdownV2,
+    taggedMarkdownVisibleLength,
     toEscapedTelegramMarkdown,
 } from "@hackembot/core/converters";
+import { formatUsername } from "@hackembot/core/helpers";
 import { ZERO_WIDTH_SPACE } from "@hackembot/core/constants";
 
 describe("taggedMarkdownToTelegramMarkdownV2", () => {
@@ -112,5 +114,21 @@ describe("toEscapedTelegramMarkdown", () => {
         expect(toEscapedTelegramMarkdown('<a href="https://t.me/somechat">https://t.me/somechat</a>')).toBe(
             "#[somechat#]#(t.me/somechat#)"
         );
+    });
+});
+
+describe("taggedMarkdownVisibleLength", () => {
+    it("counts only the text Telegram shows: no link targets, markup tags or escapes", () => {
+        expect(taggedMarkdownVisibleLength("#[guest#]#(t.me/guest#) - 100 USD")).toBe("guest - 100 USD".length);
+        expect(taggedMarkdownVisibleLength("🟠 #`Rent_Fund#` \\- done")).toBe("🟠 Rent_Fund - done".length);
+        expect(taggedMarkdownVisibleLength("#*bold#* a.b")).toBe("bold a.b".length);
+    });
+
+    it("keeps a 21-donation rent fund under the caption limit even though its markup is longer", () => {
+        const lines = Array.from({ length: 21 }, (_, i) => `      ${formatUsername(`resident_user_${i}`)} - 40000 AMD`);
+        const caption = `🟠 #\`Аренда Ноябрь 2026#\` - Collected 320540 from 800000 AMD\n${lines.join("\n")}`;
+
+        expect(caption.length).toBeGreaterThan(1024);
+        expect(taggedMarkdownVisibleLength(caption)).toBeLessThan(1024);
     });
 });

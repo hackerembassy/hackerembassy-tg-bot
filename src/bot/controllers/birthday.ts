@@ -28,7 +28,7 @@ export default class BirthdayController implements BotController {
         const birthdayList = TextGenerators.getBirthdaysList(usersWithBirthday, bot.context(msg).mode);
         const text = `${t("birthday.nextbirthdays")}${birthdayList}\n\n${t("birthday.help")}`;
 
-        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)]];
+        const inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing })]];
 
         await bot.sendOrEditMessage(
             msg.chat.id,

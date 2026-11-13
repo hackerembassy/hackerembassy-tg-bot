@@ -30,7 +30,7 @@ import {
 
 import { MAX_MESSAGE_LENGTH_WITH_TAGS } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
-import { ButtonFlags, InlineButton } from "../core/inlineButtons";
+import { InlineButton } from "../core/inlineButtons";
 import t, { DEFAULT_LANGUAGE, isSupportedLanguage, PUBLIC_LANGUAGES, TEST_LANGUAGE } from "../core/localization";
 import { BotController, MessageHistoryEntry } from "../core/types";
 import { OptionalParam, tgUserLink } from "../core/helpers";
@@ -363,7 +363,7 @@ export default class ServiceController implements BotController {
             const publicLanguageGroups = splitArray([...PUBLIC_LANGUAGES], keyboardRowsCount);
             const inline_keyboard = publicLanguageGroups.map(group =>
                 group.map(lang =>
-                    InlineButton(`${lang.flag} ${lang.label}`, "setlanguage", ButtonFlags.Simple, {
+                    InlineButton(`${lang.flag} ${lang.label}`, "setlanguage", {
                         params: lang.code,
                         vId: verificationDetails?.vId,
                     })
@@ -371,11 +371,7 @@ export default class ServiceController implements BotController {
             );
             // Ban this bot outta here
             if (verificationDetails?.vId) {
-                inline_keyboard.at(-1)?.push(
-                    InlineButton("🤖", "ban", ButtonFlags.Simple, {
-                        params: verificationDetails.vId,
-                    })
-                );
+                inline_keyboard.at(-1)?.push(InlineButton("🤖", "ban", { params: verificationDetails.vId, style: "danger" }));
             }
 
             return await bot.sendMessageExt(

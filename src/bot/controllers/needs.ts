@@ -16,11 +16,9 @@ export default class NeedsController implements BotController {
         const needs = needsService.getOpenNeeds();
         const text = TextGenerators.getNeedsList(needs);
 
-        const needs_keyboard = needs.map(need => [
-            InlineButton(need.item, "boughtbutton", ButtonFlags.Simple, { params: need.id }),
-        ]);
+        const needs_keyboard = needs.map(need => [InlineButton(need.item, "boughtbutton", { params: need.id })]);
 
-        const default_inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)]];
+        const default_inline_keyboard = [[InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing })]];
 
         await bot.sendOrEditMessage(
             msg.chat.id,
@@ -71,7 +69,7 @@ export default class NeedsController implements BotController {
             username: helpers.userLink(buyer),
             item,
         });
-        const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", ButtonFlags.Simple, { params: need.id })]];
+        const inline_keyboard = [[InlineButton(t("needs.bought.undo"), "boughtundo", { params: need.id })]];
 
         return await bot.sendMessageExt(msg.chat.id, successText, msg, {
             reply_markup: { inline_keyboard },

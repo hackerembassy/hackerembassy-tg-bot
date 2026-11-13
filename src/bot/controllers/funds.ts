@@ -23,7 +23,7 @@ import { replaceUnsafeSymbolsForAscii } from "@utils/text";
 import { Accountants, CaptureListOfIds, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton } from "../core/inlineButtons";
+import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
 import { BotController } from "../core/types";
 import * as helpers from "../core/helpers";
@@ -51,8 +51,8 @@ export default class FundsController implements BotController {
 
         const inline_keyboard = [
             [
-                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate"),
-                AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.donate"), "donate", { deeplink: "public" }),
+                InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing, deeplink: "public" }),
             ],
         ];
 
@@ -77,7 +77,7 @@ export default class FundsController implements BotController {
         // telegram callback_data is restricted to 64 bytes
         const inline_keyboard =
             fundName.length < CALLBACK_DATA_RESTRICTION
-                ? [[InlineButton(t("funds.fund.buttons.donut"), "ed", undefined, { params: fundName })]]
+                ? [[InlineButton(t("funds.fund.buttons.donut"), "ed", { params: fundName })]]
                 : [];
 
         const fundlist = await TextGenerators.createFundList([fund], donations, { showAdmin }, bot.context(msg).mode);
@@ -237,8 +237,8 @@ export default class FundsController implements BotController {
 
         const inline_keyboard = [
             [
-                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
-                AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.donate"), "donate", { flags: ButtonFlags.Editing, deeplink: "public" }),
+                InlineButton(t("general.buttons.readmore"), "infopanel", { flags: ButtonFlags.Editing, deeplink: "public" }),
             ],
         ];
 

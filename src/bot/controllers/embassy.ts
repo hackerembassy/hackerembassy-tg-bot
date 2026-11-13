@@ -128,7 +128,8 @@ export default class EmbassyController implements BotController {
                 ? []
                 : [
                       [
-                          InlineButton(t("status.buttons.refresh", undefined, language), `webcam`, ButtonFlags.Editing, {
+                          InlineButton(t("status.buttons.refresh", undefined, language), `webcam`, {
+                              flags: ButtonFlags.Editing,
                               params: camName,
                           }),
                       ],
@@ -165,7 +166,7 @@ export default class EmbassyController implements BotController {
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("status.buttons.refresh"), "webcam", ButtonFlags.Editing, { params: camName }),
+                    InlineButton(t("status.buttons.refresh"), "webcam", { flags: ButtonFlags.Editing, params: camName }),
                     InlineButton(t("status.buttons.save"), "removebuttons"),
                 ],
             ];
@@ -213,10 +214,10 @@ export default class EmbassyController implements BotController {
     static async printersHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getPrintersInfo();
         const inline_keyboard = [
-            [InlineButton(t("embassy.printers.anettestatus"), "printerstatus", ButtonFlags.Simple, { params: "anette" })],
-            [InlineButton(t("embassy.printers.shaytanstatus"), "printerstatus", ButtonFlags.Simple, { params: "shaytan" })],
-            [InlineButton(t("embassy.printers.odastatus"), "printerstatus", ButtonFlags.Simple, { params: "oda" })],
-            [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
+            [InlineButton(t("embassy.printers.anettestatus"), "printerstatus", { params: "anette" })],
+            [InlineButton(t("embassy.printers.shaytanstatus"), "printerstatus", { params: "shaytan" })],
+            [InlineButton(t("embassy.printers.odastatus"), "printerstatus", { params: "oda" })],
+            [InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing })],
         ];
 
         await bot.sendOrEditMessage(
@@ -269,7 +270,8 @@ export default class EmbassyController implements BotController {
             const caption = TextGenerators.getPrinterStatusText(status);
             const inline_keyboard = [
                 [
-                    InlineButton(t("embassy.printerstatus.update", { printername }), "printerstatus", ButtonFlags.Editing, {
+                    InlineButton(t("embassy.printerstatus.update", { printername }), "printerstatus", {
+                        flags: ButtonFlags.Editing,
                         params: printername,
                     }),
                 ],
@@ -595,41 +597,26 @@ export default class EmbassyController implements BotController {
 
         const inline_keyboard = [
             [
-                InlineButton(t("embassy.conditioner.buttons.turnon"), "acon", buttonFlags, {
-                    params: name,
-                }),
-                InlineButton(t("embassy.conditioner.buttons.turnoff"), "acoff", buttonFlags, {
-                    params: name,
-                }),
-                InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", buttonFlags, {
-                    params: name,
-                }),
+                InlineButton(t("embassy.conditioner.buttons.turnon"), "acon", { flags: buttonFlags, params: name }),
+                InlineButton(t("embassy.conditioner.buttons.turnoff"), "acoff", { flags: buttonFlags, params: name }),
+                InlineButton(t("embassy.conditioner.buttons.preheat"), "preheat", { flags: buttonFlags, params: name }),
             ],
             [
-                InlineButton(t("embassy.conditioner.buttons.more"), `acaddtemp`, buttonFlags, {
-                    params: [name, 1],
-                }),
-                InlineButton(t("embassy.conditioner.buttons.less"), `acaddtemp`, buttonFlags, {
-                    params: [name, -1],
-                }),
+                InlineButton(t("embassy.conditioner.buttons.more"), `acaddtemp`, { flags: buttonFlags, params: [name, 1] }),
+                InlineButton(t("embassy.conditioner.buttons.less"), `acaddtemp`, { flags: buttonFlags, params: [name, -1] }),
             ],
             [
-                InlineButton(t("embassy.conditioner.buttons.auto"), `acmode`, buttonFlags, {
+                InlineButton(t("embassy.conditioner.buttons.auto"), `acmode`, {
+                    flags: buttonFlags,
                     params: [name, "heat_cool"],
                 }),
-                InlineButton(t("embassy.conditioner.buttons.heat"), `acmode`, buttonFlags, {
-                    params: [name, "heat"],
-                }),
-                InlineButton(t("embassy.conditioner.buttons.cool"), `acmode`, buttonFlags, {
-                    params: [name, "cool"],
-                }),
-                InlineButton(t("embassy.conditioner.buttons.dry"), `acmode`, buttonFlags, {
-                    params: [name, "dry"],
-                }),
+                InlineButton(t("embassy.conditioner.buttons.heat"), `acmode`, { flags: buttonFlags, params: [name, "heat"] }),
+                InlineButton(t("embassy.conditioner.buttons.cool"), `acmode`, { flags: buttonFlags, params: [name, "cool"] }),
+                InlineButton(t("embassy.conditioner.buttons.dry"), `acmode`, { flags: buttonFlags, params: [name, "dry"] }),
             ],
             [
-                InlineButton(t("status.buttons.refresh"), "conditioner", ButtonFlags.Editing, { params: name }),
-                InlineButton(t("basic.control.buttons.back"), "controlpanel", ButtonFlags.Editing),
+                InlineButton(t("status.buttons.refresh"), "conditioner", { flags: ButtonFlags.Editing, params: name }),
+                InlineButton(t("basic.control.buttons.back"), "controlpanel", { flags: ButtonFlags.Editing }),
             ],
         ];
 

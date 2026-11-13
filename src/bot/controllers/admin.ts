@@ -7,7 +7,7 @@ import { User } from "@data/models";
 import logger, { getLatestLogFilePath } from "@services/common/logger";
 import { hasRole, userService } from "@services/domain/user";
 import { Admins, AllowedChats, CaptureInteger, ClosedChats, Members, Route, UserRoles } from "@hackembot/core/decorators";
-import { ButtonFlags, InlineButton } from "@hackembot/core/inlineButtons";
+import { InlineButton } from "@hackembot/core/inlineButtons";
 
 import * as TextGenerators from "../text";
 import { StateFlags } from "../core/classes/BotState";
@@ -408,9 +408,7 @@ export default class AdminController implements BotController {
                 reply_parameters: { message_id: replyMessage.message_id, allow_sending_without_reply: true },
                 message_thread_id: replyMessage.message_thread_id,
                 reply_markup: {
-                    inline_keyboard: [
-                        [InlineButton(t("admin.save.button"), `save`, ButtonFlags.Simple, { params: replyMessage.message_id })],
-                    ],
+                    inline_keyboard: [[InlineButton(t("admin.save.button"), `save`, { params: replyMessage.message_id })]],
                 },
             });
         }

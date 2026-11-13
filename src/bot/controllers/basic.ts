@@ -7,7 +7,7 @@ import { UserRole } from "@data/types";
 
 import { BotConfig } from "@config";
 import { getCoinDefinition, getCoinQR } from "@services/domain/funds/currency";
-import { splitRoles, userService } from "@services/domain/user";
+import { hasRole, splitRoles, userService } from "@services/domain/user";
 import * as GitHub from "@services/external/github";
 import { calendarUrl, getClosestEventsFromCalendar, getTodayEvents } from "@services/external/googleCalendar";
 import logger from "@services/common/logger";
@@ -16,7 +16,7 @@ import { FeatureFlag, Members, Route, TrustedMembers, UserRoles } from "@hackemb
 
 import { MAX_MESSAGE_LENGTH } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineLinkButton } from "../core/inlineButtons";
+import { ButtonFlags, InlineButton, InlineButtonResult, InlineLinkButton } from "../core/inlineButtons";
 import t from "../core/localization";
 import { BotController, ITelegramUser } from "../core/types";
 import * as helpers from "../core/helpers";
@@ -52,7 +52,7 @@ export default class BasicController implements BotController {
     @Route(["about"])
     static async aboutHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
-            [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
+            [InlineButton(t("general.buttons.readmore"), "infopanel", { flags: ButtonFlags.Editing, deeplink: "public" })],
         ];
         const text = TextGenerators.getAboutText();
 
@@ -72,7 +72,7 @@ export default class BasicController implements BotController {
     @Route(["join"])
     static async joinHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
-            [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
+            [InlineButton(t("general.buttons.readmore"), "infopanel", { flags: ButtonFlags.Editing, deeplink: "public" })],
         ];
         const text = TextGenerators.getJoinText();
 
@@ -93,30 +93,26 @@ export default class BasicController implements BotController {
     static async eventsHandler(bot: HackerEmbassyBot, msg: Message) {
         const text = TextGenerators.getEventsText(botConfig.features.calendar, `${bot.url}/calendar`);
 
-        const defaultInlineKeyboard = [
+        // Telegram only allows web_app buttons in private chats
+        const calendarButton: InlineButtonResult = {
+            text: t("basic.events.opencalendar"),
+            web_app: { url: calendarUrl },
+            display: "private",
+        };
+
+        const inline_keyboard = [
+            botConfig.features.calendar ? [calendarButton] : [],
             botConfig.features.calendar
                 ? [
-                      AnnoyingInlineButton(bot, msg, t("basic.events.buttons.today"), "today", ButtonFlags.Editing),
-                      AnnoyingInlineButton(bot, msg, t("basic.events.buttons.upcoming"), "upcoming", ButtonFlags.Editing),
+                      InlineButton(t("basic.events.buttons.today"), "today", { flags: ButtonFlags.Editing, deeplink: "public" }),
+                      InlineButton(t("basic.events.buttons.upcoming"), "upcoming", {
+                          flags: ButtonFlags.Editing,
+                          deeplink: "public",
+                      }),
                   ]
                 : [],
-            [AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
+            [InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing, deeplink: "public" })],
         ];
-
-        const inline_keyboard =
-            bot.context(msg).isPrivate() && botConfig.features.calendar
-                ? [
-                      [
-                          {
-                              text: t("basic.events.opencalendar"),
-                              web_app: {
-                                  url: calendarUrl,
-                              },
-                          },
-                      ],
-                      ...defaultInlineKeyboard,
-                  ]
-                : defaultInlineKeyboard;
 
         await bot.sendOrEditMessage(
             msg.chat.id,
@@ -162,8 +158,8 @@ export default class BasicController implements BotController {
     static async donateHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
-                AnnoyingInlineButton(bot, msg, t("basic.start.buttons.funds"), "funds"),
-                AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.funds"), "funds", { deeplink: "public" }),
+                InlineButton(t("general.buttons.readmore"), "infopanel", { flags: ButtonFlags.Editing, deeplink: "public" }),
             ],
         ];
 
@@ -237,7 +233,7 @@ export default class BasicController implements BotController {
 
     @Route(["donateequipment", "equipment"])
     static async donateEquipmentHandler(bot: HackerEmbassyBot, msg: Message) {
-        const inline_keyboard = [[AnnoyingInlineButton(bot, msg, t("basic.info.buttons.residents"), "getresidents")]];
+        const inline_keyboard = [[InlineButton(t("basic.info.buttons.residents"), "getresidents", { deeplink: "public" })]];
         await bot.sendOrEditMessage(
             msg.chat.id,
             t("basic.donateEquipment"),
@@ -250,7 +246,7 @@ export default class BasicController implements BotController {
     @Route(["getresidents", "gr", "residents", "members"])
     static async getResidentsHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
-            [AnnoyingInlineButton(bot, msg, t("general.buttons.readmore"), "infopanel", ButtonFlags.Editing)],
+            [InlineButton(t("general.buttons.readmore"), "infopanel", { flags: ButtonFlags.Editing, deeplink: "public" })],
         ];
         const users = userService.getUsersByRole("member");
         const message = TextGenerators.getResidentsList(users, bot.context(msg).mode);
@@ -260,24 +256,31 @@ export default class BasicController implements BotController {
 
     @Route(["start", "startpanel", "sp"])
     static async startPanelHandler(bot: HackerEmbassyBot, msg: Message) {
+        const context = bot.context(msg);
+        // Disable the control panel for non-members, but only in private - group keyboards are shared
+        const controlPanelButton = InlineButton(t("basic.start.buttons.control"), "controlpanel", {
+            flags: ButtonFlags.Editing,
+            disabled: context.isPrivate() && !hasRole(context.user, ...Members),
+        });
+
         const inline_keyboard = [
-            [InlineButton(t("basic.start.buttons.status"), "status", ButtonFlags.Editing)],
+            [InlineButton(t("basic.start.buttons.status"), "status", { flags: ButtonFlags.Editing, style: "primary" })],
             [
-                InlineButton(t("basic.start.buttons.events"), "events", ButtonFlags.Editing),
-                InlineButton(t("basic.start.buttons.funds"), "funds", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.events"), "events", { flags: ButtonFlags.Editing }),
+                InlineButton(t("basic.start.buttons.funds"), "funds", { flags: ButtonFlags.Editing }),
             ],
             [
-                InlineButton(t("basic.start.buttons.topics"), "topics", ButtonFlags.Editing),
-                InlineButton(t("basic.start.buttons.info"), "infopanel", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.topics"), "topics", { flags: ButtonFlags.Editing }),
+                InlineButton(t("basic.start.buttons.info"), "infopanel", { flags: ButtonFlags.Editing }),
             ],
             [
-                InlineButton(t("basic.start.buttons.birthdays"), "birthdays", ButtonFlags.Editing),
-                InlineButton(t("basic.start.buttons.needs"), "needs", ButtonFlags.Editing),
+                InlineButton(t("basic.start.buttons.birthdays"), "birthdays", { flags: ButtonFlags.Editing }),
+                InlineButton(t("basic.start.buttons.needs"), "needs", { flags: ButtonFlags.Editing }),
             ],
             botConfig.features.embassy
                 ? [
-                      InlineButton(t("basic.start.buttons.control"), "controlpanel", ButtonFlags.Editing),
-                      InlineButton(t("basic.start.buttons.printers"), "printers", ButtonFlags.Editing),
+                      controlPanelButton,
+                      InlineButton(t("basic.start.buttons.printers"), "printers", { flags: ButtonFlags.Editing }),
                   ]
                 : [],
             [InlineButton(t("basic.start.buttons.me"), "me"), InlineButton(t("basic.start.buttons.help"), "help")],
@@ -303,28 +306,31 @@ export default class BasicController implements BotController {
         const inline_keyboard = [
             [InlineButton(t("basic.control.buttons.superstatus"), "superstatus")],
             [
-                InlineButton(t("basic.control.buttons.conditioner2"), "ac2", ButtonFlags.Editing, { params: "upstairs" }),
-                InlineButton(t("basic.control.buttons.conditioner1"), "ac1", ButtonFlags.Editing, { params: "downstairs" }),
+                InlineButton(t("basic.control.buttons.conditioner2"), "ac2", { flags: ButtonFlags.Editing, params: "upstairs" }),
+                InlineButton(t("basic.control.buttons.conditioner1"), "ac1", {
+                    flags: ButtonFlags.Editing,
+                    params: "downstairs",
+                }),
             ],
             [
-                InlineButton(t("basic.control.buttons.downstairs"), "webcam", ButtonFlags.Simple, { params: "downstairs" }),
-                InlineButton(t("basic.control.buttons.upstairs"), "webcam", ButtonFlags.Simple, { params: "upstairs" }),
-                InlineButton(t("basic.control.buttons.upstairs_ptz"), "webcam", ButtonFlags.Simple, { params: "upstairs_ptz" }),
+                InlineButton(t("basic.control.buttons.downstairs"), "webcam", { params: "downstairs" }),
+                InlineButton(t("basic.control.buttons.upstairs"), "webcam", { params: "upstairs" }),
+                InlineButton(t("basic.control.buttons.upstairs_ptz"), "webcam", { params: "upstairs_ptz" }),
             ],
             [
-                InlineButton(t("basic.control.buttons.kitchen"), "webcam", ButtonFlags.Simple, { params: "kitchen" }),
-                InlineButton(t("basic.control.buttons.balcony"), "webcam", ButtonFlags.Simple, { params: "balcony" }),
-                InlineButton(t("basic.control.buttons.meeting_room"), "webcam", ButtonFlags.Simple, { params: "meeting_room" }),
+                InlineButton(t("basic.control.buttons.kitchen"), "webcam", { params: "kitchen" }),
+                InlineButton(t("basic.control.buttons.balcony"), "webcam", { params: "balcony" }),
+                InlineButton(t("basic.control.buttons.meeting_room"), "webcam", { params: "meeting_room" }),
             ],
             [
-                InlineButton(t("basic.control.buttons.printers"), "webcam", ButtonFlags.Simple, { params: "printers" }),
-                InlineButton(t("basic.control.buttons.facecontrol"), "webcam", ButtonFlags.Simple, { params: "facecontrol" }),
-                InlineButton(t("basic.control.buttons.gateway"), "webcam", ButtonFlags.Simple, { params: "gateway" }),
+                InlineButton(t("basic.control.buttons.printers"), "webcam", { params: "printers" }),
+                InlineButton(t("basic.control.buttons.facecontrol"), "webcam", { params: "facecontrol" }),
+                InlineButton(t("basic.control.buttons.gateway"), "webcam", { params: "gateway" }),
             ],
             [
                 InlineButton(t("basic.control.buttons.unlock"), "unlock"),
-                InlineButton(t("basic.control.buttons.meme"), "memepanel", ButtonFlags.Editing),
-                InlineButton(t("general.buttons.back"), "startpanel", ButtonFlags.Editing),
+                InlineButton(t("basic.control.buttons.meme"), "memepanel", { flags: ButtonFlags.Editing }),
+                InlineButton(t("general.buttons.back"), "startpanel", { flags: ButtonFlags.Editing }),
             ],
         ];
 
@@ -345,19 +351,19 @@ export default class BasicController implements BotController {
     static async infoPanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
-                InlineButton(t("basic.info.buttons.about"), "about", ButtonFlags.Editing),
-                InlineButton(t("basic.info.buttons.join"), "join", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.about"), "about", { flags: ButtonFlags.Editing }),
+                InlineButton(t("basic.info.buttons.join"), "join", { flags: ButtonFlags.Editing }),
             ],
             [
-                InlineButton(t("basic.info.buttons.location"), "location", ButtonFlags.Editing),
-                InlineButton(t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.location"), "location", { flags: ButtonFlags.Editing }),
+                InlineButton(t("basic.info.buttons.donate"), "donate", { flags: ButtonFlags.Editing }),
             ],
             [
-                InlineButton(t("basic.info.buttons.residents"), "getresidents", ButtonFlags.Editing),
-                InlineButton(t("basic.info.buttons.sponsors"), "getsponsors", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.residents"), "getresidents", { flags: ButtonFlags.Editing }),
+                InlineButton(t("basic.info.buttons.sponsors"), "getsponsors", { flags: ButtonFlags.Editing }),
             ],
-            [InlineButton(t("basic.info.buttons.wiki"), "wiki", ButtonFlags.Editing)],
-            [InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing)],
+            [InlineButton(t("basic.info.buttons.wiki"), "wiki", { flags: ButtonFlags.Editing })],
+            [InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing })],
         ];
 
         await bot.sendOrEditMessage(
@@ -378,36 +384,45 @@ export default class BasicController implements BotController {
     static async memePanelHandler(bot: HackerEmbassyBot, msg: Message) {
         const inline_keyboard = [
             [
-                InlineButton(t("basic.meme.buttons.cat"), "cat", ButtonFlags.Simple, { params: "./resources/images/cats" }),
-                InlineButton(t("basic.meme.buttons.dog"), "dog", ButtonFlags.Simple, { params: "./resources/images/dogs" }),
-                InlineButton(t("basic.meme.buttons.cock"), "cock", ButtonFlags.Simple, { params: "./resources/images/roosters" }),
+                InlineButton(t("basic.meme.buttons.cat"), "cat", { params: "./resources/images/cats" }),
+                InlineButton(t("basic.meme.buttons.dog"), "dog", { params: "./resources/images/dogs" }),
+                InlineButton(t("basic.meme.buttons.cock"), "cock", { params: "./resources/images/roosters" }),
             ],
         ];
 
         if (botConfig.features.embassy)
             inline_keyboard.push(
                 [
-                    InlineButton(t("basic.meme.buttons.moan"), "playinspace", ButtonFlags.Silent, { params: "moan" }),
-                    InlineButton(t("basic.meme.buttons.fart"), "playinspace", ButtonFlags.Silent, { params: "fart" }),
-                    InlineButton(t("basic.meme.buttons.adler"), "playinspace", ButtonFlags.Silent, { params: "adler" }),
-                    InlineButton(t("basic.meme.buttons.rzd"), "playinspace", ButtonFlags.Silent, { params: "rzd" }),
+                    InlineButton(t("basic.meme.buttons.moan"), "playinspace", { flags: ButtonFlags.Silent, params: "moan" }),
+                    InlineButton(t("basic.meme.buttons.fart"), "playinspace", { flags: ButtonFlags.Silent, params: "fart" }),
+                    InlineButton(t("basic.meme.buttons.adler"), "playinspace", { flags: ButtonFlags.Silent, params: "adler" }),
+                    InlineButton(t("basic.meme.buttons.rzd"), "playinspace", { flags: ButtonFlags.Silent, params: "rzd" }),
                 ],
                 [
-                    InlineButton(t("basic.meme.buttons.rickroll"), "playinspace", ButtonFlags.Silent, { params: "rickroll" }),
-                    InlineButton(t("basic.meme.buttons.zhuchok"), "playinspace", ButtonFlags.Silent, { params: "zhuchok" }),
-                    InlineButton(t("basic.meme.buttons.rfoxed"), "playinspace", ButtonFlags.Silent, { params: "rfoxed" }),
-                    InlineButton(t("basic.meme.buttons.nani"), "playinspace", ButtonFlags.Silent, { params: "nani" }),
+                    InlineButton(t("basic.meme.buttons.rickroll"), "playinspace", {
+                        flags: ButtonFlags.Silent,
+                        params: "rickroll",
+                    }),
+                    InlineButton(t("basic.meme.buttons.zhuchok"), "playinspace", {
+                        flags: ButtonFlags.Silent,
+                        params: "zhuchok",
+                    }),
+                    InlineButton(t("basic.meme.buttons.rfoxed"), "playinspace", { flags: ButtonFlags.Silent, params: "rfoxed" }),
+                    InlineButton(t("basic.meme.buttons.nani"), "playinspace", { flags: ButtonFlags.Silent, params: "nani" }),
                 ],
 
                 [
-                    InlineButton(t("basic.meme.buttons.sad"), "playinspace", ButtonFlags.Silent, { params: "sad" }),
-                    InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", ButtonFlags.Silent, { params: "badumtss" }),
-                    InlineButton(t("basic.meme.buttons.dushno"), "playinspace", ButtonFlags.Silent, { params: "dushno" }),
+                    InlineButton(t("basic.meme.buttons.sad"), "playinspace", { flags: ButtonFlags.Silent, params: "sad" }),
+                    InlineButton(t("basic.meme.buttons.badumtss"), "playinspace", {
+                        flags: ButtonFlags.Silent,
+                        params: "badumtss",
+                    }),
+                    InlineButton(t("basic.meme.buttons.dushno"), "playinspace", { flags: ButtonFlags.Silent, params: "dushno" }),
                 ],
                 [InlineButton(t("basic.meme.buttons.all"), "availablesounds")],
                 [
-                    InlineButton(t("basic.meme.buttons.stop"), "stopmedia", ButtonFlags.Silent),
-                    InlineButton(t("general.buttons.back"), "controlpanel", ButtonFlags.Editing),
+                    InlineButton(t("basic.meme.buttons.stop"), "stopmedia", { flags: ButtonFlags.Silent }),
+                    InlineButton(t("general.buttons.back"), "controlpanel", { flags: ButtonFlags.Editing }),
                 ]
             );
 
@@ -431,8 +446,8 @@ export default class BasicController implements BotController {
 
         const inline_keyboard = [
             [
-                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
-                AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.donate"), "donate", { flags: ButtonFlags.Editing, deeplink: "public" }),
+                InlineButton(t("basic.start.buttons.events"), "events", { flags: ButtonFlags.Editing, deeplink: "public" }),
             ],
         ];
 
@@ -464,8 +479,8 @@ export default class BasicController implements BotController {
 
         const inline_keyboard = [
             [
-                AnnoyingInlineButton(bot, msg, t("basic.info.buttons.donate"), "donate", ButtonFlags.Editing),
-                AnnoyingInlineButton(bot, msg, t("basic.start.buttons.events"), "events", ButtonFlags.Editing),
+                InlineButton(t("basic.info.buttons.donate"), "donate", { flags: ButtonFlags.Editing, deeplink: "public" }),
+                InlineButton(t("basic.start.buttons.events"), "events", { flags: ButtonFlags.Editing, deeplink: "public" }),
             ],
         ];
 

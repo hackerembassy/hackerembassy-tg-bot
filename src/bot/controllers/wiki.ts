@@ -10,7 +10,7 @@ import { Route } from "@hackembot/core/decorators";
 import { MAX_MESSAGE_LENGTH } from "../core/constants";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { formatMonospaced, OptionalParam } from "../core/helpers";
-import { ButtonFlags, chunkButtonsForMobile, InlineButton } from "../core/inlineButtons";
+import { ButtonFlags, chunkButtonsForMobile, InlineButton, MAX_CALLBACK_DATA_BYTES } from "../core/inlineButtons";
 import t from "../core/localization";
 import { BotController } from "../core/types";
 
@@ -46,9 +46,9 @@ function listWikiPagePaths(nodes: PageListTreeNode[], basePath = ""): string[] {
 // a few more bytes of headroom. A button whose data would still overflow just isn't rendered, rather
 // than breaking navigation for every other button on the same keyboard.
 function WikiPageButton(text: string, params?: string | [string, number]): InlineKeyboardButton | undefined {
-    const button = InlineButton(cropStringAtSpace(text, 24), "w", undefined, params === undefined ? {} : { params });
+    const button = InlineButton(cropStringAtSpace(text, 24), "w", { params });
 
-    return Buffer.byteLength(button.callback_data) <= 64 ? button : undefined;
+    return Buffer.byteLength(button.callback_data ?? "") <= MAX_CALLBACK_DATA_BYTES ? button : undefined;
 }
 
 export default class WikiController implements BotController {
@@ -64,7 +64,7 @@ export default class WikiController implements BotController {
                 const inline_keyboard = [
                     ...chunkButtonsForMobile(buttons),
                     [
-                        InlineButton(t("general.buttons.back"), "infopanel", ButtonFlags.Editing),
+                        InlineButton(t("general.buttons.back"), "infopanel", { flags: ButtonFlags.Editing }),
                         InlineButton(t("wiki.buttons.hide"), "wikihide"),
                     ],
                 ];

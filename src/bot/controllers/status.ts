@@ -41,7 +41,7 @@ import {
 } from "@hackembot/core/decorators";
 
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
-import { AnnoyingInlineButton, ButtonFlags, InlineButton, InlineDeepLinkButton, InlineLinkButton } from "../core/inlineButtons";
+import { ButtonFlags, InlineButton, InlineLinkButton } from "../core/inlineButtons";
 import t, { SupportedLanguage } from "../core/localization";
 import { BotCustomEvent, BotController, BotMessageContextMode } from "../core/types";
 import { REPLACE_MARKER } from "../core/constants";
@@ -79,11 +79,7 @@ export default class StatusController implements BotController {
             if (success) {
                 message = t("status.mac.set", { mac: macToAdd, username: userLink });
                 inline_keyboard = [
-                    [
-                        AnnoyingInlineButton(bot, msg, t("status.mac.buttons.autoinside"), "autoinside", ButtonFlags.Simple, {
-                            params: "enable",
-                        }),
-                    ],
+                    [InlineButton(t("status.mac.buttons.autoinside"), "autoinside", { params: "enable", deeplink: "public" })],
                 ];
             }
         } else if (cmd === "remove" && mac) {
@@ -100,29 +96,19 @@ export default class StatusController implements BotController {
         });
     }
 
-    static getAutoInsideKeyboard(bot: HackerEmbassyBot, msg: Message, secret: boolean) {
+    static getAutoInsideKeyboard(secret: boolean) {
         const inline_keyboard = [
+            [InlineButton(t("status.autoinside.buttons.status"), "autoinside", { params: "status", deeplink: "public" })],
             [
-                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.status"), "autoinside", ButtonFlags.Simple, {
-                    params: "status",
-                }),
+                InlineButton(t("status.autoinside.buttons.enable"), "autoinside", { params: "enable", deeplink: "public" }),
+                InlineButton(t("status.autoinside.buttons.disable"), "autoinside", { params: "disable", deeplink: "public" }),
             ],
-            [
-                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.enable"), "autoinside", ButtonFlags.Simple, {
-                    params: "enable",
-                }),
-                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.disable"), "autoinside", ButtonFlags.Simple, {
-                    params: "disable",
-                }),
-            ],
-            [AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.mac"), "mac", ButtonFlags.Simple)],
+            [InlineButton(t("status.autoinside.buttons.mac"), "mac", { deeplink: "public" })],
         ];
 
         if (secret) {
             inline_keyboard.splice(2, 0, [
-                AnnoyingInlineButton(bot, msg, t("status.autoinside.buttons.ghost"), "autoinside", ButtonFlags.Simple, {
-                    params: "ghost",
-                }),
+                InlineButton(t("status.autoinside.buttons.ghost"), "autoinside", { params: "ghost", deeplink: "public" }),
             ]);
         }
 
@@ -171,7 +157,7 @@ export default class StatusController implements BotController {
                 }
                 case "help":
                 default: {
-                    inline_keyboard = StatusController.getAutoInsideKeyboard(bot, msg, mode.secret);
+                    inline_keyboard = StatusController.getAutoInsideKeyboard(mode.secret);
 
                     message = t("status.autoinside.help", { timeout: botConfig.timeouts.out / 60000 });
                     break;
@@ -221,21 +207,24 @@ export default class StatusController implements BotController {
         }
     }
 
-    static getStatusInlineKeyboard(bot: HackerEmbassyBot, msg: Message, state: State, short: boolean) {
+    static getStatusInlineKeyboard(state: State, short: boolean) {
         const checkInControls: InlineKeyboardButton[] = state.open
-            ? [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.out"), "out")]
+            ? [
+                  InlineButton(t("status.buttons.in"), "in", { style: "success" }),
+                  InlineButton(t("status.buttons.out"), "out", { style: "danger" }),
+              ]
             : [];
 
         const goingControls: InlineKeyboardButton[] = [
-            InlineButton(t("status.buttons.going"), "going"),
-            InlineButton(t("status.buttons.notgoing"), "notgoing"),
+            InlineButton(t("status.buttons.going"), "going", { style: "success" }),
+            InlineButton(t("status.buttons.notgoing"), "notgoing", { style: "danger" }),
         ];
 
         const bottomControls: InlineKeyboardButton[] = short
-            ? [InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short })]
+            ? [InlineButton(t("status.buttons.refresh"), "status", { flags: ButtonFlags.Editing, params: short })]
             : [
-                  InlineButton(t("status.buttons.refresh"), "status", ButtonFlags.Editing, { params: short }),
-                  AnnoyingInlineButton(bot, msg, t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+                  InlineButton(t("status.buttons.refresh"), "status", { flags: ButtonFlags.Editing, params: short }),
+                  InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing, deeplink: "public" }),
               ];
 
         return [checkInControls, goingControls, bottomControls].filter(group => group.length > 0);
@@ -264,7 +253,7 @@ export default class StatusController implements BotController {
             climateInfo,
             resultMessage.chat.id === botConfig.chats.horny
         );
-        const inline_keyboard = StatusController.getStatusInlineKeyboard(bot, resultMessage, state, short);
+        const inline_keyboard = StatusController.getStatusInlineKeyboard(state, short);
 
         try {
             await bot.editMessageTextExt(statusMessage, resultMessage, {
@@ -301,7 +290,7 @@ export default class StatusController implements BotController {
         const todayEvents = botConfig.features.calendar ? await getTodayEventsCached() : null;
 
         const statusMessage = StatusController.getStatusMessage(state, mode, short, todayEvents);
-        const inline_keyboard = StatusController.getStatusInlineKeyboard(bot, msg, state, short);
+        const inline_keyboard = StatusController.getStatusInlineKeyboard(state, short);
 
         const resultMessage = (await bot.sendOrEditMessage(
             msg.chat.id,
@@ -386,8 +375,11 @@ export default class StatusController implements BotController {
         bot.customEmitter.emit(BotCustomEvent.statusLive);
 
         const inline_keyboard = [
-            [InlineButton(t("status.buttons.in"), "in"), InlineButton(t("status.buttons.reclose"), "close")],
-            [AnnoyingInlineButton(bot, msg, t("status.buttons.whoelse"), "status")],
+            [
+                InlineButton(t("status.buttons.in"), "in", { style: "success" }),
+                InlineButton(t("status.buttons.reclose"), "close", { style: "danger" }),
+            ],
+            [InlineButton(t("status.buttons.whoelse"), "status", { deeplink: "public", style: "primary" })],
         ];
         const username = opener.username ? helpers.formatUsername(opener.username) : helpers.userLink(opener);
 
@@ -432,7 +424,7 @@ export default class StatusController implements BotController {
 
         bot.customEmitter.emit(BotCustomEvent.statusLive);
 
-        const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "open")]];
+        const inline_keyboard = [[InlineButton(t("status.buttons.reopen"), "open", { style: "danger" })]];
         const username = closer.username ? helpers.formatUsername(closer.username) : helpers.userLink(closer);
 
         await bot.sendMessageExt(
@@ -502,8 +494,11 @@ export default class StatusController implements BotController {
             return bot.sendMessageExt(msg.chat.id, t("status.in.alreadyin", { username: helpers.userLink(target) }), msg, {
                 reply_markup: {
                     inline_keyboard: [
-                        [InlineButton(t("status.buttons.inandin"), "in"), InlineButton(t("status.buttons.inandout"), "out")],
-                        [AnnoyingInlineButton(bot, msg, t("status.buttons.whoinside"), "status")],
+                        [
+                            InlineButton(t("status.buttons.inandin"), "in", { style: "success", display: "groups" }),
+                            InlineButton(t("status.buttons.inandout"), "out", { style: "danger", display: "groups" }),
+                        ],
+                        [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
                     ],
                 },
             });
@@ -527,10 +522,18 @@ export default class StatusController implements BotController {
 
         const inline_keyboard = gotIn
             ? [
-                  [InlineButton(t("status.buttons.inandin"), "in"), InlineButton(t("status.buttons.inandout"), "out")],
-                  [AnnoyingInlineButton(bot, msg, t("status.buttons.whoinside"), "status")],
+                  [
+                      InlineButton(t("status.buttons.inandin"), "in", { style: "success", display: "groups" }),
+                      InlineButton(t("status.buttons.inandout"), "out", { style: "danger", display: "groups" }),
+                  ],
+                  [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
               ]
-            : [[InlineButton(t("status.buttons.repeat"), "in"), InlineButton(t("status.buttons.open"), "open")]];
+            : [
+                  [
+                      InlineButton(t("status.buttons.repeat"), "in", { style: "primary" }),
+                      InlineButton(t("status.buttons.open"), "open", { style: "danger" }),
+                  ],
+              ];
 
         return bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
@@ -565,12 +568,11 @@ export default class StatusController implements BotController {
             return bot.sendMessageExt(msg.chat.id, t("status.out.alreadyout", { username: helpers.userLink(target) }), msg, {
                 reply_markup: {
                     inline_keyboard: [
-                        [InlineButton(t("status.buttons.outandout"), "out"), InlineButton(t("status.buttons.outandin"), "in")],
                         [
-                            msg.chat.id === botConfig.chats.main
-                                ? InlineDeepLinkButton(t("status.buttons.whoinside"), bot.name, "status")
-                                : InlineButton(t("status.buttons.whoinside"), "status"),
+                            InlineButton(t("status.buttons.outandout"), "out", { style: "danger", display: "groups" }),
+                            InlineButton(t("status.buttons.outandin"), "in", { style: "success", display: "groups" }),
                         ],
+                        [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
                     ],
                 },
             });
@@ -591,14 +593,18 @@ export default class StatusController implements BotController {
 
         const inline_keyboard = gotOut
             ? [
-                  [InlineButton(t("status.buttons.outandout"), "out"), InlineButton(t("status.buttons.outandin"), "in")],
                   [
-                      msg.chat.id === botConfig.chats.main
-                          ? InlineDeepLinkButton(t("status.buttons.whoinside"), bot.name, "status")
-                          : InlineButton(t("status.buttons.whoinside"), "status"),
+                      InlineButton(t("status.buttons.outandout"), "out", { style: "danger", display: "groups" }),
+                      InlineButton(t("status.buttons.outandin"), "in", { style: "success", display: "groups" }),
                   ],
+                  [InlineButton(t("status.buttons.whoinside"), "status", { deeplink: "public", style: "primary" })],
               ]
-            : [[InlineButton(t("status.buttons.repeat"), "out"), InlineButton(t("status.buttons.open"), "open")]];
+            : [
+                  [
+                      InlineButton(t("status.buttons.repeat"), "out", { style: "primary" }),
+                      InlineButton(t("status.buttons.open"), "open", { style: "danger" }),
+                  ],
+              ];
 
         const sentMessage = await bot.sendMessageExt(msg.chat.id, message, msg, {
             reply_markup: {
@@ -631,8 +637,8 @@ export default class StatusController implements BotController {
 
         const inline_keyboard = [
             [
-                InlineButton(t("status.buttons.andgoing"), "going"),
-                AnnoyingInlineButton(bot, msg, t("status.buttons.whoelse"), "status"),
+                InlineButton(t("status.buttons.andgoing"), "going", { style: "success", display: "groups" }),
+                InlineButton(t("status.buttons.whoelse"), "status", { deeplink: "public", style: "primary" }),
             ],
         ];
 

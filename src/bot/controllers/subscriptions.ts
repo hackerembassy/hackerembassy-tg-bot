@@ -36,8 +36,8 @@ export default class SubscriptionsController implements BotController {
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("topics.buttons.topics"), "topics", ButtonFlags.Editing),
-                    InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+                    InlineButton(t("topics.buttons.topics"), "topics", { flags: ButtonFlags.Editing }),
+                    InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing }),
                 ],
             ];
 
@@ -163,8 +163,8 @@ export default class SubscriptionsController implements BotController {
 
             const inline_keyboard = [
                 [
-                    InlineButton(t("topics.buttons.subscriptions"), "subscriptions", ButtonFlags.Editing),
-                    InlineButton(t("general.buttons.menu"), "startpanel", ButtonFlags.Editing),
+                    InlineButton(t("topics.buttons.subscriptions"), "subscriptions", { flags: ButtonFlags.Editing }),
+                    InlineButton(t("general.buttons.menu"), "startpanel", { flags: ButtonFlags.Editing }),
                 ],
             ];
 

@@ -13,13 +13,18 @@ import {
     ChatId,
     ChatMemberUpdated,
     ChatPermissions,
+    EditMessageCaptionParams,
+    EditMessageCaptionResult,
+    EditMessageMediaParams,
+    EditMessageMediaResult,
+    EditMessageReplyMarkupParams,
+    EditMessageReplyMarkupResult,
     EditMessageTextParams,
     EditMessageTextResult,
     InlineKeyboardMarkup,
     InputMediaPhoto,
     Message,
     MessageType,
-    ReplyKeyboardMarkup,
     SendLocationParams,
     SendMessageParams,
     Update,
@@ -86,7 +91,7 @@ import {
     SendMediaGroupOptions,
     SendLocationOptions,
 } from "../types";
-import { ButtonFlags, InlineDeepLinkButton } from "../inlineButtons";
+import { ButtonFlags, InlineButton, InlineButtonResult, resolveKeyboard } from "../inlineButtons";
 import ChatBridge from "./ChatBridge";
 import { NonTopicChats, PublicChats } from "../decorators";
 import CommandRouter, { AddAliasResult } from "./CommandRouter";
@@ -223,7 +228,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     editMessageTextExt(text: string, msg: Message, options: EditMessageTextOptions): Promise<boolean | Message> {
-        const { text: preparedText, options: preparedOptions } = this.prepareTextAndOptions(text, options);
+        const { text: preparedText, options: preparedOptions } = this.applyMarkdown(text, options);
         const preparedOptionsWithThreadId = preparedOptions as WithMessageThreadId<EditMessageTextOptions>;
         preparedOptionsWithThreadId.message_thread_id = msg.message_thread_id;
 
@@ -270,14 +275,10 @@ export default class HackerEmbassyBot extends TelegramBot {
         getFileId: (message: Message) => Optional<string>
     ): Promise<Message> {
         const context = this.context(msg);
-        const mode = context.mode;
-        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
-        const inline_keyboard =
-            mode.static || !options.reply_markup ? [] : (options.reply_markup as InlineKeyboardMarkup).inline_keyboard;
 
         if (options.caption) {
             options.caption = taggedMarkdownToTelegramMarkdownV2(options.caption);
-            options = this.prepareOptionsForMarkdown({ ...options }) as T;
+            options = this.withMarkdownV2({ ...options }) as T;
         }
 
         void this.sendChatAction(chatId, "upload_photo", msg);
@@ -286,11 +287,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         const mediaHash = media instanceof Stream ? null : hashMD5(media);
         const cachedFileId = mediaHash ? this.botState.fileIdCache[mediaHash] : null;
 
-        const message = await send(chatIdToUse, cachedFileId ?? media, {
-            ...options,
-            reply_markup: { inline_keyboard },
-            message_thread_id: context.messageThreadId,
-        });
+        const message = await send(this.targetChat(chatId, msg), cachedFileId ?? media, this.applyMessageContext(options, msg));
 
         const newFileId = getFileId(message);
 
@@ -299,7 +296,7 @@ export default class HackerEmbassyBot extends TelegramBot {
             this.botState.persistFileIdCache();
         }
 
-        if (mode.pin) {
+        if (context.mode.pin) {
             this.tryPinChatMessage(message, context.user);
         }
 
@@ -314,18 +311,16 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: Message,
         options: SendMediaGroupOptions = {}
     ): Promise<Message[]> {
-        const mode = this.context(msg).mode;
-        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
-
         void this.sendChatAction(chatId, "upload_photo", msg);
 
         const buffers = photos.map(photo => (photo instanceof Buffer ? photo : Buffer.from(photo as ArrayBuffer)));
         const imageOpts = buffers.map(buf => ({ type: "photo", media: buf as unknown as string }));
 
-        const messages = await super.sendMediaGroup(chatIdToUse, imageOpts, {
-            ...options,
-            message_thread_id: this.context(msg).messageThreadId,
-        });
+        const messages = await super.sendMediaGroup(
+            this.targetChat(chatId, msg),
+            imageOpts,
+            this.applyMessageContext(options, msg)
+        );
 
         for (const message of messages) {
             this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
@@ -343,21 +338,18 @@ export default class HackerEmbassyBot extends TelegramBot {
 
             const imageOption = { type: "photo", media: `attach://${tmpFile.path}` } as InputMediaPhoto;
 
-            const inline_keyboard =
-                this.context(msg).mode.static || !options.reply_markup ? [] : options.reply_markup.inline_keyboard;
+            // prepared also carries message_thread_id: the lib types omit it for edits, but it works
+            const prepared = this.applyMessageContext(options, msg);
+            const reply_markup = prepared.reply_markup ?? { inline_keyboard: [] };
 
             let message: Message | boolean = false;
 
             try {
-                message = await super.editMessageMedia(imageOption, {
-                    ...options,
-                    reply_markup: {
-                        inline_keyboard,
-                    },
+                message = await this.editMessageMedia(imageOption, {
+                    ...prepared,
+                    reply_markup,
                     chat_id: msg.chat.id,
                     message_id: msg.message_id,
-                    //@ts-expect-error the lib types don't include message_thread_id for editMessageMedia but it actually works
-                    message_thread_id: this.context(msg).messageThreadId,
                 });
             } catch (error) {
                 // only ignore not modified error
@@ -365,10 +357,10 @@ export default class HackerEmbassyBot extends TelegramBot {
             }
 
             if (options.caption) {
-                await super.editMessageCaption(options.caption, {
+                await this.editMessageCaption(options.caption, {
                     chat_id: msg.chat.id,
                     message_id: msg.message_id,
-                    reply_markup: { inline_keyboard },
+                    reply_markup,
                 });
             }
 
@@ -383,10 +375,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: Message,
         options: SendLocationOptions = {}
     ): Promise<Message> {
-        return await super.sendLocation(chatId, latitude, longitude, {
-            ...options,
-            message_thread_id: this.context(msg).messageThreadId,
-        });
+        return await this.sendLocation(chatId, latitude, longitude, this.applyMessageContext(options, msg));
     }
 
     sendAlert(text: string) {
@@ -414,7 +403,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     // real Telegram Markdown here, using options.baseUrl (if given) to resolve relative links/images.
     // With no parse_mode at all, text is assumed to use the bot's own #-escaped MarkdownV2 dialect.
     // Shared by sendMessageExt and editMessageTextExt, so neither loses this handling.
-    private prepareTextAndOptions<T extends SendMessageOptions | EditMessageTextOptions>(
+    private applyMarkdown<T extends SendMessageOptions | EditMessageTextOptions>(
         text: string,
         options: T
     ): { text: string; options: T } {
@@ -432,7 +421,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         if (options.parse_mode === undefined) {
             return {
                 text: taggedMarkdownToTelegramMarkdownV2(text),
-                options: this.prepareOptionsForMarkdown({ ...options }) as T,
+                options: this.withMarkdownV2({ ...options }) as T,
             };
         }
 
@@ -445,24 +434,17 @@ export default class HackerEmbassyBot extends TelegramBot {
         msg: Nullable<Message>,
         options: SendMessageOptions = {}
     ): Promise<Nullable<Message>> {
-        const { text: preparedText, options: preparedOptions } = this.prepareTextAndOptions(text, options);
+        const { text: preparedText, options: preparedOptions } = this.applyMarkdown(text, options);
 
         const context = msg && this.context(msg);
         const mode = context?.mode;
-        const chatIdToUse = mode?.forward ? this.forwardTarget : chatId;
-
-        const reply_markup = mode?.static
-            ? undefined
-            : (preparedOptions.reply_markup as InlineKeyboardMarkup | ReplyKeyboardMarkup | undefined);
-
-        const message_thread_id = msg ? this.context(msg).messageThreadId : undefined;
 
         if (!msg || !mode?.silent) {
-            const message = await this.sendMessage(chatIdToUse, preparedText, {
-                ...preparedOptions,
-                reply_markup,
-                message_thread_id,
-            });
+            const message = await this.sendMessage(
+                this.targetChat(chatId, msg),
+                preparedText,
+                this.applyMessageContext(preparedOptions, msg)
+            );
 
             if (context?.user && mode?.pin) {
                 this.tryPinChatMessage(message, context.user);
@@ -503,13 +485,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     sendChatAction(chatId: ChatId, action: string, msg: Message, options: SendChatActionOptions = {}): Promise<boolean> {
-        const mode = this.context(msg).mode;
-        const chatIdToUse = mode.forward ? this.forwardTarget : chatId;
-
-        return super.sendChatAction(chatIdToUse, action, {
-            ...options,
-            message_thread_id: this.context(msg).messageThreadId,
-        });
+        return super.sendChatAction(this.targetChat(chatId, msg), action, this.applyMessageContext(options, msg));
     }
 
     async sendLongMessage(chatId: ChatId, text: string, msg: Message, options: SendMessageOptions = {}): Promise<void> {
@@ -779,7 +755,7 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     public async sendWelcomeMessage(chat: Chat, tgUser: ITelegramUser, language?: string) {
-        const inline_keyboard = [[InlineDeepLinkButton(t("service.welcome.buttons.about"), this.name, "about")]];
+        const inline_keyboard = [[InlineButton(t("service.welcome.buttons.about"), "about", { deeplink: "always" })]];
 
         await this.sendMessageExt(
             chat.id,
@@ -1009,9 +985,34 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
     //#endregion
 
-    private prepareOptionsForMarkdown(
-        options: SendMessageOptions | EditMessageTextOptions
-    ): SendMessageOptions | EditMessageTextOptions {
+    // Where a reply really goes: -forward reposts it to forwardTarget
+    private targetChat(chatId: ChatId, msg: Nullable<Message>): ChatId {
+        return msg && this.context(msg).mode.forward ? this.forwardTarget : chatId;
+    }
+
+    // Per-message tweaks shared by the *Ext senders: static mode drops the keyboard, replies stay in their topic
+    private applyMessageContext<T extends object>(options: T, msg: Nullable<Message>): WithMessageThreadId<T> {
+        if (!msg) return options;
+
+        const context = this.context(msg);
+        return {
+            ...options,
+            ...(context.mode.static && "reply_markup" in options && { reply_markup: undefined }),
+            message_thread_id: context.messageThreadId,
+        };
+    }
+
+    // Applies inline button display/deeplink for the chat the message goes to. Runs on every send path;
+    // reply keyboards and strings pass through.
+    private applyButtonRules<T extends { reply_markup?: unknown } | undefined>(options: T, chatId?: ChatId): T {
+        const markup = options?.reply_markup;
+        if (!markup || typeof markup !== "object" || !("inline_keyboard" in markup)) return options;
+
+        const inline_keyboard = resolveKeyboard(markup.inline_keyboard as InlineButtonResult[][], chatId);
+        return { ...options, reply_markup: { ...markup, inline_keyboard } };
+    }
+
+    private withMarkdownV2(options: SendMessageOptions | EditMessageTextOptions): SendMessageOptions | EditMessageTextOptions {
         options.parse_mode = "MarkdownV2";
         options.link_preview_options = { is_disabled: true };
 
@@ -1045,7 +1046,7 @@ export default class HackerEmbassyBot extends TelegramBot {
      * @see sendPhotoExt
      */
     sendPhoto(chatId: ChatId, photo: FileInput, options?: SendPhotoOptions, fileOptions?: FileMeta): Promise<Message> {
-        return super.sendPhoto(chatId, photo, options, fileOptions);
+        return super.sendPhoto(chatId, photo, this.applyButtonRules(options, chatId), fileOptions);
     }
 
     /**
@@ -1053,7 +1054,7 @@ export default class HackerEmbassyBot extends TelegramBot {
      * @see sendAnimationExt
      */
     sendAnimation(chatId: ChatId, animation: FileInput, options?: SendAnimationOptions): Promise<Message> {
-        return super.sendAnimation(chatId, animation, options);
+        return super.sendAnimation(chatId, animation, this.applyButtonRules(options, chatId));
     }
 
     /**
@@ -1061,7 +1062,7 @@ export default class HackerEmbassyBot extends TelegramBot {
      * @see sendMessageExt
      */
     sendMessage(chatId: ChatId, text: string, options?: Omit<SendMessageParams, "chat_id" | "text">): Promise<Message> {
-        return super.sendMessage(chatId, text, options);
+        return super.sendMessage(chatId, text, this.applyButtonRules(options, chatId));
     }
 
     /**
@@ -1072,7 +1073,30 @@ export default class HackerEmbassyBot extends TelegramBot {
         text: string | EditMessageTextParams,
         form?: Omit<EditMessageTextParams, "text">
     ): Promise<EditMessageTextResult> {
-        return typeof text === "string" ? super.editMessageText(text, form ?? {}) : super.editMessageText(text);
+        return typeof text === "string"
+            ? super.editMessageText(text, this.applyButtonRules(form ?? {}, form?.chat_id))
+            : super.editMessageText(this.applyButtonRules(text, text.chat_id));
+    }
+
+    editMessageMedia(
+        media: Parameters<TelegramBot["editMessageMedia"]>[0],
+        form?: Omit<EditMessageMediaParams, "media">
+    ): Promise<EditMessageMediaResult> {
+        return super.editMessageMedia(media, this.applyButtonRules(form, form?.chat_id));
+    }
+
+    editMessageCaption(caption: string, form?: Omit<EditMessageCaptionParams, "caption">): Promise<EditMessageCaptionResult> {
+        return super.editMessageCaption(caption, this.applyButtonRules(form, form?.chat_id));
+    }
+
+    editMessageReplyMarkup(
+        replyMarkup: InlineKeyboardMarkup,
+        form?: Omit<EditMessageReplyMarkupParams, "reply_markup">
+    ): Promise<EditMessageReplyMarkupResult> {
+        return super.editMessageReplyMarkup(
+            { inline_keyboard: resolveKeyboard(replyMarkup.inline_keyboard, form?.chat_id) },
+            form
+        );
     }
 
     /**
@@ -1085,7 +1109,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         longitude: number,
         options?: Omit<SendLocationParams, "chat_id" | "latitude" | "longitude">
     ): Promise<Message> {
-        return super.sendLocation(chatId, latitude, longitude, options);
+        return super.sendLocation(chatId, latitude, longitude, this.applyButtonRules(options, chatId));
     }
 
     /**

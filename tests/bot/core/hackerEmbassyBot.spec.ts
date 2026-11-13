@@ -1,6 +1,11 @@
+import config from "config";
+import fetchMock from "jest-fetch-mock";
 import { Message } from "node-telegram-bot-api";
 
+import { BotConfig } from "@config";
 import { TEST_USERS } from "@data/seed";
+import HackerEmbassyBot from "@hackembot/core/classes/HackerEmbassyBot";
+import { InlineButton } from "@hackembot/core/inlineButtons";
 
 import { createMockBot, createMockMessage } from "../../mocks/bot";
 
@@ -120,5 +125,28 @@ describe("HackerEmbassyBot unknown command guessing", () => {
         await bot.routeMessage(createMockMessage(text, TEST_USERS.admin).message!);
 
         expect(guessHandler).not.toHaveBeenCalled();
+    });
+});
+
+describe("HackerEmbassyBot button resolution on send", () => {
+    const bot = createMockBot();
+
+    it("applies display/deeplink for the target chat and keeps our fields off the wire", async () => {
+        const main = config.get<BotConfig>("bot").chats.main;
+        const inline_keyboard = [
+            [InlineButton("Private only", "me", { display: "private" })],
+            [InlineButton("Who", "status", { deeplink: "public" })],
+        ];
+        fetchMock.mockClear();
+
+        // the mock bot overrides sendMessage to record text, so call the real one
+        await HackerEmbassyBot.prototype.sendMessage.call(bot, main, "hi", { reply_markup: { inline_keyboard } });
+
+        const [, request] = fetchMock.mock.calls.find(([url]) => (url as string).includes("sendMessage")) ?? [];
+        const form = new URLSearchParams(request?.body as string);
+
+        expect(JSON.parse(form.get("reply_markup") ?? "")).toEqual({
+            inline_keyboard: [[{ text: "Who", url: `t.me/${config.get<BotConfig>("bot").name}?start=status` }]],
+        });
     });
 });

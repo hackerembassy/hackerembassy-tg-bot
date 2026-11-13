@@ -155,7 +155,7 @@ export function createMockMessage(
     };
 }
 
-// Simulates pressing an inline button built with InlineButton(text, cmd, flags, { params }) -
+// Simulates pressing an inline button built with InlineButton(text, cmd, { flags, params }) -
 // routeCallback requires callback_query.message.from to already be set (it's used as the
 // throttle key before callbackHandler overwrites msg.from with the presser's identity).
 export function createMockCallbackQuery(

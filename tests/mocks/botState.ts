@@ -3,6 +3,7 @@
 // files in parallel workers, so they all read/write those shared files concurrently - one
 // worker can read one mid-write from another, getting truncated or interleaved JSON. This
 // stand-in keeps BotState's public shape but never touches disk.
+import FileIdCache from "@hackembot/core/classes/FileIdCache";
 import { ChatMessageLog, MessageLogStore } from "@hackembot/core/classes/MessageLogStore";
 
 const DEFAULT_STATE_FLAGS = { electricityOutageMentioned: false, hideGuests: false };
@@ -20,7 +21,7 @@ class InMemoryMessageLogStore implements MessageLogStore {
 export default class BotStateMock {
     liveChats: unknown[] = [];
     flags = { ...DEFAULT_STATE_FLAGS };
-    fileIdCache: Record<string, string> = {};
+    fileIdCache = new FileIdCache();
 
     async initLiveChats() {}
 
@@ -35,7 +36,7 @@ export default class BotStateMock {
     clearState() {
         this.liveChats = [];
         this.flags = { ...DEFAULT_STATE_FLAGS };
-        this.fileIdCache = {};
+        this.fileIdCache.clear();
     }
 
     async persistFlags() {}

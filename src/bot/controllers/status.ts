@@ -835,7 +835,7 @@ export default class StatusController implements BotController {
             const filteredDonations = ExportHelper.prepareCostsForExport(donations, COSTS_PREFIX);
             const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, COSTS_PREFIX);
 
-            if (imageBuffer.length > 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            if (imageBuffer.length > 0) await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg, { noCache: true });
         }
 
         return;
@@ -905,7 +905,7 @@ export default class StatusController implements BotController {
         try {
             const MAX_USERS_PER_DONUT = 110;
             if (userTimes.length < MAX_USERS_PER_DONUT) {
-                await bot.sendPhotoExt(msg.chat.id, await createUserStatsDonut(userTimes, statsTitle), msg);
+                await bot.sendPhotoExt(msg.chat.id, await createUserStatsDonut(userTimes, statsTitle), msg, { noCache: true });
             }
         } catch (error) {
             logger.error(error);

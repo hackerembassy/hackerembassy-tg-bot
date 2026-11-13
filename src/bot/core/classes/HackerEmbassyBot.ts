@@ -82,6 +82,7 @@ import {
     BotController,
     FileMeta,
     FileInput,
+    MediaCacheOptions,
     WithMessageThreadId,
     EditMessageTextOptions,
     SendAnimationOptions,
@@ -98,6 +99,14 @@ import CommandRouter, { AddAliasResult } from "./CommandRouter";
 import MessageStreamer from "./MessageStreamer";
 
 const botConfig = config.get<BotConfig>("bot");
+
+// "wrong file identifier", "wrong remote file identifier", "FILE_REFERENCE_EXPIRED" etc.
+export function isFileIdRejection(error: unknown): boolean {
+    return error instanceof Error && /file/i.test(error.message);
+}
+
+// Telegram file_ids are base64url; local paths and URLs always contain "." "/" or ":"
+const TELEGRAM_FILE_ID_REGEX = /^[\w-]{20,}$/;
 
 const WelcomeMessageMap: {
     [x: number]: string | undefined;
@@ -200,9 +209,12 @@ export default class HackerEmbassyBot extends TelegramBot {
     }
 
     context(msg: Message): BotMessageContext {
+        const existingContext = this.contextMap.get(msg);
+        if (existingContext) return existingContext;
+
         if (!msg.from) throw new Error("Message missing the sender, aborting...");
         // TODO: remove this when the live messages will be fixed
-        return this.contextMap.get(msg) ?? this.startContext(msg, userService.prepareUser(msg.from));
+        return this.startContext(msg, userService.prepareUser(msg.from));
     }
 
     startContext(msg: Message, user: User, command?: string) {
@@ -214,6 +226,21 @@ export default class HackerEmbassyBot extends TelegramBot {
 
     clearContext(msg: Message): void {
         this.contextMap.delete(msg);
+    }
+
+    // Runs a deferred action on the bot's own message (e.g. a background edit) with a context captured
+    // from the original request: keeps its modes/thread and avoids creating a context for the bot as user
+    async withContext<T>(target: Message, context: BotMessageContext, action: () => Promise<T>): Promise<T> {
+        const borrowed = this.startContext(target, context.user, context.command);
+        borrowed.mode = { ...context.mode };
+        borrowed.messageThreadId = context.messageThreadId;
+        borrowed.language = context.language;
+
+        try {
+            return await borrowed.run(action);
+        } finally {
+            this.clearContext(target);
+        }
     }
 
     onExt(
@@ -239,7 +266,7 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: ChatId,
         photo: FileInput,
         msg: Message,
-        options: SendPhotoOptions = {},
+        options: SendPhotoOptions & MediaCacheOptions = {},
         fileOptions: FileMeta = {}
     ): Promise<Message> {
         return this.sendMediaExt(
@@ -252,7 +279,12 @@ export default class HackerEmbassyBot extends TelegramBot {
         );
     }
 
-    sendAnimationExt(chatId: ChatId, animation: FileInput, msg: Message, options: SendAnimationOptions = {}): Promise<Message> {
+    sendAnimationExt(
+        chatId: ChatId,
+        animation: FileInput,
+        msg: Message,
+        options: SendAnimationOptions & MediaCacheOptions = {}
+    ): Promise<Message> {
         return this.sendMediaExt(
             chatId,
             animation,
@@ -270,11 +302,12 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: ChatId,
         media: FileInput,
         msg: Message,
-        options: T,
+        { noCache, ...sendOptions }: T & MediaCacheOptions,
         send: (chatIdToUse: ChatId, source: FileInput, options: WithMessageThreadId<T>) => Promise<Message>,
         getFileId: (message: Message) => Optional<string>
     ): Promise<Message> {
         const context = this.context(msg);
+        let options = sendOptions as T;
 
         if (options.caption) {
             options.caption = taggedMarkdownToTelegramMarkdownV2(options.caption);
@@ -283,18 +316,30 @@ export default class HackerEmbassyBot extends TelegramBot {
 
         void this.sendChatAction(chatId, "upload_photo", msg);
 
+        // file_ids are already cached by definition, streams can't be hashed
+        const isFileId = typeof media === "string" && TELEGRAM_FILE_ID_REGEX.test(media);
         //@ts-expect-error typescript should filter ReadableStream from FileInput but it doesn't
-        const mediaHash = media instanceof Stream ? null : hashMD5(media);
-        const cachedFileId = mediaHash ? this.botState.fileIdCache[mediaHash] : null;
+        const mediaHash = noCache || isFileId || media instanceof Stream ? null : hashMD5(media);
+        const cachedFileId = mediaHash ? this.botState.fileIdCache.get(mediaHash) : null;
 
-        const message = await send(this.targetChat(chatId, msg), cachedFileId ?? media, this.applyMessageContext(options, msg));
+        const targetChat = this.targetChat(chatId, msg);
+        const preparedOptions = this.applyMessageContext(options, msg);
+        let message: Message;
+
+        try {
+            message = await send(targetChat, cachedFileId ?? media, preparedOptions);
+        } catch (error) {
+            if (!cachedFileId || !mediaHash || !isFileIdRejection(error)) throw error;
+
+            // stale file_id (e.g. bot token changed): forget it and upload the original media again
+            logger.warn(`Cached file_id for ${mediaHash} was rejected, re-uploading`);
+            this.botState.fileIdCache.delete(mediaHash);
+            message = await send(targetChat, media, preparedOptions);
+        }
 
         const newFileId = getFileId(message);
 
-        if (!cachedFileId && mediaHash && newFileId) {
-            this.botState.fileIdCache[mediaHash] = newFileId;
-            this.botState.persistFileIdCache();
-        }
+        if (mediaHash && newFileId && newFileId !== cachedFileId) this.botState.fileIdCache.set(mediaHash, newFileId);
 
         if (context.mode.pin) {
             this.tryPinChatMessage(message, context.user);
@@ -303,6 +348,20 @@ export default class HackerEmbassyBot extends TelegramBot {
         this.botMessageHistory.push(chatId, { messageId: message.message_id, text: message.caption });
 
         return message;
+    }
+
+    // Custom-keyed file_id cache, for media whose key is known before the bytes exist (e.g. rendered charts)
+    getCachedFileId(key: string): Optional<string> {
+        return this.botState.fileIdCache.get(key);
+    }
+
+    forgetFileId(key: string): void {
+        this.botState.fileIdCache.delete(key);
+    }
+
+    cacheFileId(key: string, message: Message | boolean, replacePrefix?: string): void {
+        const fileId = typeof message === "object" ? (message.photo?.at(-1)?.file_id ?? message.animation?.file_id) : undefined;
+        if (fileId) this.botState.fileIdCache.set(key, fileId, replacePrefix);
     }
 
     async sendPhotos(
@@ -336,10 +395,16 @@ export default class HackerEmbassyBot extends TelegramBot {
         return withFile(async tmpFile => {
             await fs.writeFile(tmpFile.path, buffer);
 
-            const imageOption = { type: "photo", media: `attach://${tmpFile.path}` } as InputMediaPhoto;
+            // caption must live inside the media object, editMessageMedia drops it otherwise
+            const { caption, ...restOptions } = options;
+            const imageOption = {
+                type: "photo",
+                media: `attach://${tmpFile.path}`,
+                ...(caption ? { caption: taggedMarkdownToTelegramMarkdownV2(caption), parse_mode: "MarkdownV2" } : {}),
+            } as InputMediaPhoto;
 
             // prepared also carries message_thread_id: the lib types omit it for edits, but it works
-            const prepared = this.applyMessageContext(options, msg);
+            const prepared = this.applyMessageContext(restOptions, msg);
             const reply_markup = prepared.reply_markup ?? { inline_keyboard: [] };
 
             let message: Message | boolean = false;
@@ -354,14 +419,6 @@ export default class HackerEmbassyBot extends TelegramBot {
             } catch (error) {
                 // only ignore not modified error
                 if (error instanceof Error && !error.message.includes("message is not modified")) throw error;
-            }
-
-            if (options.caption) {
-                await this.editMessageCaption(options.caption, {
-                    chat_id: msg.chat.id,
-                    message_id: msg.message_id,
-                    reply_markup,
-                });
             }
 
             return message;
@@ -878,15 +935,18 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: number,
         photo: Buffer | ArrayBuffer,
         msg: Message,
-        options: SendPhotoOptions
+        options: SendPhotoOptions & MediaCacheOptions
     ): Promise<Message | boolean | null> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { noCache, ...editOptions } = options;
+
         return this.sendOrEdit(
             msg,
             () =>
                 this.editPhoto(photo, msg, {
                     chat_id: chatId,
                     message_id: msg.message_id,
-                    ...options,
+                    ...editOptions,
                 } as EditMessageMediaOptionsExt),
             () => this.sendPhotoExt(chatId, photo as Buffer, msg, options)
         );

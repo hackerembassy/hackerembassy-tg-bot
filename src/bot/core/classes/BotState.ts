@@ -9,6 +9,7 @@ import logger from "@services/common/logger";
 import { readJsonFile, writeJsonFileAtomic } from "@utils/filesystem";
 import { debounce } from "@utils/common";
 
+import FileIdCache from "./FileIdCache";
 import HackerEmbassyBot from "./HackerEmbassyBot";
 import { FileMessageLogStore, MessageLogStore } from "./MessageLogStore";
 import { BotCustomEvent, BotController, LiveChatHandler } from "../types";
@@ -32,7 +33,7 @@ export default class BotState {
 
     public liveChats: LiveChatHandler[] = [];
     public flags: StateFlags;
-    public fileIdCache: { [key: string]: string } = {};
+    public fileIdCache: FileIdCache;
 
     constructor(bot: HackerEmbassyBot) {
         this.bot = bot;
@@ -49,7 +50,9 @@ export default class BotState {
         mkdirSync(this.stateDir, { recursive: true });
 
         this.flags = { ...DEFAULT_STATE_FLAGS, ...readJsonFile<Partial<StateFlags>>(this.flagsPath) };
-        this.fileIdCache = readJsonFile<Record<string, string>>(this.fileIdCachePath) ?? {};
+        this.fileIdCache = new FileIdCache(readJsonFile<Record<string, string>>(this.fileIdCachePath) ?? {}, undefined, () =>
+            this.persistFileIdCache()
+        );
         this.liveChats = readJsonFile<LiveChatHandler[]>(this.liveChatsPath) ?? [];
 
         this.initLiveChats().catch(error => {
@@ -106,7 +109,7 @@ export default class BotState {
         }
         this.liveChats = [];
         this.flags = { ...DEFAULT_STATE_FLAGS };
-        this.fileIdCache = {};
+        this.fileIdCache.clear();
 
         this.bot.botMessageHistory.clearAll();
         this.bot.messageHistory.clearAll();
@@ -121,7 +124,7 @@ export default class BotState {
     }
 
     private writeFileIdCache(): void {
-        void writeJsonFileAtomic(this.fileIdCachePath, this.fileIdCache).catch(error => {
+        void writeJsonFileAtomic(this.fileIdCachePath, this.fileIdCache.toJSON()).catch(error => {
             logger.error("Failed to persist fileIdCache");
             logger.error(error);
         });

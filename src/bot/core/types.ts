@@ -128,6 +128,12 @@ export type SendChatActionOptions = Omit<SendChatActionParams, "chat_id" | "acti
 
 export type SendPhotoOptions = Omit<SendPhotoParams, "chat_id" | "photo">;
 
+// Bot-side send options, stripped before reaching Telegram
+export interface MediaCacheOptions {
+    /** Skip file_id caching for one-off media (webcam frames, generated images) */
+    noCache?: boolean;
+}
+
 export type SendAnimationOptions = Omit<SendAnimationParams, "chat_id" | "animation">;
 
 export type SendMessageOptions = Omit<SendMessageParams, "chat_id" | "text"> & {

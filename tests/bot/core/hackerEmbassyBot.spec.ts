@@ -150,3 +150,95 @@ describe("HackerEmbassyBot button resolution on send", () => {
         });
     });
 });
+
+function photoMessage(fileId: string): Message {
+    return {
+        message_id: 2,
+        date: 0,
+        chat: { id: TEST_USERS.guest.userid, type: "private" },
+        photo: [{ file_id: fileId, file_unique_id: "u", width: 1, height: 1 }],
+    };
+}
+
+describe("HackerEmbassyBot file_id caching", () => {
+    const bot = createMockBot();
+    let sendPhoto: jest.SpiedFunction<typeof bot.sendPhoto>;
+    let uploads = 0;
+
+    beforeEach(() => {
+        bot.botState.fileIdCache.clear();
+        uploads = 0;
+        sendPhoto = jest.spyOn(bot, "sendPhoto").mockImplementation(() => Promise.resolve(photoMessage(`file-${++uploads}`)));
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it("reuses the file_id of previously sent media", async () => {
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("img"), fakeMessage());
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("img"), fakeMessage());
+
+        expect(sendPhoto.mock.calls[1][1]).toBe("file-1");
+    });
+
+    it("skips caching with noCache and never forwards the option to Telegram", async () => {
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("frame"), fakeMessage(), { noCache: true });
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("frame"), fakeMessage(), { noCache: true });
+
+        expect(sendPhoto.mock.calls[1][1]).toEqual(Buffer.from("frame"));
+        expect(sendPhoto.mock.calls[0][2]).not.toHaveProperty("noCache");
+        expect(bot.botState.fileIdCache.size).toBe(0);
+    });
+
+    it("does not cache file_ids, but does cache local paths", async () => {
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, "AgACAgIAAxkBAAIBY2Zabc_def-123", fakeMessage());
+        expect(bot.botState.fileIdCache.size).toBe(0);
+
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, "./resources/images/house.jpg", fakeMessage());
+        expect(bot.botState.fileIdCache.size).toBe(1);
+    });
+
+    it("re-uploads and replaces a cached file_id that Telegram rejects", async () => {
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("img"), fakeMessage());
+        sendPhoto.mockImplementationOnce(() => Promise.reject(new Error("Bad Request: wrong file identifier")));
+
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("img"), fakeMessage());
+
+        expect(sendPhoto.mock.calls[2][1]).toEqual(Buffer.from("img"));
+        expect(Object.values(bot.botState.fileIdCache.toJSON())).toEqual(["file-2"]);
+    });
+
+    it("keeps the cached file_id when the send fails for an unrelated reason", async () => {
+        await bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("img"), fakeMessage());
+        sendPhoto.mockImplementationOnce(() => Promise.reject(new Error("Bad Request: chat not found")));
+
+        await expect(bot.sendPhotoExt(TEST_USERS.guest.userid, Buffer.from("img"), fakeMessage())).rejects.toThrow(
+            "chat not found"
+        );
+        expect(Object.values(bot.botState.fileIdCache.toJSON())).toEqual(["file-1"]);
+    });
+
+    it("cacheFileId ignores boolean edit results and replaces entries by prefix", () => {
+        bot.cacheFileId("donut:1:a", true, "donut:1:");
+        expect(bot.botState.fileIdCache.size).toBe(0);
+
+        bot.cacheFileId("donut:1:a", photoMessage("old"), "donut:1:");
+        bot.cacheFileId("donut:1:b", photoMessage("new"), "donut:1:");
+        expect(bot.botState.fileIdCache.toJSON()).toEqual({ "donut:1:b": "new" });
+
+        bot.forgetFileId("donut:1:b");
+        expect(bot.botState.fileIdCache.size).toBe(0);
+    });
+
+    it("withContext lends the captured context to another message and clears it afterwards", async () => {
+        const source = fakeMessage();
+        const context = bot.context(source);
+        context.mode.static = true;
+        const target = { ...photoMessage("x"), from: undefined } as Message;
+
+        const seenStatic = await bot.withContext(target, context, () => Promise.resolve(bot.context(target).mode.static));
+
+        expect(seenStatic).toBe(true);
+        expect(() => bot.context(target)).toThrow("Message missing the sender");
+        bot.clearContext(source);
+    });
+});

@@ -155,6 +155,8 @@ export interface BotFeaturesConfig {
     askContinuation: boolean;
     /** Automated daily "what was discussed yesterday" summary posted to the main chat */
     dailydigest: boolean;
+    /** Attach a cached donut chart to /fund replies instead of a separate "View chart" button */
+    autodonuts: boolean;
 }
 
 export type BotFeatureFlag = keyof BotFeaturesConfig;

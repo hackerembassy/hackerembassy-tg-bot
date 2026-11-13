@@ -58,7 +58,10 @@ export async function createFundList(
         const sumOfAllDonations = await fundsService.sumDonations(fundDonations, fund.target_currency);
         const fundStatus = generateFundStatus(fund, sumOfAllDonations, isHistory);
 
-        list += `${fundStatus} ${fund.name} - ${t("funds.fund.collected")} ${toBasicMoneyString(
+        // inline code makes the name tap-to-copy in Telegram; API output stays plain
+        const fundName = isApi ? fund.name : `#\`${fund.name}#\``;
+
+        list += `${fundStatus} ${fundName} - ${t("funds.fund.collected")} ${toBasicMoneyString(
             sumOfAllDonations
         )} ${t("funds.fund.from")} ${toBasicMoneyString(fund.target_value)} ${fund.target_currency}\n`;
 

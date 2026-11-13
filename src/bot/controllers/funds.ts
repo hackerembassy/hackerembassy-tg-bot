@@ -1,9 +1,9 @@
-import { Message } from "node-telegram-bot-api";
+import { InlineKeyboardMarkup, Message } from "node-telegram-bot-api";
 
 import config from "config";
 
 import { BotConfig } from "@config";
-import { User } from "@data/models";
+import { DonationEx, Fund, User } from "@data/models";
 import {
     convertCurrency,
     DefaultCurrency,
@@ -22,6 +22,7 @@ import { getImageFromPath } from "@utils/filesystem";
 import { replaceUnsafeSymbolsForAscii } from "@utils/text";
 import { Accountants, CaptureListOfIds, Members, Route, UserRoles } from "@hackembot/core/decorators";
 
+import BotMessageContext from "../core/classes/BotMessageContext";
 import HackerEmbassyBot from "../core/classes/HackerEmbassyBot";
 import { ButtonFlags, InlineButton } from "../core/inlineButtons";
 import t from "../core/localization";
@@ -34,6 +35,19 @@ import { OptionalParam } from "../core/helpers";
 const botConfig = config.get<BotConfig>("bot");
 
 const CALLBACK_DATA_RESTRICTION = 21;
+const TELEGRAM_CAPTION_LIMIT = 1024;
+
+type DonutSwap = {
+    msg: Message;
+    context: BotMessageContext;
+    loaderMessage: Message;
+    fund: Fund;
+    donations: DonationEx[];
+    caption: string;
+    reply_markup: InlineKeyboardMarkup;
+    sendAsText: () => Promise<Nullable<Message>>;
+};
+const DONUT_LOADER_PATH = "./resources/images/donut_loader.jpg";
 
 // Converter library needs time to initialize all currencies, so we need to init it in advance
 void initConvert();
@@ -74,19 +88,97 @@ export default class FundsController implements BotController {
         const donations = fundsService.getDonationsForFund(fund.id, true, true);
         const showAdmin = isAccountant && (context.isPrivate() || context.isAdminMode());
 
+        const fundlist = await TextGenerators.createFundList([fund], donations, { showAdmin }, bot.context(msg).mode);
+        // donut caption skips the "how to donate" footer, the button covers it
+        const caption = fundlist.trimEnd();
+
         // telegram callback_data is restricted to 64 bytes
         const inline_keyboard =
             fundName.length < CALLBACK_DATA_RESTRICTION
                 ? [[InlineButton(t("funds.fund.buttons.donut"), "ed", { params: fundName })]]
                 : [];
+        const sendAsText = () =>
+            bot.sendMessageExt(msg.chat.id, t("funds.fund.text", { fundlist }), msg, { reply_markup: { inline_keyboard } });
 
-        const fundlist = await TextGenerators.createFundList([fund], donations, { showAdmin }, bot.context(msg).mode);
+        if (botConfig.features.autodonuts && donations.length > 0 && caption.length <= TELEGRAM_CAPTION_LIMIT)
+            return FundsController.sendFundWithDonut(bot, msg, fund, donations, caption, sendAsText);
 
-        return bot.sendMessageExt(msg.chat.id, t("funds.fund.text", { fundlist }), msg, {
-            reply_markup: {
-                inline_keyboard,
-            },
+        return sendAsText();
+    }
+
+    // Sends cached donut instantly, or a loader that gets swapped once the chart is rendered.
+    // Anything going wrong ends up as the plain text reply from sendAsText.
+    private static async sendFundWithDonut(
+        bot: HackerEmbassyBot,
+        msg: Message,
+        fund: Fund,
+        donations: DonationEx[],
+        caption: string,
+        sendAsText: () => Promise<Nullable<Message>>
+    ): Promise<Nullable<Message>> {
+        // captured now: the request context is cleared once the handler returns, before the render finishes
+        const context = bot.context(msg);
+        const cacheKey = ExportHelper.getDonutCacheKey(fund, donations);
+        const cachedFileId = bot.getCachedFileId(cacheKey);
+        const reply_markup = {
+            inline_keyboard: [[InlineButton(t("basic.info.buttons.donate"), "donate", { deeplink: "public" })]],
+        };
+
+        if (cachedFileId) {
+            try {
+                return await bot.sendPhotoExt(msg.chat.id, cachedFileId, msg, { caption, reply_markup });
+            } catch (error) {
+                logger.error(`Cached donut for fund ${fund.name} was rejected, rendering again`);
+                logger.error(error);
+                bot.forgetFileId(cacheKey);
+            }
+        }
+
+        let loaderMessage: Message;
+
+        try {
+            // path is hashed into the file_id cache, so after the first send it's never read from disk again
+            loaderMessage = await bot.sendPhotoExt(msg.chat.id, DONUT_LOADER_PATH, msg, { caption, reply_markup });
+        } catch (error) {
+            logger.error(`Failed to send donut loader for fund ${fund.name}`);
+            logger.error(error);
+            return sendAsText();
+        }
+
+        void FundsController.swapDonutLoader(bot, {
+            msg,
+            context,
+            loaderMessage,
+            fund,
+            donations,
+            caption,
+            reply_markup,
+            sendAsText,
         });
+
+        return loaderMessage;
+    }
+
+    private static async swapDonutLoader(bot: HackerEmbassyBot, swap: DonutSwap): Promise<void> {
+        const { msg, context, loaderMessage, fund, donations, caption, reply_markup, sendAsText } = swap;
+
+        try {
+            const donut = await ExportHelper.renderFundDonut(fund, donations);
+            if (donut.length === 0) throw new Error("Rendered donut is empty");
+
+            const edited = await bot.withContext(loaderMessage, context, () =>
+                bot.editPhoto(donut, loaderMessage, { caption, reply_markup })
+            );
+            bot.cacheFileId(ExportHelper.getDonutCacheKey(fund, donations), edited, ExportHelper.getDonutCachePrefix(fund));
+        } catch (error) {
+            logger.error(`Failed to attach donut for fund ${fund.name}, falling back to text`);
+            logger.error(error);
+
+            // a photo can't be edited into text, so replace the loader message instead
+            await bot.deleteMessage(loaderMessage.chat.id, loaderMessage.message_id).catch(() => {});
+            // original request context is gone by now, so re-attach the captured one
+            await bot.withContext(msg, context, sendAsText).catch(fallbackError => logger.error(fallbackError));
+        }
     }
 
     @Route(["fundsall", "fundshistory", "fsa"])
@@ -469,7 +561,7 @@ export default class FundsController implements BotController {
             const filteredDonations = ExportHelper.prepareCostsForExport(residentsDonations, COSTS_PREFIX);
             const imageBuffer = await ExportHelper.exportDonationsToLineChart(filteredDonations, `${COSTS_PREFIX} ${year}`);
 
-            if (imageBuffer.length > 0) return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            if (imageBuffer.length > 0) return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg, { noCache: true });
 
             return await bot.sendMessageExt(msg.chat.id, t("funds.residentshistory.fail"), msg);
         }
@@ -581,7 +673,7 @@ export default class FundsController implements BotController {
     @Route(["exportdonut", "donut", "ed"], OptionalParam(/(.*\S)/), match => [match[1]])
     static async exportDonutHandler(bot: HackerEmbassyBot, msg: Message, fundName?: string) {
         if (!fundName) {
-            const donutImage = await getImageFromPath(`./resources/images/memes/donut.jpg`);
+            const donutImage = await getImageFromPath(DONUT_LOADER_PATH);
             const help = t("funds.export.donuthelp");
 
             return donutImage
@@ -589,21 +681,35 @@ export default class FundsController implements BotController {
                 : await bot.sendMessageExt(msg.chat.id, help, msg);
         }
 
-        let imageBuffer: Buffer;
-
         try {
             const fund = fundsService.getFundByName(fundName);
 
             if (!fund) throw new Error("Fund not found");
 
             const donations = fundsService.getDonationsForFund(fund.id, true, true);
-            imageBuffer = await ExportHelper.exportFundToDonut(fund, donations);
+            const cacheKey = ExportHelper.getDonutCacheKey(fund, donations);
+            const cachedFileId = bot.getCachedFileId(cacheKey);
+
+            if (cachedFileId) {
+                try {
+                    return await bot.sendPhotoExt(msg.chat.id, cachedFileId, msg);
+                } catch (error) {
+                    logger.error(`Cached donut for fund ${fund.name} was rejected, rendering again`);
+                    logger.error(error);
+                    bot.forgetFileId(cacheKey);
+                }
+            }
+
+            const imageBuffer = await ExportHelper.renderFundDonut(fund, donations);
 
             if (imageBuffer.length === 0) {
                 return await bot.sendMessageExt(msg.chat.id, t("funds.export.empty"), msg);
             }
 
-            return await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            const sentMessage = await bot.sendPhotoExt(msg.chat.id, imageBuffer, msg, { noCache: true });
+            bot.cacheFileId(cacheKey, sentMessage, ExportHelper.getDonutCachePrefix(fund));
+
+            return sentMessage;
         } catch (error) {
             logger.error(error);
             return await bot.sendMessageExt(msg.chat.id, t("funds.export.fail"), msg);

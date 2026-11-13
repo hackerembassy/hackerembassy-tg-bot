@@ -73,7 +73,8 @@
             "greetings": true,
             "voice": true,
             "askContinuation": true,
-            "dailydigest": true
+            "dailydigest": true,
+            "autodonuts": true
         },
         "moderatedChats": [-1001605898533],
         "guess": {

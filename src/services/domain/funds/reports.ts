@@ -5,7 +5,8 @@ import { DonationEx, Fund } from "@data/models";
 
 import { UserVisit } from "@services/domain/user";
 
-import { compareMonthNames } from "@utils/date";
+import { sha256 } from "@utils/common";
+import { compareMonthNames, getToday } from "@utils/date";
 import { onlyUniqueInsFilter } from "@utils/filters";
 import { equalsIns } from "@utils/text";
 
@@ -70,6 +71,37 @@ export async function exportFundToCSV(fund: Fund, donations: DonationEx[]): Prom
     );
 
     return await writeToBuffer(DonationExs, { headers: true });
+}
+
+// Concurrent requests for the same donut share one render
+const pendingDonuts = new Map<string, Promise<Buffer>>();
+
+// Changes whenever the rendered donut would change; today's date covers daily currency rate drift
+export function getDonutCacheKey(fund: Fund, donations: DonationEx[]): string {
+    const payload = {
+        fund: [fund.name, fund.target_value, fund.target_currency, fund.status],
+        donations: donations.map(d => [d.id, d.value, d.currency, d.user.username ?? d.user.first_name]),
+        day: getToday().toISOString(),
+    };
+
+    return `${getDonutCachePrefix(fund)}${sha256(JSON.stringify(payload))}`;
+}
+
+// Shared by all donut versions of one fund, so a new one can replace the stale ones
+export function getDonutCachePrefix(fund: Fund): string {
+    return `donut:${fund.id}:`;
+}
+
+export function renderFundDonut(fund: Fund, donations: DonationEx[]): Promise<Buffer> {
+    const key = getDonutCacheKey(fund, donations);
+    let pending = pendingDonuts.get(key);
+
+    if (!pending) {
+        pending = exportFundToDonut(fund, donations).finally(() => pendingDonuts.delete(key));
+        pendingDonuts.set(key, pending);
+    }
+
+    return pending;
 }
 
 export async function exportFundToDonut(fund: Fund, donations: DonationEx[]): Promise<Buffer> {

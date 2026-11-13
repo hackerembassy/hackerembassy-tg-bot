@@ -184,6 +184,7 @@ export default class EmbassyController implements BotController {
             }
 
             const resultMessage = await bot.sendPhotoExt(msg.chat.id, webcamImage, msg, {
+                noCache: true,
                 reply_markup: {
                     inline_keyboard,
                 },
@@ -264,7 +265,7 @@ export default class EmbassyController implements BotController {
 
             if (cam)
                 await bot
-                    .sendPhotoExt(msg.chat.id, Buffer.from(cam), msg)
+                    .sendPhotoExt(msg.chat.id, Buffer.from(cam), msg, { noCache: true })
                     .catch(error => logger.error("Failed to send printer cam image", error));
 
             const caption = TextGenerators.getPrinterStatusText(status);
@@ -281,6 +282,7 @@ export default class EmbassyController implements BotController {
                 ? bot.sendOrEditPhoto(msg.chat.id, Buffer.from(thumbnailBuffer), msg, {
                       caption: caption,
                       reply_markup: { inline_keyboard },
+                      noCache: true,
                   })
                 : bot.sendOrEditMessage(msg.chat.id, caption, msg, { reply_markup: { inline_keyboard } }, msg.message_id);
         } catch (error) {
@@ -746,7 +748,7 @@ export default class EmbassyController implements BotController {
                 ? embassyService.img2img(positive_prompt, negative_prompt, await bot.fetchFileAsBase64(photoId))
                 : embassyService.txt2img(positive_prompt, negative_prompt));
 
-            return bot.sendPhotoExt(msg.chat.id, imageBuffer, msg);
+            return bot.sendPhotoExt(msg.chat.id, imageBuffer, msg, { noCache: true });
         } catch (error) {
             logger.error(error);
             return bot.sendMessageExt(msg.chat.id, t("embassy.neural.sd.fail"), msg);

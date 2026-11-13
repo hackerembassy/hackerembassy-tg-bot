@@ -160,7 +160,7 @@ basic:
             {{calendarLink}}
             Sign up with a plus sign ➕ at the bottom of the page or take {{iCalLink}}
             Or even open the calendar directly in the cart {{openCalendarInTelegram}}
-            Upcoming events can be found by the command /upcoming, today's events - by the command /today
+            Upcoming events can be found by the command {{upcomingCommand}}, today's events - by the command {{todayCommand}}
         buttons:
             today: 📣 Today
             upcoming: 📆 Upcoming

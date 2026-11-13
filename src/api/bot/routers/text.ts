@@ -3,6 +3,7 @@ import config from "config";
 
 import * as TextGenerators from "@hackembot/text";
 import { stripCustomMarkup } from "@hackembot/core/converters";
+import t from "@hackembot/core/localization";
 
 import { fundsService } from "@services/domain/funds";
 import embassyService from "@services/embassy/embassy";
@@ -26,6 +27,11 @@ const ApiTextCommandsList = [
         command: "join",
         description: "Как присоединиться к нам",
         regex: "^join$",
+    },
+    {
+        command: "location",
+        description: "Как нас найти",
+        regex: "^location$",
     },
     {
         command: "donate",
@@ -83,12 +89,12 @@ router.get("/events", (_, res) => {
 if (apiConfig.features.calendar) {
     router.get("/upcoming", async (_, res) => {
         const events = await getClosestEventsFromCalendar();
-        const messageText = TextGenerators.getEventsList(events);
+        const messageText = TextGenerators.getEventsList(events, false, true);
         res.send(messageText);
     });
 
     router.get("/today", async (_, res) => {
-        const messageText = TextGenerators.getTodayEventsText(await getTodayEventsCached());
+        const messageText = TextGenerators.getTodayEventsText(await getTodayEventsCached(), true);
         res.send(messageText);
     });
 }
@@ -104,6 +110,10 @@ router.get("/funds", async (_, res) => {
   ${list}💸 Чтобы узнать, как нам помочь - пиши donate`;
 
     res.send(message);
+});
+
+router.get("/location", (_, res) => {
+    res.send(t("basic.location.address"));
 });
 
 router.get("/donate", (_, res) => {

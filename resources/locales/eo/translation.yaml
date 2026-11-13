@@ -159,7 +159,7 @@ basic:
             {{calendarLink}}
             Registriĝu kun pluso ➕ ĉe la malsupro de la paĝo aŭ prenu {{iCalLink}}
             Aŭ eĉ malfermu la kalendaron rekte en la kartego {{openCalendarInTelegram}}
-            Venontajn eventojn oni povas trovi per la komando /upcoming, hodiaŭajn eventojn - per la komando /today
+            Venontajn eventojn oni povas trovi per la komando {{upcomingCommand}}, hodiaŭajn eventojn - per la komando {{todayCommand}}
         buttons:
             today: 📣 Hodiaŭ
             upcoming: 📆 Venontaj

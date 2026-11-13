@@ -149,9 +149,9 @@ export function generateDonationsList(
     return donationList;
 }
 
-export function getTodayEventsShortText(todayEvents: HSEvent[], short: boolean = false): string {
+export function getTodayEventsShortText(todayEvents: HSEvent[], short: boolean = false, isApi: boolean = false): string {
     const eventsHeader = short ? "" : t("basic.events.todaysimple");
-    const eventsList = getEventsList(todayEvents, true);
+    const eventsList = getEventsList(todayEvents, true, isApi);
 
     return `${eventsHeader}${eventsList}`;
 }
@@ -189,7 +189,8 @@ export function getStatusMessage(
     // Status header
     let stateText = getStatusHeader(state, options.short, options.isApi);
     stateText += options.short ? `  ${getShortStatus(inside, going)}` : "";
-    stateText += todayEvents && todayEvents.length > 0 ? `\n${getTodayEventsShortText(todayEvents, options.short)}\n` : "";
+    stateText +=
+        todayEvents && todayEvents.length > 0 ? `\n${getTodayEventsShortText(todayEvents, options.short, options.isApi)}\n` : "";
     stateText += "\n";
 
     // People inside
@@ -340,6 +341,8 @@ export function getEventsText(includeCalendar: boolean, calendarAppLink?: string
                   : `#[Hacker Embassy Public Events#]#(${calendarConfig.url}#)`,
               iCalLink: isApi ? `<a href='${calendarConfig.ical}'>iCal</a>` : `#[iCal#]#(${calendarConfig.ical}#)`,
               openCalendarInTelegram: calendarAppLink ? `#[Open in Telegram#]#(${calendarAppLink}#)` : "",
+              upcomingCommand: `${isApi ? "" : "/"}upcoming`,
+              todayCommand: `${isApi ? "" : "/"}today`,
           })
         : "";
 
@@ -469,34 +472,34 @@ export function fixedWidthPeriod(usertime: ElapsedTimeObject) {
     return `${days} ${hours} ${minutes}`;
 }
 
-export function HSEventToString(event: HSEvent, short: boolean = false): string {
+export function HSEventToString(event: HSEvent, short: boolean = false, isApi: boolean = false): string {
     let dateTimeOptions = shortDateTimeOptions;
     if (event.allDay) dateTimeOptions = onlyDateOptions;
     else if (short) dateTimeOptions = onlyTimeOptions;
     const eventStart = event.start?.toLocaleString("RU-ru", dateTimeOptions);
     const eventEnd = event.end?.toLocaleString("RU-ru", dateTimeOptions);
     const eventTime = event.allDay && eventStart === eventEnd ? eventStart : `${eventStart} - ${eventEnd}`;
-    const formattedEventTime = eventTime && event.start ? formatDateTime(eventTime, event.start) : eventTime;
+    const formattedEventTime = eventTime && event.start && !isApi ? formatDateTime(eventTime, event.start) : eventTime;
 
     let result = `${event.summary}: ${formattedEventTime}`;
 
     if (!short && event.description) {
-        result += `\n${toEscapedTelegramMarkdown(event.description)}`;
+        result += `\n${isApi ? event.description : toEscapedTelegramMarkdown(event.description)}`;
     }
 
     return result;
 }
 
-export function getEventsList(events: HSEvent[], short: boolean = false): string {
-    return events.map(event => HSEventToString(event, short)).join(short ? "\n" : "\n\n");
+export function getEventsList(events: HSEvent[], short: boolean = false, isApi: boolean = false): string {
+    return events.map(event => HSEventToString(event, short, isApi)).join(short ? "\n" : "\n\n");
 }
 
-export function getTodayEventsText(todayEvents: HSEvent[]): string {
+export function getTodayEventsText(todayEvents: HSEvent[], isApi: boolean = false): string {
     let messageText = "";
 
     if (todayEvents.length > 0) {
         messageText += t("basic.events.today") + "\n";
-        messageText += getEventsList(todayEvents) + "\n\n";
+        messageText += getEventsList(todayEvents, false, isApi) + "\n\n";
         messageText += t("basic.events.entrance");
     } else {
         messageText += t("basic.events.notoday");

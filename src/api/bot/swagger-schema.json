@@ -109,6 +109,16 @@
         }
       }
     },
+    "/text/location": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/text/donate": {
       "get": {
         "description": "",

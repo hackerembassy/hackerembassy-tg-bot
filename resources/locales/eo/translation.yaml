@@ -554,7 +554,7 @@ funds:
     funds: |
         💰 Jen niaj nunaj fondusoj:
 
-        {{list}}💸 Por scii kiel helpi nin, klaku /donate
+        {{list}}💸 Por scii kiel helpi nin, klaku {{donateCommand}}
     fund:
         nofund: Fondo ne trovita
         text: |

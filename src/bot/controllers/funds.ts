@@ -71,7 +71,7 @@ export default class FundsController implements BotController {
             ],
         ];
 
-        await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list }), msg, {
+        await bot.sendLongMessage(msg.chat.id, t("funds.funds", { list, donateCommand: "/donate" }), msg, {
             reply_markup: {
                 inline_keyboard,
             },

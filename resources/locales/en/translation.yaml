@@ -555,7 +555,7 @@ funds:
     funds: |
         💰 Here are our current funds:
 
-        {{list}}💸 To find out how to fund us, click /donate
+        {{list}}💸 To find out how to fund us, click {{donateCommand}}
     fund:
         nofund: Fund not found
         text: |

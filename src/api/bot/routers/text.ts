@@ -3,7 +3,7 @@ import config from "config";
 
 import * as TextGenerators from "@hackembot/text";
 import { stripCustomMarkup } from "@hackembot/core/converters";
-import t, { isSupportedLanguage, RequestLanguage } from "@hackembot/core/localization";
+import t, { PUBLIC_LANGUAGES, RequestLanguage, SupportedLanguage } from "@hackembot/core/localization";
 
 import { fundsService } from "@services/domain/funds";
 import embassyService from "@services/embassy/embassy";
@@ -17,10 +17,12 @@ const apiConfig = config.get<BotApiConfig>("api");
 
 const router = Router();
 
-// ?lang=en etc. switches the language of all text responses
+const PublicLanguageCodes: readonly SupportedLanguage[] = PUBLIC_LANGUAGES.map(lang => lang.code);
+
+// ?lang=en etc. switches the language of all text responses; the internal test locale is not public
 router.use((req, _, next) => {
-    const lang = req.query.lang;
-    if (typeof lang === "string" && isSupportedLanguage(lang)) RequestLanguage.run(lang, next);
+    const lang = PublicLanguageCodes.find(code => code === req.query.lang);
+    if (lang) RequestLanguage.run(lang, next);
     else next();
 });
 
@@ -106,7 +108,7 @@ router.get("/funds", async (_, res) => {
 
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true }, { mention: false });
 
-    const message = t("funds.funds", { list }).replaceAll("/donate", "donate");
+    const message = t("funds.funds", { list, donateCommand: "donate" });
 
     res.send(message);
 });

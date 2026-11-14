@@ -554,7 +554,7 @@ funds:
     funds: |
         💰 Jen niaj nunaj fondusoj:
 
-        {{list}}💸 Por scii kiel helpi nin, klaku /donate
+        {{list}}💸 Por scii kiel helpi nin, klaku {{donateCommand}}
     fund:
         nofund: Fondo ne trovita
         text: |
@@ -1004,3 +1004,14 @@ wiki:
 
             📟 Foliumi ĉiujn paĝojn - #`/wikitree#`
         source: Fonto
+api:
+    commands:
+        status: "Stato de la spaco kaj kiu enregistriĝis"
+        join: "Kiel aliĝi al ni"
+        location: "Kiel trovi nin"
+        donate: "Kiel donaci"
+        funds: "Niaj malfermitaj monkolektoj"
+        sponsors: "Niaj honoraj sponsoroj"
+        events: "Eventoj ĉe ni"
+        upcoming: "Venontaj eventoj"
+        today: "Hodiaŭaj eventoj"

@@ -555,7 +555,7 @@ funds:
     funds: |
         💰 Here are our current funds:
 
-        {{list}}💸 To find out how to fund us, click /donate
+        {{list}}💸 To find out how to fund us, click {{donateCommand}}
     fund:
         nofund: Fund not found
         text: |
@@ -1005,3 +1005,14 @@ wiki:
 
             📟 Browse all pages - #`/wikitree#`
         source: Source
+api:
+    commands:
+        status: "Space status and who checked in"
+        join: "How to join us"
+        location: "How to find us"
+        donate: "How to donate"
+        funds: "Our open fundraisers"
+        sponsors: "Our honorary sponsors"
+        events: "Events at the space"
+        upcoming: "Upcoming events"
+        today: "Today's events"

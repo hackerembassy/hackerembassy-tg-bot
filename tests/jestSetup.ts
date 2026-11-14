@@ -85,6 +85,7 @@ jest.mock("@services/external/googleCalendar", () => ({
     getClosestEventsFromCalendar: jest.fn().mockReturnValue([]),
     getTodayEvents: jest.fn().mockReturnValue([]),
     getTodayEventsCached: jest.fn().mockReturnValue([]),
+    getUpcomingEventsCached: jest.fn().mockReturnValue([]),
     getEventsJSON: jest.fn().mockReturnValue([]),
 }));
 

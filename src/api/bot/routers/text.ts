@@ -3,12 +3,12 @@ import config from "config";
 
 import * as TextGenerators from "@hackembot/text";
 import { stripCustomMarkup } from "@hackembot/core/converters";
-import t from "@hackembot/core/localization";
+import t, { isSupportedLanguage, RequestLanguage } from "@hackembot/core/localization";
 
 import { fundsService } from "@services/domain/funds";
 import embassyService from "@services/embassy/embassy";
 
-import { getClosestEventsFromCalendar, getTodayEvents, getTodayEventsCached } from "@services/external/googleCalendar";
+import { getTodayEventsCached, getUpcomingEventsCached } from "@services/external/googleCalendar";
 
 import { BotApiConfig } from "@config";
 import { userService } from "@services/domain/user";
@@ -17,40 +17,40 @@ const apiConfig = config.get<BotApiConfig>("api");
 
 const router = Router();
 
+// ?lang=en etc. switches the language of all text responses
+router.use((req, _, next) => {
+    const lang = req.query.lang;
+    if (typeof lang === "string" && isSupportedLanguage(lang)) RequestLanguage.run(lang, next);
+    else next();
+});
+
 const ApiTextCommandsList = [
     {
         command: "status",
-        description: "Статус спейса и кто отметился внутри",
         regex: "^status$",
     },
     {
         command: "join",
-        description: "Как присоединиться к нам",
         regex: "^join$",
     },
     {
         command: "location",
-        description: "Как нас найти",
         regex: "^location$",
     },
     {
         command: "donate",
-        description: "Как задонатить",
         regex: "^donate$",
     },
     {
         command: "funds",
-        description: "Наши открытые сборы",
         regex: "^funds$",
     },
     {
         command: "sponsors",
-        description: "Наши почетные спонсоры",
         regex: "^sponsors$",
     },
     {
         command: "events",
-        description: "Мероприятия у нас",
         regex: "^events$",
     },
 ];
@@ -58,12 +58,10 @@ const ApiTextCommandsList = [
 const ApiCalendarCommandsList = [
     {
         command: "upcoming",
-        description: "Ближайшие мероприятия",
         regex: "^upcoming$",
     },
     {
         command: "today",
-        description: "Мероприятия сегодня",
         regex: "^today$",
     },
 ];
@@ -73,7 +71,10 @@ const CombinedCommandsList = apiConfig.features.calendar
     : ApiTextCommandsList;
 
 router.get("/", (_, res) => {
-    res.json(CombinedCommandsList);
+    // Varies only by ?lang=, which is part of the URL
+    res.set("Cache-Control", "public, max-age=60").json(
+        CombinedCommandsList.map(c => ({ ...c, description: t(`api.commands.${c.command}`) }))
+    );
 });
 
 router.get("/join", (_, res) => {
@@ -88,7 +89,7 @@ router.get("/events", (_, res) => {
 
 if (apiConfig.features.calendar) {
     router.get("/upcoming", async (_, res) => {
-        const events = await getClosestEventsFromCalendar();
+        const events = await getUpcomingEventsCached();
         const messageText = TextGenerators.getEventsList(events, false, true);
         res.send(messageText);
     });
@@ -105,9 +106,7 @@ router.get("/funds", async (_, res) => {
 
     const list = await TextGenerators.createFundList(funds, donations, { showAdmin: false, isApi: true }, { mention: false });
 
-    const message = `⚒ Вот наши текущие сборы:
-
-  ${list}💸 Чтобы узнать, как нам помочь - пиши donate`;
+    const message = t("funds.funds", { list }).replaceAll("/donate", "donate");
 
     res.send(message);
 });
@@ -130,14 +129,12 @@ router.get("/sponsors", (_, res) => {
 
 router.get("/status", async (_, res) => {
     const state = spaceService.getState();
-    let content = `🔐 Статус спейса неопределен`;
-
     const inside = userService.getPeopleInside();
     const going = userService.getPeopleGoing();
     const climateInfo = await embassyService.getSpaceClimateCached();
-    const todayEvents = apiConfig.features.calendar ? await getTodayEvents() : null;
+    const todayEvents = apiConfig.features.calendar ? await getTodayEventsCached() : null;
 
-    content = TextGenerators.getStatusMessage(state, inside, going, todayEvents, climateInfo, {
+    const content = TextGenerators.getStatusMessage(state, inside, going, todayEvents, climateInfo, {
         short: false,
         withSecrets: false,
         isApi: true,

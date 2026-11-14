@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import path from "node:path";
 
 import config from "config";
@@ -49,9 +50,15 @@ void use(Backend).init({
     debug: false,
 });
 
+// Language for code running outside a bot message, e.g. API requests with ?lang=
+export const RequestLanguage = new AsyncLocalStorage<SupportedLanguage>();
+
 const translateWithDetectedLanguage = (key: string, options?: TOptions, lang?: string): string => {
     const state = BotMessageContext.async.getStore();
-    return t<string, TOptions, string>(key, { ...options, lng: lang ?? state?.language ?? DEFAULT_LANGUAGE });
+    return t<string, TOptions, string>(key, {
+        ...options,
+        lng: lang ?? state?.language ?? RequestLanguage.getStore() ?? DEFAULT_LANGUAGE,
+    });
 };
 
 export default translateWithDetectedLanguage;

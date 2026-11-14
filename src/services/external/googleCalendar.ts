@@ -98,3 +98,6 @@ export async function getTodayEvents(): Promise<HSEvent[]> {
 }
 
 export const getTodayEventsCached = memoize(getTodayEvents, { maxAge: MINUTE, promise: true });
+
+// Default amount from now, for public endpoints hit on every page view
+export const getUpcomingEventsCached = memoize(() => getClosestEventsFromCalendar(), { maxAge: MINUTE, promise: true });

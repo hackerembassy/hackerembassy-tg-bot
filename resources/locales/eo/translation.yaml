@@ -704,6 +704,8 @@ service:
         replaced: |
             🔄 Uzu #`{{replacement}}#` anstataŭe
     tldr:
+        progress: ⏳ Resumante…
+        failed: ⚠️ Ne eblis krei resumon
         prompt: |
             Jen mesaĝoj el babilejo en mesaĝilo. Menciu la ĉefajn temojn diskutitajn de homoj kaj kiu parolis pri ili, donu resumon se necese
         help: |

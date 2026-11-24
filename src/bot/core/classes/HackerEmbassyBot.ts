@@ -96,7 +96,7 @@ import { ButtonFlags, InlineButton, InlineButtonResult, resolveKeyboard } from "
 import ChatBridge from "./ChatBridge";
 import { NonTopicChats, PublicChats } from "../decorators";
 import CommandRouter, { AddAliasResult } from "./CommandRouter";
-import MessageStreamer from "./MessageStreamer";
+import MessageStreamer, { MessageStreamOptions } from "./MessageStreamer";
 
 const botConfig = config.get<BotConfig>("bot");
 
@@ -444,16 +444,32 @@ export default class HackerEmbassyBot extends TelegramBot {
         chatId: ChatId,
         stream: DeltaStream,
         msg: Message,
-        options: SendMessageOptions = {}
+        options: SendMessageOptions = {},
+        streamOptions: MessageStreamOptions = {}
     ): Promise<Nullable<{ message: Message; text: string }>> {
         const requestedParseMode = options.parse_mode === "GFM" ? "GFM" : "";
 
-        return this.streamer.sendStreamedMessage(stream, requestedParseMode, {
-            onTyping: () => void this.sendChatAction(chatId, "typing", msg),
-            sendText: (text, parseMode) => this.sendMessageExt(chatId, text, msg, { ...options, parse_mode: parseMode }),
-            editText: (text, target, parseMode) =>
-                this.editMessageTextExt(text, target, { chat_id: chatId, message_id: target.message_id, parse_mode: parseMode }),
-        });
+        return this.streamer.sendStreamedMessage(
+            stream,
+            requestedParseMode,
+            {
+                onTyping: () => void this.sendChatAction(chatId, "typing", msg),
+                sendText: (text, parseMode) => this.sendMessageExt(chatId, text, msg, { ...options, parse_mode: parseMode }),
+                editText: async (text, target, parseMode) => {
+                    try {
+                        return await this.editMessageTextExt(text, target, {
+                            chat_id: target.chat.id,
+                            message_id: target.message_id,
+                            parse_mode: parseMode,
+                        });
+                    } catch (error) {
+                        if (error instanceof Error && error.message.includes("message is not modified")) return true;
+                        throw error;
+                    }
+                },
+            },
+            streamOptions
+        );
     }
 
     // "GFM" is a custom parse_mode for text written in GitHub Flavored Markdown - it's converted to

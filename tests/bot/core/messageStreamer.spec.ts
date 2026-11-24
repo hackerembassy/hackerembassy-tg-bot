@@ -66,6 +66,42 @@ describe("MessageStreamer.sendStreamedMessage", () => {
         expect(result?.text).toBe(`[thinking]\na\n[/${ZERO_WIDTH_SPACE}thinking]\n\nb`);
     });
 
+    it("replaces a progress message with the answer without sending thinking", async () => {
+        const streamer = new MessageStreamer();
+        const callbacks = createCallbacks();
+        const progress = fakeMessage(42);
+
+        const result = await streamer.sendStreamedMessage(
+            streamOf([
+                { response: "thought".repeat(MAX_MESSAGE_LENGTH), scope: "thinking", done: false },
+                { response: "answer", done: false },
+                { response: " complete", done: true },
+            ]),
+            "",
+            callbacks,
+            { initialMessage: progress, hiddenScope: "thinking" }
+        );
+
+        expect(callbacks.sendText).not.toHaveBeenCalled();
+        expect(callbacks.editText).toHaveBeenNthCalledWith(1, "answer", progress, "");
+        expect(callbacks.editText).toHaveBeenNthCalledWith(2, "answer complete", progress, "");
+        expect(result).toEqual({ message: progress, text: "answer complete" });
+    });
+
+    it("reports an empty result when the stream contains only hidden thinking", async () => {
+        const callbacks = createCallbacks();
+        const result = await new MessageStreamer().sendStreamedMessage(
+            streamOf([{ response: "thinking", scope: "thinking", done: false }, { done: true }]),
+            "",
+            callbacks,
+            { initialMessage: fakeMessage(42), hiddenScope: "thinking" }
+        );
+
+        expect(result).toBeNull();
+        expect(callbacks.sendText).not.toHaveBeenCalled();
+        expect(callbacks.editText).not.toHaveBeenCalled();
+    });
+
     it("edits the message in place once the window fills, without truncating the buffer", async () => {
         const streamer = new MessageStreamer();
         const callbacks = createCallbacks();

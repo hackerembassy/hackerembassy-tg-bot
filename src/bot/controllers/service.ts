@@ -122,10 +122,14 @@ export default class ServiceController implements BotController {
             logger.error(error);
         }
 
-        await bot.editMessageTextExt(t("service.tldr.failed"), progress, {
-            chat_id: progress.chat.id,
-            message_id: progress.message_id,
-        });
+        try {
+            await bot.editMessageTextExt(t("service.tldr.failed"), progress, {
+                chat_id: progress.chat.id,
+                message_id: progress.message_id,
+            });
+        } catch (error) {
+            logger.error(error);
+        }
         return null;
     }
 

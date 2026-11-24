@@ -113,7 +113,10 @@ export default class MessageStreamer {
                 }
             }
 
-            return lastMessage && fullText.trim() ? { message: lastMessage, text: fullText } : null;
+            // With a hidden scope, an all-hidden stream leaves nothing to show, so report it as empty
+            const hasContent = options.hiddenScope ? !!fullText.trim() : true;
+
+            return lastMessage && hasContent ? { message: lastMessage, text: fullText } : null;
         } catch (error) {
             if (error instanceof MessageStreamingError) {
                 throw error;

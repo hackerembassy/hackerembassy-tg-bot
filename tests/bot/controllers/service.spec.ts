@@ -3,6 +3,7 @@ import config from "config";
 import { BotConfig } from "@config";
 import { TEST_USERS } from "@data/seed";
 import ServiceController from "@hackembot/controllers/service";
+import { openwebui } from "@services/neural/openwebui";
 
 import { createMockBot, createMockMessage } from "../../mocks/bot";
 
@@ -66,6 +67,48 @@ describe("Bot Service commands:", () => {
         }
 
         expect(mockBot.popResults()).toEqual(tokens.map(() => "service\\.tldr\\.empty"));
+    });
+
+    test("/tldr replaces its progress message with the answer, hiding thinking", async () => {
+        const msg = createMockMessage("/tldr today", TEST_USERS.admin, Date.now(), TLDR_CHAT_ID).message!;
+        const history = jest
+            .spyOn(mockBot.messageHistory, "getInRange")
+            .mockReturnValue([{ messageId: 10, datetime: Date.now(), text: "A discussion", from: "Alice" }]);
+        const request = jest.spyOn(openwebui, "generateOpenAiStream").mockImplementation(() =>
+            Promise.resolve(
+                (async function* () {
+                    yield await Promise.resolve({ response: "private thoughts", scope: "thinking", done: false });
+                    yield { response: "The summary", done: false };
+                    yield { done: true };
+                })()
+            )
+        );
+        const typing = jest.spyOn(mockBot, "sendChatAction").mockResolvedValue(true);
+
+        try {
+            await ServiceController.tldrHandler(mockBot, msg, "today");
+            expect(mockBot.popResults()).toEqual(["service\\.tldr\\.progress", "The summary", "The summary"]);
+        } finally {
+            history.mockRestore();
+            request.mockRestore();
+            typing.mockRestore();
+        }
+    });
+
+    test("/tldr replaces progress with a failure status if the request fails", async () => {
+        const msg = createMockMessage("/tldr today", TEST_USERS.admin, Date.now(), TLDR_CHAT_ID).message!;
+        const history = jest
+            .spyOn(mockBot.messageHistory, "getInRange")
+            .mockReturnValue([{ messageId: 10, datetime: Date.now(), text: "A discussion", from: "Alice" }]);
+        const request = jest.spyOn(openwebui, "generateOpenAiStream").mockRejectedValue(new Error("unavailable"));
+
+        try {
+            await ServiceController.tldrHandler(mockBot, msg, "today");
+            expect(mockBot.popResults()).toEqual(["service\\.tldr\\.progress", "service\\.tldr\\.failed"]);
+        } finally {
+            history.mockRestore();
+            request.mockRestore();
+        }
     });
 
     test("/digest is restricted for guests", async () => {

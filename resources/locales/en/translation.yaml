@@ -705,6 +705,8 @@ service:
         replaced: |
             🔄 Use #`{{replacement}}#` instead
     tldr:
+        progress: ⏳ Summarizing…
+        failed: ⚠️ Could not generate a summary
         prompt: |
             These are messages from a chat in a messenger. Mention main topics discussed by people and who was talking about them, provide a summary if needed
         help: |

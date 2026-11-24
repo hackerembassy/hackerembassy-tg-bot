@@ -1,7 +1,7 @@
 import { Message } from "node-telegram-bot-api";
 
 import logger from "@services/common/logger";
-import { DeltaStream } from "@services/neural/openwebui";
+import { DeltaObject, DeltaStream } from "@services/neural/openwebui";
 
 import { chunkSubstr } from "@utils/text";
 
@@ -18,6 +18,11 @@ export interface MessageStreamCallbacks {
     editText: (text: string, target: Message, parseMode: "GFM" | "") => Promise<boolean | Message>;
 }
 
+export interface MessageStreamOptions {
+    initialMessage?: Message;
+    hiddenScope?: string;
+}
+
 // Streams AI responses by editing one message in place as chunks arrive, splitting into
 // additional messages only once the streamed content grows past MAX_MESSAGE_LENGTH. Kept
 // separate from HackerEmbassyBot since it's only relevant to AI/streaming callers and has none
@@ -26,22 +31,29 @@ export default class MessageStreamer {
     public async sendStreamedMessage(
         stream: DeltaStream,
         parseMode: "GFM" | "",
-        callbacks: MessageStreamCallbacks
+        callbacks: MessageStreamCallbacks,
+        options: MessageStreamOptions = {}
     ): Promise<Nullable<{ message: Message; text: string }>> {
         callbacks.onTyping();
 
-        let messageToEdit: Nullable<Message> = null;
-        let lastMessage: Nullable<Message> = null;
+        let messageToEdit: Nullable<Message> = options.initialMessage ?? null;
+        let lastMessage: Nullable<Message> = options.initialMessage ?? null;
+        let initialMessagePending = !!options.initialMessage;
         let buffer = "";
         let fullText = "";
         let window = 0;
         let currentScope: string | null = null;
 
         try {
-            for await (const chunk of stream) {
+            for await (const incomingChunk of stream) {
+                const chunk: DeltaObject =
+                    incomingChunk.scope === options.hiddenScope && options.hiddenScope
+                        ? { done: incomingChunk.done, error: incomingChunk.error }
+                        : incomingChunk;
                 if (chunk.error) {
                     throw new MessageStreamingError(chunk.error);
                 }
+                if (incomingChunk.scope === options.hiddenScope && options.hiddenScope && !chunk.done) continue;
 
                 const scopeTransition = this.resolveScopeTransition(chunk.scope, currentScope);
                 currentScope = scopeTransition.currentScope;
@@ -63,7 +75,7 @@ export default class MessageStreamer {
                         callbacks.sendText(buffer, pm)
                     );
                     lastMessage = messageToEdit;
-                } else if (chunk.done || window >= MAX_STREAMING_WINDOW) {
+                } else if (initialMessagePending || chunk.done || window >= MAX_STREAMING_WINDOW) {
                     // A length-driven cut can (and for long code-bearing replies, will) sever an open
                     // "**bold" or an unclosed code fence if done at an arbitrary character offset - so it's
                     // aligned to the last newline within budget instead, via the same chunkSubstr used for
@@ -84,6 +96,7 @@ export default class MessageStreamer {
                     await this.withPlainTextFallback(chunk.done || overLength ? parseMode : "", pm =>
                         callbacks.editText(closedSegment, editTarget, pm)
                     );
+                    initialMessagePending = false;
 
                     if (chunk.done) {
                         for (const trailingSegment of rest) {
@@ -100,7 +113,7 @@ export default class MessageStreamer {
                 }
             }
 
-            return lastMessage ? { message: lastMessage, text: fullText } : null;
+            return lastMessage && fullText.trim() ? { message: lastMessage, text: fullText } : null;
         } catch (error) {
             if (error instanceof MessageStreamingError) {
                 throw error;

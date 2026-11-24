@@ -104,12 +104,29 @@ export default class ServiceController implements BotController {
             if (message.text) prompt += `${message.from}: ${message.text}\n`;
         }
 
-        return bot.sendStreamedMessage(
-            msg.chat.id,
-            await openwebui.generateOpenAiStream(prompt, undefined, botConfig.history.summaryModel),
-            msg,
-            { parse_mode: "GFM" }
-        );
+        const progress = await bot.sendMessageExt(msg.chat.id, t("service.tldr.progress"), msg, {
+            reply_parameters: { message_id: msg.message_id },
+        });
+        if (!progress) return null;
+
+        try {
+            const result = await bot.sendStreamedMessage(
+                msg.chat.id,
+                await openwebui.generateOpenAiStream(prompt, undefined, botConfig.history.summaryModel),
+                msg,
+                { parse_mode: "GFM" },
+                { initialMessage: progress, hiddenScope: "thinking" }
+            );
+            if (result) return result;
+        } catch (error) {
+            logger.error(error);
+        }
+
+        await bot.editMessageTextExt(t("service.tldr.failed"), progress, {
+            chat_id: progress.chat.id,
+            message_id: progress.message_id,
+        });
+        return null;
     }
 
     @Route(["digest"])
